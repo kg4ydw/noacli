@@ -1,0 +1,85 @@
+async shell
+noacli -- no ampersand
+sash steves asynchronous shell
+
+
+
+main window is a dynamic one line editor
+scrollable history?
+remember frequent commands -- right click or pull down menu
+configurable buttons for frequent commands and redo last command
+complex commands are sent to bash 
+
+short output commands -- display last line in editor/launcher
+
+
+terminal
+scrolly window
+graphical window -- merged logs?
+merged log viewer
+table parser window
+iconified -- status from proc
+special -- parsed status
+  pie chart for percentages / apt interaction
+ephemeral -- autoclose
+
+scrolly window
+  view / follow a log file
+  take input from a pipe but keep only last X lines?
+  start from top / follow tail
+  rerun button 
+  kill button
+  autoclose after exit on specified timeout without user interaction
+  search / filter ?
+  reopen in less?
+
+
+log
+   saves to a log, either file or short memory buffer
+   buffer size = bytes and/or time or lines
+   log format:
+     START $pid command
+     $pid output line
+     EXIT $pid $exitval wait stats...
+   view full or filtered log
+
+status icon? from logged job?
+
+simple output window
+  for commands that output a small amount and exit in a short time
+  rerun / close / clone / save
+  pulldown: run this command with mode <> next time
+  pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
+
+log mode
+  show icon initially (icon window? status bar?)
+  open icon 
+    process status 
+    kill
+    log view
+    close --> icon
+    detach / hide
+
+table
+  options: --delimiter
+  select lines, cells, columns, send back to editor
+  show / hide / rearrange columns
+  sort by column
+
+built in commands
+  terminal (--set-default) 
+  scrolly
+  log
+  simple --shared (default)
+  simple --dedicated
+  simple --clone
+  table
+  parse / display (pie?)
+  cd / pushd / popd ??
+  set environment / set from command output (modules)
+  set command category (above list, default)
+  host (similar to cd) --> send commands to ssh
+
+predefined list of commands and types?
+autodetect by output size and runtime
+handle .desktop files, prepopulate graphical applications from those
