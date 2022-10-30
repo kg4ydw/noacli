@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QtTail</class>
+ <widget class="QMainWindow" name="QtTail">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>719</width>
+    <height>507</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetDefaultConstraint</enum>
+      </property>
+      <item>
+       <widget class="QCheckBox" name="followCheck">
+        <property name="text">
+         <string>Follow</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="wrapCheck">
+        <property name="text">
+         <string>Wrap</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="reloadButton">
+        <property name="text">
+         <string>Reload</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Search:</string>
+        </property>
+        <property name="buddy">
+         <cstring>searchTerm</cstring>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="searchTerm">
+        <property name="clearButtonEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QTextBrowser" name="textBrowser">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>1</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>100</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>719</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionAdjust"/>
+   </widget>
+   <addaction name="menuView"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionAdjust">
+   <property name="text">
+    <string>Adjust</string>
+   </property>
+   <property name="toolTip">
+    <string>Adjust size</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>searchTerm</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>QtTail</receiver>
+   <slot>simpleFind(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>330</x>
+     <y>36</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>299</x>
+     <y>19</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>reloadButton</sender>
+   <signal>clicked()</signal>
+   <receiver>QtTail</receiver>
+   <slot>reload()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>152</x>
+     <y>33</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>139</x>
+     <y>17</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>wrapCheck</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>QtTail</receiver>
+   <slot>wrapChanged(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>97</x>
+     <y>35</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>72</x>
+     <y>18</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchTerm</sender>
+   <signal>returnPressed()</signal>
+   <receiver>QtTail</receiver>
+   <slot>simpleFind2()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>399</x>
+     <y>33</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>426</x>
+     <y>21</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionAdjust</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>actionAdjust()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>simpleFind(QString)</slot>
+  <slot>readtext()</slot>
+  <slot>reload()</slot>
+  <slot>wrapChanged(int)</slot>
+  <slot>simpleFind2()</slot>
+  <slot>actionAdjust()</slot>
+ </slots>
+</ui>

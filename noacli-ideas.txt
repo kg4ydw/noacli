@@ -2,84 +2,130 @@ async shell
 noacli -- no ampersand
 sash steves asynchronous shell
 
+o = started, partial implementation
+* = done
+! = next
+
+  main window is a dynamic one line editor
+  scrollable history?
+  remember frequent commands -- right click or pull down menu
+  configurable buttons for frequent commands and redo last command
+  complex commands are sent to bash
+
+  short output commands -- display last line in editor/launcher
 
 
-main window is a dynamic one line editor
-scrollable history?
-remember frequent commands -- right click or pull down menu
-configurable buttons for frequent commands and redo last command
-complex commands are sent to bash 
+  terminal
+  scrolly window
+  graphical window -- merged logs?
+  merged log viewer
+  table parser window
+  iconified -- status from proc
+  special -- parsed status
+    pie chart for percentages / apt interaction
+  ephemeral -- autoclose
 
-short output commands -- display last line in editor/launcher
+o scrolly window
+*   view / follow a log file
+!   take input from a pipe
+*   keep only last X lines?
+    in a file, button to backscroll to previous lines
+*   start from top / follow tail
+o   rerun button
+o     if file --> reload
+      if running command -> kill
+      if done command -> rerun
+      if open stdin -> stop (close)
+      if closed -> close window
+    kill button
+    autoclose after exit on specified timeout without user interaction
+*   search / filter ?
+    search context menu
+o     find next
+      find previous
+      advanced --> find dialog
+    menu bar
+      file
+        open: new / command / reopen/refresh / rerun / reopen file in other app
+        save as
+        buffering: tail [size] / all
+	preferences (edit all optoins)
+      format/view -- plain text html markdown (fixed width font?)
+o     memory saver (limit scrollback to 1M / 1000 lines by default)
+      find menu
+        advanced --> find dialog
+        wrap?
+        bookmarks
+      find dialog
+        buttons: next prev hilight/unhilight
+        regex / glob / plain ?
+        ignore case
+        mark scrollbar with finds (set color for multiple finds?)
+        save search & color as preset
+        trigger sets of presets based on command name
+        run command on current selection?
+    text body context menu
+      change format (reloads text)
+      transform selection to table
+      adjustSize() --> autoresize window?
+    command line options / open menu (menu bar)
+      source from stdin
+      file
+      command --> edit command in menu?
 
 
-terminal
-scrolly window
-graphical window -- merged logs?
-merged log viewer
-table parser window
-iconified -- status from proc
-special -- parsed status
-  pie chart for percentages / apt interaction
-ephemeral -- autoclose
-
-scrolly window
-  view / follow a log file
-  take input from a pipe but keep only last X lines?
-  start from top / follow tail
-  rerun button 
-  kill button
-  autoclose after exit on specified timeout without user interaction
-  search / filter ?
-  reopen in less?
-
-
-log
-   saves to a log, either file or short memory buffer
-   buffer size = bytes and/or time or lines
-   log format:
-     START $pid command
-     $pid output line
-     EXIT $pid $exitval wait stats...
-   view full or filtered log
-
-status icon? from logged job?
-
-simple output window
-  for commands that output a small amount and exit in a short time
-  rerun / close / clone / save
-  pulldown: run this command with mode <> next time
-  pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
-
-log mode
-  show icon initially (icon window? status bar?)
-  open icon 
-    process status 
-    kill
-    log view
-    close --> icon
-    detach / hide
-
-table
-  options: --delimiter
-  select lines, cells, columns, send back to editor
-  show / hide / rearrange columns
-  sort by column
-
-built in commands
-  terminal (--set-default) 
-  scrolly
   log
-  simple --shared (default)
-  simple --dedicated
-  simple --clone
-  table
-  parse / display (pie?)
-  cd / pushd / popd ??
-  set environment / set from command output (modules)
-  set command category (above list, default)
-  host (similar to cd) --> send commands to ssh
+     saves to a log, either file or short memory buffer
+     buffer size = bytes and/or time or lines
+     log format:
+       START $pid command
+       $pid output line
+       EXIT $pid $exitval wait stats...
+     view full or filtered log
 
-predefined list of commands and types?
-autodetect by output size and runtime
-handle .desktop files, prepopulate graphical applications from those
+  status icon? from logged job?
+
+  simple output window
+    for commands that output a small amount and exit in a short time
+    rerun / close / clone / save
+    pulldown: run this command with mode <> next time
+    pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
+
+  log mode
+    show icon initially (icon window? status bar?)
+    open icon
+      process status
+      kill
+      log view
+      close --> icon
+      detach / hide
+
+  table
+    options: --delimiter
+    select lines, cells, columns, send back to editor
+    show / hide / rearrange columns
+    sort by column
+
+  built in commands
+    terminal (--set-default)
+    scrolly
+    log
+    simple --shared (default)
+    simple --dedicated
+    simple --clone
+    table
+    parse / display (pie?)
+    cd / pushd / popd ??
+    set environment / set from command output (modules)
+    set command category (above list, default)
+    host (similar to cd) --> send commands to ssh
+
+  predefined list of commands and types?
+  autodetect by output size and runtime
+  handle .desktop files, prepopulate graphical applications from those
+
+  job control
+    list of child procs ( pid, type, command)
+    kill from pulldown?
+    open status icon
+    raise window (for some types)
