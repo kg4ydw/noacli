@@ -5,6 +5,10 @@ sash steves asynchronous shell
 o = started, partial implementation
 * = done
 ! = next
+E = buggy
+
+Bugs:
+* gets middle of file on /usr/dict/words without --whole
 
   main window is a dynamic one line editor
   scrollable history?
@@ -28,8 +32,9 @@ o = started, partial implementation
 o scrolly window
 *   view / follow a log file
 !   take input from a pipe
-*   keep only last X lines?
-    in a file, button to backscroll to previous lines
+E   keep only last X lines?
+    in a file, button to backscroll to previous lines or read more forward
+       large file handling, line number / fseek index
 *   start from top / follow tail
 o   rerun button
 o     if file --> reload

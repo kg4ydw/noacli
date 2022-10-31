@@ -4,7 +4,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QTextEdit, QSizePolicy
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption
+from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice
 from qtail_ui import Ui_QtTail
 from math import ceil
 
@@ -16,6 +16,7 @@ class myOptions():
         # note: maxLines*80 is close to tailFrag
         self.isCommand = False
         self.file = False
+        self.whole = False
         # whole file mode vs tail mode?  oneshot vs. follow?
         # alternate format options: html markdown fixed-font
 
@@ -32,6 +33,8 @@ class myOptions():
         parser.addOption(optTailFrag)
         optLines = QCommandLineOption(['n', 'lines'], 'keep the last NUM lines', 'NUM')
         parser.addOption(optLines)
+        optWhole = QCommandLineOption(['w','whole'], 'look at the whole file, not just the tail')
+        parser.addOption(optWhole)
         #XXX more options from tail
         # -f  : currently default always on
         # --retry
@@ -53,7 +56,9 @@ class myOptions():
         if tailFrag > 100: self.tailFrag = tailFrag
         try: lines = int(parser.value(optLines))
         except: lines = 0;
-        if lines>2: self.maxLines = lines
+        if parser.isSet(optLines): self.maxLines = lines
+        self.whole = parser.isSet(optWhole)
+        if self.whole: self.maxLines = 0
 
         self.args = parser.positionalArguments()
         return self.args
@@ -66,7 +71,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.textbody = self.ui.textBrowser
         self.findflags = 0  # QTextDocument::FindBackward FindCaseSensitively FindWholeWords
-        self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
+        if self.opt.maxLines>0:
+            self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
 
     @QtCore.pyqtSlot(str)
     def simpleFind(self, text):
@@ -91,7 +97,7 @@ class QtTail(QtWidgets.QMainWindow):
             e.insertText(t)
             if self.ui.followCheck.isChecked():
                 self.textbody.setTextCursor(e)
-
+            self.showsize()
 
     # @QtCore.pyqtSlot(str)
     def filechanged(self, path):
@@ -99,7 +105,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.readtext()
 
     def start(self):
-        self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
+        doc = self.textbody.document()
+        doc.setMaximumBlockCount(self.opt.maxLines)
         # XXX initialize other stuff?
 
     def showsize(self):
@@ -111,42 +118,49 @@ class QtTail(QtWidgets.QMainWindow):
         self.file = f
         f.open(QtCore.QFile.ReadOnly);
         self.textstream = QtCore.QTextStream(f)
+        self.opt.file = True
         self.reload();
-        #self.textbody.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum);
-        ### XXX don't do this always? put it on a button??
-        # doc = self.textbody.document()
-        # doc.documentLayout()
-        # doc.adjustSize()
-        # doc.setTextWidth(doc.idealWidth())
-        #### need to connect slot/event documentSizeCahnged -> document.setMaximum{Height,Width}
-        ## alternate
-        # implement sizeHint -> document.size() + decoration 
-        # call upateGeometry
         
         # follow the tail of the file
         self.watcher = QtCore.QFileSystemWatcher([filename])
         self.watcher.fileChanged.connect(self.filechanged)
-        self.textbody.textChanged.connect(self.showsize)
         self.endcursor = self.textbody.textCursor()
         self.endcursor.movePosition(QtGui.QTextCursor.End)
         self.textbody.setTextCursor(self.endcursor)
+
+    def openstdin(self):
+        f = QtCore.QFile()
+        self.file = f
+        f.open(0, QtCore.QFile.ReadOnly);
+        self.textstream = QtCore.QTextStream(f)
+        self.opt.file = False  #XXX sometimes this might be a file
+        print("stdin")
+        self.reload();
+        
+        # XXX set event handlers
+        self.file.readyRead.connect(self.readtext)
+        
 
     def sizeHint(self):
         return QSize(100,100)
     
     @QtCore.pyqtSlot()
     def reload(self):
-        # XXX back up 1M if we can
-        tailoff = self.opt.tailFrag
-        p = self.file.size()
-        if p > tailoff:
-            self.file.seek(p-tailoff)
-        else:
-            # just go to the start
-            self.file.seek(0)
-        self.textbody.clear()
+        if self.opt.file:
+            # back up 1M if we can (default)
+            tailoff = self.opt.tailFrag
+            # XXX whole is slow and eats memory if the file is too big!
+            if not self.opt.whole:
+                p = self.file.size()
+            if not self.opt.whole and p > tailoff:
+                self.file.seek(p-tailoff)
+            else:
+                # just go to the start
+                self.file.seek(0)
+            self.textbody.clear()
+        else: # not a file, can't seek
+            self.showsize()
         self.readtext()
-        self.showsize()
 
     @QtCore.pyqtSlot(int)
     def wrapChanged(self, state):
@@ -237,8 +251,7 @@ if __name__ == '__main__':
         # XXX handle multiple files later
         mainwin.openfile(args[0])
     else:
-        # STDIN
-        pass
+        mainwin.openstdin()
     
     app.exec_()
 
