@@ -225,6 +225,7 @@ class QtTail(QtWidgets.QMainWindow):
         
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
+    app.setWindowIcon(QtGui.QIcon("qtail.png"))
     # display
     #XXX QtCore.QCoreApplication.setOrganizationName("ssdApps");
     QtCore.QCoreApplication.setApplicationName("QtTail");
