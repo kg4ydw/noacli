@@ -1,12 +1,15 @@
-all: qtail_ui.py
+
+UI= qtail_ui.py noacli_ui.py
+SRCFILES=*.ui Makefile noacli-ideas.txt qtail.py qtail.png
+DISTFILES=$(SRCFILES) qtail_ui.py
+
+all: $(UI)
 
 %.py: %.ui
 	pyuic5 -o $@ $<
 
-SRCFILES=*.ui Makefile noacli-ideas.txt qtail.py qtail.png
-DISTFILES=$(SRCFILES) qtail_ui.py
-
 tar: noacli.tgz
+
 
 noacli.tgz: $(DISTFILES)
 	rm -f noacli.tgz

@@ -17,6 +17,7 @@ class myOptions():
         self.isCommand = False
         self.file = False
         self.whole = False
+        self.title = None
         # whole file mode vs tail mode?  oneshot vs. follow?
         # alternate format options: html markdown fixed-font
 
@@ -35,6 +36,8 @@ class myOptions():
         parser.addOption(optLines)
         optWhole = QCommandLineOption(['w','whole'], 'look at the whole file, not just the tail')
         parser.addOption(optWhole)
+        optTitle = QCommandLineOption(['t','title'], 'set window title if a filename is not supplied','title')
+        parser.addOption(optTitle)
         #XXX more options from tail
         # -f  : currently default always on
         # --retry
@@ -59,6 +62,9 @@ class myOptions():
         if parser.isSet(optLines): self.maxLines = lines
         self.whole = parser.isSet(optWhole)
         if self.whole: self.maxLines = 0
+        if parser.isSet(optTitle):
+            self.title = parser.value(optTitle)
+            print("title="+self.title)
 
         self.args = parser.positionalArguments()
         return self.args
@@ -119,6 +125,7 @@ class QtTail(QtWidgets.QMainWindow):
         f.open(QtCore.QFile.ReadOnly);
         self.textstream = QtCore.QTextStream(f)
         self.opt.file = True
+        self.setWindowTitle(filename) # XXX qtail prefix? strip path?
         self.reload();
         
         # follow the tail of the file
@@ -129,10 +136,18 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody.setTextCursor(self.endcursor)
 
     def openstdin(self):
+        # XXX this doesn't work with readyRead
         f = QtCore.QFile()
         self.file = f
         f.open(0, QtCore.QFile.ReadOnly);
         self.textstream = QtCore.QTextStream(f)
+
+        ## This should work according to docs but does not
+        ## f = QtCore.QTextStream(0, QIODeviceBase.ReadOnly)
+        #f = QtCore.QTextStream(sys.stdin)
+        #self.file = f
+        #self.textstream = f
+
         self.opt.file = False  #XXX sometimes this might be a file
         print("stdin")
         self.reload();
@@ -238,6 +253,8 @@ if __name__ == '__main__':
         exit(1)
 
     mainwin = QtTail(options)
+    if options.title: mainwin.setWindowTitle(options.title)
+    
     w = mainwin.ui
 
     mainwin.show()
