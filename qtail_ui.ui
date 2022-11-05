@@ -123,7 +123,7 @@
    <sender>searchTerm</sender>
    <signal>textChanged(QString)</signal>
    <receiver>QtTail</receiver>
-   <slot>simpleFind(QString)</slot>
+   <slot>simpleFindNew(QString)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>330</x>
@@ -207,5 +207,6 @@
   <slot>wrapChanged(int)</slot>
   <slot>simpleFind2()</slot>
   <slot>actionAdjust()</slot>
+  <slot>simpleFindNew(QString)</slot>
  </slots>
 </ui>

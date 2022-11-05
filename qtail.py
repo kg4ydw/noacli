@@ -18,6 +18,7 @@ class myOptions():
         self.file = False
         self.whole = False
         self.title = None
+        self.format = None # p=PlainText m=Markdown h=Html
         # whole file mode vs tail mode?  oneshot vs. follow?
         # alternate format options: html markdown fixed-font
 
@@ -38,6 +39,9 @@ class myOptions():
         parser.addOption(optWhole)
         optTitle = QCommandLineOption(['t','title'], 'set window title if a filename is not supplied','title')
         parser.addOption(optTitle)
+        optFormat = QCommandLineOption(['format'], 'Pick a format (plaintext html)', 'format') # XX markdown doesn't work
+        parser.addOption(optFormat)
+        
         #XXX more options from tail
         # -f  : currently default always on
         # --retry
@@ -65,6 +69,11 @@ class myOptions():
         if parser.isSet(optTitle):
             self.title = parser.value(optTitle)
             print("title="+self.title)
+        if parser.isSet(optFormat):
+            f = str(parser.value(optFormat))[0].lower()
+            if f=='m': self.format='m'
+            elif f=='h': self.format='h'
+            else: self.format = None
 
         self.args = parser.positionalArguments()
         return self.args
@@ -77,16 +86,38 @@ class QtTail(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.textbody = self.ui.textBrowser
         self.findflags = 0  # QTextDocument::FindBackward FindCaseSensitively FindWholeWords
+        self.findcount = 0;
         if self.opt.maxLines>0:
             self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
 
     @QtCore.pyqtSlot(str)
     def simpleFind(self, text):
+        start = self.textbody.textCursor()
         success = self.textbody.find(text)
         if success:
-            self.statusBar().showMessage('found')
+            self.findcount += 1
+            self.statusBar().showMessage('Found '+str(self.findcount))
         else:
-            self.statusBar().showMessage('not found')
+            # try again
+            cursor = self.textbody.textCursor()
+            cursor.movePosition(QtGui.QTextCursor.Start)
+            self.textbody.setTextCursor(cursor)
+            success = self.textbody.find(text)
+            if success:
+                if self.findcount:
+                    m = 'Wrapped after '+str(self.findcount)
+                else:
+                    m = 'Wrapped'
+                self.statusBar().showMessage(m)
+                self.findcount = 1;
+            else:
+                self.textbody.setTextCursor(start)
+                self.statusBar().showMessage('Not found')
+
+    @QtCore.pyqtSlot(str)
+    def simpleFindNew(self, text):
+        self.findcount = 0
+        self.simpleFind(text)
 
     @QtCore.pyqtSlot()
     def simpleFind2(self):
@@ -100,7 +131,9 @@ class QtTail(QtWidgets.QMainWindow):
             #self.endcursor.insertText(t)
             e = self.textbody.textCursor()
             e.movePosition(QtGui.QTextCursor.End)
-            e.insertText(t)
+            if self.opt.format=='h':  e.insertHtml(t)
+            #WTF# elif self.opt.format=='m': e.insertMarkdown(t)
+            else: e.insertText(t)
             if self.ui.followCheck.isChecked():
                 self.textbody.setTextCursor(e)
             self.showsize()

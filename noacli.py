@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor
@@ -11,8 +12,12 @@ from simpleTable import simpleTable
 # initialize, load, hold, and save various global settings
 class settings():
     def __init__(self):
-        # create skelectons of settings
-        self.history = []
+        # create skelectons of settings and read previous or set defaults
+        qset = Qsettings
+
+        #self.history = []
+        self.readHistory()
+        # 
         self.buttons = [ ]
         self.buttonModel = simpleTable(self.buttons, [  'command', 'button', 'immediate' ])
         # XXX populate environment from real environment
@@ -22,37 +27,48 @@ class settings():
         # job manager needs a special class
         ## [ pid? , type, command, status // kill raise info rerun
 
+    def readHistory(self):
+        # simple history data model for now, add frequency later
+        # [ exitval, command ]
+        try:
+            fname = os.environ.get('HOME') +'/'
+        except:
+            fname= ''
+        fname += '.noacli_history'
+
+        try:
+            file hfile = open(fname, 'r')
+        except:
+            self.history=[]
+            return
+        
+        
+        
+
 class noacli(QtWidgets.QMainWindow):
     def __init__(self, settings):
         super(noacli,self).__init__()
         self.ui = Ui_noacli()
         self.ui.setupUi(self)
         self.settings = settings
-        
+        self.historypos = 1;
+       
         # hide all the docks by default XXX unless set in settings?
         ui=self.ui
-        self.hideAllDocs()
+        #self.hideAllDocs()
         # XXX show buttons by default?
-
-        # create the view menu
-        ## doesn't work
-        #ui.viewMenu = QtWidgets.QMenu(self.menubar)
-        #ui.viewMenu = self.createPopupMenu()
-        #ui.viewMenu.setObjectName("viewMenu")
-        # XXX doesn't work
-        #ui.menubar.addAction(ui.viewMenu.menuAction())
 
         # populate the view menu (is there a more automatic way?)
         ui.menuViews.addAction(ui.history.toggleViewAction())
         ui.menuViews.addAction(ui.jobManager.toggleViewAction())
         ui.menuViews.addAction(ui.buttons.toggleViewAction())
-        ui.menuViews.addAction(ui.buttoneditor.toggleViewAction())
-        ui.menuViews.addAction(ui.environment.toggleViewAction())
+
+        # convert all the docs to tabs XXX preferences?
+        self.tabifyDockWidget( ui.buttons,ui.jobManager)
+        self.tabifyDockWidget( ui.jobManager, ui.history)
 
         # attach the data models to the views
-        # XXX ui.historyListView.setModel(historyModel)
-        ui.buttonTableView.setModel(settings.buttonModel)
-        ui.environmentTableView.setModel(settings.environmentModel)
+        # XXX ui.historyView.setModel(historyModel)
         # ui.jobTableView.setModel(settings.jobManagerModel)
 
     def start(self):
@@ -64,8 +80,6 @@ class noacli(QtWidgets.QMainWindow):
         ui = self.ui
         ui.history.setVisible(True)
         ui.buttons.setVisible(True)
-        ui.buttoneditor.setVisible(True)
-        ui.environment.setVisible(True)
         ui.jobManager.setVisible(True)
 
     @QtCore.pyqtSlot()
@@ -73,8 +87,6 @@ class noacli(QtWidgets.QMainWindow):
         ui = self.ui
         ui.history.setVisible(False)
         ui.buttons.setVisible(False)
-        ui.buttoneditor.setVisible(False)
-        ui.environment.setVisible(False)
         ui.jobManager.setVisible(False)
 
 if __name__ == '__main__':

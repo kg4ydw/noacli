@@ -1,6 +1,6 @@
 
 UI= qtail_ui.py noacli_ui.py
-SRCFILES=*.ui Makefile noacli-ideas.txt qtail.py qtail.png
+SRCFILES=$(shell git ls-files | grep -v gitignore)
 DISTFILES=$(SRCFILES) qtail_ui.py
 
 all: $(UI)

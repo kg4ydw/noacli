@@ -2,27 +2,96 @@ async shell
 noacli -- no ampersand
 sash steves asynchronous shell
 
-o = started, partial implementation
-* = done
-! = next
-E = buggy
+o  started, partial implementation
+*  done
+!/ next
+E  buggy
+-  gui implelemented, no code
+x  not supported in Qt
 
 Bugs:
 * gets middle of file on /usr/dict/words without --whole
+* need to set title of qtail window to filename if available
+? what to do with stderr? always log?
+x Qt doesn't support pipes
 
-  main window is a dynamic one line editor
-  scrollable history?
-  remember frequent commands -- right click or pull down menu
-  configurable buttons for frequent commands and redo last command
-  complex commands are sent to bash
+
+! main window is a dynamic one line editor
+!   complex commands are sent to bash
+    Qsettings
+       save/restore geometry (QWidget)
+         save multiple profiles
+       save history?
+       save env changes?
+    docks* and +dialogs?  (%hash @array)
+      dock: QT data structure is persistent and master
+      dialog: build a table on the fly and save changes
+-      *@ history 
+-      *% button bar
+ 	    right click: dump in editor
+	    draggable gridview ??
+-      *? job manager
+       !@ favorites editor (buttons and frequent)
+       !% environment var editor
+       !% settings editor
+       !% command default mode editor
+            table: command mode
+	    mode: qtail log terminal graph (default: pulldown)
+    history with arrow keys
+    history search with ctrl-s ctrl-r and !?
+    history with pull down menu (last 10)
+    history manager dialog
+      table: index frequency exitval command button-name checkbox:edit/run
+      editable table --> double click to edit in main window
+      exit value: none if never run; color green/red/grey
+      allow re-edits of unrun entries
+      sortable table (by col)
+      search box --> filter
+    remember 10 most frequent commands in pull down menu
+    button editor ("favorites")
+      lists current buttons
+      includes frequent history (sort by freq, cmd [hindex] )
+      mark edited lines and save? or just mark to keep or expire
+      table: name count command checkImmediate keyshortcut
+      context menu: delete, duplicate?, run?
+      buttons: apply prune
+
+    history context menu
+      (single click copies to edit window, double click runs)
+      add to favorites
+      edit favorite --> favorite dialog box with entry selected?
+      delete
+      mark commands in favorites?
+      mark frequent commands?
+    job list
+      pull down menu: pid name status
+      manager table: pid type command kill raise? info rerun
+      open status icon
+      proc/wait info
+      dead jobs?
+      change default type
+!   settings
+      table: name default tooltip currentval
+      items
+!	historysize
+	historyfile
+	recent menu size
+	frequent menu size
+	frequents size
+	external shell
+	graphical terminal
+      environment vars?
+        inherit for subprocs (active)
+	inherited / modified
+ 	save / session
 
   short output commands -- display last line in editor/launcher
 
 
   terminal
-  scrolly window
-  graphical window -- merged logs?
-  merged log viewer
+o scrolly window
+! graphical window -- merged logs?
+! merged log viewer
   table parser window
   iconified -- status from proc
   special -- parsed status
@@ -31,8 +100,9 @@ Bugs:
 
 o scrolly window
 *   view / follow a log file
-!   take input from a pipe
+*   take input from a pipe
 E   keep only last X lines?
+o   autoresize (need trigger event)
     in a file, button to backscroll to previous lines or read more forward
        large file handling, line number / fseek index
 *   start from top / follow tail
@@ -40,8 +110,8 @@ o   rerun button
 o     if file --> reload
       if running command -> kill
       if done command -> rerun
-      if open stdin -> stop (close)
-      if closed -> close window
+/     if open stdin -> stop (close)
+/     if closed -> close window
     kill button
     autoclose after exit on specified timeout without user interaction
 *   search / filter ?
@@ -54,34 +124,34 @@ o     find next
         open: new / command / reopen/refresh / rerun / reopen file in other app
         save as
         buffering: tail [size] / all
-	preferences (edit all optoins)
-      format/view -- plain text html markdown (fixed width font?)
+	preferences (edit all options)
+*x*     format/view -- plain text html markdown (fixed width font?)
 o     memory saver (limit scrollback to 1M / 1000 lines by default)
       find menu
         advanced --> find dialog
-        wrap?
+*       wrap?
         bookmarks
       find dialog
         buttons: next prev hilight/unhilight
         regex / glob / plain ?
-        ignore case
-        mark scrollbar with finds (set color for multiple finds?)
-        save search & color as preset
-        trigger sets of presets based on command name
-        run command on current selection?
+o       ignore case (default only for now)
+x       mark scrollbar with finds (set color for multiple finds?)
+x       save search & color as preset
+x       trigger sets of presets based on command name
+x       run command on current selection?
     text body context menu
       change format (reloads text)
       transform selection to table
-      adjustSize() --> autoresize window?
+o     adjustSize() --> autoresize window?
     command line options / open menu (menu bar)
-      source from stdin
-      file
-      command --> edit command in menu?
+*     source from stdin
+*     file
+!     command --> edit command in menu?
 
 
   log
-     saves to a log, either file or short memory buffer
-     buffer size = bytes and/or time or lines
+!    saves to a log, either file or short memory buffer
+!    buffer size = bytes and/or time or lines
      log format:
        START $pid command
        $pid output line
@@ -112,25 +182,21 @@ o     memory saver (limit scrollback to 1M / 1000 lines by default)
     sort by column
 
   built in commands
-    terminal (--set-default)
-    scrolly
-    log
+!   terminal (--set-default)
+*   scrolly
+!   log
     simple --shared (default)
     simple --dedicated
     simple --clone
     table
     parse / display (pie?)
-    cd / pushd / popd ??
-    set environment / set from command output (modules)
+!   cd / pushd / popd ??
+!   set environment / set from command output (modules)
     set command category (above list, default)
+    name completion
+
     host (similar to cd) --> send commands to ssh
 
   predefined list of commands and types?
   autodetect by output size and runtime
   handle .desktop files, prepopulate graphical applications from those
-
-  job control
-    list of child procs ( pid, type, command)
-    kill from pulldown?
-    open status icon
-    raise window (for some types)
