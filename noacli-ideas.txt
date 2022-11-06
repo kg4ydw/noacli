@@ -9,11 +9,13 @@ E  buggy
 -  gui implelemented, no code
 x  not supported in Qt
 
+
 Bugs:
 * gets middle of file on /usr/dict/words without --whole
 * need to set title of qtail window to filename if available
 ? what to do with stderr? always log?
 x Qt doesn't support pipes
+* Not finding icons when not in source dir
 
 
 ! main window is a dynamic one line editor
@@ -21,15 +23,16 @@ x Qt doesn't support pipes
     Qsettings
        save/restore geometry (QWidget)
          save multiple profiles
-       save history?
+/      save history?
        save env changes?
     docks* and +dialogs?  (%hash @array)
       dock: QT data structure is persistent and master
       dialog: build a table on the fly and save changes
--      *@ history 
+o      *@ history
 -      *% button bar
  	    right click: dump in editor
 	    draggable gridview ??
+	    reimplement compact button bar GUI and make its own checkbox
 -      *? job manager
        !@ favorites editor (buttons and frequent)
        !% environment var editor
@@ -37,16 +40,18 @@ x Qt doesn't support pipes
        !% command default mode editor
             table: command mode
 	    mode: qtail log terminal graph (default: pulldown)
-    history with arrow keys
+*   history with arrow keys
     history search with ctrl-s ctrl-r and !?
     history with pull down menu (last 10)
-    history manager dialog
-      table: index frequency exitval command button-name checkbox:edit/run
-      editable table --> double click to edit in main window
-      exit value: none if never run; color green/red/grey
-      allow re-edits of unrun entries
-      sortable table (by col)
-      search box --> filter
+    history manager
+o     table: index frequency exitval command button-name checkbox:edit/run
+*     editable table --> double click to edit in main window
+o     exit value: none if never run; color green/red/grey
+*     allow re-edits of unrun entries
+*     sortable table (by col)
+*     search box --> filter
+      sort: history order (col=-1)
+      context menu
     remember 10 most frequent commands in pull down menu
     button editor ("favorites")
       lists current buttons
@@ -57,7 +62,7 @@ x Qt doesn't support pipes
       buttons: apply prune
 
     history context menu
-      (single click copies to edit window, double click runs)
+/     (single click copies to edit window, double click runs)
       add to favorites
       edit favorite --> favorite dialog box with entry selected?
       delete
@@ -100,9 +105,9 @@ o scrolly window
 
 o scrolly window
 *   view / follow a log file
-*   take input from a pipe
+E   take input from a pipe
 E   keep only last X lines?
-o   autoresize (need trigger event)
+ox  autoresize (need trigger event)
     in a file, button to backscroll to previous lines or read more forward
        large file handling, line number / fseek index
 *   start from top / follow tail
@@ -124,9 +129,8 @@ o     find next
         open: new / command / reopen/refresh / rerun / reopen file in other app
         save as
         buffering: tail [size] / all
-	preferences (edit all options)
 *x*     format/view -- plain text html markdown (fixed width font?)
-o     memory saver (limit scrollback to 1M / 1000 lines by default)
+o     memory saver (limit scrollback to 1M / 10000 lines by default)
       find menu
         advanced --> find dialog
 *       wrap?

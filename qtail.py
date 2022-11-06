@@ -245,18 +245,17 @@ class QtTail(QtWidgets.QMainWindow):
         rect= self.size()
         framedx = rect.width() - docrect.width()
         framedy = rect.height() - docrect.height()
-        print("ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth()))
+        #print("ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth()))
         doc.adjustSize()
-        print(" ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth()))
-        print(' page='+str(doc.pageSize()))
+        #print(" ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth()))
         newsize = doc.size()
-        print(' docsize='+str(newsize))
+        #print(' docsize='+str(newsize))
         lay = self.textbody.document().documentLayout()
         #Abstract# print(' max='+str(lay.maximumWidth())+' min='+str(lay.minimumWidth()))
         ## try to pick a decent size
         height = docrect.height()
         width = docrect.width()
-        print(' docsize='+str(width)+','+str(height))
+        #print(' docsize='+str(width)+','+str(height))
         if height > newsize.height():
             height = newsize.height()
         if width < newsize.width()*0.80:  # allow 20% growth
@@ -266,9 +265,9 @@ class QtTail(QtWidgets.QMainWindow):
         width += framedx
         if height > 50 and height < rect.height():
             height += 100   # guess at frame size
-            print('shrink height')
+            #print('shrink height')
         else: height = rect.height()  # don't resize
-        print(' newsize='+str(width)+','+str(height))
+        #print(' newsize='+str(width)+','+str(height))
         self.resize(ceil(width), ceil(height))
         
 if __name__ == '__main__':
@@ -305,6 +304,3 @@ if __name__ == '__main__':
         mainwin.openstdin()
     
     app.exec_()
-
-    
-    

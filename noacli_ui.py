@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_noacli(object):
     def setupUi(self, noacli):
         noacli.setObjectName("noacli")
-        noacli.resize(430, 239)
+        noacli.resize(430, 267)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap("noacli.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         noacli.setWindowIcon(icon)
@@ -22,7 +22,7 @@ class Ui_noacli(object):
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.plainTextEdit = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.plainTextEdit = commandEditor(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -53,10 +53,13 @@ class Ui_noacli(object):
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.historySearch = QtWidgets.QLineEdit(self.dockWidgetContents)
         self.historySearch.setFrame(True)
+        self.historySearch.setClearButtonEnabled(True)
         self.historySearch.setObjectName("historySearch")
         self.verticalLayout_2.addWidget(self.historySearch)
         self.historyView = QtWidgets.QTableView(self.dockWidgetContents)
+        self.historyView.setSortingEnabled(True)
         self.historyView.setObjectName("historyView")
+        self.historyView.horizontalHeader().setStretchLastSection(True)
         self.verticalLayout_2.addWidget(self.historyView)
         self.history.setWidget(self.dockWidgetContents)
         noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.history)
@@ -124,20 +127,22 @@ class Ui_noacli(object):
         self.actionJob_manager.setObjectName("actionJob_manager")
         self.actionlast = QtWidgets.QAction(noacli)
         self.actionlast.setObjectName("actionlast")
-        self.actionShowDocs = QtWidgets.QAction(noacli)
-        self.actionShowDocs.setObjectName("actionShowDocs")
-        self.actionHideDocs = QtWidgets.QAction(noacli)
-        self.actionHideDocs.setObjectName("actionHideDocs")
+        self.actionShowDocks = QtWidgets.QAction(noacli)
+        self.actionShowDocks.setObjectName("actionShowDocks")
+        self.actionHideDocks = QtWidgets.QAction(noacli)
+        self.actionHideDocks.setObjectName("actionHideDocks")
         self.historyMenu.addAction(self.actionlast)
-        self.menuViews.addAction(self.actionShowDocs)
-        self.menuViews.addAction(self.actionHideDocs)
+        self.menuViews.addAction(self.actionShowDocks)
+        self.menuViews.addAction(self.actionHideDocks)
         self.menuViews.addSeparator()
         self.menubar.addAction(self.historyMenu.menuAction())
         self.menubar.addAction(self.menuViews.menuAction())
 
         self.retranslateUi(noacli)
-        self.actionHideDocs.triggered.connect(noacli.hideAllDocs) # type: ignore
-        self.actionShowDocs.triggered.connect(noacli.showAllDocs) # type: ignore
+        self.actionHideDocks.triggered.connect(noacli.hideAllDocks) # type: ignore
+        self.actionShowDocks.triggered.connect(noacli.showAllDocks) # type: ignore
+        self.historyView.doubleClicked['QModelIndex'].connect(self.plainTextEdit.acceptHistory) # type: ignore
+        self.runCurrent.clicked.connect(self.plainTextEdit.runCommand) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -156,5 +161,6 @@ class Ui_noacli(object):
         self.actionButton_editor.setText(_translate("noacli", "Button editor"))
         self.actionJob_manager.setText(_translate("noacli", "Job manager"))
         self.actionlast.setText(_translate("noacli", "last command"))
-        self.actionShowDocs.setText(_translate("noacli", "Show all"))
-        self.actionHideDocs.setText(_translate("noacli", "Hide all"))
+        self.actionShowDocks.setText(_translate("noacli", "Show all"))
+        self.actionHideDocks.setText(_translate("noacli", "Hide all"))
+from noacli import commandEditor

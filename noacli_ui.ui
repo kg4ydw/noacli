@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>430</width>
-    <height>239</height>
+    <height>267</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <widget class="QPlainTextEdit" name="plainTextEdit">
+     <widget class="commandEditor" name="plainTextEdit">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -50,8 +50,8 @@
     <property name="title">
      <string>Views</string>
     </property>
-    <addaction name="actionShowDocs"/>
-    <addaction name="actionHideDocs"/>
+    <addaction name="actionShowDocks"/>
+    <addaction name="actionHideDocks"/>
     <addaction name="separator"/>
    </widget>
    <addaction name="historyMenu"/>
@@ -87,10 +87,20 @@
        <property name="placeholderText">
         <string>search history</string>
        </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item>
-      <widget class="QTableView" name="historyView"/>
+      <widget class="QTableView" name="historyView">
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -219,24 +229,35 @@
     <string>last command</string>
    </property>
   </action>
-  <action name="actionShowDocs">
+  <action name="actionShowDocks">
    <property name="text">
     <string>Show all</string>
    </property>
   </action>
-  <action name="actionHideDocs">
+  <action name="actionHideDocks">
    <property name="text">
     <string>Hide all</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>commandEditor</class>
+   <extends>QPlainTextEdit</extends>
+   <header>noacli</header>
+   <slots>
+    <slot>acceptHistory(QModelIndex)</slot>
+    <slot>runCommand()</slot>
+   </slots>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
-   <sender>actionHideDocs</sender>
+   <sender>actionHideDocks</sender>
    <signal>triggered()</signal>
    <receiver>noacli</receiver>
-   <slot>hideAllDocs()</slot>
+   <slot>hideAllDocks()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -249,10 +270,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionShowDocs</sender>
+   <sender>actionShowDocks</sender>
    <signal>triggered()</signal>
    <receiver>noacli</receiver>
-   <slot>showAllDocs()</slot>
+   <slot>showAllDocks()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -261,12 +282,44 @@
     <hint type="destinationlabel">
      <x>429</x>
      <y>238</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>historyView</sender>
+   <signal>doubleClicked(QModelIndex)</signal>
+   <receiver>plainTextEdit</receiver>
+   <slot>acceptHistory(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>52</x>
+     <y>93</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>75</x>
+     <y>235</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>runCurrent</sender>
+   <signal>clicked()</signal>
+   <receiver>plainTextEdit</receiver>
+   <slot>runCommand()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>179</x>
+     <y>101</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>179</x>
+     <y>201</y>
     </hint>
    </hints>
   </connection>
  </connections>
  <slots>
-  <slot>showAllDocs()</slot>
-  <slot>hideAllDocs()</slot>
+  <slot>showAllDocks()</slot>
+  <slot>hideAllDocks()</slot>
  </slots>
 </ui>
