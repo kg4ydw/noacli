@@ -10,36 +10,66 @@ E  buggy
 x  not supported in Qt
 
 
+Things to implement soon:
+! close stdin
+  qtail: connect process status to button
+  job: double click connect to send command to editor
+! job life cycle
+    connect to qtail window status
+    delete job if command is done and window is closed (timeout if no window?)
+  tables: implement vertical headers??
+    make corner button clickable to reset sort column to -1
+
+  command parser
+    prefix or suffix for output dest
+      stdout:stderr
+      > @qtail  2>@qtail
+      default qtail:log
+    handle |  --> tree
+    handle <
+    handle >
+
 Bugs:
 * gets middle of file on /usr/dict/words without --whole
-* need to set title of qtail window to filename if available
 ? what to do with stderr? always log?
-x Qt doesn't support pipes
 * Not finding icons when not in source dir
+FIXED Qt doesn't support pipes (test in non-linux)
+* history disconnect for old entry with running command
+  Traceback (most recent call last):
+    File "./noacli.py", line 90, in runCommand
+      j = jobItem(hist)
+    File "/home/ssd/src/noacli/datamodels.py", line 48, in __init__
+      self.setStatus('init')
+    File "/home/ssd/src/noacli/datamodels.py", line 70, in setStatus
+      self.history.model().setStatus(self.history,status)
+  AttributeError: 'QSortFilterProxyModel' object has no attribute 'setStatus'
+* history status mismatch: separate exit and state column?
 
 
-! main window is a dynamic one line editor
-!   complex commands are sent to bash
+Main features:
+  main window is a dynamic one line editor
+*   complex commands are sent to bash
+      detect complex commands
     Qsettings
        save/restore geometry (QWidget)
          save multiple profiles
-/      save history?
+/      save/restore history?
        save env changes?
     docks* and +dialogs?  (%hash @array)
       dock: QT data structure is persistent and master
       dialog: build a table on the fly and save changes
-o      *@ history
+E      *@ history
 -      *% button bar
  	    right click: dump in editor
 	    draggable gridview ??
 	    reimplement compact button bar GUI and make its own checkbox
--      *? job manager
+o      *? job manager
        !@ favorites editor (buttons and frequent)
        !% environment var editor
        !% settings editor
        !% command default mode editor
             table: command mode
-	    mode: qtail log terminal graph (default: pulldown)
+	    mode: qtail log terminal null local graph (default: pulldown)
 *   history with arrow keys
     history search with ctrl-s ctrl-r and !?
     history with pull down menu (last 10)
@@ -47,7 +77,7 @@ o      *@ history
 o     table: index frequency exitval command button-name checkbox:edit/run
 *     editable table --> double click to edit in main window
 o     exit value: none if never run; color green/red/grey
-*     allow re-edits of unrun entries
+o     allow re-edits of unrun entries, move to end of list
 *     sortable table (by col)
 *     search box --> filter
       sort: history order (col=-1)
@@ -68,13 +98,24 @@ o     exit value: none if never run; color green/red/grey
       delete
       mark commands in favorites?
       mark frequent commands?
-    job list
-      pull down menu: pid name status
-      manager table: pid type command kill raise? info rerun
+    job manager list
+o     manager table: pid type command kill raise? info rerun
+*     alternate: QProcess object, status, type, command
+      window status / type?
+!     click to redisplay / raise window (qtail)
+      context menu: info? kill restart clone
       open status icon
-      proc/wait info
-      dead jobs?
+*     proc/wait info
+!     delete dead jobs? (life cycle)
       change default type
+    job / process manager
+      handle stdout 
+        stderr channels separately
+	save to file
+      handle stdin:
+        send file 
+	pipe  (connect multiple commands, tree style jobs)
+!       close when not used
 !   settings
       table: name default tooltip currentval
       items
@@ -83,7 +124,7 @@ o     exit value: none if never run; color green/red/grey
 	recent menu size
 	frequent menu size
 	frequents size
-	external shell
+!	external shell
 	graphical terminal
       environment vars?
         inherit for subprocs (active)
@@ -94,8 +135,8 @@ o     exit value: none if never run; color green/red/grey
 
 
   terminal
-o scrolly window
-! graphical window -- merged logs?
+o qtail window
+  graphical window -- merged logs?
 ! merged log viewer
   table parser window
   iconified -- status from proc
@@ -105,19 +146,18 @@ o scrolly window
 
 o scrolly window
 *   view / follow a log file
-E   take input from a pipe
-E   keep only last X lines?
+*   take input from a pipe
+E   keep only last X lines? (initial input overload)
 ox  autoresize (need trigger event)
     in a file, button to backscroll to previous lines or read more forward
        large file handling, line number / fseek index
 *   start from top / follow tail
-o   rerun button
+o   reload button
 o     if file --> reload
-      if running command -> kill
-      if done command -> rerun
+!     if process / running command -> kill
+!     if done command -> rerun
 /     if open stdin -> stop (close)
 /     if closed -> close window
-    kill button
     autoclose after exit on specified timeout without user interaction
 *   search / filter ?
     search context menu
@@ -129,7 +169,9 @@ o     find next
         open: new / command / reopen/refresh / rerun / reopen file in other app
         save as
         buffering: tail [size] / all
-*x*     format/view -- plain text html markdown (fixed width font?)
+        format/view
+**x       plain text html markdown
+/         fixed width font
 o     memory saver (limit scrollback to 1M / 10000 lines by default)
       find menu
         advanced --> find dialog
@@ -200,6 +242,8 @@ o     adjustSize() --> autoresize window?
     name completion
 
     host (similar to cd) --> send commands to ssh
+       use remote stub?
+       pty password mode for sudo?
 
   predefined list of commands and types?
   autodetect by output size and runtime

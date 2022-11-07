@@ -57,6 +57,7 @@ class Ui_noacli(object):
         self.historySearch.setObjectName("historySearch")
         self.verticalLayout_2.addWidget(self.historySearch)
         self.historyView = QtWidgets.QTableView(self.dockWidgetContents)
+        self.historyView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.historyView.setSortingEnabled(True)
         self.historyView.setObjectName("historyView")
         self.historyView.horizontalHeader().setStretchLastSection(True)
@@ -103,13 +104,16 @@ class Ui_noacli(object):
         self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents_5)
         self.verticalLayout.setObjectName("verticalLayout")
         self.jobTableView = QtWidgets.QTableView(self.dockWidgetContents_5)
-        self.jobTableView.setEnabled(False)
+        self.jobTableView.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.jobTableView.sizePolicy().hasHeightForWidth())
         self.jobTableView.setSizePolicy(sizePolicy)
+        self.jobTableView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.jobTableView.setSortingEnabled(True)
         self.jobTableView.setObjectName("jobTableView")
+        self.jobTableView.horizontalHeader().setStretchLastSection(True)
         self.verticalLayout.addWidget(self.jobTableView)
         self.jobManager.setWidget(self.dockWidgetContents_5)
         noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.jobManager)
@@ -143,6 +147,7 @@ class Ui_noacli(object):
         self.actionShowDocks.triggered.connect(noacli.showAllDocks) # type: ignore
         self.historyView.doubleClicked['QModelIndex'].connect(self.plainTextEdit.acceptHistory) # type: ignore
         self.runCurrent.clicked.connect(self.plainTextEdit.runCommand) # type: ignore
+        self.plainTextEdit.command_to_run['QString','QModelIndex'].connect(noacli.runCommand) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):

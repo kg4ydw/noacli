@@ -4,7 +4,8 @@
 
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
 from PyQt5.QtWidgets import QTableView
-from PyQt5.QtCore import QModelIndex
+from PyQt5.QtCore import QModelIndex, QProcess
+from qtail import QtTail
 
 class simpleTable(QAbstractTableModel):
     def __init__(self,data, headers ):
@@ -40,6 +41,91 @@ class simpleTable(QAbstractTableModel):
     # resizable: removeRows addRows
     # other: addHistory 
 
+class jobItem():
+    def __init__(self, history):
+        print('create job') # XXXX
+        self.history = history
+        self.setStatus('init')
+        self.status = ''
+        self.fullstatus = None
+        self.process = QProcess()
+        self.process.errorOccurred.connect(self.collectError)
+        self.process.finished.connect(self.collectFinish)
+        self.process.started.connect(self.collectStarted)
+        self.process.stateChanged.connect(self.collectNewstate)
+        
+    # private slots
+    def collectError(self, err):
+        self.status += 'E'+str(err)+' '
+        self.setStatus(self.status)
+    def collectFinish(self, exitCode, estatus):
+        self.setStatus(self.status+'F'+str(exitCode)+':'+str(estatus))
+    def collectStarted(self):
+        self.setStatus('started')
+    def collectNewstate(self, state):
+        self.setStatus(self.status+str(state))
+
+    def setStatus(self, status):
+        self.fullstatus = status
+        self.history.model().setStatus(self.history,status)
+
+    # public interfaces
+    def command(self):
+        return self.history.model().getCommand(self.history)
+    def getStatus(self):
+        if self.fullstatus: return self.fullstatus
+        if self.status: return self.status
+        # make something up
+        return str(self.process.state())
+    
+    def start(self):
+        # XXX connect output to something
+        # for now, just merge stdout,stderr and send to qtail
+        self.process.setProcessChannelMode(QProcess.MergedChannels)
+        self.tail = QtTail()
+        self.tail.show()
+        self.tail.start()
+        # XXXX do more parsing and give this a real title
+        self.tail.openProcess('subprocess' , self.process)
+        print('start command: '+self.command()) # XXXX
+        self.process.start('bash', [ '-c', self.command() ])
+                   
+class jobTableModel(QAbstractTableModel):
+    def __init__(self):
+        QAbstractTableModel.__init__(self)
+        self.joblist = []
+        self.headers = [ 'pid', 'state', 'command']
+    # required functions rowCount columnCount data
+    def rowCount(self, parent):
+        return len(self.joblist)
+    def columnCount(self, parent):
+        return len(self.headers)
+    def data(self, index, role):
+        if not index.isValid():
+            return None;
+        if role==Qt.BackgroundRole: return None   # none implemented yet
+        row = index.row()
+        col = index.column()
+        if row < 0 or col<0 or row >= len(self.joblist) or col>2:
+            return None
+        if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
+            job = self.joblist[row]
+            if col==0: return job.process.processId()
+            if col==1: return job.getStatus()
+            elif col==2: return job.command()
+        return None
+        
+    # recommended: headerData
+    def headerData(self, col, orientation, role):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal and col<len(self.headers):
+            return self.headers[col]
+        return None
+
+    def newjob(self, jobitem):
+        lastrow = len(self.joblist)
+        self.beginInsertRows(QModelIndex(), lastrow,lastrow)
+        self.joblist.append(jobitem)
+        self.endInsertRows()
         
 class History(simpleTable):
     def __init__(self):
@@ -93,6 +179,18 @@ class History(simpleTable):
         self.data.append([exitval, command])
         self.endInsertRows()
         return self.index(len(self.data)-1, 1)
+
+    def getCommand(self, index):
+        if not index or not index.isValid(): return
+        row = index.row()
+        # XX validate
+        return self.data[row][1]
+    def setStatus(self, index, status):
+        if not index or not index.isValid(): return
+        row = index.row()
+        self.data[row][0] = status
+        i = index.siblingAtColumn(0)
+        self.dataChanged.emit(i,i)
     
     def read(self, file=None):
         # simple history data model for now, add frequency later

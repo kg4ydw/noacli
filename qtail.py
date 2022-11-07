@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QTextEdit, QSizePolicy
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice
+from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier
 from qtail_ui import Ui_QtTail
 from math import ceil
 
@@ -79,8 +80,10 @@ class myOptions():
         return self.args
 
 class QtTail(QtWidgets.QMainWindow):
-    def __init__(self, options):
+    def __init__(self, options=None):
         super(QtTail,self).__init__()
+        if options==None:
+            options=myOptions()
         self.opt = options
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
@@ -142,6 +145,9 @@ class QtTail(QtWidgets.QMainWindow):
     def filechanged(self, path):
         # XXX do something if there are multiple files
         self.readtext()
+    # @QtCore.pyqtSlot(QSocketDescriptor, QsocketNotifier.Type)
+    def socketActivated(self,socket):  # ,type):
+        self.readtext()
 
     def start(self):
         doc = self.textbody.document()
@@ -169,25 +175,30 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody.setTextCursor(self.endcursor)
 
     def openstdin(self):
-        # XXX this doesn't work with readyRead
+        # XXX File doesn't work with readyRead
         f = QtCore.QFile()
         self.file = f
         f.open(0, QtCore.QFile.ReadOnly);
+        os.set_blocking(0, False)  # XX not portable?
         self.textstream = QtCore.QTextStream(f)
+        #broken on File # self.file.readyRead.connect(self.readtext)
 
-        ## This should work according to docs but does not
-        ## f = QtCore.QTextStream(0, QIODeviceBase.ReadOnly)
-        #f = QtCore.QTextStream(sys.stdin)
-        #self.file = f
-        #self.textstream = f
+        # Attempt a socket notifier instead of readyread
+        # seems to work equally well (in linux) on pipes and files
+        n = QSocketNotifier(0, QSocketNotifier.Read, self)
+        self.notifier = n
+        n.activated.connect(self.socketActivated)
 
         self.opt.file = False  #XXX sometimes this might be a file
         print("stdin")
-        self.reload();
+        #self.reload();  # socket notifier makes this redundant
         
-        # XXX set event handlers
+    def openProcess(self, title, process):
+        self.file = process
+        self.setWindowTitle(title)
+        self.textstream = QtCore.QTextStream(process)
+        self.opt.file = False
         self.file.readyRead.connect(self.readtext)
-        
 
     def sizeHint(self):
         return QSize(100,100)

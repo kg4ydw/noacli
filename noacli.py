@@ -3,12 +3,12 @@
 import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.Qt import Qt
+from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QKeySequence
 from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice
+from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex
 from noacli_ui import Ui_noacli
-from datamodels import simpleTable, History
+from datamodels import simpleTable, History, jobItem, jobTableModel
 
 # initialize, load, hold, and save various global settings
 class settings():
@@ -24,8 +24,9 @@ class settings():
         # XXX populate environment from real environment
         self.environment = []  # [ 'name', 'value']
         ##  [ 'name', 'value', 'propagate', 'save' ])
-        self.jobs = []
+        self.jobs = jobTableModel()
         # job manager needs a special class
+        
         ## [ pid? , type, command, status // kill raise info rerun
 
 class noacli(QtWidgets.QMainWindow):
@@ -63,7 +64,7 @@ class noacli(QtWidgets.QMainWindow):
         # XX this should be a connect historySave->saveItem
         ui.plainTextEdit.setHistory(self.settings.history)
         
-        # ui.jobTableView.setModel(settings.jobManagerModel)
+        ui.jobTableView.setModel(self.settings.jobs)
 
     def start(self):
         # XXX nothign to initialize yet
@@ -83,8 +84,18 @@ class noacli(QtWidgets.QMainWindow):
         ui.buttons.setVisible(False)
         ui.jobManager.setVisible(False)
 
+    # slot to connect command window runCommand
+    def runCommand(self, command, hist):
+        # XXX command is redundant?
+        j = jobItem(hist)
+        self.settings.jobs.newjob(j)
+        j.start()
+
 class commandEditor(QPlainTextEdit):
+    command_to_run = pyqtSignal(str, QModelIndex)
+
     def __init__(self, parent):
+        print
         super(commandEditor,self).__init__(parent)
         self.histindex = None
         self.history = None
@@ -116,8 +127,12 @@ class commandEditor(QPlainTextEdit):
         text = self.toPlainText()
         if text:
             h = self.history.saveItem(text, self.histindex, None)
-            # XXX run it here
-            # RunProcess(h)
+            self.command_to_run.emit(text, h)
+            ## broken
+            #j = jobItem(h)
+            #self.ui
+            #j.start()
+            
             super(commandEditor,self).clear()  # bypass internal clear
             self.histindex = None
             
