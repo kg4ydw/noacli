@@ -11,14 +11,15 @@ x  not supported in Qt
 
 
 Things to implement soon:
-! close stdin
-  qtail: connect process status to button
+? close stdin
   job: double click connect to send command to editor
-! job life cycle
-    connect to qtail window status
-    delete job if command is done and window is closed (timeout if no window?)
-  tables: implement vertical headers??
-    make corner button clickable to reset sort column to -1
+o job life cycle
+*   connect to qtail window status
+*   delete job if command is done and window is closed
+    timeout if no window?
+* tables: implement vertical headers??
+*   make corner button clickable to reset sort column to -1
+* qtail: resize after visible? or after first read
 
   command parser
     prefix or suffix for output dest
@@ -28,6 +29,13 @@ Things to implement soon:
     handle |  --> tree
     handle <
     handle >
+  update status bar with recent process status and errors
+  short output in status window
+  single lines to status bar (and status window?)
+
+  job manager and hsitory:
+    scroll to new entry
+    resize columns
 
 Bugs:
 * gets middle of file on /usr/dict/words without --whole
@@ -43,13 +51,17 @@ FIXED Qt doesn't support pipes (test in non-linux)
     File "/home/ssd/src/noacli/datamodels.py", line 70, in setStatus
       self.history.model().setStatus(self.history,status)
   AttributeError: 'QSortFilterProxyModel' object has no attribute 'setStatus'
-* history status mismatch: separate exit and state column?
+
 
 
 Main features:
   main window is a dynamic one line editor
 *   complex commands are sent to bash
       detect complex commands
+    command window context menu
+      run
+      clear?
+      save to favorites
     Qsettings
        save/restore geometry (QWidget)
          save multiple profiles
@@ -58,12 +70,12 @@ Main features:
     docks* and +dialogs?  (%hash @array)
       dock: QT data structure is persistent and master
       dialog: build a table on the fly and save changes
-E      *@ history
+*      *@ history
 -      *% button bar
  	    right click: dump in editor
 	    draggable gridview ??
 	    reimplement compact button bar GUI and make its own checkbox
-o      *? job manager
+*      *? job manager
        !@ favorites editor (buttons and frequent)
        !% environment var editor
        !% settings editor
@@ -76,11 +88,11 @@ o      *? job manager
     history manager
 o     table: index frequency exitval command button-name checkbox:edit/run
 *     editable table --> double click to edit in main window
-o     exit value: none if never run; color green/red/grey
-o     allow re-edits of unrun entries, move to end of list
+*     exit value: none if never run; color green/red/grey
+E     allow re-edits of unrun entries, move to end of list
 *     sortable table (by col)
 *     search box --> filter
-      sort: history order (col=-1)
+*     sort: history order (col=-1)
       context menu
     remember 10 most frequent commands in pull down menu
     button editor ("favorites")
@@ -103,21 +115,30 @@ o     manager table: pid type command kill raise? info rerun
 *     alternate: QProcess object, status, type, command
       window status / type?
 !     click to redisplay / raise window (qtail)
-      context menu: info? kill restart clone
+      context menu:
+        info? --> process status, time stats, etc
+	kill
+	edit
+	kill or kill and restart
+	raise or reopen
+	close window
+	measure output
+	clone?
       open status icon
 *     proc/wait info
-!     delete dead jobs? (life cycle)
+*     delete dead jobs? (life cycle)
       change default type
     job / process manager
-      handle stdout 
+      handle stdout
         stderr channels separately
 	save to file
       handle stdin:
-        send file 
+        send file
 	pipe  (connect multiple commands, tree style jobs)
 !       close when not used
 !   settings
       table: name default tooltip currentval
+      merge qtail options
       items
 !	historysize
 	historyfile
@@ -148,13 +169,13 @@ o scrolly window
 *   view / follow a log file
 *   take input from a pipe
 E   keep only last X lines? (initial input overload)
-ox  autoresize (need trigger event)
+*   autoresize (need trigger event)
     in a file, button to backscroll to previous lines or read more forward
        large file handling, line number / fseek index
 *   start from top / follow tail
 o   reload button
-o     if file --> reload
-!     if process / running command -> kill
+*     if file --> reload
+*     if process / running command -> kill
 !     if done command -> rerun
 /     if open stdin -> stop (close)
 /     if closed -> close window

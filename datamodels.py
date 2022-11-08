@@ -4,7 +4,7 @@
 
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
 from PyQt5.QtWidgets import QTableView
-from PyQt5.QtCore import QModelIndex, QProcess
+from PyQt5.QtCore import QModelIndex, QProcess, QTimer, QObject
 from qtail import QtTail
 
 class simpleTable(QAbstractTableModel):
@@ -33,8 +33,12 @@ class simpleTable(QAbstractTableModel):
         
     # recommended: headerData
     def headerData(self, col, orientation, role):
-        if role == Qt.DisplayRole and orientation == Qt.Horizontal and col<self.ncols:
-            return self.headers[col]
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal and col<self.ncols:
+                return self.headers[col]
+            elif orientation == Qt.Vertical and col<len(self.data):
+                # if you don't like veritcal headers, turn them off in designer
+                return str(col)
         return None
     
     # required for editing: setData flags
@@ -47,6 +51,8 @@ class jobItem():
         self.history = history
         self.setStatus('init')
         self.status = ''
+        self.finished = False
+        self.windowOpen = None
         self.fullstatus = None
         self.process = QProcess()
         self.process.errorOccurred.connect(self.collectError)
@@ -59,6 +65,7 @@ class jobItem():
         self.status += 'E'+str(err)+' '
         self.setStatus(self.status)
     def collectFinish(self, exitCode, estatus):
+        self.finished = True
         self.setStatus(self.status+'F'+str(exitCode)+':'+str(estatus))
     def collectStarted(self):
         self.setStatus('started')
@@ -82,19 +89,30 @@ class jobItem():
         # XXX connect output to something
         # for now, just merge stdout,stderr and send to qtail
         self.process.setProcessChannelMode(QProcess.MergedChannels)
-        self.tail = QtTail()
+        self.process.closeWriteChannel() # close stdin if we have no infile XXX
+        self.tail = QtTail(None) # XXX options??
+        self.tail.window_close_signal.connect(self.windowClosed)
+        self.windowOpen = True
         self.tail.show()
         self.tail.start()
         # XXXX do more parsing and give this a real title
         self.tail.openProcess('subprocess' , self.process)
         print('start command: '+self.command()) # XXXX
         self.process.start('bash', [ '-c', self.command() ])
+
+    def windowClosed(self):
+        self.windowOpen = False
+        # XXX trigger cleanup?
                    
 class jobTableModel(QAbstractTableModel):
     def __init__(self):
         QAbstractTableModel.__init__(self)
         self.joblist = []
-        self.headers = [ 'pid', 'state', 'command']
+        self.headers = [ 'pid', 'state', 'window', 'command']
+        self.cleanTime = QTimer(self)
+        self.cleanTime.timeout.connect(self.cleanup)
+        # don't start it until we have data
+        
     # required functions rowCount columnCount data
     def rowCount(self, parent):
         return len(self.joblist)
@@ -103,17 +121,35 @@ class jobTableModel(QAbstractTableModel):
     def data(self, index, role):
         if not index.isValid():
             return None;
-        if role==Qt.BackgroundRole: return None   # none implemented yet
         row = index.row()
         col = index.column()
-        if row < 0 or col<0 or row >= len(self.joblist) or col>2:
+        if row < 0 or col<0 or row >= len(self.joblist):
             return None
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
             job = self.joblist[row]
             if col==0: return job.process.processId()
             if col==1: return job.getStatus()
-            elif col==2: return job.command()
+            if col==2: return str(job.windowOpen)
+            if col==3: return job.command()
         return None
+
+    # can't delete a job unless it is dead, so don't implement removeRows
+    def deleteJob(self,row, parent):
+        self.beginRemoveRows(QModelIndex(),row,row)
+        d = self.joblist.pop(row)
+        # XXX clean up?
+        self.endRemoveRows()
+        
+    # XXXX trigger this somehow
+    def cleanup(self):
+        #print('cleanup')
+        i=0
+        while i<len(self.joblist): # XXX watch for infinite loops!
+            if self.joblist[i].finished and self.joblist[i].windowOpen==False:
+                self.deleteJob(i,self)
+            else:
+                i +=1
+        if len(self.joblist)<1: self.cleanTime.stop()
         
     # recommended: headerData
     def headerData(self, col, orientation, role):
@@ -126,6 +162,8 @@ class jobTableModel(QAbstractTableModel):
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)
         self.joblist.append(jobitem)
         self.endInsertRows()
+        # start a cleanup timer
+        self.cleanTime.start(120000) # XXX 2m, should be a settable option
         
 class History(simpleTable):
     def __init__(self):
@@ -138,8 +176,14 @@ class History(simpleTable):
         if row<0 or row>=len(self.data):
             return None
         if role==Qt.BackgroundRole and col==0:
-            if self.data[row][0]==None: return QBrush(Qt.gray)
-            elif self.data[row][0]: return QBrush(Qt.red)
+            st = self.data[row][0]
+            if st==None: return QBrush(Qt.gray)
+            if st==0 or st=='F0:0':
+                return QBrush(Qt.green)
+            elif isinstance(self.data[row][0],str) and len(st)>1:
+                if st[1]=='1': return QBrush(Qt.red) # XX or any number?
+                else: return QBrush(Qt.yellow)
+            elif st: return QBrush(Qt.red)
             else: return None
         else:
             return super(History,self).data(index,role)

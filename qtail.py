@@ -5,9 +5,12 @@ import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QTextEdit, QSizePolicy
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier
-from qtail_ui import Ui_QtTail
+from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize
+from PyQt5.Qt import Qt, pyqtSignal
+
 from math import ceil
+
+from qtail_ui import Ui_QtTail
 
 # options values -- set defaults
 class myOptions():
@@ -80,10 +83,13 @@ class myOptions():
         return self.args
 
 class QtTail(QtWidgets.QMainWindow):
-    def __init__(self, options=None):
+    window_close_signal = pyqtSignal()
+    
+    def __init__(self, options=None, parent=None):
         super(QtTail,self).__init__()
         if options==None:
             options=myOptions()
+        self.firstRead = True
         self.opt = options
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
@@ -92,6 +98,10 @@ class QtTail(QtWidgets.QMainWindow):
         self.findcount = 0;
         if self.opt.maxLines>0:
             self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
+
+    def closeEvent(self,event):
+        self.window_close_signal.emit()
+        super(QtTail,self).closeEvent(event)
 
     @QtCore.pyqtSlot(str)
     def simpleFind(self, text):
@@ -139,6 +149,9 @@ class QtTail(QtWidgets.QMainWindow):
             else: e.insertText(t)
             if self.ui.followCheck.isChecked():
                 self.textbody.setTextCursor(e)
+            if self.firstRead:
+                self.firstRead=False
+                self.actionAdjust()
             self.showsize()
 
     # @QtCore.pyqtSlot(str)
@@ -164,7 +177,8 @@ class QtTail(QtWidgets.QMainWindow):
         f.open(QtCore.QFile.ReadOnly);
         self.textstream = QtCore.QTextStream(f)
         self.opt.file = True
-        self.setWindowTitle(filename) # XXX qtail prefix? strip path?
+        if not self.opt.title:
+            self.setWindowTitle(filename) # XXX qtail prefix? strip path?
         self.reload();
         
         # follow the tail of the file
@@ -175,6 +189,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody.setTextCursor(self.endcursor)
 
     def openstdin(self):
+        if not self.opt.title:
+            self.setWindowTitle('qtail: stdin')
         # XXX File doesn't work with readyRead
         f = QtCore.QFile()
         self.file = f
@@ -195,10 +211,31 @@ class QtTail(QtWidgets.QMainWindow):
         
     def openProcess(self, title, process):
         self.file = process
-        self.setWindowTitle(title)
+        if not self.opt.title:
+            self.setWindowTitle(title)
         self.textstream = QtCore.QTextStream(process)
         self.opt.file = False
         self.file.readyRead.connect(self.readtext)
+        self.rebutton('Kill', self.killProcess)
+        self.file.finished.connect(self.procFinished)
+
+    def procFinished(self, exitcode, estatus):
+        # XXX if exitcode: rebutton("Rerun", self.rerun)
+        self.rebutton('Close', self.close)
+        if self.ui.textBrowser.document().isEmpty():
+            # XXX should this be conditional?
+            self.close()
+
+    def killProcess(self, checked):
+        self.file.kill()
+        self.rebutton('Close', self.close)
+        # XXX or rerun?
+
+    def rebutton(self, label, slot):
+        button = self.ui.reloadButton
+        button.setText(label)
+        button.clicked.disconnect()
+        button.clicked.connect(slot)
 
     def sizeHint(self):
         return QSize(100,100)

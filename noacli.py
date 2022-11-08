@@ -57,8 +57,10 @@ class noacli(QtWidgets.QMainWindow):
         ui.historyProxy.setFilterKeyColumn(1)
         ui.historyView.setModel(ui.historyProxy)
         ui.historySearch.textChanged['QString'].connect(ui.historyProxy.setFilterFixedString)
-        # special tweaks XXX this could be subclassed instead
+
+        # make all the tables fit
         ui.historyView.resizeColumnsToContents()
+        ui.jobTableView.resizeColumnsToContents()
 
         # connect the command editor to the history data model
         # XX this should be a connect historySave->saveItem
@@ -66,8 +68,25 @@ class noacli(QtWidgets.QMainWindow):
         
         ui.jobTableView.setModel(self.settings.jobs)
 
+        # mess with the history corner button
+        cb = ui.historyView.findChild(QtWidgets.QAbstractButton)
+        if cb:
+            cb.disconnect()
+            cb.clicked.connect(self.resetHistorySort)
+        # mess with job manager corner button (is this even visible?)
+        cb = ui.jobTableView.findChild(QtWidgets.QAbstractButton)
+        if cb:
+            cb.disconnect()
+            cb.clicked.connect(self.settings.jobs.cleanup)
+
+    def resetHistorySort(self):
+        # this is probably dumb, but there's not currently a UI to do this
+        self.ui.historyProxy.sort(-1)
+        self.ui.historyView.horizontalHeader().setSortIndicator(-1,0)
+        #self.historyProxy.invalidate()
+        
     def start(self):
-        # XXX nothign to initialize yet
+        # nothing else to initialize yet
         pass
 
     @QtCore.pyqtSlot()
@@ -84,12 +103,22 @@ class noacli(QtWidgets.QMainWindow):
         ui.buttons.setVisible(False)
         ui.jobManager.setVisible(False)
 
+    # push button signal
+    @QtCore.pyqtSlot()
+    def runLastCommand(self):
+        print("run last")
+        last = self.settings.history.last()
+        self.runCommand(None,last)
+
     # slot to connect command window runCommand
     def runCommand(self, command, hist):
+        self.resetHistorySort()
         # XXX command is redundant?
         j = jobItem(hist)
         self.settings.jobs.newjob(j)
         j.start()
+        # XX try to fix job table size every time?
+        self.ui.jobTableView.resizeColumnsToContents()
 
 class commandEditor(QPlainTextEdit):
     command_to_run = pyqtSignal(str, QModelIndex)

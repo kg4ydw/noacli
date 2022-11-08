@@ -24,7 +24,7 @@
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
+        <verstretch>1</verstretch>
        </sizepolicy>
       </property>
      </widget>
@@ -61,6 +61,12 @@
   <widget class="QDockWidget" name="history">
    <property name="enabled">
     <bool>true</bool>
+   </property>
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+     <horstretch>0</horstretch>
+     <verstretch>2</verstretch>
+    </sizepolicy>
    </property>
    <property name="maximumSize">
     <size>
@@ -100,6 +106,9 @@
        <property name="sortingEnabled">
         <bool>true</bool>
        </property>
+       <property name="cornerButtonEnabled">
+        <bool>true</bool>
+       </property>
        <attribute name="horizontalHeaderStretchLastSection">
         <bool>true</bool>
        </attribute>
@@ -118,7 +127,7 @@
    <property name="minimumSize">
     <size>
      <width>184</width>
-     <height>56</height>
+     <height>81</height>
     </size>
    </property>
    <property name="floating">
@@ -135,19 +144,6 @@
    </attribute>
    <widget class="QWidget" name="buttonBox">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="1">
-      <widget class="QPushButton" name="rerunLast">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Rerun last</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
       <widget class="QPushButton" name="runCurrent">
        <property name="sizePolicy">
@@ -161,10 +157,29 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="0">
+      <widget class="QPushButton" name="rerunLast">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Rerun last</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="jobManager">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>2</verstretch>
+    </sizepolicy>
+   </property>
    <property name="minimumSize">
     <size>
      <width>88</width>
@@ -187,7 +202,7 @@
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>1</horstretch>
-         <verstretch>0</verstretch>
+         <verstretch>2</verstretch>
         </sizepolicy>
        </property>
        <property name="sizeAdjustPolicy">
@@ -321,12 +336,12 @@
    <slot>runCommand()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>179</x>
-     <y>101</y>
+     <x>189</x>
+     <y>80</y>
     </hint>
     <hint type="destinationlabel">
-     <x>179</x>
-     <y>201</y>
+     <x>189</x>
+     <y>189</y>
     </hint>
    </hints>
   </connection>
@@ -346,10 +361,27 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>rerunLast</sender>
+   <signal>clicked()</signal>
+   <receiver>noacli</receiver>
+   <slot>runLastCommand()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>241</x>
+     <y>113</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>248</x>
+     <y>152</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
   <slot>hideAllDocks()</slot>
   <slot>runCommand(QString,QModelIndex)</slot>
+  <slot>runLastCommand()</slot>
  </slots>
 </ui>
