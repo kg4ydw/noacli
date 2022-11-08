@@ -40,7 +40,6 @@ o job life cycle
 Bugs:
 * gets middle of file on /usr/dict/words without --whole
 ? what to do with stderr? always log?
-* Not finding icons when not in source dir
 FIXED Qt doesn't support pipes (test in non-linux)
 * history disconnect for old entry with running command
   Traceback (most recent call last):

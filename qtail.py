@@ -87,6 +87,9 @@ class QtTail(QtWidgets.QMainWindow):
     
     def __init__(self, options=None, parent=None):
         super(QtTail,self).__init__()
+        dir = os.path.dirname(os.path.realpath(__file__))
+        self.setWindowIcon(QtGui.QIcon(dir+'/qtail.png'))
+
         if options==None:
             options=myOptions()
         self.firstRead = True
@@ -320,7 +323,6 @@ class QtTail(QtWidgets.QMainWindow):
         
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    app.setWindowIcon(QtGui.QIcon("qtail.png"))
     # display
     #XXX QtCore.QCoreApplication.setOrganizationName("ssdApps");
     QtCore.QCoreApplication.setApplicationName("QtTail");

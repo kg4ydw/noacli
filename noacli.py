@@ -36,6 +36,8 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.settings = settings
         self.historypos = 1;
+        dir = os.path.dirname(os.path.realpath(__file__))
+        self.setWindowIcon(QtGui.QIcon(dir+'/noacli.png'))
        
         # hide all the docks by default XXX unless set in settings?
         ui=self.ui
@@ -183,7 +185,6 @@ class commandEditor(QPlainTextEdit):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    app.setWindowIcon(QtGui.QIcon("noacli.png"))
     #XXX QtCore.QCoreApplication.setOrganizationName("ssdApps");
     QtCore.QCoreApplication.setApplicationName("noacli");
 
