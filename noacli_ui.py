@@ -160,6 +160,7 @@ class Ui_noacli(object):
         self.runCurrent.clicked.connect(self.plainTextEdit.runCommand) # type: ignore
         self.plainTextEdit.command_to_run['QString','QModelIndex'].connect(noacli.runCommand) # type: ignore
         self.rerunLast.clicked.connect(noacli.runLastCommand) # type: ignore
+        self.jobTableView.doubleClicked['QModelIndex'].connect(noacli.jobDoubleClicked) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):

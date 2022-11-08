@@ -90,13 +90,13 @@ class jobItem():
         # for now, just merge stdout,stderr and send to qtail
         self.process.setProcessChannelMode(QProcess.MergedChannels)
         self.process.closeWriteChannel() # close stdin if we have no infile XXX
-        self.tail = QtTail(None) # XXX options??
-        self.tail.window_close_signal.connect(self.windowClosed)
+        self.window = QtTail(None) # XXX options??
+        self.window.window_close_signal.connect(self.windowClosed)
         self.windowOpen = True
-        self.tail.show()
-        self.tail.start()
+        self.window.show()
+        self.window.start()
         # XXXX do more parsing and give this a real title
-        self.tail.openProcess('subprocess' , self.process)
+        self.window.openProcess('subprocess' , self.process)
         print('start command: '+self.command()) # XXXX
         self.process.start('bash', [ '-c', self.command() ])
 
@@ -127,11 +127,18 @@ class jobTableModel(QAbstractTableModel):
             return None
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
             job = self.joblist[row]
+            # if you update these, also udpate noacli.jobDoubleClicked
             if col==0: return job.process.processId()
             if col==1: return job.getStatus()
             if col==2: return str(job.windowOpen)
             if col==3: return job.command()
         return None
+
+    def jobItem(self, index):
+        if not index.isValid(): return None
+        row = index.row()
+        if row<0 or row>=len(self.joblist): return None
+        return self.joblist[row]
 
     # can't delete a job unless it is dead, so don't implement removeRows
     def deleteJob(self,row, parent):

@@ -81,6 +81,24 @@ class noacli(QtWidgets.QMainWindow):
             cb.disconnect()
             cb.clicked.connect(self.settings.jobs.cleanup)
 
+    # XXX wish there was a way to tell designer to send this to the model
+    @QtCore.pyqtSlot(QModelIndex)
+    def jobDoubleClicked(self, index):
+        if not index.isValid(): return
+        col = index.column()
+        if col==0:
+            text = str(index.model().jobItem(index).process.processId())
+            self.app.clipboard().setText(text)
+        elif col==1: index.model().cleanup()  # job status
+        elif col==2: self.windowShowRaise(index)
+        elif col==3: self.ui.plainTextEdit.acceptCommand(index.model().jobItem(index).command())
+
+    def windowShowRaise(self,index):
+        job = index.model().jobItem(index)
+        job.windowOpen = True
+        job.window.show()
+        job.window.raise_()
+            
     def resetHistorySort(self):
         # this is probably dumb, but there's not currently a UI to do this
         self.ui.historyProxy.sort(-1)
@@ -175,6 +193,12 @@ class commandEditor(QPlainTextEdit):
         self.histindex = None
         super(commandEditor,self).clear()
 
+    def acceptCommand(self, str):
+        self.clear()
+        self.histindex = None
+        self.setPlainText(str)
+        
+
     #is this right? @QtCore.pyqtSlot(QModelIndex)
     def acceptHistory(self, idx):
         self.clear()
@@ -192,6 +216,7 @@ if __name__ == '__main__':
 
     settings = settings()
     mainwin = noacli(settings)
+    mainwin.app = app
     w = mainwin.ui
 
     mainwin.show()

@@ -377,11 +377,28 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>jobTableView</sender>
+   <signal>doubleClicked(QModelIndex)</signal>
+   <receiver>noacli</receiver>
+   <slot>jobDoubleClicked(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>341</x>
+     <y>87</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>308</x>
+     <y>117</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
   <slot>hideAllDocks()</slot>
   <slot>runCommand(QString,QModelIndex)</slot>
   <slot>runLastCommand()</slot>
+  <slot>jobDoubleClicked(QModelIndex)</slot>
  </slots>
 </ui>
