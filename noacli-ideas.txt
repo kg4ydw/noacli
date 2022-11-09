@@ -113,13 +113,13 @@ E     allow re-edits of unrun entries, move to end of list
 o     manager table: pid type command kill raise? info rerun
 *     alternate: QProcess object, status, type, command
       window status / type?
-!     click to redisplay / raise window (qtail)
+*     click to redisplay / raise window (qtail)
       context menu:
         info? --> process status, time stats, etc
 	kill
 	edit
 	kill or kill and restart
-	raise or reopen
+o	raise or reopen
 	close window
 	measure output
 	clone?

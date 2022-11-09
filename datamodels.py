@@ -48,6 +48,7 @@ class simpleTable(QAbstractTableModel):
 class jobItem():
     def __init__(self, history):
         print('create job') # XXXX
+        self.index = None
         self.history = history
         self.setStatus('init')
         self.status = ''
@@ -57,24 +58,32 @@ class jobItem():
         self.process = QProcess()
         self.process.errorOccurred.connect(self.collectError)
         self.process.finished.connect(self.collectFinish)
-        self.process.started.connect(self.collectStarted)
         self.process.stateChanged.connect(self.collectNewstate)
-        
+
     # private slots
     def collectError(self, err):
         self.status += 'E'+str(err)+' '
         self.setStatus(self.status)
+        
     def collectFinish(self, exitCode, estatus):
         self.finished = True
-        self.setStatus(self.status+'F'+str(exitCode)+':'+str(estatus))
-    def collectStarted(self):
-        self.setStatus('started')
+        self.setStatus(self.status+'F'+str(exitCode)+':'+str(estatus),exitCode)
     def collectNewstate(self, state):
-        self.setStatus(self.status+str(state))
+        if state==QProcess.Starting:
+            self.setStatus(self.status+str('Starting'))
+        if state==QProcess.Running:
+            self.setStatus(self.status+str('Running'))
+        # let finished take care of its own
 
-    def setStatus(self, status):
+    def setStatus(self, status,exitStatus=None):
         self.fullstatus = status
-        self.history.model().setStatus(self.history,status)
+        if self.index:
+            index = self.index.model().sibling(self.index.row(),1,QModelIndex())
+            self.index.model().dataChanged.emit(index,index)
+        if exitStatus!=None:
+            self.history.model().setStatus(self.history, exitStatus)
+        else:
+            self.history.model().setStatus(self.history,status)
 
     # public interfaces
     def command(self):
@@ -102,7 +111,11 @@ class jobItem():
 
     def windowClosed(self):
         self.windowOpen = False
-        # XXX trigger cleanup?
+        if self.index:
+            index = self.index.model().sibling(self.index.row(),2,QModelIndex())
+            self.index.model().dataChanged.emit(index,index)
+        # XXX trigger cleanup?  maybe on a timer
+        # self.index.model().cleanup()
                    
 class jobTableModel(QAbstractTableModel):
     def __init__(self):
@@ -125,14 +138,36 @@ class jobTableModel(QAbstractTableModel):
         col = index.column()
         if row < 0 or col<0 or row >= len(self.joblist):
             return None
+        job = self.joblist[row]
+        if role==Qt.BackgroundRole and col==2 and not job.windowOpen:
+            return QBrush(Qt.gray)
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
-            job = self.joblist[row]
             # if you update these, also udpate noacli.jobDoubleClicked
             if col==0: return job.process.processId()
             if col==1: return job.getStatus()
-            if col==2: return str(job.windowOpen)
+            if col==2: return job.window.windowTitle()
             if col==3: return job.command()
         return None
+
+    def setData(self, index, value, role):
+        if not index.isValid():
+            return None;
+        col = index.column()
+        if col!=2: return False  # only window title editable right now
+        row = index.row()
+        if row < 0 or row >= len(self.joblist):
+            return False
+        # try:
+        self.joblist[row].window.setWindowTitle(value)
+        self.dataChanged.emit(index,index)
+        return True
+        #except:
+        #    return False  # XXX
+    # make cells editable
+    def flags(self,index):
+        if not index.isValid() or index.column()!=2:
+            return super(jobTableModel,self).flags(index)
+        return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
 
     def jobItem(self, index):
         if not index.isValid(): return None
@@ -169,6 +204,7 @@ class jobTableModel(QAbstractTableModel):
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)
         self.joblist.append(jobitem)
         self.endInsertRows()
+        jobitem.index = self.index(lastrow,0)
         # start a cleanup timer
         self.cleanTime.start(120000) # XXX 2m, should be a settable option
         
