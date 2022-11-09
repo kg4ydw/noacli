@@ -99,7 +99,6 @@ class noacli(QtWidgets.QMainWindow):
         job.window.raise_()
             
     def resetHistorySort(self):
-        # this is probably dumb, but there's not currently a UI to do this
         self.ui.historyProxy.sort(-1)
         self.ui.historyView.horizontalHeader().setSortIndicator(-1,0)
         #self.historyProxy.invalidate()
@@ -130,8 +129,10 @@ class noacli(QtWidgets.QMainWindow):
 
     # slot to connect command window runCommand
     def runCommand(self, command, hist):
-        self.resetHistorySort()
-        # XXX command is redundant?
+        if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
+            hist=hist.model().mapToSource(hist)
+        self.resetHistorySort()  # XXX this might be annoying
+        # XXX command is redundant? but external stuff calls us
         j = jobItem(hist)  # XX construct new job
         self.settings.jobs.newjob(j)
         j.start()
@@ -191,7 +192,6 @@ class commandEditor(QPlainTextEdit):
         self.histindex = None
         self.setPlainText(str)
         
-
     #is this right? @QtCore.pyqtSlot(QModelIndex)
     def acceptHistory(self, idx):
         self.clear()

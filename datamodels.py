@@ -57,7 +57,7 @@ class itemListModel(QAbstractTableModel):
         return len(self.headers)
     # convenience function
     def validateIndex(self, index):
-        if not index.isValid(): return False
+        if not index or not index.isValid(): return False
         row = index.row()
         if row<0 or row>=len(self.data): return False
         # up to subclass to validate column
@@ -72,17 +72,26 @@ class itemListModel(QAbstractTableModel):
     def getItem(self, index):
         if not self.validateIndex(index): return None
         return self.data[index.row()]
+
+    # most added items are added at the end...
+    def appendItem(self, item):
+        lastrow = len(self.data)
+        self.beginInsertRows(QModelIndex(), lastrow,lastrow)
+        self.data.append(item)
+        self.endInsertRows()
+        item.index = self.index(lastrow,0) # and item remembers itself
+        return item.index
         
 class jobItem():
     def __init__(self, history):
         self.index = None
         self.history = history
-        self.setStatus('init')
         self.status = ''
         self.finished = False
         self.windowOpen = None
         self.fullstatus = None
         self.process = QProcess()
+        self.setStatus('init')
         self.process.errorOccurred.connect(self.collectError)
         self.process.finished.connect(self.collectFinish)
         self.process.stateChanged.connect(self.collectNewstate)
@@ -203,41 +212,43 @@ class jobTableModel(itemListModel):
         if len(self.data)<1: self.cleanTime.stop()
 
     def newjob(self, jobitem):
-        lastrow = len(self.data)
-        self.beginInsertRows(QModelIndex(), lastrow,lastrow)
-        self.data.append(jobitem)
-        self.endInsertRows()
-        jobitem.index = self.index(lastrow,0)
+        self.appendItem(jobitem)
         # start a cleanup timer
         self.cleanTime.start(120000) # XXX 2m, should be a settable option
+
+class historyItem():
+    def __init__(self, status, command):
+        self.status = status
+        self.command = command
         
-class History(simpleTable):
+class History(itemListModel):
     def __init__(self):
-        super(History,self).__init__([], ['exit', 'command'])
+        super(History,self).__init__(['exit', 'command'])
 
     # format cells
     def data(self, index, role):
-        row = index.row()
+        if not self.validateIndex(index): return None
+        item = self.getItem(index)
         col = index.column()
-        if row<0 or row>=len(self.data):
-            return None
         if role==Qt.BackgroundRole and col==0:
-            st = self.data[row][0]
+            st = item.status
             if st==None: return QBrush(Qt.gray)
             if st==0 or st=='F0:0':
                 return QBrush(Qt.green)
-            elif isinstance(self.data[row][0],str) and len(st)>1:
+            elif isinstance(st,str) and len(st)>1:
                 if st[1]=='1': return QBrush(Qt.red) # XX or any number?
                 else: return QBrush(Qt.yellow)
             elif st: return QBrush(Qt.red)
             else: return None
-        else:
-            return super(History,self).data(index,role)
+        elif role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
+            if col==0: return item.status
+            elif col==1: return item.command
+        return None
 
-    def setData(self, index, value, role):
-        return False  # can't edit history
-    def parent(self,index):
-        return QModelIndex()
+    #def setData(self, index, value, role):
+    #    return False  # can't edit history
+    #def parent(self,index):
+    #    return QModelIndex()
     def first(self):
         return self.index(0,1)
     def last(self):
@@ -256,29 +267,23 @@ class History(simpleTable):
     def saveItem(self, command, index, exitval):
         # XX if exitval==None and isValid(index) replace existing entry
         # else append
-        if index and index.isValid() and exitval==None:
-            row = index.row()
-            if self.data[row][0]==None:
-                self.data[row][1] = command
+        if self.validateIndex(index) and exitval==None:
+            item = self.getItem(index)
+            if item.status==None:
+                item.command = command
                 i = index.siblingAtColumn(1)
                 self.dataChanged.emit(i,i)
                 return i
-        lastrow = len(self.data)
-        self.beginInsertRows(self.parent(index),lastrow,lastrow)
-        #self.data[lastrow] = [exitval, command]
-        self.data.append([exitval, command])
-        self.endInsertRows()
-        return self.index(len(self.data)-1, 1)
+        item = historyItem(exitval, command)
+        return self.appendItem(item)
 
     def getCommand(self, index):
-        if not index or not index.isValid(): return
-        row = index.row()
-        # XX validate
-        return self.data[row][1]
+        if not self.validateIndex(index): return
+        return self.data[index.row()].command
     def setStatus(self, index, status):
-        if not index or not index.isValid(): return
+        if not self.validateIndex(index): return
         row = index.row()
-        self.data[row][0] = status
+        self.data[row].status = status
         i = index.siblingAtColumn(0)
         self.dataChanged.emit(i,i)
     
@@ -303,14 +308,4 @@ class History(simpleTable):
         # XXXX parse file and insert data
         #while (l=hfile.read
         close(hfile)
-    
-    # def add(self, exitval, command)
-    def editLine(self, pos = None):
-        if pos == None: pos = self.pos
-        if not pos: pos=0
-        if self.data[pos][0] == None:
-            c = self.data[pos][1]
-            self.delete(pos)
-            return c
-        else:
-            return data[pos][1]
+ 
