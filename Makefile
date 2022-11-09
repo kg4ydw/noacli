@@ -16,7 +16,7 @@ noacli.tgz: $(DISTFILES)
 	tar czvf noacli.tgz $(DISTFILES)
 
 clean:
-	rm *~
+	rm *~ TAGS
 clobber: clean
 	rm -f noacli.tgz
 

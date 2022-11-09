@@ -3,7 +3,6 @@
 # contaminated with app specific classes and GUI pieces
 
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
-from PyQt5.QtWidgets import QTableView
 from PyQt5.QtCore import QModelIndex, QProcess, QTimer, QObject
 from qtail import QtTail
 
@@ -28,7 +27,6 @@ class simpleTable(QAbstractTableModel):
             return None
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
             return self.data[row][col]
-        # XXX other roles?
         return None
         
     # recommended: headerData
@@ -47,7 +45,6 @@ class simpleTable(QAbstractTableModel):
 
 class jobItem():
     def __init__(self, history):
-        print('create job') # XXXX
         self.index = None
         self.history = history
         self.setStatus('init')
@@ -104,9 +101,9 @@ class jobItem():
         self.windowOpen = True
         self.window.show()
         self.window.start()
-        # XXXX do more parsing and give this a real title
+        # XXX Do more parsing and give this a real title
         self.window.openProcess('subprocess' , self.process)
-        print('start command: '+self.command()) # XXXX
+        #print('start command: '+self.command())
         self.process.start('bash', [ '-c', self.command() ])
 
     def windowClosed(self):
@@ -115,7 +112,7 @@ class jobItem():
             index = self.index.model().sibling(self.index.row(),2,QModelIndex())
             self.index.model().dataChanged.emit(index,index)
         # XXX trigger cleanup?  maybe on a timer
-        # self.index.model().cleanup()
+        # self.index.model().cleanupJob(self.index)
                    
 class jobTableModel(QAbstractTableModel):
     def __init__(self):
@@ -157,13 +154,10 @@ class jobTableModel(QAbstractTableModel):
         row = index.row()
         if row < 0 or row >= len(self.joblist):
             return False
-        # try:
         self.joblist[row].window.setWindowTitle(value)
         self.dataChanged.emit(index,index)
         return True
-        #except:
-        #    return False  # XXX
-    # make cells editable
+    # make window title editable
     def flags(self,index):
         if not index.isValid() or index.column()!=2:
             return super(jobTableModel,self).flags(index)
@@ -176,19 +170,27 @@ class jobTableModel(QAbstractTableModel):
         return self.joblist[row]
 
     # can't delete a job unless it is dead, so don't implement removeRows
-    def deleteJob(self,row, parent):
+    def deleteJob(self,row):
         self.beginRemoveRows(QModelIndex(),row,row)
         d = self.joblist.pop(row)
-        # XXX clean up?
+        # XXX clean up job internals?
         self.endRemoveRows()
         
-    # XXXX trigger this somehow
+    def cleanupJob(self, index):
+        if not index.isValid(): return
+        row = index.row()
+        if row <0 or row>=len(self.joblist): return
+        job = self.joblist[row]
+        if job.finished and not job.windowOpen:
+            self.deleteJob(row)
+        
+    # delete all dead jobs
     def cleanup(self):
         #print('cleanup')
         i=0
         while i<len(self.joblist): # XXX watch for infinite loops!
             if self.joblist[i].finished and self.joblist[i].windowOpen==False:
-                self.deleteJob(i,self)
+                self.deleteJob(i)
             else:
                 i +=1
         if len(self.joblist)<1: self.cleanTime.stop()
@@ -294,15 +296,11 @@ class History(simpleTable):
         try:
             hfile = open(fname, 'r')
         except:
-            # XXX fake it for now
-            self.data=[[0, "test"],
-                   [1, 'fail'],
-                   [None, 'editme'],
-                   [None, 'editme2'],
-                ]
+            self.data = [ ]
             self.layoutChanged.emit([])
             return
-        # XXX parse file and insert data
+        # XXXX parse file and insert data
+        #while (l=hfile.read
         close(hfile)
     
     # def add(self, exitval, command)

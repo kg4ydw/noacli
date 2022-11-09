@@ -81,7 +81,6 @@ class noacli(QtWidgets.QMainWindow):
             cb.disconnect()
             cb.clicked.connect(self.settings.jobs.cleanup)
 
-    # XXX wish there was a way to tell designer to send this to the model
     @QtCore.pyqtSlot(QModelIndex)
     def jobDoubleClicked(self, index):
         if not index.isValid(): return
@@ -89,7 +88,7 @@ class noacli(QtWidgets.QMainWindow):
         if col==0:
             text = str(index.model().jobItem(index).process.processId())
             self.app.clipboard().setText(text)
-        elif col==1: index.model().cleanup()  # job status
+        elif col==1: index.model().cleanupJob(index)  # job status
         elif col==2: self.windowShowRaise(index)
         elif col==3: self.ui.plainTextEdit.acceptCommand(index.model().jobItem(index).command())
 
@@ -186,7 +185,7 @@ class commandEditor(QPlainTextEdit):
             self.histindex = None
             
     def clear(self):
-        # XXX save previous contents in history if modified
+        # save previous contents in history if modified
         if self.document().isModified():
             # XX this should be done with a signal instead
             self.history.saveItem(self.toPlainText(), self.histindex, None)

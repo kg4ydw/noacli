@@ -29,6 +29,7 @@ o job life cycle
     handle |  --> tree
     handle <
     handle >
+    set window title based on regex filter list
   update status bar with recent process status and errors
   short output in status window
   single lines to status bar (and status window?)
