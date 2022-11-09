@@ -72,7 +72,6 @@ class myOptions():
         if self.whole: self.maxLines = 0
         if parser.isSet(optTitle):
             self.title = parser.value(optTitle)
-            print("title="+self.title)
         if parser.isSet(optFormat):
             f = str(parser.value(optFormat))[0].lower()
             if f=='m': self.format='m'
@@ -331,7 +330,7 @@ if __name__ == '__main__':
     args = options.process(app)
 
     if options.isCommand:
-        print('--Command not implemented yet')
+        print('--Command not implemented yet')  # XXXX
         exit(1)
 
     mainwin = QtTail(options)

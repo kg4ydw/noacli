@@ -86,14 +86,14 @@ class noacli(QtWidgets.QMainWindow):
         if not index.isValid(): return
         col = index.column()
         if col==0:
-            text = str(index.model().jobItem(index).process.processId())
+            text = str(index.model().getItem(index).process.processId())
             self.app.clipboard().setText(text)
         elif col==1: index.model().cleanupJob(index)  # job status
         elif col==2: self.windowShowRaise(index)
-        elif col==3: self.ui.plainTextEdit.acceptCommand(index.model().jobItem(index).command())
+        elif col==3: self.ui.plainTextEdit.acceptCommand(index.model().getItem(index).command())
 
     def windowShowRaise(self,index):
-        job = index.model().jobItem(index)
+        job = index.model().getItem(index)
         job.windowOpen = True
         job.window.show()
         job.window.raise_()
@@ -125,7 +125,6 @@ class noacli(QtWidgets.QMainWindow):
     # push button signal
     @QtCore.pyqtSlot()
     def runLastCommand(self):
-        print("run last")
         last = self.settings.history.last()
         self.runCommand(None,last)
 
@@ -133,7 +132,7 @@ class noacli(QtWidgets.QMainWindow):
     def runCommand(self, command, hist):
         self.resetHistorySort()
         # XXX command is redundant?
-        j = jobItem(hist)
+        j = jobItem(hist)  # XX construct new job
         self.settings.jobs.newjob(j)
         j.start()
         # XX try to fix job table size every time?
@@ -143,7 +142,6 @@ class commandEditor(QPlainTextEdit):
     command_to_run = pyqtSignal(str, QModelIndex)
 
     def __init__(self, parent):
-        print
         super(commandEditor,self).__init__(parent)
         self.histindex = None
         self.history = None
@@ -176,10 +174,6 @@ class commandEditor(QPlainTextEdit):
         if text:
             h = self.history.saveItem(text, self.histindex, None)
             self.command_to_run.emit(text, h)
-            ## broken
-            #j = jobItem(h)
-            #self.ui
-            #j.start()
             
             super(commandEditor,self).clear()  # bypass internal clear
             self.histindex = None

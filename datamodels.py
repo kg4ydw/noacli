@@ -43,6 +43,36 @@ class simpleTable(QAbstractTableModel):
     # resizable: removeRows addRows
     # other: addHistory 
 
+class itemListModel(QAbstractTableModel):
+    # an array of items, where each item is a row
+    def __init__(self, headers):
+        QAbstractTableModel.__init__(self)
+        self.data = [ ]
+        self.headers = headers
+    
+    # required functions rowCount columnCount data
+    def rowCount(self, parent):
+        return len(self.data)
+    def columnCount(self, parent):
+        return len(self.headers)
+    # convenience function
+    def validateIndex(self, index):
+        if not index.isValid(): return False
+        row = index.row()
+        if row<0 or row>=len(self.data): return False
+        # up to subclass to validate column
+        return True
+
+    # recommended: headerData
+    def headerData(self, col, orientation, role):
+        if role == Qt.DisplayRole and orientation == Qt.Horizontal and col<len(self.headers):
+            return self.headers[col]
+        return None
+
+    def getItem(self, index):
+        if not self.validateIndex(index): return None
+        return self.data[index.row()]
+        
 class jobItem():
     def __init__(self, history):
         self.index = None
@@ -114,28 +144,16 @@ class jobItem():
         # XXX trigger cleanup?  maybe on a timer
         # self.index.model().cleanupJob(self.index)
                    
-class jobTableModel(QAbstractTableModel):
+class jobTableModel(itemListModel):
     def __init__(self):
-        QAbstractTableModel.__init__(self)
-        self.joblist = []
-        self.headers = [ 'pid', 'state', 'window', 'command']
+        itemListModel.__init__(self, [ 'pid', 'state', 'window', 'command'] )
         self.cleanTime = QTimer(self)
         self.cleanTime.timeout.connect(self.cleanup)
         # don't start it until we have data
-        
-    # required functions rowCount columnCount data
-    def rowCount(self, parent):
-        return len(self.joblist)
-    def columnCount(self, parent):
-        return len(self.headers)
     def data(self, index, role):
-        if not index.isValid():
-            return None;
-        row = index.row()
+        if not self.validateIndex(index): return None
         col = index.column()
-        if row < 0 or col<0 or row >= len(self.joblist):
-            return None
-        job = self.joblist[row]
+        job = self.data[index.row()]
         if role==Qt.BackgroundRole and col==2 and not job.windowOpen:
             return QBrush(Qt.gray)
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
@@ -147,14 +165,10 @@ class jobTableModel(QAbstractTableModel):
         return None
 
     def setData(self, index, value, role):
-        if not index.isValid():
-            return None;
+        if not self.validateIndex(index): return None
         col = index.column()
         if col!=2: return False  # only window title editable right now
-        row = index.row()
-        if row < 0 or row >= len(self.joblist):
-            return False
-        self.joblist[row].window.setWindowTitle(value)
+        self.data[row].window.setWindowTitle(value)
         self.dataChanged.emit(index,index)
         return True
     # make window title editable
@@ -162,25 +176,18 @@ class jobTableModel(QAbstractTableModel):
         if not index.isValid() or index.column()!=2:
             return super(jobTableModel,self).flags(index)
         return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
-
-    def jobItem(self, index):
-        if not index.isValid(): return None
-        row = index.row()
-        if row<0 or row>=len(self.joblist): return None
-        return self.joblist[row]
-
     # can't delete a job unless it is dead, so don't implement removeRows
     def deleteJob(self,row):
+        # skip validation
         self.beginRemoveRows(QModelIndex(),row,row)
-        d = self.joblist.pop(row)
+        d = self.data.pop(row)
         # XXX clean up job internals?
         self.endRemoveRows()
         
     def cleanupJob(self, index):
-        if not index.isValid(): return
+        if not self.validateIndex(index): return None
         row = index.row()
-        if row <0 or row>=len(self.joblist): return
-        job = self.joblist[row]
+        job = self.data[row]
         if job.finished and not job.windowOpen:
             self.deleteJob(row)
         
@@ -188,23 +195,17 @@ class jobTableModel(QAbstractTableModel):
     def cleanup(self):
         #print('cleanup')
         i=0
-        while i<len(self.joblist): # XXX watch for infinite loops!
-            if self.joblist[i].finished and self.joblist[i].windowOpen==False:
+        while i<len(self.data): # XXX watch for infinite loops!
+            if self.data[i].finished and self.data[i].windowOpen==False:
                 self.deleteJob(i)
             else:
                 i +=1
-        if len(self.joblist)<1: self.cleanTime.stop()
-        
-    # recommended: headerData
-    def headerData(self, col, orientation, role):
-        if role == Qt.DisplayRole and orientation == Qt.Horizontal and col<len(self.headers):
-            return self.headers[col]
-        return None
+        if len(self.data)<1: self.cleanTime.stop()
 
     def newjob(self, jobitem):
-        lastrow = len(self.joblist)
+        lastrow = len(self.data)
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)
-        self.joblist.append(jobitem)
+        self.data.append(jobitem)
         self.endInsertRows()
         jobitem.index = self.index(lastrow,0)
         # start a cleanup timer
