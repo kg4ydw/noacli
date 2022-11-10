@@ -5,10 +5,11 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QKeySequence
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut
+from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex
 from noacli_ui import Ui_noacli
 from datamodels import simpleTable, History, jobItem, jobTableModel
+from functools import partial
 
 # initialize, load, hold, and save various global settings
 class settings():
@@ -81,6 +82,13 @@ class noacli(QtWidgets.QMainWindow):
             cb.disconnect()
             cb.clicked.connect(self.settings.jobs.cleanup)
 
+        # XXXX build history context menu
+        self.ui.historyMenu.aboutToShow.connect(self.buildHistoryMenu)
+        self.ui.menuJobs.aboutToShow.connect(self.buildJobMenu)
+
+        self.ui.historyView.scrollToBottom()
+
+
     @QtCore.pyqtSlot(QModelIndex)
     def jobDoubleClicked(self, index):
         if not index.isValid(): return
@@ -93,6 +101,7 @@ class noacli(QtWidgets.QMainWindow):
         elif col==3: self.ui.plainTextEdit.acceptCommand(index.model().getItem(index).command())
 
     def windowShowRaise(self,index):
+        if isinstance(index, QAction): index = index.data() # unwrap
         job = index.model().getItem(index)
         job.windowOpen = True
         job.window.show()
@@ -139,11 +148,71 @@ class noacli(QtWidgets.QMainWindow):
         # XX try to fix job table size every time?
         self.ui.jobTableView.resizeColumnsToContents()
 
+    # slots for history dock context menu
+    def deleteSelected(self):
+        # XX reuse this somehow?
+        indexes = ui.historyView.selectionModel().selectedRows()
+        while indexes:  # XX delete ranges for higher efficency?
+            i = indexes.pop()
+            i.model().removeRow(self, i.row(), QModelIndex())
+
+    # menu action
+    def actionSaveHistory(self):
+        self.settings.history.write()
+
+    def closeEvent(self, event):
+        self.actionSaveHistory()
+
+    # dynamic portion of history menu
+    @QtCore.pyqtSlot()
+    def buildHistoryMenu(self):
+        hm = self.ui.historyMenu
+        # first destroy old entries
+        # XXXX does this work?
+        for a in hm.actions():
+            if a.data(): hm.removeAction(a)
+        # add new entries
+        h = self.settings.history.last()
+        i = 5  # XXX setting: history menu size
+        cmds=set()
+        while i>0 and h:
+            c = str(h.data())
+            if c not in cmds:
+                act = QAction(h.data(), self)
+                act.setData(h)
+                hm.addAction(act)
+                act.triggered.connect(partial(self.acceptHistoryAction,act))
+                cmds.add(c)
+                i -= 1
+            h = h.model().prevNoWrap(h)
+
+    def acceptHistoryAction(self, act):
+        self.ui.plainTextEdit.acceptHistory(act.data())
+
+    @QtCore.pyqtSlot()
+    def buildJobMenu(self):
+        jm = self.ui.menuJobs
+        jm.clear()
+        if self.settings.jobs.isEmpty():
+            jm.addAction('No jobs left')
+            return
+        # XXX threshold for too many jobs in this menu
+        # XX if there's too many, how do we filter?
+        # XX active jobs or all jobs?
+        jobs = self.settings.jobs
+        for j in jobs:
+            s = str(j.model().getItem(j))
+            act = QAction(s,  self)
+            act.setData(j)
+            jm.addAction(act)
+            act.triggered.connect(partial(self.windowShowRaise,act))
+        
 class commandEditor(QPlainTextEdit):
     command_to_run = pyqtSignal(str, QModelIndex)
 
     def __init__(self, parent):
         super(commandEditor,self).__init__(parent)
+        self.ui = parent.parent().ui
         self.histindex = None
         self.history = None
         self.histUp = QShortcut(QKeySequence('ctrl+up'),self)
@@ -183,7 +252,8 @@ class commandEditor(QPlainTextEdit):
         # save previous contents in history if modified
         if self.document().isModified():
             # XX this should be done with a signal instead
-            self.history.saveItem(self.toPlainText(), self.histindex, None)
+            i = self.history.saveItem(self.toPlainText(), self.histindex, None)
+            if i: self.ui.historyView.scrollTo(i)
         self.histindex = None
         super(commandEditor,self).clear()
 
@@ -199,10 +269,12 @@ class commandEditor(QPlainTextEdit):
         str = idx.siblingAtColumn(1).data(Qt.EditRole)
         self.setPlainText(str)
         #unnecssary?# self.document().setModified( idx.siblingAtColumn(0).data(Qt.DisplayRole)==None)
+        # scroll history window to this entry XX optional?
+        self.ui.historyView.scrollTo(idx)
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    #XXX QtCore.QCoreApplication.setOrganizationName("ssdApps");
+    QtCore.QCoreApplication.setOrganizationName("kg4ydw");
     QtCore.QCoreApplication.setApplicationName("noacli");
 
     # XXX process command line args

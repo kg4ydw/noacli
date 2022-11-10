@@ -44,7 +44,9 @@
     <property name="title">
      <string>History</string>
     </property>
-    <addaction name="actionlast"/>
+    <addaction name="actionlastCommand"/>
+    <addaction name="actionsave_history"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuViews">
     <property name="title">
@@ -54,8 +56,14 @@
     <addaction name="actionHideDocks"/>
     <addaction name="separator"/>
    </widget>
+   <widget class="QMenu" name="menuJobs">
+    <property name="title">
+     <string>Jobs</string>
+    </property>
+   </widget>
    <addaction name="historyMenu"/>
    <addaction name="menuViews"/>
+   <addaction name="menuJobs"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="history">
@@ -251,7 +259,7 @@
     <string>Job manager</string>
    </property>
   </action>
-  <action name="actionlast">
+  <action name="actionlastCommand">
    <property name="text">
     <string>last command</string>
    </property>
@@ -264,6 +272,11 @@
   <action name="actionHideDocks">
    <property name="text">
     <string>Hide all</string>
+   </property>
+  </action>
+  <action name="actionsave_history">
+   <property name="text">
+    <string>Save history</string>
    </property>
   </action>
  </widget>
@@ -393,6 +406,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionsave_history</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>actionSaveHistory()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>214</x>
+     <y>133</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionlastCommand</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>runLastCommand()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>214</x>
+     <y>133</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
@@ -400,5 +445,6 @@
   <slot>runCommand(QString,QModelIndex)</slot>
   <slot>runLastCommand()</slot>
   <slot>jobDoubleClicked(QModelIndex)</slot>
+  <slot>actionSaveHistory()</slot>
  </slots>
 </ui>

@@ -41,18 +41,7 @@ o job life cycle
 Bugs:
 * gets middle of file on /usr/dict/words without --whole
 ? what to do with stderr? always log?
-FIXED Qt doesn't support pipes (test in non-linux)
-* history disconnect for old entry with running command
-  Traceback (most recent call last):
-    File "./noacli.py", line 90, in runCommand
-      j = jobItem(hist)
-    File "/home/ssd/src/noacli/datamodels.py", line 48, in __init__
-      self.setStatus('init')
-    File "/home/ssd/src/noacli/datamodels.py", line 70, in setStatus
-      self.history.model().setStatus(self.history,status)
-  AttributeError: 'QSortFilterProxyModel' object has no attribute 'setStatus'
-
-
+* scrollTo not working
 
 Main features:
   main window is a dynamic one line editor
@@ -65,7 +54,7 @@ Main features:
     Qsettings
        save/restore geometry (QWidget)
          save multiple profiles
-/      save/restore history?
+*      save/restore history?
        save env changes?
     docks* and +dialogs?  (%hash @array)
       dock: QT data structure is persistent and master
@@ -84,16 +73,16 @@ Main features:
 	    mode: qtail log terminal null local graph (default: pulldown)
 *   history with arrow keys
     history search with ctrl-s ctrl-r and !?
-    history with pull down menu (last 10)
+*   history with pull down menu (last 10)
     history manager
 o     table: index frequency exitval command button-name checkbox:edit/run
 *     editable table --> double click to edit in main window
 *     exit value: none if never run; color green/red/grey
-E     allow re-edits of unrun entries, move to end of list
+*     allow re-edits of unrun entries, move to end of list
 *     sortable table (by col)
 *     search box --> filter
 *     sort: history order (col=-1)
-      context menu
+!     context menu
     remember 10 most frequent commands in pull down menu
     button editor ("favorites")
       lists current buttons
@@ -104,18 +93,20 @@ E     allow re-edits of unrun entries, move to end of list
       buttons: apply prune
 
     history context menu
-/     (single click copies to edit window, double click runs)
+*     (single click copies to edit window, double click runs)
       add to favorites
       edit favorite --> favorite dialog box with entry selected?
-      delete
+!     delete selected
+      remove duplicates
       mark commands in favorites?
       mark frequent commands?
     job manager list
 o     manager table: pid type command kill raise? info rerun
 *     alternate: QProcess object, status, type, command
-      window status / type?
+*     window status
+      window type
 *     click to redisplay / raise window (qtail)
-      context menu:
+!     context menu:
         info? --> process status, time stats, etc
 	kill
 	edit
@@ -135,14 +126,15 @@ o	raise or reopen
       handle stdin:
         send file
 	pipe  (connect multiple commands, tree style jobs)
-!       close when not used
+?       close when not used
 !   settings
       table: name default tooltip currentval
       merge qtail options
       items
 !	historysize
 	historyfile
-	recent menu size
+	historyskipdups (bash option?)
+!	history menu size
 	frequent menu size
 	frequents size
 !	external shell
@@ -192,7 +184,7 @@ o     find next
         buffering: tail [size] / all
         format/view
 **x       plain text html markdown
-/         fixed width font
+x         fixed width font
 o     memory saver (limit scrollback to 1M / 10000 lines by default)
       find menu
         advanced --> find dialog

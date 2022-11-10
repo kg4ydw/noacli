@@ -38,6 +38,8 @@ class Ui_noacli(object):
         self.historyMenu.setObjectName("historyMenu")
         self.menuViews = QtWidgets.QMenu(self.menubar)
         self.menuViews.setObjectName("menuViews")
+        self.menuJobs = QtWidgets.QMenu(self.menubar)
+        self.menuJobs.setObjectName("menuJobs")
         noacli.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(noacli)
         self.statusbar.setObjectName("statusbar")
@@ -140,18 +142,23 @@ class Ui_noacli(object):
         self.actionJob_manager = QtWidgets.QAction(noacli)
         self.actionJob_manager.setCheckable(True)
         self.actionJob_manager.setObjectName("actionJob_manager")
-        self.actionlast = QtWidgets.QAction(noacli)
-        self.actionlast.setObjectName("actionlast")
+        self.actionlastCommand = QtWidgets.QAction(noacli)
+        self.actionlastCommand.setObjectName("actionlastCommand")
         self.actionShowDocks = QtWidgets.QAction(noacli)
         self.actionShowDocks.setObjectName("actionShowDocks")
         self.actionHideDocks = QtWidgets.QAction(noacli)
         self.actionHideDocks.setObjectName("actionHideDocks")
-        self.historyMenu.addAction(self.actionlast)
+        self.actionsave_history = QtWidgets.QAction(noacli)
+        self.actionsave_history.setObjectName("actionsave_history")
+        self.historyMenu.addAction(self.actionlastCommand)
+        self.historyMenu.addAction(self.actionsave_history)
+        self.historyMenu.addSeparator()
         self.menuViews.addAction(self.actionShowDocks)
         self.menuViews.addAction(self.actionHideDocks)
         self.menuViews.addSeparator()
         self.menubar.addAction(self.historyMenu.menuAction())
         self.menubar.addAction(self.menuViews.menuAction())
+        self.menubar.addAction(self.menuJobs.menuAction())
 
         self.retranslateUi(noacli)
         self.actionHideDocks.triggered.connect(noacli.hideAllDocks) # type: ignore
@@ -161,6 +168,8 @@ class Ui_noacli(object):
         self.plainTextEdit.command_to_run['QString','QModelIndex'].connect(noacli.runCommand) # type: ignore
         self.rerunLast.clicked.connect(noacli.runLastCommand) # type: ignore
         self.jobTableView.doubleClicked['QModelIndex'].connect(noacli.jobDoubleClicked) # type: ignore
+        self.actionsave_history.triggered.connect(noacli.actionSaveHistory) # type: ignore
+        self.actionlastCommand.triggered.connect(noacli.runLastCommand) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -168,6 +177,7 @@ class Ui_noacli(object):
         noacli.setWindowTitle(_translate("noacli", "noacli"))
         self.historyMenu.setTitle(_translate("noacli", "History"))
         self.menuViews.setTitle(_translate("noacli", "Views"))
+        self.menuJobs.setTitle(_translate("noacli", "Jobs"))
         self.history.setWindowTitle(_translate("noacli", "History"))
         self.historySearch.setPlaceholderText(_translate("noacli", "search history"))
         self.buttons.setWindowTitle(_translate("noacli", "buttons"))
@@ -178,7 +188,8 @@ class Ui_noacli(object):
         self.actionButton_box.setText(_translate("noacli", "Button box"))
         self.actionButton_editor.setText(_translate("noacli", "Button editor"))
         self.actionJob_manager.setText(_translate("noacli", "Job manager"))
-        self.actionlast.setText(_translate("noacli", "last command"))
+        self.actionlastCommand.setText(_translate("noacli", "last command"))
         self.actionShowDocks.setText(_translate("noacli", "Show all"))
         self.actionHideDocks.setText(_translate("noacli", "Hide all"))
+        self.actionsave_history.setText(_translate("noacli", "Save history"))
 from noacli import commandEditor

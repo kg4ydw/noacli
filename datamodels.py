@@ -5,6 +5,8 @@
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
 from PyQt5.QtCore import QModelIndex, QProcess, QTimer, QObject
 from qtail import QtTail
+import re   # use python re instead of Qt
+import os
 
 class simpleTable(QAbstractTableModel):
     def __init__(self,data, headers ):
@@ -34,9 +36,9 @@ class simpleTable(QAbstractTableModel):
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal and col<self.ncols:
                 return self.headers[col]
-            elif orientation == Qt.Vertical and col<len(self.data):
-                # if you don't like veritcal headers, turn them off in designer
-                return str(col)
+        elif orientation == Qt.Vertical and col<len(self.data):
+            # if you don't like veritcal headers, turn them off in designer
+            return str(col)
         return None
     
     # required for editing: setData flags
@@ -49,6 +51,17 @@ class itemListModel(QAbstractTableModel):
         QAbstractTableModel.__init__(self)
         self.data = [ ]
         self.headers = headers
+
+    # make this iterable
+    def __getitem__(self, key):
+        # note: this returns an index rather than returning the data
+        if not type(key)==int: raise TypeError
+        if key<0 or key>=len(self.data): raise IndexError
+        return self.index(key,0)
+        ### this could return the entry instead
+        #return self.data[key]
+    def isEmpty(self):
+        return len(self.data)==0
     
     # required functions rowCount columnCount data
     def rowCount(self, parent):
@@ -65,8 +78,12 @@ class itemListModel(QAbstractTableModel):
 
     # recommended: headerData
     def headerData(self, col, orientation, role):
-        if role == Qt.DisplayRole and orientation == Qt.Horizontal and col<len(self.headers):
-            return self.headers[col]
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal and col<len(self.headers):
+                return self.headers[col]
+            elif orientation == Qt.Vertical and col<len(self.data):
+                # if you don't like veritcal headers, turn them off in designer
+                return str(col+1)
         return None
 
     def getItem(self, index):
@@ -81,6 +98,16 @@ class itemListModel(QAbstractTableModel):
         self.endInsertRows()
         item.index = self.index(lastrow,0) # and item remembers itself
         return item.index
+
+    # subclass needs to first verify these can be deleted
+    def removeRows(self, start, count, parent):
+        if start<0 or start+count>len(self.data): return False
+        self.beginRemoveRows(QModelIndex(),row,row)
+        for i in range(count):
+            d = self.data.pop(start)
+            # XXX clean up item internals?
+        self.endRemoveRows()
+        return true
         
 class jobItem():
     def __init__(self, history):
@@ -95,6 +122,9 @@ class jobItem():
         self.process.errorOccurred.connect(self.collectError)
         self.process.finished.connect(self.collectFinish)
         self.process.stateChanged.connect(self.collectNewstate)
+
+    def __str__(self):  # mash some stuff together
+        return str(self.getStatus())+': '+self.window.windowTitle()+': '+self.command()[0:20]
 
     # private slots
     def collectError(self, err):
@@ -186,11 +216,14 @@ class jobTableModel(itemListModel):
             return super(jobTableModel,self).flags(index)
         return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
     # can't delete a job unless it is dead, so don't implement removeRows
+    def removeRows(self, row, parent):
+        return False
     def deleteJob(self,row):
-        # skip validation
+        # skip validation -- done elsewhere
+        #XX refactor?
         self.beginRemoveRows(QModelIndex(),row,row)
         d = self.data.pop(row)
-        # XXX clean up job internals?
+        # XXX clean up item internals?
         self.endRemoveRows()
         
     def cleanupJob(self, index):
@@ -259,10 +292,14 @@ class History(itemListModel):
         if row>=len(self.data): row=0
         return self.index(row,1)
     def prev(self, idx):
-        if not idx or not idx.isValid(): return self.last()
+        h = self.prevNoWrap(idx)
+        if h: return h
+        else: return self.last()
+    def prevNoWrap(self, idx):
+        if not idx or not idx.isValid(): return None
         row = idx.row()-1
-        if row<0: row= len(self.data)-1
-        return self.index(row,1)
+        if row<0: return None
+        else: return self.index(row,1)
 
     def saveItem(self, command, index, exitval):
         # XX if exitval==None and isValid(index) replace existing entry
@@ -287,25 +324,51 @@ class History(itemListModel):
         i = index.siblingAtColumn(0)
         self.dataChanged.emit(i,i)
     
-    def read(self, file=None):
+    def read(self, filename=None):
         # simple history data model for now, add frequency later
         # [ exitval, command ]
-        if file:
-            fname = file
+        if filename:
+            fname = filename
+        else:
+            try:
+                fname = os.environ.get('HOME') +'/'
+            except Exception as e:
+                print(str(e))
+                fname= ''
+            fname += '.noacli_history'
+        e = re.compile("^\s*(\d*)\s*:\s*(\S.*)")
+        try:
+            file = open(fname, 'r')
+        except:
+            return # XX no history file?
+        with file:
+            for line in file:
+                line = line.rstrip()
+                m = e.fullmatch(line)
+                if m:
+                    g1 = m.group(1)
+                    if g1=='': g1=None
+                    else: g1 = int(g1)
+                    self.saveItem(m.group(2), None, g1 )
+                else:
+                    self.saveItem(line, None, '')
+        self.layoutChanged.emit([])
+
+    def write(self, filename=None):  # export?
+        if filename:
+            fname = filename
         else:
             try:
                 fname = os.environ.get('HOME') +'/'
             except:
                 fname= ''
             fname += '.noacli_history'
-
-        try:
-            hfile = open(fname, 'r')
-        except:
-            self.data = [ ]
-            self.layoutChanged.emit([])
-            return
-        # XXXX parse file and insert data
-        #while (l=hfile.read
-        close(hfile)
- 
+        with open(fname, 'w') as file:
+            for i in self.data:
+                st = i.status
+                if type(st)==int or (type(st)==str and st.isnumeric()):
+                    # XXX this doesn't handle newlines!!!!
+                    file.write("{}: {}\n".format(st, i.command))
+                else:
+                    file.write(": {}\n".format(i.command))
+        # print("history write of "+filename+" failed")
