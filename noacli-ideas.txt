@@ -39,12 +39,17 @@ o job life cycle
     resize columns
 
 Bugs:
-* gets middle of file on /usr/dict/words without --whole
+  gets middle of file on /usr/dict/words without --whole
 ? what to do with stderr? always log?
-* scrollTo not working
+E scrollTo not working
+  qtail gives useless errors on file not found
+E settings dialog: checkbox doesn't work
+* edit mask for simpleTable model
 
 Main features:
   main window is a dynamic one line editor
+    pwd in message window when nothing else
+    directory stack
 *   complex commands are sent to bash
       detect complex commands
     command window context menu
@@ -85,12 +90,10 @@ o     table: index frequency exitval command button-name checkbox:edit/run
 !     context menu
     remember 10 most frequent commands in pull down menu
     button editor ("favorites")
-      lists current buttons
-      includes frequent history (sort by freq, cmd [hindex] )
+      table: *name *key count *command *checkImmediate 
+      sorted sections: buttons freq
       mark edited lines and save? or just mark to keep or expire
-      table: name count command checkImmediate keyshortcut
-      context menu: delete, duplicate?, run?
-      buttons: apply prune
+      context menu: delete, duplicate?, run? prune
 
     history context menu
 *     (single click copies to edit window, double click runs)
@@ -128,17 +131,30 @@ o	raise or reopen
 	pipe  (connect multiple commands, tree style jobs)
 ?       close when not used
 !   settings
-      table: name default tooltip currentval
-      merge qtail options
+*     table: name default tooltip currentval
+      show default in table ? or unmark when set to default?
+      context menu: reset selected to default
+*     merge qtail options
       items
 !	historysize
-	historyfile
-	historyskipdups (bash option?)
-!	history menu size
+*	historyfile
+!	histfilesize
+	histcontrol
+	  ignorespace : don't remember commands starting with space
+	  ignoredups: ignore repeated commands
+	  erasedups: remove previous occurances from history
+* 	JobMenuWidth
+*	history menu size
 	frequent menu size
 	frequents size
-!	external shell
+	frequents threshold
+!	SHELL external shell
 	graphical terminal
+	QTailFormat
+	QTailFollow
+	QTailWrap
+	QTailSearchMode
+	QTailCaseInsensitive
       environment vars?
         inherit for subprocs (active)
 	inherited / modified

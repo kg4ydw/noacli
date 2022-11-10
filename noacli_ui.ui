@@ -55,6 +55,9 @@
     <addaction name="actionShowDocks"/>
     <addaction name="actionHideDocks"/>
     <addaction name="separator"/>
+    <addaction name="actionGsettings"/>
+    <addaction name="separator"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuJobs">
     <property name="title">
@@ -279,6 +282,11 @@
     <string>Save history</string>
    </property>
   </action>
+  <action name="actionGsettings">
+   <property name="text">
+    <string>General settings</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -438,6 +446,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionGsettings</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>actionGsettings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>214</x>
+     <y>133</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
@@ -446,5 +470,6 @@
   <slot>runLastCommand()</slot>
   <slot>jobDoubleClicked(QModelIndex)</slot>
   <slot>actionSaveHistory()</slot>
+  <slot>actionGsettings()</slot>
  </slots>
 </ui>

@@ -150,11 +150,16 @@ class Ui_noacli(object):
         self.actionHideDocks.setObjectName("actionHideDocks")
         self.actionsave_history = QtWidgets.QAction(noacli)
         self.actionsave_history.setObjectName("actionsave_history")
+        self.actionGsettings = QtWidgets.QAction(noacli)
+        self.actionGsettings.setObjectName("actionGsettings")
         self.historyMenu.addAction(self.actionlastCommand)
         self.historyMenu.addAction(self.actionsave_history)
         self.historyMenu.addSeparator()
         self.menuViews.addAction(self.actionShowDocks)
         self.menuViews.addAction(self.actionHideDocks)
+        self.menuViews.addSeparator()
+        self.menuViews.addAction(self.actionGsettings)
+        self.menuViews.addSeparator()
         self.menuViews.addSeparator()
         self.menubar.addAction(self.historyMenu.menuAction())
         self.menubar.addAction(self.menuViews.menuAction())
@@ -170,6 +175,7 @@ class Ui_noacli(object):
         self.jobTableView.doubleClicked['QModelIndex'].connect(noacli.jobDoubleClicked) # type: ignore
         self.actionsave_history.triggered.connect(noacli.actionSaveHistory) # type: ignore
         self.actionlastCommand.triggered.connect(noacli.runLastCommand) # type: ignore
+        self.actionGsettings.triggered.connect(noacli.actionGsettings) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -192,4 +198,5 @@ class Ui_noacli(object):
         self.actionShowDocks.setText(_translate("noacli", "Show all"))
         self.actionHideDocks.setText(_translate("noacli", "Hide all"))
         self.actionsave_history.setText(_translate("noacli", "Save history"))
+        self.actionGsettings.setText(_translate("noacli", "General settings"))
 from noacli import commandEditor

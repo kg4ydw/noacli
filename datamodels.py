@@ -3,17 +3,18 @@
 # contaminated with app specific classes and GUI pieces
 
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
-from PyQt5.QtCore import QModelIndex, QProcess, QTimer, QObject
+from PyQt5.QtCore import QModelIndex, QProcess, QTimer, QObject, QSettings
 from qtail import QtTail
 import re   # use python re instead of Qt
 import os
 
 class simpleTable(QAbstractTableModel):
-    def __init__(self,data, headers ):
+    def __init__(self,data, headers, datatypes=None ):
         QAbstractTableModel.__init__(self)
         self.data = data
         self.headers = headers
         self.ncols = len(self.headers)
+        self.datatypes = datatypes
         #super(simpleTable).__init__(self)
     # required functions rowCount columnCount data
     def rowCount(self, parent):
@@ -30,7 +31,28 @@ class simpleTable(QAbstractTableModel):
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
             return self.data[row][col]
         return None
+    def setData(self, index, value, role):
+        if not self.validateIndex(index): return False
+        # subclass checks if cell is writable
+        # XXX need to validate and force data type somewhere
+        row = index.row()
+        col = index.column()
+        if self.datatypes:
+            try:
+                self.data[row][col] = self.datatypes[row][col](value)
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
+        self.data[row][col] = value  # do it without any validation or cast
         
+    def validateIndex(self, index):
+        if not index or not index.isValid(): return False
+        row = index.row()
+        if row<0 or row>=len(self.data): return False
+        col = index.column()
+        if col<0 or col>=len(self.headers): return false
+        return True
     # recommended: headerData
     def headerData(self, col, orientation, role):
         if role == Qt.DisplayRole:
@@ -40,6 +62,7 @@ class simpleTable(QAbstractTableModel):
             # if you don't like veritcal headers, turn them off in designer
             return str(col)
         return None
+    
     
     # required for editing: setData flags
     # resizable: removeRows addRows
@@ -124,7 +147,10 @@ class jobItem():
         self.process.stateChanged.connect(self.collectNewstate)
 
     def __str__(self):  # mash some stuff together
-        return str(self.getStatus())+': '+self.window.windowTitle()+': '+self.command()[0:20]
+        qs = QSettings()
+        width = int(qs.value('JobMenuWidth', 30))
+        s = str(self.getStatus())+' | '+self.window.windowTitle()+' | '+self.command()
+        return str(s)[0:width]
 
     # private slots
     def collectError(self, err):
@@ -160,19 +186,21 @@ class jobItem():
         # make something up
         return str(self.process.state())
     
-    def start(self):
+    def start(self, settings):
         # XXX connect output to something
         # for now, just merge stdout,stderr and send to qtail
         self.process.setProcessChannelMode(QProcess.MergedChannels)
         self.process.closeWriteChannel() # close stdin if we have no infile XXX
-        self.window = QtTail(None) # XXX options??
+        self.window = QtTail(settings.qtail)
         self.window.window_close_signal.connect(self.windowClosed)
         self.windowOpen = True
         self.window.show()
         self.window.start()
         # XXX Do more parsing and give this a real title
-        self.window.openProcess('subprocess' , self.process)
+        qs=QSettings()
+        self.window.openProcess(qs.value('QTailDefaultTitle','subprocess') , self.process)
         #print('start command: '+self.command())
+        # XXX qplit QSettings.value('SHELL')
         self.process.start('bash', [ '-c', self.command() ])
 
     def windowClosed(self):
@@ -207,7 +235,7 @@ class jobTableModel(itemListModel):
         if not self.validateIndex(index): return None
         col = index.column()
         if col!=2: return False  # only window title editable right now
-        self.data[row].window.setWindowTitle(value)
+        self.data[index.row()].window.setWindowTitle(value)
         self.dataChanged.emit(index,index)
         return True
     # make window title editable
@@ -247,7 +275,9 @@ class jobTableModel(itemListModel):
     def newjob(self, jobitem):
         self.appendItem(jobitem)
         # start a cleanup timer
-        self.cleanTime.start(120000) # XXX 2m, should be a settable option
+        qs = QSettings()
+        ct = int(qs.value('JobCleanTime', 120))*1000  # XXX could be float
+        self.cleanTime.start(ct)
 
 class historyItem():
     def __init__(self, status, command):
@@ -324,18 +354,27 @@ class History(itemListModel):
         i = index.siblingAtColumn(0)
         self.dataChanged.emit(i,i)
     
+    def getHistfilename(self):
+        qs = QSettings()
+        f = qs.value('HistFile','.noacli_history')
+        if f[0]=='/': return f
+        # it's a relative path, try to construct full path
+        try:
+            # XXX nonportable?
+            fname = os.environ.get('HOME') +'/'
+        except Exception as e:
+            print(str(e))
+            fname= ''
+        fname += f
+        return fname
+        
     def read(self, filename=None):
         # simple history data model for now, add frequency later
         # [ exitval, command ]
         if filename:
             fname = filename
         else:
-            try:
-                fname = os.environ.get('HOME') +'/'
-            except Exception as e:
-                print(str(e))
-                fname= ''
-            fname += '.noacli_history'
+            fname = self.getHistfilename()
         e = re.compile("^\s*(\d*)\s*:\s*(\S.*)")
         try:
             file = open(fname, 'r')
@@ -358,11 +397,7 @@ class History(itemListModel):
         if filename:
             fname = filename
         else:
-            try:
-                fname = os.environ.get('HOME') +'/'
-            except:
-                fname= ''
-            fname += '.noacli_history'
+            fname = self.getHistfilename()
         with open(fname, 'w') as file:
             for i in self.data:
                 st = i.status
@@ -372,3 +407,36 @@ class History(itemListModel):
                 else:
                     file.write(": {}\n".format(i.command))
         # print("history write of "+filename+" failed")
+
+class settingsDataModel(simpleTable):
+    def __init__(self, docdict, data, typedata=None):
+        self.docdict = docdict
+        # XXX this could be 3 column with the tool tips in col 3
+        super(settingsDataModel, self).__init__(data, ['Setting', 'Value'], typedata)
+        # nothing else to do, most done in gui model
+    def flags(self,index):
+        if not index.isValid() or index.column()!=1:
+            return super(settingsDataModel,self).flags(index)
+        row = index.row()
+        if self.docdict[self.data[row][0]][2]==bool:
+            return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable| Qt.ItemIsUserCheckable
+        else:
+            return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
+    def data(self, index, role):
+        if not self.validateIndex(index): return None
+        col = index.column()
+        row = index.row()
+        # color and supply default data
+        if col==1 and self.data[row][1]==None:
+            if role==Qt.BackgroundRole:
+                return QBrush(Qt.lightGray)
+            elif role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
+                # have to fill in default data to get type right
+                return self.docdict[self.data[row][0]][0]
+        if role==Qt.ToolTipRole:  # XX and StatusRole ?
+            if self.data[row][0] not in self.docdict: return None
+            doc = self.docdict[self.data[row][0]]
+            # swap tooltip columns
+            return doc[1-col]
+        return super(settingsDataModel,self).data(index, role)
+
