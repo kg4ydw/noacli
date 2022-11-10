@@ -183,7 +183,15 @@ class noacli(QtWidgets.QMainWindow):
 
         self.ui.historyView.scrollToBottom()
 
+    def start(self):
+        # nothing else to initialize yet
+        pass
 
+    ################
+    # external slots
+    # some of these could be moved
+
+    # in: jobView/JobModel  out: jobModel commandEditor
     @QtCore.pyqtSlot(QModelIndex)
     def jobDoubleClicked(self, index):
         if not index.isValid(): return
@@ -195,6 +203,7 @@ class noacli(QtWidgets.QMainWindow):
         elif col==2: self.windowShowRaise(index)
         elif col==3: self.ui.plainTextEdit.acceptCommand(index.model().getItem(index).command())
 
+    # in: jobView out: jobModel
     def windowShowRaise(self,index):
         if isinstance(index, QAction): index = index.data() # unwrap
         job = index.model().getItem(index)
@@ -202,15 +211,13 @@ class noacli(QtWidgets.QMainWindow):
         job.window.show()
         job.window.raise_()
 
+    # in: noacli out: historyView historyModel
     def resetHistorySort(self):
         self.ui.historyProxy.sort(-1)
         self.ui.historyView.horizontalHeader().setSortIndicator(-1,0)
         #self.historyProxy.invalidate()
 
-    def start(self):
-        # nothing else to initialize yet
-        pass
-
+    # in: view menu  out: all docks
     @QtCore.pyqtSlot()
     def showAllDocks(self):
         ui = self.ui
@@ -225,16 +232,20 @@ class noacli(QtWidgets.QMainWindow):
         ui.buttons.setVisible(False)
         ui.jobManager.setVisible(False)
 
+    # in: commandEditor runCurrent(button)
     # push button signal
     @QtCore.pyqtSlot()
     def runLastCommand(self):
         last = self.settings.history.last()
         self.runCommand(None,last)
 
+    # in: view menu  out: general settings dialog
     @QtCore.pyqtSlot()
     def actionGsettings(self):
         self.settings.makeDialog()
 
+    # in: self.runLast, commandEdit->command_to_run, QShortcuts
+    # out: historyModel, jobModel, jobTableView
     # slot to connect command window runCommand
     def runCommand(self, command, hist):
         if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
@@ -247,6 +258,7 @@ class noacli(QtWidgets.QMainWindow):
         # XX try to fix job table size every time?
         self.ui.jobTableView.resizeColumnsToContents()
 
+    # in: historyView out: historyModel
     # slots for history dock context menu
     def deleteSelected(self):
         # XX reuse this somehow?
@@ -255,12 +267,14 @@ class noacli(QtWidgets.QMainWindow):
             i = indexes.pop()
             i.model().removeRow(self, i.row(), QModelIndex())
 
-    # menu action
+    # in: history menu->save
     def actionSaveHistory(self):
         self.settings.history.write()
 
+    # in: this window closing
     def closeEvent(self, event):
         self.actionSaveHistory()
+        super(noacli,self).closeEvent(event)
 
     # dynamic portion of history menu
     @QtCore.pyqtSlot()
@@ -291,6 +305,7 @@ class noacli(QtWidgets.QMainWindow):
     def acceptHistoryAction(self, act):
         self.ui.plainTextEdit.acceptHistory(act.data())
 
+    # in: menuJobs->aboutToShow
     @QtCore.pyqtSlot()
     def buildJobMenu(self):
         jm = self.ui.menuJobs
