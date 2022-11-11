@@ -5,12 +5,15 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QKeySequence
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction
+from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings
+
+from functools import partial
+
 from noacli_ui import Ui_noacli
 from settingsdialog_ui import Ui_settingsDialog
+
 from datamodels import simpleTable, History, jobItem, jobTableModel, settingsDataModel
-from functools import partial
 from qtail import myOptions as qtailSettings
 
 
@@ -125,6 +128,73 @@ class settingsDialog(QtWidgets.QDialog):
         # XX resize top window too?
         self.show()
 
+class historyView(QTableView):
+    def __init__(self, parent):
+        super(historyView,self).__init__(parent)
+        self.realModel = None
+        self.historyProxy = QtCore.QSortFilterProxyModel()
+        # mess with the history corner button
+        cb = self.findChild(QtWidgets.QAbstractButton)
+        if cb:
+            cb.disconnect()
+            cb.clicked.connect(self.resetHistorySort)
+
+    def setModel(self,model):
+        self.realModel = model
+        self.historyProxy.setSourceModel(model)
+        self.historyProxy.setFilterKeyColumn(1)
+        super(historyView,self).setModel(self.historyProxy)
+        # this is probably too soon
+        self.resizeColumnsToContents()
+
+    def resetHistorySort(self):
+        self.historyProxy.sort(-1)
+        self.horizontalHeader().setSortIndicator(-1,0)
+        #self.historyProxy.invalidate()
+        self.resizeColumnsToContents()
+
+    def deleteOne(self, index):
+        index.model().removeRow(index.row(), QModelIndex())
+
+    def deleteSelected(self):
+        # XX reuse this somehow?
+        indexes = self.selectionModel().selectedRows()
+        if not indexes:
+            QErrorMessage(self).showMessage("Please select at least one whole row to delete selected rows")
+            return
+        #print("Deleting "+str(len(indexes))+'/'+str(len(self.realModel.data)))
+        while indexes:  # XX delete ranges for higher efficency?
+            i = indexes.pop()
+            i.model().removeRow(i.row(), QModelIndex())
+        #print(" deleted, left "+str(len(self.realModel.data)))
+        
+
+    def addFav(self, index, checked):
+        # XXXX
+        pass
+
+    def contextMenuEvent(self, event):
+        m = QMenu(self)
+        index = self.indexAt(event.pos())
+        act = m.addAction("Add to favorites",partial(self.addFav, index))
+        act = m.addAction("Delete",partial(self.deleteOne, index))
+        act = m.addAction("Delete selected rows",self.deleteSelected)
+        # make the model do these two
+        act = m.addAction("Collapse duplicates",self.realModel.collapseDups)
+        act = m.addAction("Delete earlier duplicates",self.realModel.deletePrevDups)
+        action = m.exec_(event.globalPos())
+        #print(action)
+
+    def resetView(self, index=None):
+        self.resetHistorySort()
+        if index:
+            # one of these should work
+            #self.scrollTo(index)
+            i = self.historyProxy.mapFromSource(index)
+            self.scrollTo(i)
+        else:
+            self.scrollToBottom()
+        
 class noacli(QtWidgets.QMainWindow):
     def __init__(self, settings):
         super(noacli,self).__init__()
@@ -150,14 +220,10 @@ class noacli(QtWidgets.QMainWindow):
         self.tabifyDockWidget( ui.jobManager, ui.history)
 
         # attach the data models to the views
-        ui.historyProxy = QtCore.QSortFilterProxyModel()
-        ui.historyProxy.setSourceModel(self.settings.history)
-        ui.historyProxy.setFilterKeyColumn(1)
-        ui.historyView.setModel(ui.historyProxy)
-        ui.historySearch.textChanged['QString'].connect(ui.historyProxy.setFilterFixedString)
+        ui.historyView.setModel(self.settings.history)
+        ui.historySearch.textChanged['QString'].connect(ui.historyView.historyProxy.setFilterFixedString)
 
         # make all the tables fit
-        ui.historyView.resizeColumnsToContents()
         ui.jobTableView.resizeColumnsToContents()
 
         # connect the command editor to the history data model
@@ -166,11 +232,6 @@ class noacli(QtWidgets.QMainWindow):
 
         ui.jobTableView.setModel(self.settings.jobs)
 
-        # mess with the history corner button
-        cb = ui.historyView.findChild(QtWidgets.QAbstractButton)
-        if cb:
-            cb.disconnect()
-            cb.clicked.connect(self.resetHistorySort)
         # mess with job manager corner button (is this even visible?)
         cb = ui.jobTableView.findChild(QtWidgets.QAbstractButton)
         if cb:
@@ -211,11 +272,6 @@ class noacli(QtWidgets.QMainWindow):
         job.window.show()
         job.window.raise_()
 
-    # in: noacli out: historyView historyModel
-    def resetHistorySort(self):
-        self.ui.historyProxy.sort(-1)
-        self.ui.historyView.horizontalHeader().setSortIndicator(-1,0)
-        #self.historyProxy.invalidate()
 
     # in: view menu  out: all docks
     @QtCore.pyqtSlot()
@@ -245,27 +301,19 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.makeDialog()
 
     # in: self.runLast, commandEdit->command_to_run, QShortcuts
-    # out: historyModel, jobModel, jobTableView
+    # out: historyView, jobModel, jobTableView
     # slot to connect command window runCommand
     def runCommand(self, command, hist):
         if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
             hist=hist.model().mapToSource(hist)
-        self.resetHistorySort()  # XXX this might be annoying
+        self.ui.historyView.resetHistorySort()  # XXX this might be annoying
         # XXX command is redundant? but external stuff calls us
         j = jobItem(hist)  # XX construct new job
         self.settings.jobs.newjob(j)
         j.start(self.settings)
         # XX try to fix job table size every time?
         self.ui.jobTableView.resizeColumnsToContents()
-
-    # in: historyView out: historyModel
-    # slots for history dock context menu
-    def deleteSelected(self):
-        # XX reuse this somehow?
-        indexes = ui.historyView.selectionModel().selectedRows()
-        while indexes:  # XX delete ranges for higher efficency?
-            i = indexes.pop()
-            i.model().removeRow(self, i.row(), QModelIndex())
+        self.ui.historyView.resetView(hist)
 
     # in: history menu->save
     def actionSaveHistory(self):
@@ -370,7 +418,7 @@ class commandEditor(QPlainTextEdit):
         if self.document().isModified():
             # XX this should be done with a signal instead
             i = self.history.saveItem(self.toPlainText(), self.histindex, None)
-            if i: self.ui.historyView.scrollTo(i)
+            if i: self.ui.historyView.resetView(i)
         self.histindex = None
         super(commandEditor,self).clear()
 
@@ -387,7 +435,7 @@ class commandEditor(QPlainTextEdit):
         self.setPlainText(str)
         #unnecssary?# self.document().setModified( idx.siblingAtColumn(0).data(Qt.DisplayRole)==None)
         # scroll history window to this entry XX optional?
-        self.ui.historyView.scrollTo(idx)
+        self.ui.historyView.resetView(idx)
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

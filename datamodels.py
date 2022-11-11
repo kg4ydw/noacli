@@ -119,18 +119,18 @@ class itemListModel(QAbstractTableModel):
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)
         self.data.append(item)
         self.endInsertRows()
-        item.index = self.index(lastrow,0) # and item remembers itself
+        item.index = self.index(lastrow,1) # and item remembers itself
         return item.index
 
     # subclass needs to first verify these can be deleted
     def removeRows(self, start, count, parent):
         if start<0 or start+count>len(self.data): return False
-        self.beginRemoveRows(QModelIndex(),row,row)
+        self.beginRemoveRows(QModelIndex(),start, start+count-1)
         for i in range(count):
             d = self.data.pop(start)
             # XXX clean up item internals?
         self.endRemoveRows()
-        return true
+        return True
         
 class jobItem():
     def __init__(self, history):
@@ -149,7 +149,7 @@ class jobItem():
     def __str__(self):  # mash some stuff together
         qs = QSettings()
         width = int(qs.value('JobMenuWidth', 30))
-        s = str(self.getStatus())+' | '+self.window.windowTitle()+' | '+self.command()
+        s = str(self.getStatus())+' | '+str(self.window.windowTitle())+' | '+str(self.command())
         return str(s)[0:width]
 
     # private slots
@@ -200,7 +200,7 @@ class jobItem():
         qs=QSettings()
         self.window.openProcess(qs.value('QTailDefaultTitle','subprocess') , self.process)
         #print('start command: '+self.command())
-        # XXX qplit QSettings.value('SHELL')
+        # XXX split QSettings.value('SHELL')
         self.process.start('bash', [ '-c', self.command() ])
 
     def windowClosed(self):
@@ -280,9 +280,10 @@ class jobTableModel(itemListModel):
         self.cleanTime.start(ct)
 
 class historyItem():
-    def __init__(self, status, command):
+    def __init__(self, status, command, count=1):
         self.status = status
         self.command = command
+        self.count = count
         
 class History(itemListModel):
     def __init__(self):
@@ -303,8 +304,12 @@ class History(itemListModel):
                 else: return QBrush(Qt.yellow)
             elif st: return QBrush(Qt.red)
             else: return None
-        elif role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
-            if col==0: return item.status
+        elif role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole, Qt.ToolTipRole]:
+            if col==0:
+                if role==Qt.ToolTipRole:
+                    return item.count
+                else:
+                    return item.status
             elif col==1: return item.command
         return None
 
@@ -331,7 +336,7 @@ class History(itemListModel):
         if row<0: return None
         else: return self.index(row,1)
 
-    def saveItem(self, command, index, exitval):
+    def saveItem(self, command, index, exitval, count=1):
         # XX if exitval==None and isValid(index) replace existing entry
         # else append
         if self.validateIndex(index) and exitval==None:
@@ -341,8 +346,21 @@ class History(itemListModel):
                 i = index.siblingAtColumn(1)
                 self.dataChanged.emit(i,i)
                 return i
-        item = historyItem(exitval, command)
+        self.limitHistorySize()
+        item = historyItem(exitval, command, count)
         return self.appendItem(item)
+
+    def limitHistorySize(self):
+        qs = QSettings()
+        try:
+            hsize = int(qs.value('HISTSIZE', 1000))
+        except Exception as e:
+            print(str(e))
+            return
+        if len(self.data)>hsize:
+            # print("Deleting history overflow: "+str(d))
+            d = len(self.data)-hsize
+            self.removeRows(0,d,QModelIndex())
 
     def getCommand(self, index):
         if not self.validateIndex(index): return
@@ -354,6 +372,52 @@ class History(itemListModel):
         i = index.siblingAtColumn(0)
         self.dataChanged.emit(i,i)
     
+    # slots used by historyView context menu
+    def collapseDups(self):
+        i = 1
+        start = 0
+        while i<=len(self.data):
+            if i<len(self.data) and self.data[start].command == self.data[i].command:
+                i +=1
+            else:
+                if start<i-1:  # keep earliest duplicate
+                    nc = i-start-1
+                    for j in range(start+1,i):
+                        self.data[start].count += self.data[j].count
+                    #print('remove: ({},{})={}'.format(start,i,nc))
+                    self.removeRows(start+1, nc, QModelIndex())
+                start +=1 
+                i = start+1
+                          
+    def countHistory(self):
+        f = { }
+        counts = { }
+        for h in self.data:
+            if h.command in f:
+                f[h.command]+=1
+                counts[h.command]+=h.count
+            else:
+                f[h.command]= 0  # undercount to not delete last entry
+                counts[h.command] = h.count
+        return (f,counts)
+
+    def deletePrevDups(self):
+        # index all commands and then delete early duplicates
+        (f,counts) = self.countHistory()
+        i=0
+        # and now delete entries
+        while i<len(self.data):
+            c = self.data[i].command
+            if c in f and f[c]>0:
+                f[c] -= 1
+                self.removeRow(i, QModelIndex())
+            else:
+                i += 1
+        # run through the whole list and update count of remaining entries
+        for h in self.data:
+            if h.command in counts:
+                h.count = counts[h.command]
+
     def getHistfilename(self):
         qs = QSettings()
         f = qs.value('HistFile','.noacli_history')
@@ -367,7 +431,7 @@ class History(itemListModel):
             fname= ''
         fname += f
         return fname
-        
+
     def read(self, filename=None):
         # simple history data model for now, add frequency later
         # [ exitval, command ]
@@ -375,35 +439,49 @@ class History(itemListModel):
             fname = filename
         else:
             fname = self.getHistfilename()
-        e = re.compile("^\s*(\d*)\s*:\s*(\S.*)")
+        e = re.compile("^\s*(\d*)(,(\d+))?\s*:\s*(\S.*)")
         try:
             file = open(fname, 'r')
         except:
             return # XX no history file?
         with file:
             for line in file:
+                count = 1
                 line = line.rstrip()
                 m = e.fullmatch(line)
                 if m:
-                    g1 = m.group(1)
+                    (g1, _, count, cmd) = m.groups()
                     if g1=='': g1=None
                     else: g1 = int(g1)
-                    self.saveItem(m.group(2), None, g1 )
+                    if count and  count.isnumeric(): count=int(count)
+                    else: count=1
+                    last = self.saveItem(cmd, None, g1, count )
                 else:
-                    self.saveItem(line, None, '')
+                    if last:
+                        # attempt to append entry
+                        d = last.model().getItem(last)
+                        d.command += "\n"+line
+                    else:
+                        self.saveItem(line, None, '')
         self.layoutChanged.emit([])
 
     def write(self, filename=None):  # export?
+        qs = QSettings()
+        maxhf = qs.value('HISTFILESIZE', 1000)
+        start = 0
+        if len(self.data)>maxhf:
+            start = len(self.data)-maxhf
         if filename:
             fname = filename
         else:
             fname = self.getHistfilename()
         with open(fname, 'w') as file:
-            for i in self.data:
+            for ii in range(start,len(self.data)):
+                i = self.data[ii]
                 st = i.status
                 if type(st)==int or (type(st)==str and st.isnumeric()):
                     # XXX this doesn't handle newlines!!!!
-                    file.write("{}: {}\n".format(st, i.command))
+                    file.write("{},{}: {}\n".format(st, i.count, i.command))
                 else:
                     file.write(": {}\n".format(i.command))
         # print("history write of "+filename+" failed")

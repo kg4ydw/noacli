@@ -1,6 +1,4 @@
-async shell
-noacli -- no ampersand
-sash steves asynchronous shell
+noacli -- no ampersand asynchronous shell
 
 o  started, partial implementation
 *  done
@@ -41,10 +39,19 @@ o job life cycle
 Bugs:
   gets middle of file on /usr/dict/words without --whole
 ? what to do with stderr? always log?
-E scrollTo not working
+* scrollTo not working
   qtail gives useless errors on file not found
 E settings dialog: checkbox doesn't work
 * edit mask for simpleTable model
+* lots of stuff packed into class noacli that could go elsewhere
+
+context menu / widget / class
+* history manager / historyView
+  job manager / jobTableVew / noacli
+  button editor / settingsDialog>tableView / settingsDialog
+  general settings editor / settingsDialog>tableView / settingsDialog
+  command window / plainTextEdit / commandEditor
+  qtail search / searchTerm / QtTail?
 
 Main features:
   main window is a dynamic one line editor
@@ -60,105 +67,113 @@ Main features:
        save/restore geometry (QWidget)
          save multiple profiles
 *      save/restore history?
+o      read history on command
        save env changes?
     docks* and +dialogs?  (%hash @array)
       dock: QT data structure is persistent and master
       dialog: build a table on the fly and save changes
 *      *@ history
 -      *% button bar
- 	    right click: dump in editor
-	    draggable gridview ??
-	    reimplement compact button bar GUI and make its own checkbox
+            right click: dump in editor
+            draggable gridview ??
+            reimplement compact button bar GUI and make its own checkbox
 *      *? job manager
        !@ favorites editor (buttons and frequent)
        !% environment var editor
-       !% settings editor
+*      !% settings editor
        !% command default mode editor
             table: command mode
-	    mode: qtail log terminal null local graph (default: pulldown)
-*   history with arrow keys
-    history search with ctrl-s ctrl-r and !?
-*   history with pull down menu (last 10)
-    history manager
-o     table: index frequency exitval command button-name checkbox:edit/run
-*     editable table --> double click to edit in main window
-*     exit value: none if never run; color green/red/grey
-*     allow re-edits of unrun entries, move to end of list
-*     sortable table (by col)
-*     search box --> filter
-*     sort: history order (col=-1)
-!     context menu
-    remember 10 most frequent commands in pull down menu
-    button editor ("favorites")
-      table: *name *key count *command *checkImmediate 
-      sorted sections: buttons freq
-      mark edited lines and save? or just mark to keep or expire
-      context menu: delete, duplicate?, run? prune
+            mode: qtail log terminal null local graph (default: pulldown)
+* history with arrow keys
+  history search with ctrl-s ctrl-r and !?
+* history with pull down menu (last 10)
+* history manager
+*   table: index frequency exitval command button-name checkbox:edit/run
+*   editable table --> double click to edit in main window
+*   exit value: none if never run; color green/red/grey
+*   allow re-edits of unrun entries, move to end of list
+*   sortable table (by col)
+*   search box --> filter
+*   sort: history order (col=-1)
+*   context menu
+? remember 10 most frequent commands in pull down menu
+  button editor ("favorites")
+    table: *name *key count *command *checkImmediate
+    sorted sections: buttons freq
+    mark edited lines and save? or just mark to keep or expire
+    context menu: delete, duplicate?, run? prune
+  history manager context menu
+*   (single click copies to edit window, double click runs)
+!   add to favorites
+*   delete selected
+*   remove duplicates
+  job manager list
+o   manager table: pid type command kill raise? info rerun
+*   alternate: QProcess object, status, type, command
+*   window status
+    window type
+*   click to redisplay / raise window (qtail)
+    job manager context menu:
+      info? --> process status, time stats, etc
+      kill
+      edit
+      kill or kill and restart
+o     raise or reopen
+      close window
+      measure output
+      clone?
+    open status icon
+*   proc/wait info
+*   delete dead jobs? (life cycle)
+    change default type
+  pipe / fd / job 
+    handle stdout
+      stderr channels separately
+      save to file
+      can a process in the middle of a pipeline be restarted?
+    handle stdin:
+      send file
+      pipe  (connect multiple commands, tree style jobs)
+?     close when not used
+o settings
+*   table: name default tooltip currentval
+    show default in table ? or unmark when set to default?
+    context menu: reset selected to default
+*   merge qtail options
+    items
+*     historysize
+*     historyfile
+*     histfilesize
+      histcontrol
+        ignorespace : don't remember commands starting with space
+o       ignoredups: ignore repeated commands
+o       erasedups: remove previous occurances from history
+*     JobMenuWidth
+*     history menu size
+      frequent menu size
+      frequents size
+      frequents threshold
+!     SHELL external shell
+      graphical terminal
+      QTailFormat
+      QTailFollow
+      QTailWrap
+      QTailSearchMode
+      QTailCaseInsensitive
+  environment vars?
+    inherit for subprocs (active)
+    inherited / modified
+    save / session
+    context menu
+      import from external environment
+      delete
+      set as deleted --> save
+      (column highlight) check/uncheck all
+    checkboxes/settings
+      external (inherit/ignore/replace)
+      save settings (save/session only)
+      export (pass to subproc) (activate/deactivate)
 
-    history context menu
-*     (single click copies to edit window, double click runs)
-      add to favorites
-      edit favorite --> favorite dialog box with entry selected?
-!     delete selected
-      remove duplicates
-      mark commands in favorites?
-      mark frequent commands?
-    job manager list
-o     manager table: pid type command kill raise? info rerun
-*     alternate: QProcess object, status, type, command
-*     window status
-      window type
-*     click to redisplay / raise window (qtail)
-!     context menu:
-        info? --> process status, time stats, etc
-	kill
-	edit
-	kill or kill and restart
-o	raise or reopen
-	close window
-	measure output
-	clone?
-      open status icon
-*     proc/wait info
-*     delete dead jobs? (life cycle)
-      change default type
-    job / process manager
-      handle stdout
-        stderr channels separately
-	save to file
-      handle stdin:
-        send file
-	pipe  (connect multiple commands, tree style jobs)
-?       close when not used
-!   settings
-*     table: name default tooltip currentval
-      show default in table ? or unmark when set to default?
-      context menu: reset selected to default
-*     merge qtail options
-      items
-!	historysize
-*	historyfile
-!	histfilesize
-	histcontrol
-	  ignorespace : don't remember commands starting with space
-	  ignoredups: ignore repeated commands
-	  erasedups: remove previous occurances from history
-* 	JobMenuWidth
-*	history menu size
-	frequent menu size
-	frequents size
-	frequents threshold
-!	SHELL external shell
-	graphical terminal
-	QTailFormat
-	QTailFollow
-	QTailWrap
-	QTailSearchMode
-	QTailCaseInsensitive
-      environment vars?
-        inherit for subprocs (active)
-	inherited / modified
- 	save / session
 
   short output commands -- display last line in editor/launcher
 
@@ -180,11 +195,12 @@ E   keep only last X lines? (initial input overload)
 *   autoresize (need trigger event)
     in a file, button to backscroll to previous lines or read more forward
        large file handling, line number / fseek index
+    pause (pull down menu) disable input / change button
 *   start from top / follow tail
 o   reload button
 *     if file --> reload
 *     if process / running command -> kill
-!     if done command -> rerun
+      if done command -> rerun
 /     if open stdin -> stop (close)
 /     if closed -> close window
     autoclose after exit on specified timeout without user interaction
@@ -215,13 +231,12 @@ x       save search & color as preset
 x       trigger sets of presets based on command name
 x       run command on current selection?
     text body context menu
-      change format (reloads text)
+x     change format (reloads text)
       transform selection to table
-o     adjustSize() --> autoresize window?
+*     adjustSize() --> autoresize window?
     command line options / open menu (menu bar)
 *     source from stdin
 *     file
-!     command --> edit command in menu?
 
 
   log
@@ -256,24 +271,74 @@ o     adjustSize() --> autoresize window?
     show / hide / rearrange columns
     sort by column
 
-  built in commands
+  built in special commands
 !   terminal (--set-default)
-*   scrolly
+*   scrolly / qtail / tail
 !   log
+    direct run / sh wrapper
+    
     simple --shared (default)
     simple --dedicated
     simple --clone
     table
     parse / display (pie?)
-!   cd / pushd / popd ??
-!   set environment / set from command output (modules)
-    set command category (above list, default)
-    name completion
-
+    (feature) name completion
     host (similar to cd) --> send commands to ssh
        use remote stub?
        pty password mode for sudo?
+    button --> adds a button for the following command
+    pushd dir --> creates button fur current directory and cd
+    pushd * --> creates buttons for all listed directories
+
+  built in standard commands
+!   cd / pwd
+!   set environment / set from command output (modules)
+    set command category (above list, default)
+    (feature) support commands for module
+      source ?
+      export
+    disown --> disconnect job
+
+  questional built in commands -- gui eqivs
+    set / shopt / unset
+    hash / type --> performance needed??
+    jobs history --> pop up window?
+    pushd popd dirs / dirstack --> use buttons instead?
+    alias / unalias
+    kill
+    exit
+    ulimit
+    umask
+    bind (key)
+    builtin command enable disable
+    help
+    times
+  useless builtins
+    exec fg bg echo eval let local logout mapfile readarray printf suspend
+  turing complete builtins
+    break caller continue declare typeset getopts read readonly return shift test trap wait
+
 
   predefined list of commands and types?
   autodetect by output size and runtime
   handle .desktop files, prepopulate graphical applications from those
+
+  fancy environment variable editor
+    split on delimiter, default :
+    turn into checkbox list
+    allow dragging
+    context menu
+      select all/none
+      remove duplicates
+      sort
+
+  command processor
+    split
+    check for built in commands
+      immediate: cd pwd
+      output mode: term(inal} log qtail tail
+      parse mode: direct sh pipe ${usershell}
+    if mode not set, guess
+      multi-line --> sh
+      regex match?
+      match next word to category list

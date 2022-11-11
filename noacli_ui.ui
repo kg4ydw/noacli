@@ -95,6 +95,12 @@
     <number>4</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QLineEdit" name="historySearch">
@@ -110,7 +116,13 @@
       </widget>
      </item>
      <item>
-      <widget class="QTableView" name="historyView">
+      <widget class="historyView" name="historyView">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="sizeAdjustPolicy">
         <enum>QAbstractScrollArea::AdjustToContents</enum>
        </property>
@@ -298,6 +310,11 @@
     <slot>acceptHistory(QModelIndex)</slot>
     <slot>runCommand()</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>historyView</class>
+   <extends>QTableView</extends>
+   <header>noacli</header>
   </customwidget>
  </customwidgets>
  <resources/>
