@@ -10,7 +10,7 @@ x  not supported in Qt
 
 Things to implement soon:
 ? close stdin
-  job: double click connect to send command to editor
+* job: double click connect to send command to editor
 o job life cycle
 *   connect to qtail window status
 *   delete job if command is done and window is closed
@@ -18,6 +18,22 @@ o job life cycle
 * tables: implement vertical headers??
 *   make corner button clickable to reset sort column to -1
 * qtail: resize after visible? or after first read
+  change Qsettings to use sections
+    only read general settings for settings dialog
+    move favorites to its own section
+    save window position profiles in a section
+* look at cursor and set file dialog filter
+
+Bugs:
+  gets middle of file on /usr/dict/words without --whole
+? what to do with stderr? always log?
+* scrollTo not working
+  qtail gives useless errors on file not found
+E settings dialog: checkbox doesn't work
+* edit mask for simpleTable model
+* lots of stuff packed into class noacli that could go elsewhere
+* favorites editor duplicates entreis when you edit commands
+* make file dialog not modal
 
   command parser
     prefix or suffix for output dest
@@ -36,15 +52,6 @@ o job life cycle
     scroll to new entry
     resize columns
 
-Bugs:
-  gets middle of file on /usr/dict/words without --whole
-? what to do with stderr? always log?
-* scrollTo not working
-  qtail gives useless errors on file not found
-E settings dialog: checkbox doesn't work
-* edit mask for simpleTable model
-* lots of stuff packed into class noacli that could go elsewhere
-
 context menu / widget / class
 * history manager / historyView
   job manager / jobTableVew / noacli
@@ -62,7 +69,7 @@ Main features:
     command window context menu
       run
       clear?
-      save to favorites
+*     save to favorites
     Qsettings
        save/restore geometry (QWidget)
          save multiple profiles
@@ -73,12 +80,12 @@ o      read history on command
       dock: QT data structure is persistent and master
       dialog: build a table on the fly and save changes
 *      *@ history
--      *% button bar
+*      *% button bar
             right click: dump in editor
             draggable gridview ??
             reimplement compact button bar GUI and make its own checkbox
 *      *? job manager
-       !@ favorites editor (buttons and frequent)
+*      !@ favorites editor (buttons and frequent)
        !% environment var editor
 *      !% settings editor
        !% command default mode editor
@@ -97,14 +104,19 @@ o      read history on command
 *   sort: history order (col=-1)
 *   context menu
 ? remember 10 most frequent commands in pull down menu
-  button editor ("favorites")
-    table: *name *key count *command *checkImmediate
-    sorted sections: buttons freq
-    mark edited lines and save? or just mark to keep or expire
+* button editor ("favorites")
+    add Settings save menu item somewhere
+*   table: *name *key count *command *checkImmediate
+*   sorted sections: buttons freq
+    make sortable with proxy
+      and searchable?
+      reset sort
+!   implement key shortcuts
+*   mark edited lines and save? or just mark to keep or expire
     context menu: delete, duplicate?, run? prune
   history manager context menu
 *   (single click copies to edit window, double click runs)
-!   add to favorites
+*   add to favorites
 *   delete selected
 *   remove duplicates
   job manager list
@@ -126,7 +138,7 @@ o     raise or reopen
 *   proc/wait info
 *   delete dead jobs? (life cycle)
     change default type
-  pipe / fd / job 
+  pipe / fd / job
     handle stdout
       stderr channels separately
       save to file
@@ -276,7 +288,7 @@ x     change format (reloads text)
 *   scrolly / qtail / tail
 !   log
     direct run / sh wrapper
-    
+
     simple --shared (default)
     simple --dedicated
     simple --clone
@@ -342,3 +354,11 @@ x     change format (reloads text)
       multi-line --> sh
       regex match?
       match next word to category list
+
+  button box ideas
+*   replace gridlayout with (custom) pilelayout or flowlayout
+    context menu:
+      alphebetize
+      refit / expand to fit
+      brownian rearrange / fit
+    make button order editable by dragging buttons

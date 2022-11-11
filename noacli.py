@@ -5,7 +5,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QKeySequence
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage
+from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage, QFileDialog, QPushButton, QDialogButtonBox
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings
 
 from functools import partial
@@ -22,6 +22,8 @@ class settings():
     # key : [ default, tooltip, type ]
     settingsDirectory = {
             # All uppercase are inherited(?) from bash
+            'FavFrequent':  [10, 'Number of frequently used commands automatically imported into favorites', int],
+            'FavRecent':    [10, 'Number of recent history commands automaticaly imported into favorites', int],
           # 'GraphicalTerminal': ['gnome-shell', 'Graphical terminal used to run commands requiring a tty', str],
             'HISTSIZE':     [ 1000, 'Number of history entries kept in memory', int],
             'HISTFILESIZE': [ 1000, 'Number of history entries saved to disk', int ],
@@ -47,10 +49,10 @@ class settings():
         # create skelectons of settings and read previous or set defaults
         self.history = History()
         self.history.read()
-        #
-        self.buttons = [ ]
-        # XXX
-        self.buttonModel = simpleTable(self.buttons, [  'command', 'button', 'immediate' ])
+        self.favorites = Favorites(self)
+        # don't call this before setting buttonbox, so call it in caller
+        #self.favorites.loadSettings()
+
         # XXX populate environment from real environment
         self.environment = []  # [ 'name', 'value']
         ##  XXX [ 'name', 'value', 'propagate', 'save' ])
@@ -63,13 +65,13 @@ class settings():
         ## settings dialog info
         # name, default, tooltip / description
         # Note: defaults here might not match the real defaults embeeded in code
-    def makeDialog(self):
+    def makeDialog(self, parent):
         qs = QSettings()
         # collect list of rows including settings
         # build a list of settings, each source sorted separately
         rows = sorted(self.settingsDirectory.keys())
         # add additional settings from QSettings (missing from dict)
-        rows += [i for i in sorted(qs.allKeys()) if i not in self.settingsDirectory]
+        rows += [i for i in sorted(qs.allKeys()) if i not in self.settingsDirectory and i!='favorites']
         # get qtail defauls
         qt = {
             'QTailMaxLines': self.qtail.maxLines,
@@ -85,8 +87,10 @@ class settings():
         typedata = [ [None, self.settingsDirectory[i][2] ] for i in rows ] 
         # open dialog box
         model = settingsDataModel(self.settingsDirectory, data, typedata)
-        self.dialog = settingsDialog('Settings', model, 'noacli settings')
+        self.dialog = settingsDialog(parent, 'Settings', model, 'noacli settings')
+        self.dialog.accepted.connect(self.acceptchanges)
         self.dialog.finished.connect(self.acceptOrReject)
+        self.dialog.apply.connect(self.acceptchanges)
 
     def copy2qtail(self):
         qs = QSettings()
@@ -96,23 +100,26 @@ class settings():
         # QTailDefaultTitle: default title is set somewhere else XXX
         # XXX more qtail settings not implemented yet
         
+    def acceptchanges(self):
+        print('accept')
+        qs = QSettings()
+        for d in self.data:
+            if d[1]!=None:
+                print('save '+str(d[0])+' = '+str(d[1])) # XXX
+                qs.setValue(d[0], d[1])
+        self.copy2qtail()
+        qs.sync()
     def acceptOrReject(self, result):
-        print('settings: '+str(result))
-        if result:
-            qs = QSettings()
-            for d in self.data:
-                if d[1]!=None:
-                    print('save '+str(d[0])+' = '+str(d[1])) # XXX
-                    qs.setValue(d[0], d[1])
-            self.copy2qtail()
-            qs.sync()
+        print('finished')
         # destroy everything
         self.dialog = None
         self.data = None
 
 class settingsDialog(QtWidgets.QDialog):
-    def __init__(self, title, model, doc=None):
-        super(settingsDialog,self).__init__()
+    
+    def __init__(self, parent, title, model, doc=None):
+        # need parent so that this isn't persistent in window close
+        super(settingsDialog,self).__init__(parent)
         ui = Ui_settingsDialog()
         self.model = model
         # XXX proxy model?  search?
@@ -125,10 +132,13 @@ class settingsDialog(QtWidgets.QDialog):
         else:
             ui.label = setText(title)  # XX center?
         ui.tableView.resizeColumnsToContents()
+        self.apply = self.ui.buttonBox.button(QDialogButtonBox.Apply).clicked
         # XX resize top window too?
         self.show()
 
 class historyView(QTableView):
+    newFavorite = pyqtSignal(str)
+
     def __init__(self, parent):
         super(historyView,self).__init__(parent)
         self.realModel = None
@@ -169,9 +179,9 @@ class historyView(QTableView):
         #print(" deleted, left "+str(len(self.realModel.data)))
         
 
-    def addFav(self, index, checked):
-        # XXXX
-        pass
+    def addFav(self, index):
+        cmd = index.data()
+        self.newFavorite.emit(cmd)
 
     def contextMenuEvent(self, event):
         m = QMenu(self)
@@ -194,13 +204,174 @@ class historyView(QTableView):
             self.scrollTo(i)
         else:
             self.scrollToBottom()
-        
-class noacli(QtWidgets.QMainWindow):
+
+            
+class commandPushButton(QPushButton):
+    # this is a push button that remembers what it is suppose to do
+    def __init__(self, name, command,parent, functor):
+        super(commandPushButton,self).__init__(name,parent)
+        self.command = command
+        self.actionfunc = functor
+        ## dunno if all this goo is needed, but designer emits it
+        #sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        #sizePolicy.setHorizontalStretch(0)
+        #sizePolicy.setVerticalStretch(0)
+        #sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
+        #self.setSizePolicy(sizePolicy)
+        self.setObjectName(name) # redundant?
+        self.clicked.connect(self.pushButtonAction)
+        # XXX layout mess
+        parent.layout().addWidget(self)
+
+    @QtCore.pyqtSlot()
+    def pushButtonAction(self):
+        self.actionfunc(self.command)
+
+
+
+class favoriteItem():
+    def __init__(self, buttonName=None, shortcut=None, immediate=True):
+        self.buttonName = buttonName
+        self.shortcut = shortcut
+        self.immediate = immediate
+        self.button = None
+
+class Favorites():
+    # buttons, keyboard shortcuts, and other marked commands
+    # This doesn't use an abstract data model because one will be
+    # constructed on the fly to also include frequent and recent commands.
     def __init__(self, settings):
+        self.cmds = {}
+        self.settings = settings
+        self.buttonbox = None
+        self.runfuncs = None
+
+    def setButtonBox(self, box, runfuncs):
+        self.buttonbox = box
+        self.runfuncs=runfuncs
+        
+    def addFavorite(self, command,  buttonName=None, keybinding=None, immediate=True):
+        print("add favorite {} = {}".format(buttonName,command))
+        c = self.cmds[command] = favoriteItem(buttonName, keybinding, immediate)
+        if buttonName:
+            self.addButton(command, c)
+        # XXX add keybinding
+
+    def delFavorite(self, command):
+        print('del favorite '+command)
+        c = self.cmds.pop(command)
+        # XXXX remove button
+        layout = self.buttonbox.layout()
+        if c.button:
+            layout.removeWidget(c.button)
+            c.button = None
+        # XXXX remove shortcut
+
+    def addButton(self, cmd, fav):
+        if fav.immediate:
+            f = self.runfuncs[0]
+        else:
+            f = self.runfuncs[1]  # XXX make right click always do this
+        b = commandPushButton(fav.buttonName, cmd, self.buttonbox, f)
+        fav.button = b
+        return b
+        
+    
+    def editFavorites(self, parent):
+        data = []
+        # save this so the validator can get it
+        self.data = data
+        qs = QSettings()
+        # schema: *=checkbox
+        # *keep name key *checkImmediate count command 
+
+        # collect commands from favorites
+        f = sorted(self.cmds.keys())
+        data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, 100, c] for c in f]
+
+        # collect commands from frequent history
+        (_, count) = self.settings.history.countHistory()
+        freq = sorted([k for k in count.keys() if k not in self.cmds], key=lambda k: count[k])
+        freq.reverse()
+        nfreq = int(qs.value('FavFrequent',10))
+        data += [ [False, None, None, True, count[k], k] for k in freq[0:nfreq]]
+        freq = set(freq)
+
+        # collect commands from recent history
+        nh = int(qs.value('FavRecent',10))
+        h = self.settings.history.last()
+        while nh>0 and h:
+            c = str(h.data())
+            if c not in self.cmds and c not in freq:
+                data.append([False, None, None, True, count[c], c])
+            h = h.model().prevNoWrap(h)
+
+        datatypes = [bool, str, str, bool, None, str]
+        model = simpleTable(data,
+            ['keep', 'name',  'key', 'Immediate',  'count', 'command'], datatypesrow=datatypes,
+          editmask=[True, True, True, True, False, True],
+                            validator=self.validateData)
+        # extra features
+        #XXX if anything is checked or edited (not blanked), check keep
+        self.dialog = settingsDialog(parent, 'Favorites editor', model, 'Favorites, shortcuts, and buttons')
+        self.dialog.finished.connect(self.saveFavs)
+        
+    def saveFavs(self, result):
+        print('save favs') #XXX
+        if not result:
+            print(' cancel') # XXXX
+            self.data = None
+            return
+        # XXX might need to subclass to make a shortcut editor
+        # XXXX repopulate favorites and buttons
+        for row in self.data:
+            print("Check "+str(row))  #XXXXX
+            (keep, name, shortcut, immediate, count, command) = row
+            if command in self.cmds:
+                print(' found') #XXXXX
+                fav = favoriteItem(name, shortcut, immediate)
+                if not keep or (keep and self.cmds[command]!=fav):
+                    self.delFavorite(command)
+            if keep:
+                if command not in self.cmds:
+                    self.addFavorite(command, name, shortcut, immediate)
+        # destroy temp data
+        self.data = None
+        
+    def validateData(self, index, val):
+        if not index.isValid(): return False
+        # don't mess with the keep checkbox if it is being changed
+        if index.column()==0: return True # also prevents recursion
+        # if anything else is edited and not blanked, check keep
+        if val and val!=self.data[index.row()][index.column()]:
+            index.model().setData(index.siblingAtColumn(0),True, Qt.EditRole)
+        return True
+
+    def saveSettings(self):
+        qs = QSettings()
+        # how much will QSettings hate me if I dump stuff on it
+        val = [ [ c, self.cmds[c].buttonName,  self.cmds[c].shortcut, self.cmds[c].immediate] for c in self.cmds]
+        qs.setValue('favorites', val)
+
+    def loadSettings(self):
+        qs = QSettings()
+        val = qs.value('favorites', None)
+        if not val: return
+        for v in val:
+            self.addFavorite(*v[0:3])  # super lazy
+            
+class noacli(QtWidgets.QMainWindow):
+    def __init__(self):
         super(noacli,self).__init__()
         self.ui = Ui_noacli()
         self.ui.setupUi(self)
-        self.settings = settings
+
+        # mess with style
+        #self.setStyleSheet("QMainWindow::separator{ width: 0px; height: 0px; }");
+        f = self.ui.buttonBox.layout()
+        f.setContentsMargins(3,3,3,3)
+
+        self.settings = settings()
         self.historypos = 1;
         dir = os.path.dirname(os.path.realpath(__file__))
         self.setWindowIcon(QtGui.QIcon(dir+'/noacli.png'))
@@ -208,7 +379,11 @@ class noacli(QtWidgets.QMainWindow):
         # hide all the docks by default XXX unless set in settings?
         ui=self.ui
         self.hideAllDocks()
-        # XXX show buttons by default?
+
+        ## XXX show buttons by default?
+        # connect buttons to favorites
+        self.settings.favorites.setButtonBox(self.ui.buttonBox, [ self.runSimpleCommand, self.ui.plainTextEdit.acceptCommand])
+        self.settings.favorites.loadSettings()
 
         # populate the view menu (is there a more automatic way?)
         ui.menuViews.addAction(ui.history.toggleViewAction())
@@ -243,14 +418,36 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.menuJobs.aboutToShow.connect(self.buildJobMenu)
 
         self.ui.historyView.scrollToBottom()
+        self.ui.actionFavorites_editor.triggered.connect(partial(self.settings.favorites.editFavorites, self))
+
+        # file browser shortcut
+        self.fileShortcut = QShortcut(QKeySequence('ctrl+f'), self)
+        self.fileShortcut.activated.connect(self.pickFile)
 
     def start(self):
         # nothing else to initialize yet
         pass
 
+    def pickFile(self):
+        results = QFileDialog.getOpenFileNames(self, "Pick some files", ".")
+        fs = results[0]
+        cwd = os.getcwd()+'/'
+        print(fs)
+        print(cwd)
+        fs = [x.removeprefix(cwd) or x for x in fs]
+        # XXX would be nice to trim cwd from the names
+        f = ' '.join(fs)
+        
+        self.ui.plainTextEdit.insertPlainText(f)
+        
     ################
     # external slots
     # some of these could be moved
+
+    # in: whoever  out: favorites
+    @QtCore.pyqtSlot(str)
+    def addFavorite(self, cmd):
+        self.settings.favorites.addFavorite(cmd)
 
     # in: jobView/JobModel  out: jobModel commandEditor
     @QtCore.pyqtSlot(QModelIndex)
@@ -298,16 +495,23 @@ class noacli(QtWidgets.QMainWindow):
     # in: view menu  out: general settings dialog
     @QtCore.pyqtSlot()
     def actionGsettings(self):
-        self.settings.makeDialog()
+        self.settings.makeDialog(self)
+
+    @QtCore.pyqtSlot(str)
+    def runSimpleCommand(self, cmd):
+        self.runCommand(cmd,None)
 
     # in: self.runLast, commandEdit->command_to_run, QShortcuts
     # out: historyView, jobModel, jobTableView
     # slot to connect command window runCommand
     def runCommand(self, command, hist):
+        if not hist and command:
+            # make a new history entry!
+            hist = self.settings.history.saveItem(command, None, None)
+            
         if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
             hist=hist.model().mapToSource(hist)
         self.ui.historyView.resetHistorySort()  # XXX this might be annoying
-        # XXX command is redundant? but external stuff calls us
         j = jobItem(hist)  # XX construct new job
         self.settings.jobs.newjob(j)
         j.start(self.settings)
@@ -322,6 +526,7 @@ class noacli(QtWidgets.QMainWindow):
     # in: this window closing
     def closeEvent(self, event):
         self.actionSaveHistory()
+        self.settings.favorites.saveSettings()
         super(noacli,self).closeEvent(event)
 
     # dynamic portion of history menu
@@ -329,7 +534,6 @@ class noacli(QtWidgets.QMainWindow):
     def buildHistoryMenu(self):
         hm = self.ui.historyMenu
         # first destroy old entries
-        # XXXX does this work?
         for a in hm.actions():
             if a.data(): hm.removeAction(a)
         # add new entries
@@ -444,8 +648,7 @@ if __name__ == '__main__':
 
     # XXX process command line args
 
-    settings = settings()
-    mainwin = noacli(settings)
+    mainwin = noacli()
     mainwin.app = app
     w = mainwin.ui
 

@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>noacli</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>noacli.png</normaloff>noacli.png</iconset>
-  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
@@ -55,8 +51,8 @@
     <addaction name="actionShowDocks"/>
     <addaction name="actionHideDocks"/>
     <addaction name="separator"/>
+    <addaction name="actionFavorites_editor"/>
     <addaction name="actionGsettings"/>
-    <addaction name="separator"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuJobs">
@@ -166,30 +162,30 @@
     <number>4</number>
    </attribute>
    <widget class="QWidget" name="buttonBox">
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="rerunLast">
+       <property name="text">
+        <string>Rerun last</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="runCurrent">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
        <property name="text">
         <string>Run</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QPushButton" name="rerunLast">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Rerun last</string>
        </property>
       </widget>
      </item>
@@ -299,6 +295,11 @@
     <string>General settings</string>
    </property>
   </action>
+  <action name="actionFavorites_editor">
+   <property name="text">
+    <string>Favorites editor</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -315,6 +316,9 @@
    <class>historyView</class>
    <extends>QTableView</extends>
    <header>noacli</header>
+   <slots>
+    <signal>newFavorite(QString)</signal>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -374,8 +378,8 @@
    <slot>runCommand()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>189</x>
-     <y>80</y>
+     <x>310</x>
+     <y>101</y>
     </hint>
     <hint type="destinationlabel">
      <x>189</x>
@@ -406,12 +410,12 @@
    <slot>runLastCommand()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>241</x>
-     <y>113</y>
+     <x>219</x>
+     <y>101</y>
     </hint>
     <hint type="destinationlabel">
-     <x>248</x>
-     <y>152</y>
+     <x>242</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>
@@ -422,8 +426,8 @@
    <slot>jobDoubleClicked(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>341</x>
-     <y>87</y>
+     <x>420</x>
+     <y>103</y>
     </hint>
     <hint type="destinationlabel">
      <x>308</x>
@@ -479,6 +483,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>historyView</sender>
+   <signal>newFavorite(QString)</signal>
+   <receiver>noacli</receiver>
+   <slot>addFavorite(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>37</x>
+     <y>132</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>31</x>
+     <y>152</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
@@ -488,5 +508,6 @@
   <slot>jobDoubleClicked(QModelIndex)</slot>
   <slot>actionSaveHistory()</slot>
   <slot>actionGsettings()</slot>
+  <slot>addFavorite(QString)</slot>
  </slots>
 </ui>

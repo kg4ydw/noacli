@@ -10,6 +10,11 @@ all: $(UI)
 
 tar: noacli.tgz
 
+# special case, modify it to use flowlayout
+noacli_ui.py: noacli_ui.ui
+	pyuic5 -o noacli_ui.py noacli_ui.ui
+	sed -ie 's/QtWidgets.QHBoxLayout/FlowLayout/' noacli_ui.py
+	echo 'from flowlayout import FlowLayout' >> noacli_ui.py
 
 noacli.tgz: $(DISTFILES)
 	rm -f noacli.tgz

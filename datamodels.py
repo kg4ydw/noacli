@@ -9,42 +9,76 @@ import re   # use python re instead of Qt
 import os
 
 class simpleTable(QAbstractTableModel):
-    def __init__(self,data, headers, datatypes=None ):
+    def __init__(self,data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):
         QAbstractTableModel.__init__(self)
         self.data = data
         self.headers = headers
-        self.ncols = len(self.headers)
         self.datatypes = datatypes
+        self.datatypesrow = datatypesrow
+        self.editmask = editmask
+        self.validator = validator
         #super(simpleTable).__init__(self)
     # required functions rowCount columnCount data
     def rowCount(self, parent):
         return len(self.data)
     def columnCount(self, parent):
-        return self.ncols
+        return len(self.headers)
     def data(self, index, role):
-        if not index.isValid():
-            return None;
+        if not self.validateIndex(index): return None;
         row = index.row()
         col = index.column()
-        if row < 0 or col<0 or row >= len(self.data) or col>=self.ncols:
-            return None
+        # don't return normal data if this is suppose to be a checkbox
+        if ((self.datatypes and self.datatypes[row][col]==bool) or
+           (self.datatypesrow and self.datatypesrow[col]==bool) or
+           type(self.data[row][col])==bool):
+            if role==Qt.CheckStateRole:
+                if self.data[row][col]:
+                    return Qt.Checked
+                else:
+                    return Qt.Unchecked
+            else:
+                return None
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
             return self.data[row][col]
         return None
     def setData(self, index, value, role):
         if not self.validateIndex(index): return False
-        # subclass checks if cell is writable
-        # XXX need to validate and force data type somewhere
+        # flags() controls if cell is writable
         row = index.row()
         col = index.column()
-        if self.datatypes:
+        # try user validator
+        if self.validator and role in [Qt.EditRole, Qt.CheckStateRole]:
+            if not self.validator(index,value): return False
+        # validate and force type
+        if self.datatypes and self.datatypes[row][col]:
             try:
                 self.data[row][col] = self.datatypes[row][col](value)
+                self.dataChanged.emit(index,index)
+                return True
+            except Exception as e:
+                print(str(e))
+                return False
+        elif self.datatypesrow and self.datatypesrow[col]:
+            try:
+                self.data[row][col] = self.datatypesrow[col](value)
+                self.dataChanged.emit(index,index)
                 return True
             except Exception as e:
                 print(str(e))
                 return False
         self.data[row][col] = value  # do it without any validation or cast
+        self.dataChanged.emit(index,index)
+
+    def flags(self,index):
+        col = index.column()
+        if not (self.datatypesrow or self.editmask) or col<0 or col>=len(self.headers):
+            return super(simpleTable,self).flags(index)
+        mask = Qt.ItemIsSelectable|Qt.ItemIsEnabled
+        if self.editmask and self.editmask[col]:
+            mask |= Qt.ItemIsEditable
+        if self.datatypesrow and self.datatypesrow[col]==bool:
+            mask |=  Qt.ItemIsUserCheckable
+        return mask
         
     def validateIndex(self, index):
         if not index or not index.isValid(): return False
@@ -56,18 +90,13 @@ class simpleTable(QAbstractTableModel):
     # recommended: headerData
     def headerData(self, col, orientation, role):
         if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal and col<self.ncols:
+            if orientation == Qt.Horizontal and col<len(self.headers):
                 return self.headers[col]
         elif orientation == Qt.Vertical and col<len(self.data):
             # if you don't like veritcal headers, turn them off in designer
             return str(col)
         return None
-    
-    
-    # required for editing: setData flags
-    # resizable: removeRows addRows
-    # other: addHistory 
-
+  
 class itemListModel(QAbstractTableModel):
     # an array of items, where each item is a row
     def __init__(self, headers):
@@ -337,8 +366,8 @@ class History(itemListModel):
         else: return self.index(row,1)
 
     def saveItem(self, command, index, exitval, count=1):
-        # XX if exitval==None and isValid(index) replace existing entry
-        # else append
+        # if exitval==None and isValid(index) replace existing entry
+        # else append to end of history
         if self.validateIndex(index) and exitval==None:
             item = self.getItem(index)
             if item.status==None:
@@ -347,6 +376,7 @@ class History(itemListModel):
                 self.dataChanged.emit(i,i)
                 return i
         self.limitHistorySize()
+        # XXX skip appending if this is a duplicate command and nodup option set
         item = historyItem(exitval, command, count)
         return self.appendItem(item)
 
@@ -467,7 +497,7 @@ class History(itemListModel):
 
     def write(self, filename=None):  # export?
         qs = QSettings()
-        maxhf = qs.value('HISTFILESIZE', 1000)
+        maxhf = int(qs.value('HISTFILESIZE', 1000))
         start = 0
         if len(self.data)>maxhf:
             start = len(self.data)-maxhf
@@ -517,4 +547,3 @@ class settingsDataModel(simpleTable):
             # swap tooltip columns
             return doc[1-col]
         return super(settingsDataModel,self).data(index, role)
-
