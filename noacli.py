@@ -88,7 +88,6 @@ class settings():
         # open dialog box
         model = settingsDataModel(self.settingsDirectory, data, typedata)
         self.dialog = settingsDialog(parent, 'Settings', model, 'noacli settings')
-        self.dialog.accepted.connect(self.acceptchanges)
         self.dialog.finished.connect(self.acceptOrReject)
         self.dialog.apply.connect(self.acceptchanges)
 
@@ -110,6 +109,7 @@ class settings():
         self.copy2qtail()
         qs.sync()
     def acceptOrReject(self, result):
+        if result: self.acceptchanges()
         print('finished')
         # destroy everything
         self.dialog = None
@@ -307,6 +307,7 @@ class Favorites():
             h = h.model().prevNoWrap(h)
 
         datatypes = [bool, str, str, bool, None, str]
+        # XXX might need to subclass simpleTable to make a shortcut editor
         model = simpleTable(data,
             ['keep', 'name',  'key', 'Immediate',  'count', 'command'], datatypesrow=datatypes,
           editmask=[True, True, True, True, False, True],
@@ -314,15 +315,12 @@ class Favorites():
         # extra features
         #XXX if anything is checked or edited (not blanked), check keep
         self.dialog = settingsDialog(parent, 'Favorites editor', model, 'Favorites, shortcuts, and buttons')
-        self.dialog.finished.connect(self.saveFavs)
-        
-    def saveFavs(self, result):
-        print('save favs') #XXX
-        if not result:
-            print(' cancel') # XXXX
-            self.data = None
-            return
-        # XXX might need to subclass to make a shortcut editor
+        self.dialog.finished.connect(self.doneFavs)
+        self.dialog.apply.connect(self.saveFavs)
+
+    #@QtCore.pyqtSlot(bool)
+    def saveFavs(self,checked):
+        print('save')
         # XXXX repopulate favorites and buttons
         for row in self.data:
             print("Check "+str(row))  #XXXXX
@@ -335,6 +333,14 @@ class Favorites():
             if keep:
                 if command not in self.cmds:
                     self.addFavorite(command, name, shortcut, immediate)
+        ## don't destroy this in case apply is clicked a second time
+        #self.data = None
+
+    #@QtCore.pyqtSlot(int)
+    def doneFavs(self,result):
+        print('done')
+        if result:
+            self.saveFavs(False)
         # destroy temp data
         self.data = None
         
