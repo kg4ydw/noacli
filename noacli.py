@@ -5,7 +5,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QKeySequence
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage, QFileDialog, QPushButton, QDialogButtonBox
+from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage, QFileDialog, QPushButton, QDialogButtonBox,QLineEdit, QWidgetAction, QActionGroup
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings
 
 from functools import partial
@@ -255,14 +255,14 @@ class Favorites():
         self.runfuncs=runfuncs
         
     def addFavorite(self, command,  buttonName=None, keybinding=None, immediate=True):
-        print("add favorite {} = {}".format(buttonName,command))
+        #print("add favorite {} = {}".format(buttonName,command))
         c = self.cmds[command] = favoriteItem(buttonName, keybinding, immediate)
         if buttonName:
             self.addButton(command, c)
         # XXX add keybinding
 
     def delFavorite(self, command):
-        print('del favorite '+command)
+        #print('del favorite '+command)
         c = self.cmds.pop(command)
         # XXXX remove button
         layout = self.buttonbox.layout()
@@ -331,10 +331,10 @@ class Favorites():
         print('save')
         # XXXX repopulate favorites and buttons
         for row in self.data:
-            print("Check "+str(row))  #XXXXX
+            #print("Check "+str(row))  #XXXXX
             (keep, name, shortcut, immediate, count, command) = row
             if command in self.cmds:
-                print(' found') #XXXXX
+                #print(' found') #XXXXX
                 fav = favoriteItem(name, shortcut, immediate)
                 if not keep or (keep and self.cmds[command]!=fav):
                     self.delFavorite(command)
@@ -366,7 +366,7 @@ class Favorites():
         qs.beginGroup('Favorites')
         # how much will QSettings hate me if I dump stuff on it
         val = [ [ c, self.cmds[c].buttonName,  self.cmds[c].shortcut, self.cmds[c].immediate] for c in self.cmds]
-        print(str(val))
+        #print(str(val))
         qs.setValue('favorites', val)
         qs.endGroup()
 
@@ -374,14 +374,25 @@ class Favorites():
         qs = QSettings()
         qs.beginGroup('Favorites')
         val = qs.value('favorites', None)
-        print('favorites: '+str(val))
+        #print('favorites: '+str(val))
         if not val: return
         for v in val:
             self.addFavorite(*v[0:4])  # super lazy
         qs.endGroup()
 
-# class winGeoProfile():
-    
+# thanks to https://stackoverflow.com/questions/18475870/qt-menu-with-qlinedit-action (gct)
+# insert this into a menu
+class menuLineEdit(QLineEdit):
+    # note: use placeholder instead of contents!
+    def __init__(self, parent, placeholder):
+        super(menuLineEdit,self).__init__(parent)
+        self.setPlaceholderText(placeholder)
+    @QtCore.pyqtSlot('QKeyEvent')
+    def keyPressEvent(self,event):
+        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+            self.returnPressed.emit()
+        else:
+            super(menuLineEdit,self).keyPressEvent(event)
             
 class noacli(QtWidgets.QMainWindow):
     def __init__(self):
@@ -446,6 +457,36 @@ class noacli(QtWidgets.QMainWindow):
         # file browser shortcut
         self.fileShortcut = QShortcut(QKeySequence('ctrl+f'), self)
         self.fileShortcut.activated.connect(self.pickFile)
+
+        ##### geometry profiles
+        # load default config
+        self.myRestoreGeometry()
+        ## fix up the menu
+        m = ui.menuSettings
+        # Add a lineEdit to create new profiles
+        le = menuLineEdit(m, "(New geometry profile)")
+        le.returnPressed.connect(lambda: self.mySaveGeometry(le.text()))
+        wa = QWidgetAction(m)
+        wa.setDefaultWidget(le)
+        m.addAction(wa)
+        # browse QSettings to add a list of profiles
+        qs = QSettings()
+        qs.beginGroup('Geometry')
+        g = qs.childGroups()
+        print('Profiles: '+str(g)) # XXXX
+        gm = QActionGroup(m)
+        self.ui.profileMenuGroup = gm
+        # XXX sort these, put default first and select it?
+        for p in g:
+            mm = gm.addAction(p)
+            mm.setData(p)
+            mm.setObjectName(p)
+            #redundant and wrong# mm.triggered.connect(lambda: self.myRestoreGeometry(p))
+            mm.setCheckable(True)
+            m.addAction(mm)
+            # XXX also add context menu: delete rename load ??
+        gm.triggered.connect(self.actionRestoreGeomAct)
+        qs.endGroup()
 
     def start(self):
         # nothing else to initialize yet
@@ -553,12 +594,6 @@ class noacli(QtWidgets.QMainWindow):
     def actionSaveHistory(self):
         self.settings.history.write()
 
-    # in: this window closing
-    def closeEvent(self, event):
-        self.actionSaveHistory()
-        self.settings.favorites.saveSettings()
-        super(noacli,self).closeEvent(event)
-
     # dynamic portion of history menu
     @QtCore.pyqtSlot()
     def buildHistoryMenu(self):
@@ -605,6 +640,85 @@ class noacli(QtWidgets.QMainWindow):
             act.setData(j)
             jm.addAction(act)
             act.triggered.connect(partial(self.windowShowRaise,act))
+
+    @QtCore.pyqtSlot()
+    def actionSaveGeometry(self):
+        a = self.ui.profileMenuGroup.checkedAction()
+        if a:
+            n = a.data()
+            print('Current profile: '+n)
+        else:
+            n = 'Default'
+        self.mySaveGeometry(n)
+        
+    def mySaveGeometry(self,name='default' ):
+        # XXX later make this into a named profile
+        # XXX does each window need to be saved separately?
+        print("Saving profile "+name)
+        qs = QSettings()
+        qs.beginGroup('Geometry/'+name)
+        qs.setValue('mainGeo', self.saveGeometry())
+        qs.setValue('mainState', self.saveState())
+        qs.endGroup()
+        # check if this is already in the menu, and if not, add it
+        gm = self.ui.profileMenuGroup
+        c = gm.findChild(QAction, name)
+        if c: print(' already in menu')
+        else:
+            print(' adding {} to profile menu'.format(name))
+            mm = gm.addAction(name)
+            mm.setData(name)
+            mm.setObjectName(name)
+            mm.setCheckable(True)
+            self.ui.menuSettings.addAction(mm)
+
+    def myDeleteProfile(self):
+        a = self.ui.profileMenuGroup.checkedAction()
+        if a:
+            name = a.data()
+            print('Deleting profile '+name)
+        else:
+            print('Cant delete unselected profile')
+            return
+        # delete menu entry
+        gm = self.ui.profileMenuGroup
+        c = gm.findChild(QAction, name)
+        gm.removeAction(c)
+        # delete settings
+        qs = QSettings()
+        qs.beginGroup('Geometry')
+        qs.remove(name)
+        
+    
+    @QtCore.pyqtSlot(QAction)
+    def actionRestoreGeomAct(self, act):
+        # checkedAction()
+        n = act.data()
+        print("action: "+n)
+        if n: self.myRestoreGeometry(n)
+
+    @QtCore.pyqtSlot()
+    def actionRestoreGeometry(self):
+        self.myRestoreGeometry()
+        
+    def myRestoreGeometry(self, name='default'):
+        print("Restoring profile "+name)
+        qs = QSettings()
+        qs.beginGroup('Geometry/'+name)
+        st = []
+        if qs.contains('mainGeo'):
+            st.append(self.restoreGeometry(qs.value('mainGeo',None)))
+            st.append(self.restoreState(qs.value('mainState',None)))
+        else:
+            print('No profile for {} found'.format(name))
+        qs.endGroup()
+    
+    # in: this window closing
+    def closeEvent(self, event):
+        self.actionSaveHistory()
+        self.settings.favorites.saveSettings()
+        super(noacli,self).closeEvent(event)
+        
 
 class commandEditor(QPlainTextEdit):
     command_to_run = pyqtSignal(str, QModelIndex)

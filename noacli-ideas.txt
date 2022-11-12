@@ -21,7 +21,7 @@ o job life cycle
 * change Qsettings to use sections
 *   only read general settings for settings dialog
 *   move favorites to its own section
-    save window position profiles in a section
+*   save window position profiles in a section
 * look at cursor and set file dialog filter
   delete QSettings that match defaults
 
@@ -72,8 +72,8 @@ Main features:
       clear?
 *     save to favorites
     Qsettings
-       save/restore geometry (QWidget)
-         save multiple profiles
+*      save/restore geometry (QWidget)
+*        save multiple profiles
 *      save/restore history?
 o      read history on command
        save env changes?

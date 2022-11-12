@@ -37,6 +37,8 @@ class Ui_noacli(object):
         self.menuViews.setObjectName("menuViews")
         self.menuJobs = QtWidgets.QMenu(self.menubar)
         self.menuJobs.setObjectName("menuJobs")
+        self.menuSettings = QtWidgets.QMenu(self.menubar)
+        self.menuSettings.setObjectName("menuSettings")
         noacli.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(noacli)
         self.statusbar.setObjectName("statusbar")
@@ -151,18 +153,28 @@ class Ui_noacli(object):
         self.actionGsettings.setObjectName("actionGsettings")
         self.actionFavorites_editor = QtWidgets.QAction(noacli)
         self.actionFavorites_editor.setObjectName("actionFavorites_editor")
+        self.actionGeoSave = QtWidgets.QAction(noacli)
+        self.actionGeoSave.setObjectName("actionGeoSave")
+        self.actionGeoRestore = QtWidgets.QAction(noacli)
+        self.actionGeoRestore.setObjectName("actionGeoRestore")
+        self.actionDeleteProfile = QtWidgets.QAction(noacli)
+        self.actionDeleteProfile.setObjectName("actionDeleteProfile")
         self.historyMenu.addAction(self.actionlastCommand)
         self.historyMenu.addAction(self.actionsave_history)
         self.historyMenu.addSeparator()
         self.menuViews.addAction(self.actionShowDocks)
         self.menuViews.addAction(self.actionHideDocks)
         self.menuViews.addSeparator()
-        self.menuViews.addAction(self.actionFavorites_editor)
-        self.menuViews.addAction(self.actionGsettings)
-        self.menuViews.addSeparator()
+        self.menuSettings.addAction(self.actionGsettings)
+        self.menuSettings.addAction(self.actionFavorites_editor)
+        self.menuSettings.addSeparator()
+        self.menuSettings.addAction(self.actionGeoSave)
+        self.menuSettings.addAction(self.actionGeoRestore)
+        self.menuSettings.addAction(self.actionDeleteProfile)
         self.menubar.addAction(self.historyMenu.menuAction())
-        self.menubar.addAction(self.menuViews.menuAction())
         self.menubar.addAction(self.menuJobs.menuAction())
+        self.menubar.addAction(self.menuViews.menuAction())
+        self.menubar.addAction(self.menuSettings.menuAction())
 
         self.retranslateUi(noacli)
         self.actionHideDocks.triggered.connect(noacli.hideAllDocks) # type: ignore
@@ -176,6 +188,9 @@ class Ui_noacli(object):
         self.actionlastCommand.triggered.connect(noacli.runLastCommand) # type: ignore
         self.actionGsettings.triggered.connect(noacli.actionGsettings) # type: ignore
         self.historyView.newFavorite['QString'].connect(noacli.addFavorite) # type: ignore
+        self.actionGeoSave.triggered.connect(noacli.actionSaveGeometry) # type: ignore
+        self.actionGeoRestore.triggered.connect(noacli.actionRestoreGeometry) # type: ignore
+        self.actionDeleteProfile.triggered.connect(noacli.myDeleteProfile) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -184,6 +199,7 @@ class Ui_noacli(object):
         self.historyMenu.setTitle(_translate("noacli", "History"))
         self.menuViews.setTitle(_translate("noacli", "Views"))
         self.menuJobs.setTitle(_translate("noacli", "Jobs"))
+        self.menuSettings.setTitle(_translate("noacli", "Settings"))
         self.history.setWindowTitle(_translate("noacli", "History"))
         self.historySearch.setPlaceholderText(_translate("noacli", "search history"))
         self.buttons.setWindowTitle(_translate("noacli", "buttons"))
@@ -200,5 +216,8 @@ class Ui_noacli(object):
         self.actionsave_history.setText(_translate("noacli", "Save history"))
         self.actionGsettings.setText(_translate("noacli", "General settings"))
         self.actionFavorites_editor.setText(_translate("noacli", "Favorites editor"))
+        self.actionGeoSave.setText(_translate("noacli", "Save window Geometry"))
+        self.actionGeoRestore.setText(_translate("noacli", "Restore window geometry"))
+        self.actionDeleteProfile.setText(_translate("noacli", "Delete profile"))
 from noacli import commandEditor, historyView
 from flowlayout import FlowLayout

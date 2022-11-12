@@ -51,18 +51,27 @@
     <addaction name="actionShowDocks"/>
     <addaction name="actionHideDocks"/>
     <addaction name="separator"/>
-    <addaction name="actionFavorites_editor"/>
-    <addaction name="actionGsettings"/>
-    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuJobs">
     <property name="title">
      <string>Jobs</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionGsettings"/>
+    <addaction name="actionFavorites_editor"/>
+    <addaction name="separator"/>
+    <addaction name="actionGeoSave"/>
+    <addaction name="actionGeoRestore"/>
+    <addaction name="actionDeleteProfile"/>
+   </widget>
    <addaction name="historyMenu"/>
-   <addaction name="menuViews"/>
    <addaction name="menuJobs"/>
+   <addaction name="menuViews"/>
+   <addaction name="menuSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="history">
@@ -288,6 +297,21 @@
     <string>Favorites editor</string>
    </property>
   </action>
+  <action name="actionGeoSave">
+   <property name="text">
+    <string>Save window Geometry</string>
+   </property>
+  </action>
+  <action name="actionGeoRestore">
+   <property name="text">
+    <string>Restore window geometry</string>
+   </property>
+  </action>
+  <action name="actionDeleteProfile">
+   <property name="text">
+    <string>Delete profile</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -487,6 +511,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionGeoSave</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>actionSaveGeometry()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>214</x>
+     <y>133</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionGeoRestore</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>actionRestoreGeometry()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>214</x>
+     <y>133</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionDeleteProfile</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>myDeleteProfile()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>214</x>
+     <y>133</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
@@ -497,5 +569,8 @@
   <slot>actionSaveHistory()</slot>
   <slot>actionGsettings()</slot>
   <slot>addFavorite(QString)</slot>
+  <slot>actionSaveGeometry()</slot>
+  <slot>actionRestoreGeometry()</slot>
+  <slot>myDeleteProfile()</slot>
  </slots>
 </ui>
