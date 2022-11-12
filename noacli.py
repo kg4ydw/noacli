@@ -388,7 +388,7 @@ class noacli(QtWidgets.QMainWindow):
 
         ## XXX show buttons by default?
         # connect buttons to favorites
-        self.settings.favorites.setButtonBox(self.ui.buttonBox, [ self.runSimpleCommand, self.ui.plainTextEdit.acceptCommand])
+        self.settings.favorites.setButtonBox(self.ui.buttonBox, [ self.runSimpleCommand, self.ui.commandEdit.acceptCommand])
         self.settings.favorites.loadSettings()
 
         # populate the view menu (is there a more automatic way?)
@@ -409,7 +409,7 @@ class noacli(QtWidgets.QMainWindow):
 
         # connect the command editor to the history data model
         # XX this should be a connect historySave->saveItem
-        ui.plainTextEdit.setHistory(self.settings.history)
+        ui.commandEdit.setHistory(self.settings.history)
 
         ui.jobTableView.setModel(self.settings.jobs)
 
@@ -436,7 +436,7 @@ class noacli(QtWidgets.QMainWindow):
 
     def pickFile(self):
         pattern = None
-        editor = self.ui.plainTextEdit
+        editor = self.ui.commandEdit
 
         cursor = editor.textCursor()
         if cursor.hasSelection():
@@ -472,7 +472,7 @@ class noacli(QtWidgets.QMainWindow):
             self.app.clipboard().setText(text)
         elif col==1: index.model().cleanupJob(index)  # job status
         elif col==2: self.windowShowRaise(index)
-        elif col==3: self.ui.plainTextEdit.acceptCommand(index.model().getItem(index).command())
+        elif col==3: self.ui.commandEdit.acceptCommand(index.model().getItem(index).command())
 
     # in: jobView out: jobModel
     def windowShowRaise(self,index):
@@ -568,7 +568,7 @@ class noacli(QtWidgets.QMainWindow):
             h = h.model().prevNoWrap(h)
 
     def acceptHistoryAction(self, act):
-        self.ui.plainTextEdit.acceptHistory(act.data())
+        self.ui.commandEdit.acceptHistory(act.data())
 
     # in: menuJobs->aboutToShow
     @QtCore.pyqtSlot()

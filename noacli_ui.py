@@ -19,14 +19,14 @@ class Ui_noacli(object):
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.plainTextEdit = commandEditor(self.centralwidget)
+        self.commandEdit = commandEditor(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.plainTextEdit.sizePolicy().hasHeightForWidth())
-        self.plainTextEdit.setSizePolicy(sizePolicy)
-        self.plainTextEdit.setObjectName("plainTextEdit")
-        self.verticalLayout_3.addWidget(self.plainTextEdit)
+        sizePolicy.setHeightForWidth(self.commandEdit.sizePolicy().hasHeightForWidth())
+        self.commandEdit.setSizePolicy(sizePolicy)
+        self.commandEdit.setObjectName("commandEdit")
+        self.verticalLayout_3.addWidget(self.commandEdit)
         noacli.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(noacli)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 430, 16))
@@ -167,9 +167,9 @@ class Ui_noacli(object):
         self.retranslateUi(noacli)
         self.actionHideDocks.triggered.connect(noacli.hideAllDocks) # type: ignore
         self.actionShowDocks.triggered.connect(noacli.showAllDocks) # type: ignore
-        self.historyView.doubleClicked['QModelIndex'].connect(self.plainTextEdit.acceptHistory) # type: ignore
-        self.runCurrent.clicked.connect(self.plainTextEdit.runCommand) # type: ignore
-        self.plainTextEdit.command_to_run['QString','QModelIndex'].connect(noacli.runCommand) # type: ignore
+        self.historyView.doubleClicked['QModelIndex'].connect(self.commandEdit.acceptHistory) # type: ignore
+        self.runCurrent.clicked.connect(self.commandEdit.runCommand) # type: ignore
+        self.commandEdit.command_to_run['QString','QModelIndex'].connect(noacli.runCommand) # type: ignore
         self.rerunLast.clicked.connect(noacli.runLastCommand) # type: ignore
         self.jobTableView.doubleClicked['QModelIndex'].connect(noacli.jobDoubleClicked) # type: ignore
         self.actionsave_history.triggered.connect(noacli.actionSaveHistory) # type: ignore
