@@ -73,7 +73,6 @@ class settings():
         rows = sorted(self.settingsDirectory.keys())
         # add additional settings from QSettings (missing from dict)
         rows += [i for i in sorted(qs.allKeys()) if i not in self.settingsDirectory]
-        # XXXX and not i.startswith('Favorites')]
         # get qtail defauls
         qt = {
             'QTailMaxLines': self.qtail.maxLines,
@@ -103,18 +102,18 @@ class settings():
         # XXX more qtail settings not implemented yet
         
     def acceptchanges(self):
-        print('accept')
+        print('accept') # DEBUG
         qs = QSettings()
         qs.beginGroup('Main')
         for d in self.data:
             if d[1]!=None:
-                print('save '+str(d[0])+' = '+str(d[1])) # XXX
+                print('save '+str(d[0])+' = '+str(d[1])) # XXX # DEBUG
                 qs.setValue(d[0], d[1])
         self.copy2qtail()
         qs.sync()
     def acceptOrReject(self, result):
         if result: self.acceptchanges()
-        print('finished')
+        print('finished') # DEBUG
         # destroy everything
         self.dialog = None
         self.data = None
@@ -176,11 +175,11 @@ class historyView(QTableView):
         if not indexes:
             QErrorMessage(self).showMessage("Please select at least one whole row to delete selected rows")
             return
-        #print("Deleting "+str(len(indexes))+'/'+str(len(self.realModel.data)))
+        #print("Deleting "+str(len(indexes))+'/'+str(len(self.realModel.data))) # DEBUG
         while indexes:  # XX delete ranges for higher efficency?
             i = indexes.pop()
             i.model().removeRow(i.row(), QModelIndex())
-        #print(" deleted, left "+str(len(self.realModel.data)))
+        #print(" deleted, left "+str(len(self.realModel.data))) # DEBUG
         
 
     def addFav(self, index):
@@ -197,7 +196,7 @@ class historyView(QTableView):
         act = m.addAction("Collapse duplicates",self.realModel.collapseDups)
         act = m.addAction("Delete earlier duplicates",self.realModel.deletePrevDups)
         action = m.exec_(event.globalPos())
-        #print(action)
+        #print(action) # DEBUG
 
     def resetView(self, index=None):
         self.resetHistorySort()
@@ -255,16 +254,16 @@ class Favorites():
         self.runfuncs=runfuncs
         
     def addFavorite(self, command,  buttonName=None, keybinding=None, immediate=True):
-        #print("add favorite {} = {}".format(buttonName,command))
+        #print("add favorite {} = {}".format(buttonName,command)) # DEBUG
         c = self.cmds[command] = favoriteItem(buttonName, keybinding, immediate)
         if buttonName:
             self.addButton(command, c)
         # XXX add keybinding
 
     def delFavorite(self, command):
-        #print('del favorite '+command)
+        #print('del favorite '+command) # DEBUG
         c = self.cmds.pop(command)
-        # XXXX remove button
+        # remove button
         layout = self.buttonbox.layout()
         if c.button:
             layout.removeWidget(c.button)
@@ -328,13 +327,13 @@ class Favorites():
 
     #@QtCore.pyqtSlot(bool)
     def saveFavs(self,checked):
-        print('save')
-        # XXXX repopulate favorites and buttons
+        print('save') # DEBUG
+        # repopulate favorites and buttons
         for row in self.data:
-            #print("Check "+str(row))  #XXXXX
+            #print("Check "+str(row)) # DEBUG
             (keep, name, shortcut, immediate, count, command) = row
             if command in self.cmds:
-                #print(' found') #XXXXX
+                #print(' found') # DEBUG
                 fav = favoriteItem(name, shortcut, immediate)
                 if not keep or (keep and self.cmds[command]!=fav):
                     self.delFavorite(command)
@@ -346,7 +345,7 @@ class Favorites():
 
     #@QtCore.pyqtSlot(int)
     def doneFavs(self,result):
-        print('done')
+        print('done') # DEBUG
         if result:
             self.saveFavs(False)
         # destroy temp data
@@ -366,7 +365,7 @@ class Favorites():
         qs.beginGroup('Favorites')
         # how much will QSettings hate me if I dump stuff on it
         val = [ [ c, self.cmds[c].buttonName,  self.cmds[c].shortcut, self.cmds[c].immediate] for c in self.cmds]
-        #print(str(val))
+        #print(str(val)) # DEBUG
         qs.setValue('favorites', val)
         qs.endGroup()
 
@@ -374,7 +373,7 @@ class Favorites():
         qs = QSettings()
         qs.beginGroup('Favorites')
         val = qs.value('favorites', None)
-        #print('favorites: '+str(val))
+        #print('favorites: '+str(val)) # DEBUG
         if not val: return
         for v in val:
             self.addFavorite(*v[0:4])  # super lazy
@@ -452,7 +451,7 @@ class noacli(QtWidgets.QMainWindow):
             cb.disconnect()
             cb.clicked.connect(self.settings.jobs.cleanup)
 
-        # XXXX build history context menu
+        # build history context menu
         self.ui.historyMenu.aboutToShow.connect(self.buildHistoryMenu)
         self.ui.menuJobs.aboutToShow.connect(self.buildJobMenu)
 
@@ -478,7 +477,7 @@ class noacli(QtWidgets.QMainWindow):
         qs = QSettings()
         qs.beginGroup('Geometry')
         g = qs.childGroups()
-        print('Profiles: '+str(g)) # XXXX
+        #print('Profiles: '+str(g)) # DEBUG
         gm = QActionGroup(m)
         self.ui.profileMenuGroup = gm
         # XXX sort these, put default first and select it?
@@ -507,10 +506,10 @@ class noacli(QtWidgets.QMainWindow):
         
         results = QFileDialog.getOpenFileNames(self, "Pick some files", ".", pattern)
         fs = results[0]
-        #print(str(fs))
+        #print(str(fs)) # DEBUG
         cwd = os.getcwd()+'/'
-        #print(fs)
-        #print(cwd)
+        #print(fs) # DEBUG
+        #print(cwd) # DEBUG
         if fs:  # do nothing if nothing selected
             fs = [x.removeprefix(cwd) or x for x in fs]
             f = ' '.join(fs)
@@ -651,7 +650,7 @@ class noacli(QtWidgets.QMainWindow):
         a = self.ui.profileMenuGroup.checkedAction()
         if a:
             n = a.data()
-            print('Current profile: '+n)
+            print('Current profile: '+n) # DEBUG
         else:
             n = 'Default'
         self.mySaveGeometry(n)
@@ -659,7 +658,7 @@ class noacli(QtWidgets.QMainWindow):
     def mySaveGeometry(self,name='default' ):
         # XXX later make this into a named profile
         # XXX does each window need to be saved separately?
-        print("Saving profile "+name)
+        print("Saving profile "+name) # DEBUG
         qs = QSettings()
         qs.beginGroup('Geometry/'+name)
         qs.setValue('mainGeo', self.saveGeometry())
@@ -668,9 +667,9 @@ class noacli(QtWidgets.QMainWindow):
         # check if this is already in the menu, and if not, add it
         gm = self.ui.profileMenuGroup
         c = gm.findChild(QAction, name)
-        if c: print(' already in menu')
+        if c: print(' already in menu') # DEBUG
         else:
-            print(' adding {} to profile menu'.format(name))
+            print(' adding {} to profile menu'.format(name)) # DEBUG
             mm = gm.addAction(name)
             mm.setData(name)
             mm.setObjectName(name)
@@ -682,9 +681,9 @@ class noacli(QtWidgets.QMainWindow):
         a = self.ui.profileMenuGroup.checkedAction()
         if a:
             name = a.data()
-            print('Deleting profile '+name)
+            print('Deleting profile '+name) # DEBUG
         else:
-            print('Cant delete unselected profile')
+            print('Cant delete unselected profile') # DEBUG
             return
         # delete menu entry
         gm = self.ui.profileMenuGroup
@@ -700,7 +699,7 @@ class noacli(QtWidgets.QMainWindow):
     def actionRestoreGeomAct(self, act):
         # checkedAction()
         n = act.data()
-        print("action: "+n)
+        print("action: "+n) # DEBUG
         if n: self.myRestoreGeometry(n)
 
     @QtCore.pyqtSlot()
@@ -708,7 +707,7 @@ class noacli(QtWidgets.QMainWindow):
         self.myRestoreGeometry()
         
     def myRestoreGeometry(self, name='default'):
-        print("Restoring profile "+name)
+        print("Restoring profile "+name) # DEBUG
         qs = QSettings()
         qs.beginGroup('Geometry/'+name)
         st = []
@@ -716,7 +715,7 @@ class noacli(QtWidgets.QMainWindow):
             st.append(self.restoreGeometry(qs.value('mainGeo',None)))
             st.append(self.restoreState(qs.value('mainState',None)))
         else:
-            print('No profile for {} found'.format(name))
+            print('No profile for {} found'.format(name)) # DEBUG
         qs.endGroup()
     
     # in: this window closing

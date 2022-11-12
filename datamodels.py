@@ -230,7 +230,7 @@ class jobItem():
         qs=QSettings()
         qs.beginGroup('Main')
         self.window.openProcess(qs.value('QTailDefaultTitle','subprocess') , self.process)
-        #print('start command: '+self.command())
+        #print('start command: '+self.command())  # DEBUG
         # XXX split QSettings.value('SHELL')
         self.process.start('bash', [ '-c', self.command() ])
 
@@ -294,7 +294,7 @@ class jobTableModel(itemListModel):
         
     # delete all dead jobs
     def cleanup(self):
-        #print('cleanup')
+        #print('cleanup') # DEBUG
         i=0
         while i<len(self.data): # XXX watch for infinite loops!
             if self.data[i].finished and self.data[i].windowOpen==False:
@@ -392,7 +392,7 @@ class History(itemListModel):
             print(str(e))
             return
         if len(self.data)>hsize:
-            # print("Deleting history overflow: "+str(d))
+            # print("Deleting history overflow: "+str(d)) # DEBUG
             d = len(self.data)-hsize
             self.removeRows(0,d,QModelIndex())
 
@@ -418,7 +418,7 @@ class History(itemListModel):
                     nc = i-start-1
                     for j in range(start+1,i):
                         self.data[start].count += self.data[j].count
-                    #print('remove: ({},{})={}'.format(start,i,nc))
+                    #print('remove: ({},{})={}'.format(start,i,nc)) # DEBUG
                     self.removeRows(start+1, nc, QModelIndex())
                 start +=1 
                 i = start+1
@@ -520,7 +520,7 @@ class History(itemListModel):
                     file.write("{},{}: {}\n".format(st, i.count, i.command))
                 else:
                     file.write(": {}\n".format(i.command))
-        # print("history write of "+filename+" failed")
+        # print("history write of "+filename+" failed") # DEBUG
 
 class settingsDataModel(simpleTable):
     def __init__(self, docdict, data, typedata=None):

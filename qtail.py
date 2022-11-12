@@ -208,7 +208,7 @@ class QtTail(QtWidgets.QMainWindow):
         n.activated.connect(self.socketActivated)
 
         self.opt.file = False  #XXX sometimes this might be a file
-        print("stdin")
+        print("stdin") # DEBUG
         #self.reload();  # socket notifier makes this redundant
         
     def openProcess(self, title, process):
@@ -295,17 +295,17 @@ class QtTail(QtWidgets.QMainWindow):
         rect= self.size()
         framedx = rect.width() - docrect.width()
         framedy = rect.height() - docrect.height()
-        #print("ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth()))
+        #print("ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
         doc.adjustSize()
-        #print(" ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth()))
+        #print(" ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
         newsize = doc.size()
-        #print(' docsize='+str(newsize))
+        #print(' docsize='+str(newsize)) # DEBUG
         lay = self.textbody.document().documentLayout()
-        #Abstract# print(' max='+str(lay.maximumWidth())+' min='+str(lay.minimumWidth()))
+        #Abstract# print(' max='+str(lay.maximumWidth())+' min='+str(lay.minimumWidth())) # DEBUG
         ## try to pick a decent size
         height = docrect.height()
         width = docrect.width()
-        #print(' docsize='+str(width)+','+str(height))
+        #print(' docsize='+str(width)+','+str(height)) # DEBUG
         if height > newsize.height():
             height = newsize.height()
         if width < newsize.width()*0.80:  # allow 20% growth
@@ -315,9 +315,9 @@ class QtTail(QtWidgets.QMainWindow):
         width += framedx
         if height > 50 and height < rect.height():
             height += 100   # guess at frame size
-            #print('shrink height')
+            #print('shrink height') # DEBUG
         else: height = rect.height()  # don't resize
-        #print(' newsize='+str(width)+','+str(height))
+        #print(' newsize='+str(width)+','+str(height)) # DEBUG
         self.resize(ceil(width), ceil(height))
         
 if __name__ == '__main__':
