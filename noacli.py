@@ -387,12 +387,17 @@ class menuLineEdit(QLineEdit):
     def __init__(self, parent, placeholder):
         super(menuLineEdit,self).__init__(parent)
         self.setPlaceholderText(placeholder)
+        self.setClearButtonEnabled(True)
     @QtCore.pyqtSlot('QKeyEvent')
     def keyPressEvent(self,event):
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
             self.returnPressed.emit()
         else:
             super(menuLineEdit,self).keyPressEvent(event)
+    def textAndClear(self):
+        t = self.text()
+        self.clear()
+        return t
             
 class noacli(QtWidgets.QMainWindow):
     def __init__(self):
@@ -465,7 +470,7 @@ class noacli(QtWidgets.QMainWindow):
         m = ui.menuSettings
         # Add a lineEdit to create new profiles
         le = menuLineEdit(m, "(New geometry profile)")
-        le.returnPressed.connect(lambda: self.mySaveGeometry(le.text()))
+        le.returnPressed.connect(lambda: self.mySaveGeometry(le.textAndClear()))
         wa = QWidgetAction(m)
         wa.setDefaultWidget(le)
         m.addAction(wa)
@@ -670,6 +675,7 @@ class noacli(QtWidgets.QMainWindow):
             mm.setData(name)
             mm.setObjectName(name)
             mm.setCheckable(True)
+            mm.setChecked(True)
             self.ui.menuSettings.addAction(mm)
 
     def myDeleteProfile(self):
