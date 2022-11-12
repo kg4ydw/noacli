@@ -435,16 +435,23 @@ class noacli(QtWidgets.QMainWindow):
         pass
 
     def pickFile(self):
-        results = QFileDialog.getOpenFileNames(self, "Pick some files", ".")
-        fs = results[0]
-        cwd = os.getcwd()+'/'
-        print(fs)
-        print(cwd)
-        fs = [x.removeprefix(cwd) or x for x in fs]
-        # XXX would be nice to trim cwd from the names
-        f = ' '.join(fs)
+        pattern = None
+        editor = self.ui.plainTextEdit
+
+        cursor = editor.textCursor()
+        if cursor.hasSelection():
+            pattern = cursor.selectedText()
         
-        self.ui.plainTextEdit.insertPlainText(f)
+        results = QFileDialog.getOpenFileNames(self, "Pick some files", ".", pattern)
+        fs = results[0]
+        #print(str(fs))
+        cwd = os.getcwd()+'/'
+        #print(fs)
+        #print(cwd)
+        if fs:  # do nothing if nothing selected
+            fs = [x.removeprefix(cwd) or x for x in fs]
+            f = ' '.join(fs)
+            editor.insertPlainText(f)
         
     ################
     # external slots
