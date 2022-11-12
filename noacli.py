@@ -67,11 +67,13 @@ class settings():
         # Note: defaults here might not match the real defaults embeeded in code
     def makeDialog(self, parent):
         qs = QSettings()
+        qs.beginGroup('Main')
         # collect list of rows including settings
         # build a list of settings, each source sorted separately
         rows = sorted(self.settingsDirectory.keys())
         # add additional settings from QSettings (missing from dict)
-        rows += [i for i in sorted(qs.allKeys()) if i not in self.settingsDirectory and i!='favorites']
+        rows += [i for i in sorted(qs.allKeys()) if i not in self.settingsDirectory]
+        # XXXX and not i.startswith('Favorites')]
         # get qtail defauls
         qt = {
             'QTailMaxLines': self.qtail.maxLines,
@@ -93,6 +95,7 @@ class settings():
 
     def copy2qtail(self):
         qs = QSettings()
+        qs.beginGroup('Main')
         # copy qtail settings
         self.qtail.maxLines = int(qs.value('QTailMaxLines', self.qtail.maxLines))
         self.qtail.tailFrag = int(qs.value('QTailEndBytes', self.qtail.tailFrag))
@@ -102,6 +105,7 @@ class settings():
     def acceptchanges(self):
         print('accept')
         qs = QSettings()
+        qs.beginGroup('Main')
         for d in self.data:
             if d[1]!=None:
                 print('save '+str(d[0])+' = '+str(d[1])) # XXX
@@ -282,15 +286,16 @@ class Favorites():
         # save this so the validator can get it
         self.data = data
         qs = QSettings()
+        qs.beginGroup('Main')
         # schema: *=checkbox
         # *keep name key *checkImmediate count command 
 
-        # collect commands from favorites
-        f = sorted(self.cmds.keys())
-        data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, 100, c] for c in f]
-
         # collect commands from frequent history
         (_, count) = self.settings.history.countHistory()
+        # collect commands from favorites
+        f = sorted(self.cmds.keys())
+        data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, (c in count and count[c]) or 0 , c] for c in f]
+        # add frequenty history commands
         freq = sorted([k for k in count.keys() if k not in self.cmds], key=lambda k: count[k])
         freq.reverse()
         nfreq = int(qs.value('FavFrequent',10))
@@ -317,6 +322,9 @@ class Favorites():
         self.dialog = settingsDialog(parent, 'Favorites editor', model, 'Favorites, shortcuts, and buttons')
         self.dialog.finished.connect(self.doneFavs)
         self.dialog.apply.connect(self.saveFavs)
+        buttonbox = self.dialog.ui.buttonBox
+        buttonbox.setStandardButtons(buttonbox.standardButtons()| QDialogButtonBox.Save)
+        savebutton = buttonbox.button(QDialogButtonBox.Save).clicked.connect(self.saveSettings)
 
     #@QtCore.pyqtSlot(bool)
     def saveFavs(self,checked):
@@ -355,16 +363,25 @@ class Favorites():
 
     def saveSettings(self):
         qs = QSettings()
+        qs.beginGroup('Favorites')
         # how much will QSettings hate me if I dump stuff on it
         val = [ [ c, self.cmds[c].buttonName,  self.cmds[c].shortcut, self.cmds[c].immediate] for c in self.cmds]
+        print(str(val))
         qs.setValue('favorites', val)
+        qs.endGroup()
 
     def loadSettings(self):
         qs = QSettings()
+        qs.beginGroup('Favorites')
         val = qs.value('favorites', None)
+        print('favorites: '+str(val))
         if not val: return
         for v in val:
-            self.addFavorite(*v[0:3])  # super lazy
+            self.addFavorite(*v[0:4])  # super lazy
+        qs.endGroup()
+
+# class winGeoProfile():
+    
             
 class noacli(QtWidgets.QMainWindow):
     def __init__(self):
@@ -552,9 +569,9 @@ class noacli(QtWidgets.QMainWindow):
         # add new entries
         h = self.settings.history.last()
         qs = QSettings()
+        qs.beginGroup('Main')
         i = int(qs.value('HistMenuSize', 10))
         cmds=set()
-        qs = QSettings()
         width = int(qs.value('HistMenuWidth',30))
         while i>0 and h:
             c = str(h.data())

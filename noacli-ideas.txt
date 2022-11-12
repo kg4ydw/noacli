@@ -18,11 +18,12 @@ o job life cycle
 * tables: implement vertical headers??
 *   make corner button clickable to reset sort column to -1
 * qtail: resize after visible? or after first read
-  change Qsettings to use sections
-    only read general settings for settings dialog
-    move favorites to its own section
+* change Qsettings to use sections
+*   only read general settings for settings dialog
+*   move favorites to its own section
     save window position profiles in a section
 * look at cursor and set file dialog filter
+  delete QSettings that match defaults
 
 Bugs:
   gets middle of file on /usr/dict/words without --whole

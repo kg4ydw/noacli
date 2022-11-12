@@ -177,6 +177,7 @@ class jobItem():
 
     def __str__(self):  # mash some stuff together
         qs = QSettings()
+        qs.beginGroup('Main')
         width = int(qs.value('JobMenuWidth', 30))
         s = str(self.getStatus())+' | '+str(self.window.windowTitle())+' | '+str(self.command())
         return str(s)[0:width]
@@ -227,6 +228,7 @@ class jobItem():
         self.window.start()
         # XXX Do more parsing and give this a real title
         qs=QSettings()
+        qs.beginGroup('Main')
         self.window.openProcess(qs.value('QTailDefaultTitle','subprocess') , self.process)
         #print('start command: '+self.command())
         # XXX split QSettings.value('SHELL')
@@ -305,6 +307,7 @@ class jobTableModel(itemListModel):
         self.appendItem(jobitem)
         # start a cleanup timer
         qs = QSettings()
+        qs.beginGroup('Main')
         ct = int(qs.value('JobCleanTime', 120))*1000  # XXX could be float
         self.cleanTime.start(ct)
 
@@ -382,6 +385,7 @@ class History(itemListModel):
 
     def limitHistorySize(self):
         qs = QSettings()
+        qs.beginGroup('Main')
         try:
             hsize = int(qs.value('HISTSIZE', 1000))
         except Exception as e:
@@ -450,6 +454,7 @@ class History(itemListModel):
 
     def getHistfilename(self):
         qs = QSettings()
+        qs.beginGroup('Main')
         f = qs.value('HistFile','.noacli_history')
         if f[0]=='/': return f
         # it's a relative path, try to construct full path
@@ -497,6 +502,7 @@ class History(itemListModel):
 
     def write(self, filename=None):  # export?
         qs = QSettings()
+        qs.beginGroup('Main')
         maxhf = int(qs.value('HISTFILESIZE', 1000))
         start = 0
         if len(self.data)>maxhf:
