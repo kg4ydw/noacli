@@ -5,7 +5,7 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QKeySequence
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage, QFileDialog, QPushButton, QDialogButtonBox,QLineEdit, QWidgetAction, QActionGroup
+from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage, QFileDialog, QPushButton, QDialogButtonBox,QLineEdit, QWidgetAction, QActionGroup, QToolButton
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings
 
 from functools import partial
@@ -209,13 +209,14 @@ class historyView(QTableView):
             self.scrollToBottom()
 
             
-class commandPushButton(QPushButton):
+class commandPushButton(QToolButton):
     # this is a push button that remembers what it is suppose to do
     def __init__(self, name, command,parent, functor):
-        super(commandPushButton,self).__init__(name,parent)
+        super(commandPushButton,self).__init__(parent)
+        self.setText(name)
         self.command = command
         self.actionfunc = functor
-        ## dunno if all this goo is needed, but designer emits it
+        ## dunno if all this goo is needed, but designer emits it with gridview
         #sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         #sizePolicy.setHorizontalStretch(0)
         #sizePolicy.setVerticalStretch(0)
