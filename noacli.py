@@ -82,7 +82,22 @@ class settings():
             }
         # build settings table using rows
         # all qtail settings are already in docdict but values need to be merged
-        data = [ [i, qs.value(i, qt.get(i) or None)] for i in rows]
+        data = []
+        for name in rows: # this was just too messy to do in a comprehension
+            val = qs.value(name,None)
+            # get qtail current setting which might be default anyway
+            if val==None and name in qt: val=qt.get(name)
+            # fix types
+            if name in self.settingsDirectory and val!=None:
+                if self.settingsDirectory[name][2]==bool: # can't coerce bool
+                    val = val.lower() in ['true','yes']
+                else:
+                    # XXX put this in a try
+                    val = self.settingsDirectory[name][2](val)
+            # reset if default value
+            if  val!=None and val==self.settingsDirectory[name][0]:
+                val = None
+            data.append([name, val ])
         self.data = data
         # build the types table
         typedata = [ [None, self.settingsDirectory[i][2] ] for i in rows ] 

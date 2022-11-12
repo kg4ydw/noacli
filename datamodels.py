@@ -74,10 +74,11 @@ class simpleTable(QAbstractTableModel):
         if not (self.datatypesrow or self.editmask) or col<0 or col>=len(self.headers):
             return super(simpleTable,self).flags(index)
         mask = Qt.ItemIsSelectable|Qt.ItemIsEnabled
-        if self.editmask and self.editmask[col]:
-            mask |= Qt.ItemIsEditable
-        if self.datatypesrow and self.datatypesrow[col]==bool:
+        if (self.datatypesrow and self.datatypesrow[col]==bool or
+            self.datatypes and self.datatypes[index.row()][col]==bool):
             mask |=  Qt.ItemIsUserCheckable
+        elif self.editmask and self.editmask[col]:
+            mask |= Qt.ItemIsEditable
         return mask
         
     def validateIndex(self, index):
@@ -526,30 +527,37 @@ class settingsDataModel(simpleTable):
     def __init__(self, docdict, data, typedata=None):
         self.docdict = docdict
         # XXX this could be 3 column with the tool tips in col 3
-        super(settingsDataModel, self).__init__(data, ['Setting', 'Value'], typedata)
+        super(settingsDataModel, self).__init__(data, ['Setting', 'Value'], typedata, editmask=[False, True])
         # nothing else to do, most done in gui model
-    def flags(self,index):
-        if not index.isValid() or index.column()!=1:
-            return super(settingsDataModel,self).flags(index)
-        row = index.row()
-        if self.docdict[self.data[row][0]][2]==bool:
-            return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable| Qt.ItemIsUserCheckable
-        else:
-            return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
+    #def flags(self,index):
+    #    if not index.isValid() or index.column()!=1:
+    #        return super(settingsDataModel,self).flags(index)
+    #    row = index.row()
+    #    if self.docdict[self.data[row][0]][2]==bool:
+    #        return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable| Qt.ItemIsUserCheckable
+    #    else:
+    #        return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
     def data(self, index, role):
         if not self.validateIndex(index): return None
         col = index.column()
         row = index.row()
+        rowname = self.data[row][0]
         # color and supply default data
-        if col==1 and self.data[row][1]==None:
+        if col==1 and self.data[row][1]==None: # not set, use default
             if role==Qt.BackgroundRole:
                 return QBrush(Qt.lightGray)
+            if self.docdict[rowname][2]==bool:
+                if role==Qt.CheckStateRole:
+                    if self.docdict[rowname][1]: return Qt.Checked
+                    else: return Qt.Unchecked
+                elif role!=Qt.ToolTipRole:
+                    return None  # no text label on bools
             elif role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
                 # have to fill in default data to get type right
-                return self.docdict[self.data[row][0]][0]
+                return self.docdict[rowname][0]
         if role==Qt.ToolTipRole:  # XX and StatusRole ?
             if self.data[row][0] not in self.docdict: return None
-            doc = self.docdict[self.data[row][0]]
+            doc = self.docdict[rowname]
             # swap tooltip columns
             return doc[1-col]
         return super(settingsDataModel,self).data(index, role)
