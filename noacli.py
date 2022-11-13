@@ -15,6 +15,7 @@ from settingsdialog_ui import Ui_settingsDialog
 from typedqsettings import typedQSettings
 
 from datamodels import simpleTable, History, jobItem, jobTableModel, settingsDataModel
+from smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
 
 class settingsDict():
@@ -128,13 +129,13 @@ class settings():
         qs = typedQSettings()
         for d in self.data:
             if d[1]!=None:
-                print('save '+str(d[0])+' = '+str(d[1])) # XXX # DEBUG
+                #print('save '+str(d[0])+' = '+str(d[1])) # XXX # DEBUG
                 qs.setValue(d[0], d[1])
         self.copy2qtail()
         qs.sync()
     def acceptOrReject(self, result):
         if result: self.acceptchanges()
-        print('finished') # DEBUG
+        #print('finished') # DEBUG
         # destroy everything
         self.dialog = None
         self.data = None
@@ -348,7 +349,7 @@ class Favorites():
 
     #@QtCore.pyqtSlot(bool)
     def saveFavs(self,checked):
-        print('save') # DEBUG
+        #print('save') # DEBUG
         # repopulate favorites and buttons
         for row in self.data:
             #print("Check "+str(row)) # DEBUG
@@ -366,7 +367,7 @@ class Favorites():
 
     #@QtCore.pyqtSlot(int)
     def doneFavs(self,result):
-        print('done') # DEBUG
+        #print('done') # DEBUG
         if result:
             self.saveFavs(False)
         # destroy temp data
@@ -432,6 +433,9 @@ class noacli(QtWidgets.QMainWindow):
         f.setContentsMargins(3,3,3,3)
 
         self.settings = settings()
+        # cheat a bit
+        self.settings.smallOutputView = self.ui.smallOutputView
+        self.settings.statusBar = self.statusBar()
 
         self.historypos = 1;
         dir = os.path.dirname(os.path.realpath(__file__))
@@ -487,6 +491,9 @@ class noacli(QtWidgets.QMainWindow):
         self.fileShortcut = QShortcut(QKeySequence('ctrl+f'), self)
         self.fileShortcut.activated.connect(self.pickFile)
 
+        self.ui.smallOutputView.oneLine.connect(self.statusBar().showMessage)
+        self.ui.smallOutputView.newJobStart.connect(self.statusBar().clearMessage)
+        
         ##### geometry profiles
         qs = typedQSettings()
         v = qs.value('DefWinProfile', True)
@@ -520,6 +527,8 @@ class noacli(QtWidgets.QMainWindow):
         gm.triggered.connect(self.actionRestoreGeomAct)
         qs.endGroup()
 
+    ## end __init__
+
     def start(self):
         # nothing else to initialize yet
         pass
@@ -547,6 +556,11 @@ class noacli(QtWidgets.QMainWindow):
     # external slots
     # some of these could be moved
 
+    @QtCore.pyqtSlot()
+    def syncSettings(self):
+        qs = QSettings()
+        qs.sync() # XX is this necessary?
+
     # in: whoever  out: favorites
     @QtCore.pyqtSlot(str)
     def addFavorite(self, cmd):
@@ -568,9 +582,10 @@ class noacli(QtWidgets.QMainWindow):
     def windowShowRaise(self,index):
         if isinstance(index, QAction): index = index.data() # unwrap
         job = index.model().getItem(index)
-        job.windowOpen = True
-        job.window.show()
-        job.window.raise_()
+        if job.window:
+            job.windowOpen = True
+            job.window.show()
+            job.window.raise_()
 
 
     # in: view menu  out: all DOCKs
@@ -710,9 +725,9 @@ class noacli(QtWidgets.QMainWindow):
         a = self.ui.profileMenuGroup.checkedAction()
         if a:
             name = a.data()
-            print('Deleting profile '+name) # DEBUG
+            self.showMessage('Deleting profile '+name)
         else:
-            print('Cant delete unselected profile') # DEBUG
+            self.showMessage('Cant delete unselected profile')
             return
         # delete menu entry
         gm = self.ui.profileMenuGroup
@@ -744,9 +759,14 @@ class noacli(QtWidgets.QMainWindow):
             st.append(self.restoreGeometry(qs.value('mainGeo',None)))
             st.append(self.restoreState(qs.value('mainState',None)))
         else:
-            print('No profile for {} found'.format(name)) # DEBUG
+            print('No profile for {} found'.format(name)) # DEBUG EXCEPTION this can't happen
         qs.endGroup()
-    
+
+    @QtCore.pyqtSlot(str)
+    def showMessage(self, msg):
+        qs = typedQSettings()
+        delay = qs.value('MessageDelay',10)
+        self.statusBar.showMessage(msg, int(delay*1000))
     # in: this window closing
     def closeEvent(self, event):
         self.actionSaveHistory()

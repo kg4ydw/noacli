@@ -5,7 +5,7 @@
 # This accomplishes two things:
 # * force all settings in the dictionary to the correct type, reducing bugs
 # * provide a single location for all default values (overriding supplied defaults)
-# * print warnings for settings not in the dictionary, using supplied default
+# * print DEBUG warnings for settings not in the dictionary, using supplied default
 # This does NOT do the following:
 # * handle groups
 # * handle complex types
@@ -37,12 +37,12 @@ class typedQSettings(QSettings):
         except Exception as e:
             self.setdict = {}  # only warn first time
             frame = sys.exc_info()[2].tb_frame.f_back
-            print("Warn: typedQSettings.value called before dict set: "+str(frame.f_code)+"\n"+str(e))
+            print("Warn: typedQSettings.value called before dict set: "+str(frame.f_code)+"\n"+str(e)) # EXCEPT
             # frame.f_code.co_name
             return super(typedQSettings,self).value(key,default)
         v = super(typedQSettings,self).value(key,default)
         if key not in self.setdict: # return what we have
-            print("Warning: setting {} missing from settings dictionary.".format(key))
+            print("Warning: setting {} missing from settings dictionary.".format(key)) # DEBUG EXCEPT
             return v
         # bools don't cast well
         if self.setdict[key][2]==bool:
@@ -53,6 +53,6 @@ class typedQSettings(QSettings):
         try:
             return self.setdict[key][2](v)
         except Exception as e:
-            print("Bad setting value for {}: '{}'".format(key,v))
-            print(str(e))
+            print("Bad setting value for {}: '{}'".format(key,v)) # EXCEPT
+            print(str(e)) # EXCEPT
             return default

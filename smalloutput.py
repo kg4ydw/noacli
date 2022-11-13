@@ -3,17 +3,21 @@
 
 import os
 import sys
+import re
 
 from PyQt5 import QtCore
+from PyQt5.Qt import pyqtSignal
 from PyQt5.QtCore import QTimer, QSettings, QTextStream
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QTextBrowser
 
 from typedqsettings import typedQSettings
+from datamodels import jobItem
+from qtail import QtTail
 
 #  transfer last command output to qtail if:
-#    output exceeds visible lines-1
-#    process exit timeout
+#    output exceeds visible lines
+#    process exit timeout  ** not implemented
 #    another command is run that produces output
 #    user presses dup button (or shortcut?)
 #  single line (or most recent?) output sent to status bar
@@ -33,12 +37,18 @@ from typedqsettings import typedQSettings
 # reset max lines between processes if possible
 
 class smallOutput(QTextBrowser):
+    oneLine = pyqtSignal(str)
+    newJobStart = pyqtSignal()
+    
     def __init__(self, parent):
         super(smallOutput,self).__init__(parent)
         self.keepState = False
+        self.clearproc()  # zero out status stuff
         self.procCursor = None  # cursor
-        self.rawtext = None  # keep raw text for later use
+        self.jobitem = None
+        # self.rawtext = None  # keep raw text for later use
         self.process = None
+        self.procStartLine = 0
         
         # apply settings
         qs = typedQSettings()
@@ -47,44 +57,115 @@ class smallOutput(QTextBrowser):
         if mul>10:
             self.document().setMaximumBlockCount(mul)
             
-        
     ##### overrides
     def resizeEvent(self, event):
-        super(smallOutput,self).resizeEvent(event)
-        # XXX calculate new size
+        super().resizeEvent(event)
         doc = self.document()
         margin = doc.documentMargin()
-        num_lines = (doc.size().height() - 2*margin)/self.fontMetrics().height()
+        num_lines = (event.size().height() - 2*margin)/self.fontMetrics().height()
         qs=typedQSettings()
         mul = qs.value('SmallMultiplier', 2)
         if mul>0 and mul<10:
-            self.document().setMaximumBlockCount(int(num_lines * mul)+1)
+            lines=int(num_lines * mul)+1
+            #print('set max={} ({},{})'.format(lines,num_lines,mul)) # DEBUG
+            self.document().setMaximumBlockCount(lines)
         elif mul>10:  # reset it just in case it was changed
             self.document().setMaximumBlockCount( mul)
         else:
             self.document().setMaximumBlockCount(0)  # no limit
 
     ##### external signals
+
     @QtCore.pyqtSlot()
-    def smallDup(self):
+    def smallDup(self,more=''):
+        if not self.process and self.document().isEmpty():
+            # allow duping a process that is dead
+            # but not if there's no text either
+            return
         # duplicate contents to a new top level small window (or qtail)
-        text = self.ui.smallOutputView.text() # XXXX wrong function
-        # QtTail.openPretext(pretext=text) # XXXX
-        self.ui.smallOutputView.clear()
-        pass # XXXX
+        ## alternate ways to get the old text
+        #### grab everything
+        #text = self.toPlainText()+more  # XXX only grab last process?
+        #### grab process cursor -- process cursor isn't working right
+        #c = self.getProcCursor()
+        #text = c.selectedText()+more
+        #c.removeSelectedText()
+        ### make a new cursor based on procStartLine
+        c = self.textCursor()
+        c.movePosition(QTextCursor.Start)
+        c.movePosition( QTextCursor.NextBlock, QTextCursor.MoveAnchor,self.procStartLine-1)
+        c.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+        text = c.selectedText()+more
+        c.removeSelectedText()
+
+        # XXX if self.keepState leave a placeholder
+        self.disconnectProcess()
+        if self.jobitem:
+            title = self.jobitem.title()
+        elif self.process:
+            title = self.process.command()[0] # XX
+        else:
+            title = 'dead' # XXX pull default?
+        
+        qt = QtTail(self.settings.qtail)
+        self.jobitem.setWindow(qt)
+        qt.openPretext(self.process, self.textstream, pretext=text, title=title)
+        self.clearproc()
+
+    @QtCore.pyqtSlot()
+    def smallKill(self):
+        if self.process:
+            self.process.kill()
+        else:
+            self.oneLine.emit('Nothing to kill')
+
+    @QtCore.pyqtSlot()
+    def smallLog(self):
+        if not self.process: return
+        # XX copy out old text first?
+        self.disconnectProcess()
+        # move process to log window and disconnect XXX
+        self.clearproc()
+
     @QtCore.pyqtSlot(bool)
     def smallKeepToggle(self, checked):
         # if checked, clear immediately
-        if checked: self.ui.smallOutputView.clear()
+        if not checked: self.clear()
         self.keepState = checked
+
+    # used above
+    def disconnectProcess(self):
+        # disconnect a process prior to moving it somewhere else
+        if self.process:
+            self.process.readyRead.disconnect(self.readLines)
+            self.process.finished.disconnect(self.procFinished)
+
+    def clearproc(self):
+        # these should have been saved somewhere else
+        self.process = None
+        self.textstream = None
+        self.procCursor = None
+        self.procStartLine = 0
+        #self.jobitem = None   # maybe don't clear job item so fast
+
+    ################
 
     def insertLine(self):
         c = self.textCursor()
         c.movePosition(QTextCursor.End)
-        c.insertHtml("<hr/>")
-
+        # work around bug that Qt won't fix
+        # and none of these workarounds seem to help
+        #blockFmt = c.blockFormat();
+        #c.insertHtml("<hr/>") # XXX ugly, makes subsequent stuff underlined
+        ##c.insertHtml("<br/>")
+        #c.setBlockFormat(blockFmt);
+        #c.blockFormat().clearProperty(QTextFormat.BlockTrailingHorizontalRulerWidth);
+        #self.setTextCursor(c)
+        #c.insertHtml("<br/>")
+        ##c.insertBlock(QTextBlockFormat());
+        
     def getProcCursor(self):
-        if not self.curProcStart:
+        if not self.procCursor:
             self.procCursor = self.textCursor()
             self.procCursor.movePosition(QTextCursor.End)
             # XXX alternately, find previous <hr> or move to start
@@ -105,34 +186,75 @@ class smallOutput(QTextBrowser):
     def textBlockLen(self):
         b = getProcCursor()
         # not sure this is right
-        a = self.textCursor().setPosition(b.anchor(), QTextCursor.NextCharacter)
+        a = self.textCursor().setPosition(b.anchor())
         return b.blockNumber() - a.blockNumber()
-
+    def gettingFull(self,more=0):
+        mx = self.maxBlocks()
+        if mx>0:
+            c= self.curBlock()+more-self.procStartLine # don't care about previous output
+            #print("{}: {}>{}".format(mx,c,mx/2)) # DEBUG
+            return c>mx/2
+        return False
+        #return self.maxBlocks()>0 and self.curBlock() +2 > self.maxBlocks()/2
+    def countLines(self,t):
+        return len(re.findall("\n", t))
     ################
     # process and I/O handling stuff
 
     # this class only handles process data, otherwise use qtail
-    def openProcess(self, process):
+    def openProcess(self, process, jobitem, settings):
+        self.settings = settings  # need this for qtail
+        if self.process: self.smallDup()
+        if not self.keepState:
+            self.clear()
+        c = self.getProcCursor() # always do this just to intialize it
+        if self.keepState:
+            self.setTextCursor(c) # jump to end
+        self.procStartLine = self.document().blockCount()
+        self.jobitem = jobitem  # keep for later
+        self.newJobStart.emit()
         self.process = process
         self.textstream = QTextStream(process)
-        self.opt.file = False
-        self.file.readyRead.connect(self.readLines)
-        self.file.finished.connect(self.procFinished)
+        self.doneProc = False
+        self.process.readyRead.connect(self.readLines)
+        self.process.finished.connect(self.procFinished)
+
         qs = typedQSettings()
         # XXX start oneshot timer
-	
+    
         
-
     def readLines(self):
+        t = self.textstream.readAll()
+        if t:
+            num = self.countLines(t)
+            if num==1: self.oneLine.emit(t)
+            if self.gettingFull(num):
+                print('full') # DEBUG
+                self.smallDup(t)
+            else:
+                c = self.getProcCursor()
+                c.insertText(t)
+                self.setTextCursor(c)
+        if self.doneProc:
+            print('last read') # DEBUG
+            self.disconnectProcess()
+            self.clearproc()  # really done now
+            
+            
         pass # XXXX
     def procFinished(self, exitcode, estatus):
-        # XXX need to check if all data is read before adding status info
-        # finishread
-        if self.maxBlocks()>0 and self.curBlock() +2 < self.maxBlocks():
-            c = getProcCursor()
+        print('small proc finished ') # DEBUG
+        if not self.gettingFull(2):
+            c = self.getProcCursor()
             # XXX get time left / measured on timer
             c.insertHtml("<b>Exit {}<b><hr>".format(exitcode))
-        pass # XXXX
+        # XXX emit exit status if we didn't just send a line 
+        if self.process.bytesAvailable():
+            self.doneProc = True # let readLines clean up
+        else:
+            self.disconnectProcess()
+            self.clearproc()  # really done now
+
 
     def timeoutProc():
-        pass
+        pass # XXXX

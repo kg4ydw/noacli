@@ -83,11 +83,13 @@ class myOptions():
 
 class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
-    
+    want_resize = pyqtSignal()
     def __init__(self, options=None, parent=None):
         super().__init__()
         dir = os.path.dirname(os.path.realpath(__file__))
         self.setWindowIcon(QtGui.QIcon(dir+'/qtail.png'))
+        # connect to my own event so I can send myself a delayed signal
+        self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection) # delay this
 
         if options==None:
             options=myOptions()
@@ -221,6 +223,29 @@ class QtTail(QtWidgets.QMainWindow):
         self.rebutton('Kill', self.killProcess)
         self.file.finished.connect(self.procFinished)
 
+    def openPretext(self, process, textstream, pretext='', title=None):
+        self.textbody.setPlainText(pretext)
+        # someone else already initialized stuff, just handing it over
+        # pretend like we did it
+        self.file = process
+        # get a window title from somewhere
+        if not title: title='qtail: reopen'  # XXXX setting?
+        self.setWindowTitle(title)
+        self.textstream = textstream
+        self.opt.file = False
+        if self.file:
+            self.file.readyRead.connect(self.readtext)
+            self.rebutton('Kill', self.killProcess)
+            self.file.finished.connect(self.procFinished)
+        # these are likely too soon
+        #self.actionAdjust()
+        #self.showsize()
+        # can I emit my own signal?
+        # s= pyqtSignal()
+        if pretext:
+            self.want_resize.emit()
+        #else: wait for data
+
     def procFinished(self, exitcode, estatus):
         # XXX if exitcode: rebutton("Rerun", self.rerun)
         self.rebutton('Close', self.close)
@@ -313,10 +338,12 @@ class QtTail(QtWidgets.QMainWindow):
         elif width > newsize.width(): # shrink
             width = newsize.width()
         width += framedx
-        if height > 50 and height < rect.height():
+        if height > 50 and height < rect.height()*1.1:
             height += 100   # guess at frame size
             #print('shrink height') # DEBUG
-        else: height = rect.height()  # don't resize
+        else:
+            # insane height was supplied
+            height = rect.height()  # don't resize
         #print(' newsize='+str(width)+','+str(height)) # DEBUG
         self.resize(ceil(width), ceil(height))
         

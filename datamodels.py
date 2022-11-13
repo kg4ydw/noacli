@@ -58,7 +58,7 @@ class simpleTable(QAbstractTableModel):
                 self.dataChanged.emit(index,index)
                 return True
             except Exception as e:
-                print(str(e))
+                print(str(e)) # EXCEPT
                 return False
         elif self.datatypesrow and self.datatypesrow[col]:
             try:
@@ -66,7 +66,7 @@ class simpleTable(QAbstractTableModel):
                 self.dataChanged.emit(index,index)
                 return True
             except Exception as e:
-                print(str(e))
+                print(str(e)) # EXCEPT
                 return False
         self.data[row][col] = value  # do it without any validation or cast
         self.dataChanged.emit(index,index)
@@ -177,12 +177,17 @@ class jobItem():
         self.process.errorOccurred.connect(self.collectError)
         self.process.finished.connect(self.collectFinish)
         self.process.stateChanged.connect(self.collectNewstate)
+        self.window=None
 
     def __str__(self):  # mash some stuff together
         qs = typedQSettings()
         width = int(qs.value('JobMenuWidth', 30))
-        s = str(self.getStatus())+' | '+str(self.window.windowTitle())+' | '+str(self.command())
+        s = str(self.getStatus())+' | '+str(self.title())+' | '+str(self.command())
         return str(s)[0:width]
+    def title(self):
+        if self.window: return self.window.windowTitle()
+        # XXX or get title from somewhere else?
+        return None # XXX or ''
 
     # private slots
     def collectError(self, err):
@@ -223,17 +228,31 @@ class jobItem():
         # for now, just merge stdout,stderr and send to qtail
         self.process.setProcessChannelMode(QProcess.MergedChannels)
         self.process.closeWriteChannel() # close stdin if we have no infile XXX
-        self.window = QtTail(settings.qtail)
+        #self.startQtail(settings)  # XXXX pick one??
+        self.startSmall(settings)
+        #print('start command: '+self.command())  # DEBUG
+        # XXX split QSettings.value('SHELL')
+        self.process.start('bash', [ '-c', self.command() ])
+
+    def startSmall(self,settings):
+        # XXX cheat with settings: signal?
+        settings.smallOutputView.openProcess(self.process, self, settings)
+    def stopSmall(self):
+        # XXX disconnect process??
+        pass
+    def setWindow(self,w):
+        self.window = w
         self.window.window_close_signal.connect(self.windowClosed)
         self.windowOpen = True
         self.window.show()
         self.window.start()
+        
+    def startQtail(self,settings):
+        self.setWindow = QtTail(settings.qtail)
         # XXX Do more parsing and give this a real title
+        self.windowOpen = False
         qs=typedQSettings()
         self.window.openProcess(qs.value('QTailDefaultTitle','subprocess') , self.process)
-        #print('start command: '+self.command())  # DEBUG
-        # XXX split QSettings.value('SHELL')
-        self.process.start('bash', [ '-c', self.command() ])
 
     def windowClosed(self):
         self.windowOpen = False
@@ -259,7 +278,7 @@ class jobTableModel(itemListModel):
             # if you update these, also udpate noacli.jobDoubleClicked
             if col==0: return job.process.processId()
             if col==1: return job.getStatus()
-            if col==2: return job.window.windowTitle()
+            if col==2: return job.title()
             if col==3: return job.command()
         return None
 
@@ -298,7 +317,7 @@ class jobTableModel(itemListModel):
         #print('cleanup') # DEBUG
         i=0
         while i<len(self.data): # XXX watch for infinite loops!
-            if self.data[i].finished and self.data[i].windowOpen==False:
+            if self.data[i].finished and not self.data[i].windowOpen:
                 self.deleteJob(i)
             else:
                 i +=1
@@ -388,7 +407,7 @@ class History(itemListModel):
         try:
             hsize = int(qs.value('HISTSIZE', 1000))
         except Exception as e:
-            print(str(e))
+            print(str(e)) # EXCEPT
             return
         if len(self.data)>hsize:
             # print("Deleting history overflow: "+str(d)) # DEBUG
@@ -460,7 +479,7 @@ class History(itemListModel):
             # XXX nonportable?
             fname = os.environ.get('HOME') +'/'
         except Exception as e:
-            print(str(e))
+            print(str(e)) # EXCEPT
             fname= ''
         fname += f
         return fname

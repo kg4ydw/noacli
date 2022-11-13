@@ -69,6 +69,7 @@
     </property>
     <addaction name="actionGsettings"/>
     <addaction name="actionFavorites_editor"/>
+    <addaction name="actionSync_settings"/>
     <addaction name="separator"/>
     <addaction name="actionGeoSave"/>
     <addaction name="actionGeoRestore"/>
@@ -155,10 +156,16 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="buttons">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <property name="minimumSize">
     <size>
-     <width>184</width>
-     <height>81</height>
+     <width>98</width>
+     <height>105</height>
     </size>
    </property>
    <property name="floating">
@@ -174,18 +181,17 @@
     <number>4</number>
    </attribute>
    <widget class="QWidget" name="buttonBox">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="rerunLast">
-       <property name="text">
-        <string>Rerun last</string>
-       </property>
-      </widget>
-     </item>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_5">
      <item>
       <widget class="QPushButton" name="runCurrent">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -195,6 +201,28 @@
        </property>
        <property name="text">
         <string>Run</string>
+       </property>
+       <property name="autoDefault">
+        <bool>false</bool>
+       </property>
+       <property name="default">
+        <bool>false</bool>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="rerunLast">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Rerun last</string>
        </property>
       </widget>
      </item>
@@ -271,6 +299,20 @@
          </property>
          <property name="text">
           <string>dup</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="logOutput">
+         <property name="text">
+          <string>log</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="killButton">
+         <property name="text">
+          <string>kill</string>
          </property>
         </widget>
        </item>
@@ -369,6 +411,11 @@
     <string>Delete profile</string>
    </property>
   </action>
+  <action name="actionSync_settings">
+   <property name="text">
+    <string>Sync settings</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -396,6 +443,7 @@
    <slots>
     <slot>smallDup()</slot>
     <slot>smallKeepToggle(bool)</slot>
+    <slot>smallKill()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -456,8 +504,8 @@
    <slot>runCommand()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>268</x>
-     <y>116</y>
+     <x>182</x>
+     <y>90</y>
     </hint>
     <hint type="destinationlabel">
      <x>198</x>
@@ -489,7 +537,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>158</x>
-     <y>108</y>
+     <y>135</y>
     </hint>
     <hint type="destinationlabel">
      <x>160</x>
@@ -504,7 +552,7 @@
    <slot>jobDoubleClicked(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>362</x>
+     <x>276</x>
      <y>119</y>
     </hint>
     <hint type="destinationlabel">
@@ -648,12 +696,44 @@
    <slot>smallKeepToggle(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>429</x>
+     <x>492</x>
      <y>52</y>
     </hint>
     <hint type="destinationlabel">
-     <x>433</x>
-     <y>76</y>
+     <x>471</x>
+     <y>75</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>killButton</sender>
+   <signal>clicked()</signal>
+   <receiver>smallOutputView</receiver>
+   <slot>smallKill()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>451</x>
+     <y>50</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>451</x>
+     <y>74</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSync_settings</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>syncSettings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>264</x>
+     <y>148</y>
     </hint>
    </hints>
   </connection>
@@ -672,5 +752,6 @@
   <slot>myDeleteProfile()</slot>
   <slot>smallDup()</slot>
   <slot>smallKeepToggle(bool)</slot>
+  <slot>syncSettings()</slot>
  </slots>
 </ui>

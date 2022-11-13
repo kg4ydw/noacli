@@ -13,7 +13,7 @@ tar: noacli.tgz
 # special case, modify it to use flowlayout
 noacli_ui.py: noacli_ui.ui
 	pyuic5 -o noacli_ui.py noacli_ui.ui
-	sed -ie 's/QtWidgets.QHBoxLayout/FlowLayout/' noacli_ui.py
+	sed -ie '/buttonBox/s/QtWidgets.Q.BoxLayout/FlowLayout/' noacli_ui.py
 	echo 'from flowlayout import FlowLayout' >> noacli_ui.py
 
 noacli.tgz: $(DISTFILES)
@@ -25,3 +25,16 @@ clean:
 clobber: clean
 	rm -f noacli.tgz
 
+# for emacs
+findprint:
+	grep --color -nH -e print *.py|egrep -av 'DEBUG|EXCEPT'
+findxx:
+	grep --color -nH -e XX *.py
+findxxx:
+	grep --color -nH -e XXX *.py
+findxxxx:
+	grep --color -nH -e XXXX *.py
+findxxxxxx:
+	grep --color -nH -e XXXXX *.py
+finddebug:
+	grep --color -nH -e '^ *[^ #].*DEBUG' *.py
