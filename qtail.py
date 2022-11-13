@@ -85,7 +85,7 @@ class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     
     def __init__(self, options=None, parent=None):
-        super(QtTail,self).__init__()
+        super().__init__()
         dir = os.path.dirname(os.path.realpath(__file__))
         self.setWindowIcon(QtGui.QIcon(dir+'/qtail.png'))
 
@@ -103,7 +103,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def closeEvent(self,event):
         self.window_close_signal.emit()
-        super(QtTail,self).closeEvent(event)
+        super().closeEvent(event)
 
     @QtCore.pyqtSlot(str)
     def simpleFind(self, text):

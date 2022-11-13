@@ -58,7 +58,7 @@ class smallOutput(QTextBrowser):
         qs=typedQSettings()
         mul = qs.value('SmallMultiplier', 2)
         if mul>0 and mul<10:
-            self.document().setMaximumBlockCount(num_lines * mul)
+            self.document().setMaximumBlockCount(int(num_lines * mul)+1)
         elif mul>10:  # reset it just in case it was changed
             self.document().setMaximumBlockCount( mul)
         else:

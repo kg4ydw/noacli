@@ -13,13 +13,13 @@ from typedqsettings import typedQSettings
 class simpleTable(QAbstractTableModel):
     def __init__(self,data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):
         QAbstractTableModel.__init__(self)
+        #super().__init__(self)  # why does this break?
         self.data = data
         self.headers = headers
         self.datatypes = datatypes
         self.datatypesrow = datatypesrow
         self.editmask = editmask
         self.validator = validator
-        #super(simpleTable).__init__(self)
     # required functions rowCount columnCount data
     def rowCount(self, parent):
         return len(self.data)
@@ -273,7 +273,7 @@ class jobTableModel(itemListModel):
     # make window title editable
     def flags(self,index):
         if not index.isValid() or index.column()!=2:
-            return super(jobTableModel,self).flags(index)
+            return super().flags(index)
         return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
     # can't delete a job unless it is dead, so don't implement removeRows
     def removeRows(self, row, parent):
@@ -319,7 +319,7 @@ class historyItem():
         
 class History(itemListModel):
     def __init__(self):
-        super(History,self).__init__(['exit', 'command'])
+        super().__init__(['exit', 'command'])
 
     # format cells
     def data(self, index, role):
@@ -523,16 +523,8 @@ class settingsDataModel(simpleTable):
     def __init__(self, docdict, data, typedata=None):
         self.docdict = docdict
         # XXX this could be 3 column with the tool tips in col 3
-        super(settingsDataModel, self).__init__(data, ['Setting', 'Value'], typedata, editmask=[False, True])
+        super().__init__(data, ['Setting', 'Value'], typedata, editmask=[False, True])
         # nothing else to do, most done in gui model
-    #def flags(self,index):
-    #    if not index.isValid() or index.column()!=1:
-    #        return super(settingsDataModel,self).flags(index)
-    #    row = index.row()
-    #    if self.docdict[self.data[row][0]][2]==bool:
-    #        return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable| Qt.ItemIsUserCheckable
-    #    else:
-    #        return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
     def data(self, index, role):
         if not self.validateIndex(index): return None
         col = index.column()

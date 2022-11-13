@@ -5,8 +5,6 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QKeySequence
-## this is silly
-#from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage, QFileDialog, QPushButton, QDialogButtonBox,QLineEdit, QWidgetAction, QActionGroup, QToolButton
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings
 
@@ -145,7 +143,7 @@ class settingsDialog(QtWidgets.QDialog):
     
     def __init__(self, parent, title, model, doc=None):
         # need parent so that this isn't persistent in window close
-        super(settingsDialog,self).__init__(parent)
+        super().__init__(parent)
         ui = Ui_settingsDialog()
         self.model = model
         # XXX proxy model?  search?
@@ -166,7 +164,7 @@ class historyView(QTableView):
     newFavorite = pyqtSignal(str)
 
     def __init__(self, parent):
-        super(historyView,self).__init__(parent)
+        super().__init__(parent)
         self.realModel = None
         self.historyProxy = QtCore.QSortFilterProxyModel()
         # mess with the history corner button
@@ -179,7 +177,7 @@ class historyView(QTableView):
         self.realModel = model
         self.historyProxy.setSourceModel(model)
         self.historyProxy.setFilterKeyColumn(1)
-        super(historyView,self).setModel(self.historyProxy)
+        super().setModel(self.historyProxy)
         # this is probably too soon
         self.resizeColumnsToContents()
 
@@ -235,7 +233,7 @@ class historyView(QTableView):
 class commandPushButton(QToolButton):
     # this is a push button that remembers what it is suppose to do
     def __init__(self, name, command,parent, functor):
-        super(commandPushButton,self).__init__(parent)
+        super().__init__(parent)
         self.setText(name)
         self.command = command
         self.actionfunc = functor
@@ -407,7 +405,7 @@ class Favorites():
 class menuLineEdit(QLineEdit):
     # note: use placeholder instead of contents!
     def __init__(self, parent, placeholder):
-        super(menuLineEdit,self).__init__(parent)
+        super().__init__(parent)
         self.setPlaceholderText(placeholder)
         self.setClearButtonEnabled(True)
     @QtCore.pyqtSlot('QKeyEvent')
@@ -415,7 +413,7 @@ class menuLineEdit(QLineEdit):
         if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
             self.returnPressed.emit()
         else:
-            super(menuLineEdit,self).keyPressEvent(event)
+            super().keyPressEvent(event)
     def textAndClear(self):
         t = self.text()
         self.clear()
@@ -424,7 +422,7 @@ class menuLineEdit(QLineEdit):
 class noacli(QtWidgets.QMainWindow):
     def __init__(self):
         settingsDict()   # do this very early
-        super(noacli,self).__init__()
+        super().__init__()
         self.ui = Ui_noacli()
         self.ui.setupUi(self)
 
@@ -753,7 +751,7 @@ class noacli(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         self.actionSaveHistory()
         self.settings.favorites.saveSettings()
-        super(noacli,self).closeEvent(event)
+        super().closeEvent(event)
         
 ################ end noacli end
 
@@ -761,7 +759,7 @@ class commandEditor(QPlainTextEdit):
     command_to_run = pyqtSignal(str, QModelIndex)
 
     def __init__(self, parent):
-        super(commandEditor,self).__init__(parent)
+        super().__init__(parent)
         self.ui = parent.parent().ui
         self.histindex = None
         self.history = None
@@ -795,7 +793,7 @@ class commandEditor(QPlainTextEdit):
             h = self.history.saveItem(text, self.histindex, None)
             self.command_to_run.emit(text, h)
 
-            super(commandEditor,self).clear()  # bypass internal clear
+            super().clear()  # bypass internal clear
             self.histindex = None
 
     def clear(self):
@@ -805,7 +803,7 @@ class commandEditor(QPlainTextEdit):
             i = self.history.saveItem(self.toPlainText(), self.histindex, None)
             if i: self.ui.historyView.resetView(i)
         self.histindex = None
-        super(commandEditor,self).clear()
+        super().clear()
 
     def acceptCommand(self, str):
         self.clear()
