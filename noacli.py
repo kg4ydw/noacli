@@ -5,23 +5,25 @@ import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QKeySequence
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage, QFileDialog, QPushButton, QDialogButtonBox,QLineEdit, QWidgetAction, QActionGroup, QToolButton
+## this is silly
+#from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QPlainTextEdit, QShortcut, QAction, QTableView, QMenu, QErrorMessage, QFileDialog, QPushButton, QDialogButtonBox,QLineEdit, QWidgetAction, QActionGroup, QToolButton
+from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings
 
 from functools import partial
 
 from noacli_ui import Ui_noacli
 from settingsdialog_ui import Ui_settingsDialog
+from typedqsettings import typedQSettings
 
 from datamodels import simpleTable, History, jobItem, jobTableModel, settingsDataModel
 from qtail import myOptions as qtailSettings
 
-
-# initialize, load, hold, and save various global settings
-class settings():
+class settingsDict():
     # key : [ default, tooltip, type ]
     settingsDirectory = {
             # All uppercase are inherited(?) from bash
+            'DefWinProfile':[True, 'Load the Default window profile at start', bool],
             'FavFrequent':  [10, 'Number of frequently used commands automatically imported into favorites', int],
             'FavRecent':    [10, 'Number of recent history commands automaticaly imported into favorites', int],
           # 'GraphicalTerminal': ['gnome-shell', 'Graphical terminal used to run commands requiring a tty', str],
@@ -43,9 +45,18 @@ class settings():
             # 'QTailWrap':  [ True, 'wrap long lines', bool ]
             # 'QTailSearchMode': ['exact', 'exact or regex search mode', str],
             # 'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
+            'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is in screens, >=10 is paragraphs, <1 for infinite', int],
     }
 
     def __init__(self):
+        q= typedQSettings()
+        q.setDict(self.settingsDirectory)
+
+# initialize, load, hold, and save various global settings
+class settings():
+    def __init__(self):
+        qs = typedQSettings()
+        self.settingsDirectory = qs.setdict
         # create skelectons of settings and read previous or set defaults
         self.history = History()
         self.history.read()
@@ -66,14 +77,13 @@ class settings():
         # name, default, tooltip / description
         # Note: defaults here might not match the real defaults embeeded in code
     def makeDialog(self, parent):
-        qs = QSettings()
-        qs.beginGroup('Main')
         # collect list of rows including settings
         # build a list of settings, each source sorted separately
         rows = sorted(self.settingsDirectory.keys())
         # add additional settings from QSettings (missing from dict)
-        rows += [i for i in sorted(qs.allKeys()) if i not in self.settingsDirectory]
-        # get qtail defauls
+        qs = typedQSettings()
+        rows += [i for i in sorted(qs.childKeys()) if i not in self.settingsDirectory]
+        # get qtail defaults
         qt = {
             'QTailMaxLines': self.qtail.maxLines,
             'QTailEndBytes': self.qtail.tailFrag,
@@ -89,7 +99,7 @@ class settings():
             if val==None and name in qt: val=qt.get(name)
             # fix types
             if name in self.settingsDirectory and val!=None:
-                if self.settingsDirectory[name][2]==bool: # can't coerce bool
+                if self.settingsDirectory[name][2]==bool and type(val)==str:
                     val = val.lower() in ['true','yes']
                 else:
                     # XXX put this in a try
@@ -108,8 +118,7 @@ class settings():
         self.dialog.apply.connect(self.acceptchanges)
 
     def copy2qtail(self):
-        qs = QSettings()
-        qs.beginGroup('Main')
+        qs = typedQSettings()
         # copy qtail settings
         self.qtail.maxLines = int(qs.value('QTailMaxLines', self.qtail.maxLines))
         self.qtail.tailFrag = int(qs.value('QTailEndBytes', self.qtail.tailFrag))
@@ -118,8 +127,7 @@ class settings():
         
     def acceptchanges(self):
         print('accept') # DEBUG
-        qs = QSettings()
-        qs.beginGroup('Main')
+        qs = typedQSettings()
         for d in self.data:
             if d[1]!=None:
                 print('save '+str(d[0])+' = '+str(d[1])) # XXX # DEBUG
@@ -300,8 +308,7 @@ class Favorites():
         data = []
         # save this so the validator can get it
         self.data = data
-        qs = QSettings()
-        qs.beginGroup('Main')
+        qs = typedQSettings()
         # schema: *=checkbox
         # *keep name key *checkImmediate count command 
 
@@ -416,6 +423,7 @@ class menuLineEdit(QLineEdit):
             
 class noacli(QtWidgets.QMainWindow):
     def __init__(self):
+        settingsDict()   # do this very early
         super(noacli,self).__init__()
         self.ui = Ui_noacli()
         self.ui.setupUi(self)
@@ -426,11 +434,12 @@ class noacli(QtWidgets.QMainWindow):
         f.setContentsMargins(3,3,3,3)
 
         self.settings = settings()
+
         self.historypos = 1;
         dir = os.path.dirname(os.path.realpath(__file__))
         self.setWindowIcon(QtGui.QIcon(dir+'/noacli.png'))
 
-        # hide all the docks by default XXX unless set in settings?
+        # hide all the docks by default (save a profile if you don't like it)
         ui=self.ui
         self.hideAllDocks()
 
@@ -439,14 +448,16 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.favorites.setButtonBox(self.ui.buttonBox, [ self.runSimpleCommand, self.ui.commandEdit.acceptCommand])
         self.settings.favorites.loadSettings()
 
-        # populate the view menu (is there a more automatic way?)
+        # populate the view menu for DOCK (is there a more automatic way?)
         ui.menuViews.addAction(ui.history.toggleViewAction())
         ui.menuViews.addAction(ui.jobManager.toggleViewAction())
         ui.menuViews.addAction(ui.buttons.toggleViewAction())
+        ui.menuViews.addAction(ui.smallOutputDock.toggleViewAction())
 
-        # convert all the docs to tabs XXX preferences?
+        # convert all the DOCKs to tabs
         self.tabifyDockWidget( ui.buttons,ui.jobManager)
         self.tabifyDockWidget( ui.jobManager, ui.history)
+        self.tabifyDockWidget( ui.history, ui.smallOutputDock)
 
         # attach the data models to the views
         ui.historyView.setModel(self.settings.history)
@@ -479,8 +490,11 @@ class noacli(QtWidgets.QMainWindow):
         self.fileShortcut.activated.connect(self.pickFile)
 
         ##### geometry profiles
-        # load default config
-        self.myRestoreGeometry()
+        qs = typedQSettings()
+        v = qs.value('DefWinProfile', True)
+        if v: # XXX str convert?
+            # load default config
+            self.myRestoreGeometry()
         ## fix up the menu
         m = ui.menuSettings
         # Add a lineEdit to create new profiles
@@ -561,13 +575,14 @@ class noacli(QtWidgets.QMainWindow):
         job.window.raise_()
 
 
-    # in: view menu  out: all docks
+    # in: view menu  out: all DOCKs
     @QtCore.pyqtSlot()
     def showAllDocks(self):
         ui = self.ui
         ui.history.setVisible(True)
         ui.buttons.setVisible(True)
         ui.jobManager.setVisible(True)
+        ui.smallOutputDock.setVisible(True)
 
     @QtCore.pyqtSlot()
     def hideAllDocks(self):
@@ -575,6 +590,7 @@ class noacli(QtWidgets.QMainWindow):
         ui.history.setVisible(False)
         ui.buttons.setVisible(False)
         ui.jobManager.setVisible(False)
+        ui.smallOutputDock.setVisible(False)
 
     # in: commandEditor runCurrent(button)
     # push button signal
@@ -623,8 +639,7 @@ class noacli(QtWidgets.QMainWindow):
             if a.data(): hm.removeAction(a)
         # add new entries
         h = self.settings.history.last()
-        qs = QSettings()
-        qs.beginGroup('Main')
+        qs = typedQSettings()
         i = int(qs.value('HistMenuSize', 10))
         cmds=set()
         width = int(qs.value('HistMenuWidth',30))
@@ -740,6 +755,7 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.favorites.saveSettings()
         super(noacli,self).closeEvent(event)
         
+################ end noacli end
 
 class commandEditor(QPlainTextEdit):
     command_to_run = pyqtSignal(str, QModelIndex)

@@ -24,19 +24,49 @@ o job life cycle
 *   save window position profiles in a section
 * look at cursor and set file dialog filter
   delete QSettings that match defaults
-
+  small buttons in dock widget headers
+    jobs: clean
+    history: reset sort
+  dock: resize? on topLevelChanged
+    
 Bugs:
   gets middle of file on /usr/dict/words without --whole
 ? what to do with stderr? always log?
 * scrollTo not working
   qtail gives useless errors on file not found
-E settings dialog: checkbox doesn't work
+* settings dialog: checkbox doesn't work
 * edit mask for simpleTable model
 * lots of stuff packed into class noacli that could go elsewhere
 * favorites editor duplicates entreis when you edit commands
 * make file dialog not modal
+  default geometry profile used but not checked at start
 
-  command parser
+  small output window
+    transfer last command output to qtail if:
+      output exceeds visible lines-1
+      process exit timeout
+      another command is run that produces output
+      user presses dup button (or shortcut?)
+    single line (or most recent?) output sent to status bar
+    don't remember more than visisible lines * 2 (option setting?)
+    option: disable small output window and send everything to qtail
+      auto
+      configured only (default qtail)
+      forced (disable auto-qtail)
+
+  merged logs window
+    count unviewed messages and show counter in status bar
+    send some messages also to small output window
+       if sow is visible and log is not
+       if newly started program exits before next command
+       if exit value is nonzero
+       blacklist list
+       whitelist ?
+    filter by pid, process name, random string
+    purge by ^^
+    max retention
+      
+  command parser fd redirection
     prefix or suffix for output dest
       stdout:stderr
       > @qtail  2>@qtail
@@ -49,9 +79,9 @@ E settings dialog: checkbox doesn't work
   short output in status window
   single lines to status bar (and status window?)
 
-  job manager and hsitory:
-    scroll to new entry
-    resize columns
+* job manager and history:
+*   scroll to new entry
+*   resize columns
 
 context menu / widget / class
 * history manager / historyView
@@ -63,7 +93,7 @@ context menu / widget / class
 
 Main features:
   main window is a dynamic one line editor
-    pwd in message window when nothing else
+!   pwd in message window when nothing else
     directory stack
 *   complex commands are sent to bash
       detect complex commands
@@ -85,6 +115,12 @@ o      read history on command
             right click: dump in editor
             draggable gridview ??
             reimplement compact button bar GUI and make its own checkbox
+	    option to choose between QToolButton and QPushButton
+	    non-immediate button: marker to move cursor
+	    change immediate button to pulldown
+	      run immediate
+	      clear and edit
+	      insert
 *      *? job manager
 *      !@ favorites editor (buttons and frequent)
        !% environment var editor

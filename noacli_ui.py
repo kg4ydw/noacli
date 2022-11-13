@@ -14,7 +14,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_noacli(object):
     def setupUi(self, noacli):
         noacli.setObjectName("noacli")
-        noacli.resize(430, 267)
+        noacli.resize(529, 297)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(noacli.sizePolicy().hasHeightForWidth())
+        noacli.setSizePolicy(sizePolicy)
         self.centralwidget = QtWidgets.QWidget(noacli)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -29,7 +34,7 @@ class Ui_noacli(object):
         self.verticalLayout_3.addWidget(self.commandEdit)
         noacli.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(noacli)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 430, 16))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 529, 16))
         self.menubar.setObjectName("menubar")
         self.historyMenu = QtWidgets.QMenu(self.menubar)
         self.historyMenu.setObjectName("historyMenu")
@@ -129,6 +134,31 @@ class Ui_noacli(object):
         self.verticalLayout.addWidget(self.jobTableView)
         self.jobManager.setWidget(self.dockWidgetContents_5)
         noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.jobManager)
+        self.smallOutputDock = QtWidgets.QDockWidget(noacli)
+        self.smallOutputDock.setObjectName("smallOutputDock")
+        self.dockWidgetContents_3 = QtWidgets.QWidget()
+        self.dockWidgetContents_3.setObjectName("dockWidgetContents_3")
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.dockWidgetContents_3)
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
+        self.horizontalLayout_2 = FlowLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.dupOutput = QtWidgets.QToolButton(self.dockWidgetContents_3)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.dupOutput.sizePolicy().hasHeightForWidth())
+        self.dupOutput.setSizePolicy(sizePolicy)
+        self.dupOutput.setObjectName("dupOutput")
+        self.horizontalLayout_2.addWidget(self.dupOutput)
+        self.keepOutput = QtWidgets.QCheckBox(self.dockWidgetContents_3)
+        self.keepOutput.setObjectName("keepOutput")
+        self.horizontalLayout_2.addWidget(self.keepOutput)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_2)
+        self.smallOutputView = smallOutput(self.dockWidgetContents_3)
+        self.smallOutputView.setObjectName("smallOutputView")
+        self.verticalLayout_4.addWidget(self.smallOutputView)
+        self.smallOutputDock.setWidget(self.dockWidgetContents_3)
+        noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.smallOutputDock)
         self.actionHistory = QtWidgets.QAction(noacli)
         self.actionHistory.setCheckable(True)
         self.actionHistory.setObjectName("actionHistory")
@@ -191,6 +221,8 @@ class Ui_noacli(object):
         self.actionGeoSave.triggered.connect(noacli.actionSaveGeometry) # type: ignore
         self.actionGeoRestore.triggered.connect(noacli.actionRestoreGeometry) # type: ignore
         self.actionDeleteProfile.triggered.connect(noacli.myDeleteProfile) # type: ignore
+        self.dupOutput.clicked.connect(self.smallOutputView.smallDup) # type: ignore
+        self.keepOutput.toggled['bool'].connect(self.smallOutputView.smallKeepToggle) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -201,11 +233,18 @@ class Ui_noacli(object):
         self.menuJobs.setTitle(_translate("noacli", "Jobs"))
         self.menuSettings.setTitle(_translate("noacli", "Settings"))
         self.history.setWindowTitle(_translate("noacli", "History"))
+        self.historySearch.setToolTip(_translate("noacli", "Filter history"))
         self.historySearch.setPlaceholderText(_translate("noacli", "search history"))
         self.buttons.setWindowTitle(_translate("noacli", "buttons"))
         self.rerunLast.setText(_translate("noacli", "Rerun last"))
+        self.runCurrent.setToolTip(_translate("noacli", "Run command currently being edited"))
         self.runCurrent.setText(_translate("noacli", "Run"))
         self.jobManager.setWindowTitle(_translate("noacli", "Job manager"))
+        self.smallOutputDock.setWindowTitle(_translate("noacli", "Small output"))
+        self.dupOutput.setToolTip(_translate("noacli", "Copy output to a new window"))
+        self.dupOutput.setText(_translate("noacli", "dup"))
+        self.keepOutput.setToolTip(_translate("noacli", "Keep or (or clear) output between commands"))
+        self.keepOutput.setText(_translate("noacli", "keep"))
         self.actionHistory.setText(_translate("noacli", "History"))
         self.actionButton_box.setText(_translate("noacli", "Button box"))
         self.actionButton_editor.setText(_translate("noacli", "Button editor"))
@@ -220,4 +259,5 @@ class Ui_noacli(object):
         self.actionGeoRestore.setText(_translate("noacli", "Restore window geometry"))
         self.actionDeleteProfile.setText(_translate("noacli", "Delete profile"))
 from noacli import commandEditor, historyView
+from smalloutput import smallOutput
 from flowlayout import FlowLayout

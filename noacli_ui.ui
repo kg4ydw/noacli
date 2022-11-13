@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>430</width>
-    <height>267</height>
+    <width>529</width>
+    <height>297</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>noacli</string>
@@ -32,7 +38,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>430</width>
+     <width>529</width>
      <height>16</height>
     </rect>
    </property>
@@ -109,6 +115,9 @@
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QLineEdit" name="historySearch">
+       <property name="toolTip">
+        <string>Filter history</string>
+       </property>
        <property name="frame">
         <bool>true</bool>
        </property>
@@ -181,6 +190,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="toolTip">
+        <string>Run command currently being edited</string>
+       </property>
        <property name="text">
         <string>Run</string>
        </property>
@@ -231,6 +243,51 @@
         <bool>true</bool>
        </attribute>
       </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="smallOutputDock">
+   <property name="windowTitle">
+    <string>Small output</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QToolButton" name="dupOutput">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Copy output to a new window</string>
+         </property>
+         <property name="text">
+          <string>dup</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="keepOutput">
+         <property name="toolTip">
+          <string>Keep or (or clear) output between commands</string>
+         </property>
+         <property name="text">
+          <string>keep</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="smallOutput" name="smallOutputView"/>
      </item>
     </layout>
    </widget>
@@ -332,6 +389,15 @@
     <signal>newFavorite(QString)</signal>
    </slots>
   </customwidget>
+  <customwidget>
+   <class>smallOutput</class>
+   <extends>QTextBrowser</extends>
+   <header>smalloutput</header>
+   <slots>
+    <slot>smallDup()</slot>
+    <slot>smallKeepToggle(bool)</slot>
+   </slots>
+  </customwidget>
  </customwidgets>
  <resources/>
  <connections>
@@ -390,12 +456,12 @@
    <slot>runCommand()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>310</x>
-     <y>101</y>
+     <x>268</x>
+     <y>116</y>
     </hint>
     <hint type="destinationlabel">
-     <x>189</x>
-     <y>189</y>
+     <x>198</x>
+     <y>265</y>
     </hint>
    </hints>
   </connection>
@@ -422,12 +488,12 @@
    <slot>runLastCommand()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>219</x>
-     <y>101</y>
+     <x>158</x>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
-     <x>242</x>
-     <y>133</y>
+     <x>160</x>
+     <y>134</y>
     </hint>
    </hints>
   </connection>
@@ -438,8 +504,8 @@
    <slot>jobDoubleClicked(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>420</x>
-     <y>103</y>
+     <x>362</x>
+     <y>119</y>
     </hint>
     <hint type="destinationlabel">
      <x>308</x>
@@ -559,6 +625,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>dupOutput</sender>
+   <signal>clicked()</signal>
+   <receiver>smallOutputView</receiver>
+   <slot>smallDup()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>404</x>
+     <y>55</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>405</x>
+     <y>80</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>keepOutput</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>smallOutputView</receiver>
+   <slot>smallKeepToggle(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>429</x>
+     <y>52</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>433</x>
+     <y>76</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
@@ -572,5 +670,7 @@
   <slot>actionSaveGeometry()</slot>
   <slot>actionRestoreGeometry()</slot>
   <slot>myDeleteProfile()</slot>
+  <slot>smallDup()</slot>
+  <slot>smallKeepToggle(bool)</slot>
  </slots>
 </ui>
