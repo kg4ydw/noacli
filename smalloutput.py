@@ -8,12 +8,14 @@ import re
 from PyQt5 import QtCore
 from PyQt5.Qt import pyqtSignal
 from PyQt5.QtCore import QTimer, QSettings, QTextStream
-from PyQt5.QtGui import QTextCursor
+from PyQt5.QtGui import QTextCursor, QImage
 from PyQt5.QtWidgets import QTextBrowser
 
 from typedqsettings import typedQSettings
 from datamodels import jobItem
 from qtail import QtTail
+
+import smalloutputres
 
 #  transfer last command output to qtail if:
 #    output exceeds visible lines
@@ -157,7 +159,9 @@ class smallOutput(QTextBrowser):
         # and none of these workarounds seem to help
         #blockFmt = c.blockFormat();
         #c.insertHtml("<hr/>") # XXX ugly, makes subsequent stuff underlined
-        ##c.insertHtml("<br/>")
+        #c.insertText("\n>")
+        c.insertHtml('<img src="line100.png" alt="----"/>')
+        c.insertText("----\n")
         #c.setBlockFormat(blockFmt);
         #c.blockFormat().clearProperty(QTextFormat.BlockTrailingHorizontalRulerWidth);
         #self.setTextCursor(c)
@@ -247,7 +251,13 @@ class smallOutput(QTextBrowser):
         if not self.gettingFull(2):
             c = self.getProcCursor()
             # XXX get time left / measured on timer
-            c.insertHtml("<b>Exit {}<b><hr>".format(exitcode))
+            if exitcode:
+                c.insertHtml('<b>Exit {}</b><br/>'.format(exitcode))
+            #c.insertImage('<svg viewbox="0 0 200 1"><line x1="4" x2="100%" y1="0" y2="1" stroke="black" stroke-width="1" /></svg>')
+            #c.insertImage(QImage(':line100.pbm'))
+            c.insertImage(QImage(':line.svg'))
+            #c.insertHtml('<img src="line100.png" alt="----" />')
+            c.insertText("\n")
         # XXX emit exit status if we didn't just send a line 
         if self.process.bytesAvailable():
             self.doneProc = True # let readLines clean up

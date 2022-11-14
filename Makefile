@@ -1,9 +1,9 @@
 
 UI= qtail_ui.py noacli_ui.py settingsdialog_ui.py
 SRCFILES=$(shell git ls-files | grep -v gitignore)
-DISTFILES=$(SRCFILES) qtail_ui.py
+DISTFILES=$(SRCFILES) qtail_ui.py noaclires.py smalloutput.py
 
-all: $(UI)
+all: $(UI) resources
 
 %.py: %.ui
 	pyuic5 -o $@ $<
@@ -24,6 +24,19 @@ clean:
 	rm *~ TAGS
 clobber: clean
 	rm -f noacli.tgz
+
+resources: noaclires.py smalloutputres.py
+
+line100.pbm: line100-ascii.pbm
+	convert line100-ascii.pbm line100.pbm
+
+noaclires.py: noaclires.qrc noacli.png  qtail.png
+	rcc -g python -o noaclires.py noaclires.qrc
+smalloutputres.py: smalloutputres.qrc line.svg
+	rcc -g python -o smalloutputres.py smalloutputres.qrc
+
+noaclires.rcc: noacli-res.qrc line100.pbm  noacli.png  qtail.png
+	rcc -binary -o noacli-res.rcc noacli-res.qrc
 
 # for emacs
 findprint:

@@ -28,6 +28,9 @@ o job life cycle
     jobs: clean
     history: reset sort
   dock: resize? on topLevelChanged
+  resource manager
+    noacli-res.qrc
+    
 
 Bugs:
   gets middle of file on /usr/dict/words without --whole

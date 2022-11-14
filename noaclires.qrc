@@ -1,0 +1,7 @@
+<RCC>
+<qresource prefix="">
+<file>line.svg</file>
+<file>noacli.png</file>
+<file>qtail.png</file>
+</qresource>
+</RCC>
