@@ -21,30 +21,31 @@ from qtail import myOptions as qtailSettings
 class settingsDict():
     # key : [ default, tooltip, type ]
     settingsDirectory = {
-            # All uppercase are inherited(?) from bash
-            'DefWinProfile':[True, 'Load the Default window profile at start', bool],
-            'FavFrequent':  [10, 'Number of frequently used commands automatically imported into favorites', int],
-            'FavRecent':    [10, 'Number of recent history commands automaticaly imported into favorites', int],
-          # 'GraphicalTerminal': ['gnome-shell', 'Graphical terminal used to run commands requiring a tty', str],
-            'HISTSIZE':     [ 1000, 'Number of history entries kept in memory', int],
-            'HISTFILESIZE': [ 1000, 'Number of history entries saved to disk', int ],
-            'HistFile':     [ '.noacli_history', 'name of file to save history (full path or relative to home)', str],
-          # 'HISTCONTROL':  ['', 'options: ignorespace ignoredups erasedups', str],
-            'HistMenuSize': [ 10, 'number of unique recent history entries to show in the history pull down menu', int],
-            'HistMenuWidth':[ 30, 'maximum width of commands listed in the history menu', int],
-            'JobCleanTime': [120, 'interval in seconds to check for expired jobs', int ], # XX could be float
-            'JobMenuWidth': [ 30, 'maximum width of commands listed in the job menu', int],
-            'SHELL':       [ 'bash -c', 'external shell wrapper command to run complex shell commands', str],
-        # qtail options
-            'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
-            'QTailEndBytes': [ 1024*1024, 'Number of bytes qtail rewinds a file', int],
-            'QTailDefaultTitle': [ 'subprocess', 'Default title for a qtail process window', str ],
-           #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
-            # 'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
-            # 'QTailWrap':  [ True, 'wrap long lines', bool ]
-            # 'QTailSearchMode': ['exact', 'exact or regex search mode', str],
-            # 'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
-            'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is in screens, >=10 is paragraphs, <1 for infinite', int],
+    # All uppercase are inherited(?) from bash
+    'DefWinProfile':[True, 'Load the Default window profile at start', bool],
+    'FavFrequent':  [10, 'Number of frequently used commands automatically imported into favorites', int],
+    'FavRecent':    [10, 'Number of recent history commands automaticaly imported into favorites', int],
+  # 'GraphicalTerminal': ['gnome-shell', 'Graphical terminal used to run commands requiring a tty', str],
+    'HISTSIZE':     [ 1000, 'Number of history entries kept in memory', int],
+    'HISTFILESIZE': [ 1000, 'Number of history entries saved to disk', int ],
+    'HistFile':     [ '.noacli_history', 'name of file to save history (full path or relative to home)', str],
+  # 'HISTCONTROL':  ['', 'options: ignorespace ignoredups erasedups', str],
+    'HistMenuSize': [ 10, 'number of unique recent history entries to show in the history pull down menu', int],
+    'HistMenuWidth':[ 30, 'maximum width of commands listed in the history menu', int],
+    'JobCleanTime': [120, 'interval in seconds to check for expired jobs', int ], # XX could be float
+    'JobMenuWidth': [ 30, 'maximum width of commands listed in the job menu', int],
+    'MessageDelay':[10, 'Timeout (seconds) for transient message bar messages', float],
+    'SHELL':       [ 'bash -c', 'external shell wrapper command to run complex shell commands', str],
+# qtail options
+    'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
+    'QTailEndBytes': [ 1024*1024, 'Number of bytes qtail rewinds a file', int],
+    'QTailDefaultTitle': [ 'subprocess', 'Default title for a qtail process window', str ],
+   #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
+   #'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
+   #'QTailWrap':  [ True, 'wrap long lines', bool ]
+   #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
+   #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
+    'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is in screens, >=10 is paragraphs, <1 for infinite', int],
     }
 
     def __init__(self):
@@ -491,7 +492,7 @@ class noacli(QtWidgets.QMainWindow):
         self.fileShortcut = QShortcut(QKeySequence('ctrl+f'), self)
         self.fileShortcut.activated.connect(self.pickFile)
 
-        self.ui.smallOutputView.oneLine.connect(self.statusBar().showMessage)
+        self.ui.smallOutputView.oneLine.connect(self.showMessage)
         self.ui.smallOutputView.newJobStart.connect(self.statusBar().clearMessage)
         
         ##### geometry profiles
@@ -766,7 +767,7 @@ class noacli(QtWidgets.QMainWindow):
     def showMessage(self, msg):
         qs = typedQSettings()
         delay = qs.value('MessageDelay',10)
-        self.statusBar.showMessage(msg, int(delay*1000))
+        self.statusBar().showMessage(msg, int(delay*1000))
     # in: this window closing
     def closeEvent(self, event):
         self.actionSaveHistory()
