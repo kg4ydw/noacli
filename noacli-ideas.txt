@@ -30,7 +30,7 @@ o job life cycle
   dock: resize? on topLevelChanged
   resource manager
     noacli-res.qrc
-    
+  at start, send version to smalloutput
 
 Bugs:
   gets middle of file on /usr/dict/words without --whole

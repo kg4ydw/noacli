@@ -18,6 +18,10 @@ from datamodels import simpleTable, History, jobItem, jobTableModel, settingsDat
 from smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
 
+import noaclires
+
+__version__ = '0.9'
+
 class settingsDict():
     # key : [ default, tooltip, type ]
     settingsDirectory = {
@@ -439,8 +443,8 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.statusBar = self.statusBar()
 
         self.historypos = 1;
-        dir = os.path.dirname(os.path.realpath(__file__))
-        self.setWindowIcon(QtGui.QIcon(dir+'/noacli.png'))
+        #dir = os.path.dirname(os.path.realpath(__file__))
+        self.setWindowIcon(QtGui.QIcon(':noacli.png'))
 
         # hide all the docks by default (save a profile if you don't like it)
         ui=self.ui
@@ -527,6 +531,10 @@ class noacli(QtWidgets.QMainWindow):
             # XXX also add context menu: delete rename load ??
         gm.triggered.connect(self.actionRestoreGeomAct)
         qs.endGroup()
+
+        self.showMessage('Version '+__version__)
+        #XXXX self.settings.smalloutput.showOutput('Version '+__version__)
+        
 
     ## end __init__
 

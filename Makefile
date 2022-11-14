@@ -1,12 +1,17 @@
 
 UI= qtail_ui.py noacli_ui.py settingsdialog_ui.py
+RESOURCES=noaclires.py qtailres.py smalloutputres.py
 SRCFILES=$(shell git ls-files | grep -v gitignore)
-DISTFILES=$(SRCFILES) qtail_ui.py noaclires.py smalloutput.py
+DISTFILES=$(SRCFILES) $(UI) $(RESOURCES)
 
-all: $(UI) resources
+all: $(UI) $(RESOURCES)
 
 %.py: %.ui
 	pyuic5 -o $@ $<
+
+%.py: %.qrc
+	rcc -g python -o $@ $<
+# could probably build the qrc here too from dependency info
 
 tar: noacli.tgz
 
@@ -18,23 +23,22 @@ noacli_ui.py: noacli_ui.ui
 
 noacli.tgz: $(DISTFILES)
 	rm -f noacli.tgz
-	tar czvf noacli.tgz $(DISTFILES)
+	tar czvf noacli.tgz $(DISTFILES) $(RESOURCES)
 
 clean:
 	rm *~ TAGS
 clobber: clean
 	rm -f noacli.tgz
 
-resources: noaclires.py smalloutputres.py
-
 line100.pbm: line100-ascii.pbm
 	convert line100-ascii.pbm line100.pbm
 
-noaclires.py: noaclires.qrc noacli.png  qtail.png
-	rcc -g python -o noaclires.py noaclires.qrc
-smalloutputres.py: smalloutputres.qrc line.svg
-	rcc -g python -o smalloutputres.py smalloutputres.qrc
+noaclires.py:: noacli.png
+smalloutputres.py:: line.svg
+qtailres.py:: qtail.png
 
+
+# can't use this?
 noaclires.rcc: noacli-res.qrc line100.pbm  noacli.png  qtail.png
 	rcc -binary -o noacli-res.rcc noacli-res.qrc
 
