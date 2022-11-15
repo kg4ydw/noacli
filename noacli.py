@@ -20,7 +20,7 @@ from qtail import myOptions as qtailSettings
 
 import noaclires
 
-__version__ = '0.9'
+__version__ = '0.9.1'
 
 class settingsDict():
     # key : [ default, tooltip, type ]
@@ -29,6 +29,8 @@ class settingsDict():
     'DefWinProfile':[True, 'Load the Default window profile at start', bool],
     'FavFrequent':  [10, 'Number of frequently used commands automatically imported into favorites', int],
     'FavRecent':    [10, 'Number of recent history commands automaticaly imported into favorites', int],
+    'FileDialogFilter': ['All files (*);; Python (*.py *.ui *.qrc);; Images (*.png *.xpm *.jpg *.pbm);;Text files (*.txt *.md);;Archives (*.zip *z)',
+                    "Default File browser dialog (Ctrl-F) search groups if you don't supply a filter by selecting it", str],
   # 'GraphicalTerminal': ['gnome-shell', 'Graphical terminal used to run commands requiring a tty', str],
     'HISTSIZE':     [ 1000, 'Number of history entries kept in memory', int],
     'HISTFILESIZE': [ 1000, 'Number of history entries saved to disk', int ],
@@ -426,6 +428,7 @@ class menuLineEdit(QLineEdit):
         return t
             
 class noacli(QtWidgets.QMainWindow):
+    want_restore_geo_delay = pyqtSignal(str)
     def __init__(self):
         settingsDict()   # do this very early
         super().__init__()
@@ -436,6 +439,9 @@ class noacli(QtWidgets.QMainWindow):
         #self.setStyleSheet("QMainWindow::separator{ width: 0px; height: 0px; }");
         f = self.ui.buttonBox.layout()
         f.setContentsMargins(3,3,3,3)
+
+        # delayed resize works better
+        self.want_restore_geo_delay.connect(self.restore_geo, Qt.QueuedConnection) # delay this
 
         self.settings = settings()
         # cheat a bit
@@ -543,21 +549,50 @@ class noacli(QtWidgets.QMainWindow):
         pass
 
     def pickFile(self):
-        pattern = None
+        pattern = typedQSettings().value('FileDialogFilter',None)
         editor = self.ui.commandEdit
 
         cursor = editor.textCursor()
         if cursor.hasSelection():
             pattern = cursor.selectedText()
         
-        results = QFileDialog.getOpenFileNames(self, "Pick some files", ".", pattern)
-        fs = results[0]
+        # avoid the default constructor
+        # results = QFileDialog.getOpenFileNames(None, "Pick some files", ".", pattern)
+        #fs = results[0]
+        # parent: Attaches dialog to the parent window and covers it (ick!) 
+        # other defaults need customizing, default constructor not flexible enough
+        # also make it non-modal
+
+        fd = QFileDialog(None, Qt.Dialog)
+        #default# fd.setFileMode(QFileDialog.AnyFile) # Directory
+        ## the following seems restrictive, but it's the only alternatives
+        if pattern[0]=='/':
+            if pattern=='/': pattern=None
+            fd.setFileMode(QFileDialog.Directory) # select single directory
+        else:
+            fd.setFileMode(QFileDialog.ExistingFiles) # select multiple files
+
+        fd.setNameFilter(pattern)
+        # setLabelText
+        # DontConfirmOverwrite
+        # viewmode def:Detail/List
+
+        if fd.exec_():
+            fs = fd.selectedFiles()
+        else:
+            fs = None
+
         #print(str(fs)) # DEBUG
         cwd = os.getcwd()+'/'
-        #print(fs) # DEBUG
+        print(fs) # DEBUG
         #print(cwd) # DEBUG
         if fs:  # do nothing if nothing selected
-            fs = [x.removeprefix(cwd) or x for x in fs]
+            try:
+                # python 3.9 feature
+                fs = [x.removeprefix(cwd) or x for x in fs]
+            except:
+                pass
+            ## and return the results to the editor
             f = ' '.join(fs)
             editor.insertPlainText(f)
         
@@ -758,23 +793,35 @@ class noacli(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def actionRestoreGeometry(self):
         self.myRestoreGeometry()
-        
+
     def myRestoreGeometry(self, name='default'):
-        print("Restoring profile "+name) # DEBUG
+        self.restore_geo(name)
+        # and do it again delayed but not recursive
+        self.want_restore_geo_delay.emit(name)
+
+    @QtCore.pyqtSlot(str)
+    def restore_geo(self, name):
+        # non-recursive version
+        #print("Restoring profile "+name) # DEBUG
+        pass # XXXX
         qs = QSettings()
         qs.beginGroup('Geometry/'+name)
-        st = []
         if qs.contains('mainGeo'):
-            st.append(self.restoreGeometry(qs.value('mainGeo',None)))
-            st.append(self.restoreState(qs.value('mainState',None)))
+            self.restoreGeometry(qs.value('mainGeo',None))
+            self.restoreState(qs.value('mainState',None))
+            self.restoreGeometry(qs.value('mainGeo',None))
         else:
             print('No profile for {} found'.format(name)) # DEBUG EXCEPTION this can't happen
         qs.endGroup()
+
 
     @QtCore.pyqtSlot(str)
     def showMessage(self, msg):
         qs = typedQSettings()
         delay = qs.value('MessageDelay',10)
+        # append short messages!
+        if (len(msg)<10): # arbitrary SETTING?
+            msg = self.statusBar().currentMessage()+' | ' + msg
         self.statusBar().showMessage(msg, int(delay*1000))
     # in: this window closing
     def closeEvent(self, event):

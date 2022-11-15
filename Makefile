@@ -37,12 +37,16 @@ noaclires.py:: noacli.png
 smalloutputres.py:: line.svg
 qtailres.py:: qtail.png
 
+tags: TAGS
+TAGS:
+	etags datamodels.py qtail.py noacli.py
+
 
 # can't use this?
 noaclires.rcc: noacli-res.qrc line100.pbm  noacli.png  qtail.png
 	rcc -binary -o noacli-res.rcc noacli-res.qrc
 
-# for emacs
+# for emacs sometimes
 findprint:
 	grep --color -nH -e print *.py|egrep -av 'DEBUG|EXCEPT'
 findxx:

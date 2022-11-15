@@ -229,9 +229,13 @@ class smallOutput(QTextBrowser):
         
     def readLines(self):
         t = self.textstream.readAll()
+        emit = False
+        start = self.curBlock()
         if t:
             num = self.countLines(t)
-            if num==1: self.oneLine.emit(t)
+            if num==1:
+                self.oneLine.emit(t)
+                emit = True
             if self.gettingFull(num):
                 print('full') # DEBUG
                 self.smallDup(t)
@@ -239,6 +243,12 @@ class smallOutput(QTextBrowser):
                 c = self.getProcCursor()
                 c.insertText(t)
                 self.setTextCursor(c)
+            if not self.isVisible() and not emit and start<self.curBlock():
+                self.oneLine.emit('New output {} lines!'.format(self.curBlock()))
+            else:
+                #print("no status bar: {} {} {}!<{}".format(self.isVisible(), emit, start, self.curBlock()))
+                pass
+                
         if self.doneProc:
             print('last read') # DEBUG
             self.disconnectProcess()
@@ -258,7 +268,12 @@ class smallOutput(QTextBrowser):
             c.insertImage(QImage(':line.svg'))
             #c.insertHtml('<img src="line100.png" alt="----" />')
             c.insertText("\n")
-        # XXX emit exit status if we didn't just send a line 
+        # XXX emit exit status if we didn't just send a line
+        # emit anyway but keep it short (to append)
+        if exitcode:
+            self.oneLine.emit('E({})'.format(exitcode))
+        else:
+            self.oneLine.emit('(exit)')
         if self.process.bytesAvailable():
             self.doneProc = True # let readLines clean up
         else:
