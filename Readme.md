@@ -65,6 +65,17 @@ file grows.
 If qtail collects no output before the process exits, it will
 automatically close.
 
+A search box at the top of the window allows quickly finding text.
+Pressing enter in the box will repeat the current search.  A counter
+in the qtail status bar keeps track of repeated searches and notifies
+if a search wraps to the start of the buffer.
+
+By default, qtail starts reading a file 1M from the end, and only
+remembers the most recent 10000 lines.  This is to preserve
+performance and memory, but can be adjusted in settings.  Setting
+either of these numbers to 0 allows infinite data kept.  (Use at your
+own risk!)
+
 # small output #
 The small output dock window will collect output from commands that
 output a small amount of text or no text and then exit quickly.  But
@@ -157,8 +168,7 @@ The history menu shows the last 10 unique commands run.
 Select one of them to re-edit it.
 
 The job menu shows a quick status of recently run and currently
-running jobs.  Select one to find its window if there was one. (Not
-implemented yet)
+running jobs.  Select one to rase or open its window if there was one.
 
 The view menu allows fast opening and closing of the various dock
 windows.  Once visible, dock windows can be dragged, popped out,

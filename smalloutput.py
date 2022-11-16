@@ -243,7 +243,7 @@ class smallOutput(QTextBrowser):
                 c = self.getProcCursor()
                 c.insertText(t)
                 self.setTextCursor(c)
-            if not self.isVisible() and not emit and start<self.curBlock():
+            if self.visibleRegion().isEmpty() and not emit and start<self.curBlock():
                 self.oneLine.emit('New output {} lines!'.format(self.curBlock()))
             else:
                 #print("no status bar: {} {} {}!<{}".format(self.isVisible(), emit, start, self.curBlock()))

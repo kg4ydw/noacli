@@ -56,6 +56,7 @@
     </property>
     <addaction name="actionShowDocks"/>
     <addaction name="actionHideDocks"/>
+    <addaction name="actionTabifyDocks"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuJobs">
@@ -416,6 +417,11 @@
     <string>Sync settings</string>
    </property>
   </action>
+  <action name="actionTabifyDocks">
+   <property name="text">
+    <string>Tabify all</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -424,8 +430,8 @@
    <header>noacli</header>
    <slots>
     <signal>command_to_run(QString,QModelIndex)</signal>
+    <signal>newFavorite(QString)</signal>
     <slot>acceptHistory(QModelIndex)</slot>
-    <slot>runCommand()</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -620,8 +626,8 @@
      <y>132</y>
     </hint>
     <hint type="destinationlabel">
-     <x>31</x>
-     <y>152</y>
+     <x>56</x>
+     <y>182</y>
     </hint>
    </hints>
   </connection>
@@ -734,6 +740,22 @@
     <hint type="destinationlabel">
      <x>264</x>
      <y>148</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>commandEdit</sender>
+   <signal>newFavorite(QString)</signal>
+   <receiver>noacli</receiver>
+   <slot>addFavorite(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>315</x>
+     <y>226</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>316</x>
+     <y>270</y>
     </hint>
    </hints>
   </connection>

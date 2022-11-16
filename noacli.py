@@ -20,7 +20,7 @@ from qtail import myOptions as qtailSettings
 
 import noaclires
 
-__version__ = '0.9.1'
+__version__ = '0.9.2'
 
 class settingsDict():
     # key : [ default, tooltip, type ]
@@ -467,10 +467,8 @@ class noacli(QtWidgets.QMainWindow):
         ui.menuViews.addAction(ui.buttons.toggleViewAction())
         ui.menuViews.addAction(ui.smallOutputDock.toggleViewAction())
 
-        # convert all the DOCKs to tabs
-        self.tabifyDockWidget( ui.buttons,ui.jobManager)
-        self.tabifyDockWidget( ui.jobManager, ui.history)
-        self.tabifyDockWidget( ui.history, ui.smallOutputDock)
+        self.tabifyAll()
+        ui.actionTabifyDocks.triggered.connect(self.tabifyAll)
 
         # attach the data models to the views
         ui.historyView.setModel(self.settings.history)
@@ -504,6 +502,12 @@ class noacli(QtWidgets.QMainWindow):
 
         self.ui.smallOutputView.oneLine.connect(self.showMessage)
         self.ui.smallOutputView.newJobStart.connect(self.statusBar().clearMessage)
+        # close and reopen stdin. We dont need it, and bad things happen
+        # if subprocesses try to use it.
+        ## nonportable out of unix?
+        # XXX this didn't help
+        #os.close(0)
+        #os.open("/dev/null", os.O_RDWR)
         
         ##### geometry profiles
         qs = typedQSettings()
@@ -539,10 +543,20 @@ class noacli(QtWidgets.QMainWindow):
         qs.endGroup()
 
         self.showMessage('Version '+__version__)
-        #XXXX self.settings.smalloutput.showOutput('Version '+__version__)
+        self.ui.smallOutputView.append('Version '+__version__)
         
 
     ## end __init__
+
+    def tabifyAll(self):
+        # convert all the DOCKs to tabs
+        if self.ui.buttons.isFloating(): self.ui.buttons.setFloating(False)
+        self.ui.jobManager.setFloating(False)
+        self.ui.history.setFloating(False)
+        self.ui.smallOutputDock.setFloating(False)
+        self.tabifyDockWidget( self.ui.buttons,    self.ui.jobManager)
+        self.tabifyDockWidget( self.ui.jobManager, self.ui.history)
+        self.tabifyDockWidget( self.ui.history,    self.ui.smallOutputDock)
 
     def start(self):
         # nothing else to initialize yet
@@ -828,14 +842,16 @@ class noacli(QtWidgets.QMainWindow):
         self.actionSaveHistory()
         self.settings.favorites.saveSettings()
         super().closeEvent(event)
-        
+
 ################ end noacli end
 
 class commandEditor(QPlainTextEdit):
     command_to_run = pyqtSignal(str, QModelIndex)
+    newFavorite = pyqtSignal(str)
 
     def __init__(self, parent):
         super().__init__(parent)
+        print('promoted command')
         self.ui = parent.parent().ui
         self.histindex = None
         self.history = None
@@ -850,6 +866,21 @@ class commandEditor(QPlainTextEdit):
         # shift return does not work!?  override keyPressEvent instead?
         self.runCmd4 = QShortcut(QKeySequence('Shift+Return'), self)
         self.runCmd4.activated.connect(self.runCommand)
+        self.setContextMenuPolicy(Qt.DefaultContextMenu)
+
+    @QtCore.pyqtSlot('QContextMenuEvent')
+    def contextMenuEvent(self, event):
+        m=super().createStandardContextMenu(event.pos())
+        m.addAction("Run", self.runCommand)
+        m.addAction("Save to history and clear", self.clear)
+        m.addAction("Clear", super().clear)
+        m.addAction("Add to favorites",self.addFav)
+        #return m
+        action = m.exec_(event.globalPos())
+        # don't need to use action here
+
+    def addFav(self):
+        self.newFavorite.emit(self.toPlainText())
 
     def setHistory(self, hist):
         self.history = hist

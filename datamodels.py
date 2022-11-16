@@ -533,9 +533,9 @@ class History(itemListModel):
                 st = i.status
                 if type(st)==int or (type(st)==str and st.isnumeric()):
                     # XXX this doesn't handle newlines!!!!
-                    file.write("{},{}: {}\n".format(st, i.count, i.command))
+                    file.write("{},{}: {}\n".format(st, i.count, i.command.strip()))
                 else:
-                    file.write(": {}\n".format(i.command))
+                    file.write(": {}\n".format(i.command.strip()))
         # print("history write of "+filename+" failed") # DEBUG
 
 class settingsDataModel(simpleTable):

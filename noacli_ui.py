@@ -215,11 +215,14 @@ class Ui_noacli(object):
         self.actionDeleteProfile.setObjectName("actionDeleteProfile")
         self.actionSync_settings = QtWidgets.QAction(noacli)
         self.actionSync_settings.setObjectName("actionSync_settings")
+        self.actionTabifyDocks = QtWidgets.QAction(noacli)
+        self.actionTabifyDocks.setObjectName("actionTabifyDocks")
         self.historyMenu.addAction(self.actionlastCommand)
         self.historyMenu.addAction(self.actionsave_history)
         self.historyMenu.addSeparator()
         self.menuViews.addAction(self.actionShowDocks)
         self.menuViews.addAction(self.actionHideDocks)
+        self.menuViews.addAction(self.actionTabifyDocks)
         self.menuViews.addSeparator()
         self.menuSettings.addAction(self.actionGsettings)
         self.menuSettings.addAction(self.actionFavorites_editor)
@@ -252,6 +255,7 @@ class Ui_noacli(object):
         self.keepOutput.toggled['bool'].connect(self.smallOutputView.smallKeepToggle) # type: ignore
         self.killButton.clicked.connect(self.smallOutputView.smallKill) # type: ignore
         self.actionSync_settings.triggered.connect(noacli.syncSettings) # type: ignore
+        self.commandEdit.newFavorite['QString'].connect(noacli.addFavorite) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -290,6 +294,7 @@ class Ui_noacli(object):
         self.actionGeoRestore.setText(_translate("noacli", "Restore window geometry"))
         self.actionDeleteProfile.setText(_translate("noacli", "Delete profile"))
         self.actionSync_settings.setText(_translate("noacli", "Sync settings"))
+        self.actionTabifyDocks.setText(_translate("noacli", "Tabify all"))
 from noacli import commandEditor, historyView
 from smalloutput import smallOutput
 from flowlayout import FlowLayout

@@ -23,14 +23,14 @@ o job life cycle
 *   move favorites to its own section
 *   save window position profiles in a section
 * look at cursor and set file dialog filter
-  delete QSettings that match defaults
+* delete QSettings that match defaults
   small buttons in dock widget headers
     jobs: clean
     history: reset sort
-  resource manager
-    noacli-res.qrc
-  at start, send version to smalloutput
-  job pull down menu should also raise window
+* resource manager (may undo this)
+*   noacli-res.qrc
+* at start, send version to smalloutput
+* job pull down menu should also raise window
 
 Bugs:
   gets middle of file on /usr/dict/words without --whole
@@ -49,8 +49,10 @@ Bugs:
      maybe threshold issue?
   Poor data flow between jobItem and smallOutput (refactor)
   'set max' too often -- use histiresis of mul+1 ?
-  small output thinks it is visible when it is under a tab
-  history save bug with newline prefix
+* history save bug with newline prefix
+  file dialog cwd filter breaks in python 3.8
+  phantom buttons
+  flowlayout overlapping buttons
 
 * small output window
 *   transfer last command output to qtail if:
@@ -103,16 +105,17 @@ context menu / widget / class
   qtail search / searchTerm / QtTail?
 
 Main features:
-  main window is a dynamic one line editor
+* main window is a dynamic one line editor
 !   pwd in message window when nothing else
     directory stack
 *   complex commands are sent to bash
       detect complex commands
-    command window context menu
-      run
-      clear?
+*   command window context menu
+*     run
+*     save for later and clear
+*     clear?
 *     save to favorites
-    Qsettings
+o   Qsettings
 *      save/restore geometry (QWidget)
 *        save multiple profiles
 *      save/restore history?
@@ -130,7 +133,7 @@ o      read history on command
    	    non-immediate button: marker to move cursor
 	    change immediate button to pulldown
 	      run immediate
-	      clear and edit		
+	      clear and edit
 	      insert
 *      *? job manager
 *      !@ favorites editor (buttons and frequent)
@@ -151,7 +154,7 @@ o      read history on command
 *   search box --> filter
 *   sort: history order (col=-1)
 *   context menu
-? remember 10 most frequent commands in pull down menu
+n remember 10 most frequent commands in pull down menu
 * button editor ("favorites")
     add Settings save menu item somewhere
 *   table: *name *key count *command *checkImmediate
@@ -161,7 +164,6 @@ o      read history on command
       reset sort
 !   implement key shortcuts
 *   mark edited lines and save? or just mark to keep or expire
-    context menu: delete, duplicate?, run? prune
 * history manager context menu
 *   (single click copies to edit window, double click runs)
 *   add to favorites
@@ -173,7 +175,7 @@ o   manager table: pid type command kill raise? info rerun
 *   window status
     window type
 *   click to redisplay / raise window (qtail)
-    job manager context menu:
+!   job manager context menu:
       info? --> process status, time stats, etc
       kill
       edit
@@ -197,25 +199,25 @@ o     raise or reopen
 ?     close when not used
 o settings
 *   table: name default tooltip currentval
-    show default in table ? or unmark when set to default?
-    context menu: reset selected to default
+*   show default in table ? or unmark when set to default?
+!   context menu: reset selected to default
 *   merge qtail options
     items
 *     historysize
 *     historyfile
 *     histfilesize
-      histcontrol
-        ignorespace : don't remember commands starting with space
-o       ignoredups: ignore repeated commands
-o       erasedups: remove previous occurances from history
+n     histcontrol
+n       ignorespace : don't remember commands starting with space
+*       ignoredups: ignore repeated commands
+*       erasedups: remove previous occurances from history
 *     JobMenuWidth
 *     history menu size
-?     frequent menu size
-?     frequents size
-      frequents threshold
+*     frequent menu size
+*     frequents size
+n     frequents threshold
 !     SHELL external shell
       graphical terminal
-      QTailFormat
+n     QTailFormat
       QTailFollow
 ?     QTailWrap
       QTailSearchMode
@@ -268,6 +270,9 @@ o   reload button
     search context menu
 o     find next
       find previous
+      find forward / reverse
+      case sensitive SETTING
+      regex / plain SETTING
       advanced --> find dialog
     menu bar
       file
@@ -315,7 +320,7 @@ x     change format (reloads text)
 *   rerun / close / clone / save
     pulldown: run this command with mode <> next time
     pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
-		       
+
   log mode
     show icon initially (icon window? status bar?)
     open icon
@@ -406,7 +411,16 @@ x     change format (reloads text)
   button box ideas
 *   replace gridlayout with (custom) pilelayout or flowlayout
     context menu:
-      alphebetize
+      Alternate layouts:
+        greedy layout
+        alphebetize
+	draggable / user order
+	include static buttons in order?
       refit / expand to fit
       brownian rearrange / fit
     make button order editable by dragging buttons
+    context menu for button
+      delete
+      run?
+      copy to editor
+      insert into editor
