@@ -8,7 +8,7 @@ import re
 from PyQt5 import QtCore
 from PyQt5.Qt import pyqtSignal
 from PyQt5.QtCore import QTimer, QSettings, QTextStream
-from PyQt5.QtGui import QTextCursor, QImage
+from PyQt5.QtGui import QTextCursor, QImage, QTextOption
 from PyQt5.QtWidgets import QTextBrowser
 
 from typedqsettings import typedQSettings
@@ -58,6 +58,8 @@ class smallOutput(QTextBrowser):
         # if a fixed number is set, use it, otherwise delay this
         if mul>10:
             self.document().setMaximumBlockCount(mul)
+        # why can't designer set this?
+        self.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
             
     ##### overrides
     def resizeEvent(self, event):

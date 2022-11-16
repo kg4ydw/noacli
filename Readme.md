@@ -26,6 +26,8 @@ This shell tries to make the following concepts obsolete;
 * terminal multiplexers
 * terminal based scrol back buffers
 
+None of these really make sense when you can just open another graphical window.
+
 For example, instead of a command dumping a huge blob of text into a
 terminal that scrolls away quickly and is lost, or piping that into a
 pager, noacli will automatically put that text into a graphical window
@@ -108,6 +110,9 @@ history lines are pruned, the history window keeps track of their use
 frequency.  You can also right click on a history entry and choose to
 save it favorites to mark it for future use.
 
+You can also use ctrl-uparrow and ctrl-down in the command window to
+browse the history.
+
 # job manager #
 The jobs you run are also tracked in a job manager dock window that
 shows the critical job details and status, and helps you find or reopen lost 
@@ -179,7 +184,7 @@ allows you to save the window configurations by giving them a name, or
 switch quickly to previously saved window configurations.
 
 Suggested window configurations are "teeny minimal", "everything",
-"output and buttons", and "Default", but use your imagination to suit
+"output and buttons", and "default", but use your imagination to suit
 your needs. If you have a default window profile, it will be loaded at
 noacli start and saved at exit (unless you uncheck the DefWinProfile
 setting).

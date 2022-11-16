@@ -4,7 +4,7 @@ import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
-from PyQt5.QtGui import QTextCursor, QKeySequence
+from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings
 
@@ -233,7 +233,7 @@ class historyView(QTableView):
             # one of these should work
             #self.scrollTo(index)
             i = self.historyProxy.mapFromSource(index)
-            self.scrollTo(i)
+            self.scrollTo(i.siblingAtColumn(0))
         else:
             self.scrollToBottom()
 
@@ -867,6 +867,9 @@ class commandEditor(QPlainTextEdit):
         self.runCmd4 = QShortcut(QKeySequence('Shift+Return'), self)
         self.runCmd4.activated.connect(self.runCommand)
         self.setContextMenuPolicy(Qt.DefaultContextMenu)
+        # why can't designer set this?
+        self.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
+
 
     @QtCore.pyqtSlot('QContextMenuEvent')
     def contextMenuEvent(self, event):
