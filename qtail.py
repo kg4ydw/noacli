@@ -99,6 +99,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
         self.textbody = self.ui.textBrowser
+        # XXX findflags not used
         self.findflags = 0  # QTextDocument::FindBackward FindCaseSensitively FindWholeWords
         self.findcount = 0;
         if self.opt.maxLines>0:

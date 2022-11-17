@@ -68,8 +68,8 @@
     <property name="title">
      <string>Settings</string>
     </property>
-    <addaction name="actionGsettings"/>
     <addaction name="actionFavorites_editor"/>
+    <addaction name="actionGsettings"/>
     <addaction name="actionSync_settings"/>
     <addaction name="separator"/>
     <addaction name="actionGeoSave"/>
@@ -138,6 +138,9 @@
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
        </property>
        <property name="horizontalScrollBarPolicy">
         <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -270,6 +273,9 @@
          <horstretch>1</horstretch>
          <verstretch>2</verstretch>
         </sizepolicy>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::ClickFocus</enum>
        </property>
        <property name="sizeAdjustPolicy">
         <enum>QAbstractScrollArea::AdjustToContents</enum>

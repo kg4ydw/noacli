@@ -19,8 +19,9 @@ from smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
 
 import noaclires
+import signal
 
-__version__ = '0.9.2'
+__version__ = '0.9.3'
 
 class settingsDict():
     # key : [ default, tooltip, type ]
@@ -42,6 +43,7 @@ class settingsDict():
     'JobMenuWidth': [ 30, 'maximum width of commands listed in the job menu', int],
     'MessageDelay':[10, 'Timeout (seconds) for transient message bar messages', float],
     'SHELL':       [ 'bash -c', 'external shell wrapper command to run complex shell commands', str],
+    'TemplateMark':['{}', 'Move cursor to this string after loading a command into the edit window', str],
 # qtail options
     'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
     'QTailEndBytes': [ 1024*1024, 'Number of bytes qtail rewinds a file', int],
@@ -214,9 +216,10 @@ class historyView(QTableView):
     def addFav(self, index):
         cmd = index.data()
         self.newFavorite.emit(cmd)
-
+    
     def contextMenuEvent(self, event):
         m = QMenu(self)
+        # XXX disable or omit inappropriate actions
         index = self.indexAt(event.pos())
         act = m.addAction("Add to favorites",partial(self.addFav, index))
         act = m.addAction("Delete",partial(self.deleteOne, index))
@@ -251,14 +254,14 @@ class commandPushButton(QToolButton):
         #sizePolicy.setVerticalStretch(0)
         #sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         #self.setSizePolicy(sizePolicy)
-        self.setObjectName(name) # redundant?
+        self.setObjectName(name) # XX redundant? merge name and data for use?
         self.clicked.connect(self.pushButtonAction)
         # XXX layout mess
         parent.layout().addWidget(self)
 
     @QtCore.pyqtSlot()
     def pushButtonAction(self):
-        self.actionfunc(self.command)
+        self.actionfunc(self.command, self.text())
 
 
 
@@ -544,7 +547,26 @@ class noacli(QtWidgets.QMainWindow):
 
         self.showMessage('Version '+__version__)
         self.ui.smallOutputView.append('Version '+__version__)
+
+        ##### install signal handlers
+        try:  # in case anything here is unportable
+            signal.signal(signal.SIGINT, self.ouch)
+            #X this is for output# signal.signal(signal.SIGTSTP, self.tstp)
+            signal.signal(signal.SIGTTIN, self.terminalstop) # XXX didn't work
+            signal.signal(signal.SIGTTIN, signal.SIG_IGN) # XXX didn't work
+        except Exception as e:
+            # XX ignore failed signal handler installs
+            print("Not all signal handlers installed"+str(e))
+            pass
+
+    def terminalstop(self, sig, stack):
+        print("Terminal stop blocked!")
+        self.showMessage("Terminal stop blocked!")
+        # do something about the offending child process??
         
+    def ouch(self, sig, stack):
+        print('Ouch!')
+        # ignore a signal
 
     ## end __init__
 
@@ -676,21 +698,21 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.makeDialog(self)
 
     @QtCore.pyqtSlot(str)
-    def runSimpleCommand(self, cmd):
-        self.runCommand(cmd,None)
+    def runSimpleCommand(self, cmd, title):
+        self.runCommand(cmd,None,title)
 
     # in: self.runLast, commandEdit->command_to_run, QShortcuts
     # out: historyView, jobModel, jobTableView
     # slot to connect command window runCommand
-    def runCommand(self, command, hist):
+    def runCommand(self, command, hist, title=None):
         if not hist and command:
             # make a new history entry!
             hist = self.settings.history.saveItem(command, None, None)
-            
         if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
             hist=hist.model().mapToSource(hist)
         self.ui.historyView.resetHistorySort()  # XXX this might be annoying
         j = jobItem(hist)  # XX construct new job
+        if title: j.setTitle(title)
         self.settings.jobs.newjob(j)
         j.start(self.settings)
         # XX try to fix job table size every time?
@@ -754,7 +776,7 @@ class noacli(QtWidgets.QMainWindow):
             n = a.data()
             print('Current profile: '+n) # DEBUG
         else:
-            n = 'Default'
+            n = 'default'
         self.mySaveGeometry(n)
         
     def mySaveGeometry(self,name='default' ):
@@ -806,7 +828,11 @@ class noacli(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def actionRestoreGeometry(self):
-        self.myRestoreGeometry()
+        act = self.ui.profileMenuGroup.checkedAction()
+        if act:
+            self.actionRestoreGeomAct(act)
+        else:
+            self.myRestoreGeometry()
 
     def myRestoreGeometry(self, name='default'):
         self.restore_geo(name)
@@ -851,7 +877,6 @@ class commandEditor(QPlainTextEdit):
 
     def __init__(self, parent):
         super().__init__(parent)
-        print('promoted command')
         self.ui = parent.parent().ui
         self.histindex = None
         self.history = None
@@ -883,7 +908,9 @@ class commandEditor(QPlainTextEdit):
         # don't need to use action here
 
     def addFav(self):
-        self.newFavorite.emit(self.toPlainText())
+        text = self.toPlainText()
+        # have to do these two things separately or the closure messes it up
+        self.newFavorite.emit(text)
 
     def setHistory(self, hist):
         self.history = hist
@@ -915,10 +942,27 @@ class commandEditor(QPlainTextEdit):
         self.histindex = None
         super().clear()
 
-    def acceptCommand(self, str):
+    def acceptCommand(self, str, title=None):
+        # XXX do something with title
+        # get current selected text before clearing it
+        cursor = self.textCursor()
+        if cursor.hasSelection():
+            oldsel = cursor.selectedText()
+        else:
+            oldsel = None
         self.clear()
+        if title: # save it, maybe some day we parse the title XXX
+            # XXX try to put oldstr in title too? maybe not safe?
+            str = '# '+title + '\n' + str
+        self.setFocus()
         self.histindex = None
         self.setPlainText(str)
+        # XX is there any us of acceptCommand for which this would be inconvenient?
+        mark = typedQSettings().value('TemplateMark',None)
+        if mark and len(mark):
+            if self.find(mark) and oldsel:  # repaste selection on top of mark
+                cursor = self.textCursor()
+                cursor.insertText(oldsel)
 
     #is this right? @QtCore.pyqtSlot(QModelIndex)
     def acceptHistory(self, idx):

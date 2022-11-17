@@ -171,6 +171,7 @@ class jobItem():
         self.status = ''
         self.finished = False
         self.windowOpen = None
+        self.windowTitle = None
         self.fullstatus = None
         self.process = QProcess()
         self.setStatus('init')
@@ -178,6 +179,7 @@ class jobItem():
         self.process.finished.connect(self.collectFinish)
         self.process.stateChanged.connect(self.collectNewstate)
         self.window=None
+        # XXX if command starts with # then strip first line and set title
 
     def __str__(self):  # mash some stuff together
         qs = typedQSettings()
@@ -185,9 +187,17 @@ class jobItem():
         s = str(self.getStatus())+' | '+str(self.title())+' | '+str(self.command())
         return str(s)[0:width]
     def title(self):
-        if self.window: return self.window.windowTitle()
+        if self.windowTitle: return self.windowTitle
+        if self.window:
+            self.windowTitle = self.window.windowTitle()
+            return self.windowTitle
         # XXX or get title from somewhere else?
         return None # XXX or ''
+    def setTitle(self,title):
+        if not title: return
+        self.windowTitle = title
+        if self.window:
+            self.window.setWindowTitle(title)
 
     # private slots
     def collectError(self, err):
@@ -286,7 +296,7 @@ class jobTableModel(itemListModel):
         if not self.validateIndex(index): return None
         col = index.column()
         if col!=2: return False  # only window title editable right now
-        self.data[index.row()].window.setWindowTitle(value)
+        self.data[index.row()].setTitle(value)
         self.dataChanged.emit(index,index)
         return True
     # make window title editable

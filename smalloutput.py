@@ -108,8 +108,9 @@ class smallOutput(QTextBrowser):
             title = self.jobitem.title()
         elif self.process:
             title = self.process.command()[0] # XX
+            self.jobitem.setTitle(title)
         else:
-            title = 'dead' # XXX pull default?
+            title = 'dead' # XXX pull default? SETTING
         
         qt = QtTail(self.settings.qtail)
         self.jobitem.setWindow(qt)
