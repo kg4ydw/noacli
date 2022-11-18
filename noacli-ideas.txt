@@ -32,9 +32,28 @@ Things to implement soon:
    qtail: bind ctrl-f to focus on search box
    translate terminal colors
    environment: implement saving settings
-
-User visibile bugs:
-   favorites editor bugs
+   reimplement qtail horizontal rule as embedded xbm and scale to fit
+   tooltip on favorites command
+   tag button template for window title
+     hidden text?
+     leave out of history & job view (or copy to title)
+   regex on commands
+     aliases
+     ssh -> setsid
+     ssh, man -> set title
+   regex on output
+     sbatch -> tail
+   timestamps
+     qtail?
+     job manager
+     settings
+   scroll job manager to bottom on new job?
+   
+User visible bugs:
+   mac bugs
+     history arrows don't work on mac
+     icons and app name don't work on mac
+ o  favorites editor bugs
       should warn on duplicate names? (color?)
  *    fix editing command causing duplicate entries
    history window table needs to be resized sometimes
@@ -54,7 +73,12 @@ x! block tostop signal
    phantom buttons
    flowlayout overlapping buttons
    settings apply button is delayed until ok pressed
+   resize history to fit window at start (scroll bar bug)
+     change stretch mode?
+     make sure tableview is resized to fit
+
 Bugs:
+   small output size not set at start if not visible
  ? what to do with stderr? always log?
    lots of stuff packed into class noacli that could go elsewhere
  ? make file dialog not modal
@@ -148,7 +172,7 @@ D*      *% button dock
 	       insert
 D*      *? job manager
 D*      !@ favorites editor (buttons and frequent)
-	!% environment var editor
+ o	!% environment var editor
 D*      !% settings editor
 	!% command default mode editor
 	     table: command mode
@@ -190,7 +214,7 @@ D*   click to redisplay / raise window (qtail)
  !   job manager context menu:
        info? --> process status, time stats, etc
        kill
-       edit
+ o     edit
        kill or kill and restart
  o     raise or reopen
        close window
@@ -234,13 +258,13 @@ d      QTailFollow
 d?     QTailWrap
 d      QTailSearchMode
 d      QTailCaseInsensitive
-   environment vars?
+ o environment vars?
      inherit for subprocs (active)
      inherited / modified
      save / session
      context menu
        import from external environment
-       delete
+ o     delete
        set as deleted --> save
        (column highlight) check/uncheck all
      checkboxes/settings
@@ -437,6 +461,16 @@ D*   for commands that output a small amount and exit in a short time
        copy to editor
        insert into editor
 
+ssh manager
+  xterm -e  ssh -fnN  {}
+  config (-o 'key val' )
+    ControlMaster auto (-M ?)
+    ControlPath ~/.ssh/socket.%h.%p.%r  (-S)
+    setsid ssh
+    #ControlPersist 6h (yes | 0 )
+    ## close with ssh -O check (forward cancel) stop exit
+
+
 completed misc. features
  *  button should set title from button name
  * command edit should grab focus after accepting input
@@ -458,3 +492,4 @@ D* look at cursor and set file dialog filter
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
  * history save bug with newline prefix
+
