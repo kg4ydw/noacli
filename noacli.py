@@ -6,7 +6,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption 
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings
+from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings, QProcessEnvironment
 
 from functools import partial
 
@@ -21,7 +21,7 @@ from qtail import myOptions as qtailSettings
 import noaclires
 import signal
 
-__version__ = '0.9.3'
+__version__ = '0.9.4'
 
 class settingsDict():
     # key : [ default, tooltip, type ]
@@ -72,9 +72,9 @@ class settings():
         # don't call this before setting buttonbox, so call it in caller
         #self.favorites.loadSettings()
 
-        # XXX populate environment from real environment
-        self.environment = []  # [ 'name', 'value']
-        ##  XXX [ 'name', 'value', 'propagate', 'save' ])
+        # XXX populate environment from system environment
+        self.environment = QProcessEnvironment.systemEnvironment()
+        ## XXX later [ 'name', 'value', 'propagate', 'save' ])
         self.jobs = jobTableModel()
         # job manager gets its own special class
         
@@ -149,8 +149,27 @@ class settings():
         self.dialog = None
         self.data = None
 
+    def envDialog(self,parent):
+        # make an editable table of environment settings and add some blanks
+        self.envset = set(self.environment.keys())
+        self.envdata = [ [key, self.environment.value(key)] for key in sorted(self.envset)]
+        self.envdata += [['',''],['','']]
+        model = simpleTable(self.envdata, ['Env Var','Value'], editmask=[True, True])
+        self.envDia = settingsDialog(parent,'Environment variables', model)
+        self.envDia.finished.connect(self.finishEnv)
+    def finishEnv(self, result):
+        if result:
+            for row in self.envdata:
+                if row[0] and row[1]:
+                    self.environment.insert(row[0], row[1])
+                    self.envset.discard(row[0])
+            for missing in self.envset:
+                self.environment.remove(missing)
+        self.envset = None
+        self.envdata = None
+        self.envDia = None
+
 class settingsDialog(QtWidgets.QDialog):
-    
     def __init__(self, parent, title, model, doc=None):
         # need parent so that this isn't persistent in window close
         super().__init__(parent)
@@ -164,7 +183,7 @@ class settingsDialog(QtWidgets.QDialog):
         if doc:
             ui.label.setText(doc)
         else:
-            ui.label = setText(title)  # XX center?
+            ui.label.setText(title)
         ui.tableView.resizeColumnsToContents()
         self.apply = self.ui.buttonBox.button(QDialogButtonBox.Apply).clicked
         # XX resize top window too?
@@ -709,6 +728,9 @@ class noacli(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def actionGsettings(self):
         self.settings.makeDialog(self)
+    @QtCore.pyqtSlot()
+    def actionEsettings(self):
+        self.settings.envDialog(self)
 
     @QtCore.pyqtSlot(str)
     def runSimpleCommand(self, cmd, title):

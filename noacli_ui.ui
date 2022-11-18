@@ -70,6 +70,7 @@
     </property>
     <addaction name="actionFavorites_editor"/>
     <addaction name="actionGsettings"/>
+    <addaction name="actionEnvironment_Variables"/>
     <addaction name="actionSync_settings"/>
     <addaction name="separator"/>
     <addaction name="actionGeoSave"/>
@@ -140,7 +141,7 @@
         </sizepolicy>
        </property>
        <property name="focusPolicy">
-        <enum>Qt::ClickFocus</enum>
+        <enum>Qt::StrongFocus</enum>
        </property>
        <property name="horizontalScrollBarPolicy">
         <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -275,7 +276,7 @@
         </sizepolicy>
        </property>
        <property name="focusPolicy">
-        <enum>Qt::ClickFocus</enum>
+        <enum>Qt::StrongFocus</enum>
        </property>
        <property name="sizeAdjustPolicy">
         <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -438,6 +439,11 @@
   <action name="actionTabifyDocks">
    <property name="text">
     <string>Tabify all</string>
+   </property>
+  </action>
+  <action name="actionEnvironment_Variables">
+   <property name="text">
+    <string>Environment Variables</string>
    </property>
   </action>
  </widget>
@@ -777,6 +783,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionEnvironment_Variables</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>actionEsettings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>264</x>
+     <y>148</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
@@ -793,5 +815,6 @@
   <slot>smallDup()</slot>
   <slot>smallKeepToggle(bool)</slot>
   <slot>syncSettings()</slot>
+  <slot>actionEsettings()</slot>
  </slots>
 </ui>

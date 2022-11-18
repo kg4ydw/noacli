@@ -70,6 +70,7 @@ class simpleTable(QAbstractTableModel):
                 return False
         self.data[row][col] = value  # do it without any validation or cast
         self.dataChanged.emit(index,index)
+        return True
 
     def flags(self,index):
         col = index.column()
@@ -234,6 +235,7 @@ class jobItem():
         return str(self.process.state())
     
     def start(self, settings):
+        self.process.setProcessEnvironment(settings.environment)
         # XXX connect output to something
         # for now, just merge stdout,stderr and send to qtail
         self.process.setProcessChannelMode(QProcess.MergedChannels)

@@ -31,6 +31,7 @@ Things to implement soon:
    add tooltips to favorites editor command
    qtail: bind ctrl-f to focus on search box
    translate terminal colors
+   environment: implement saving settings
 
 User visibile bugs:
    favorites editor bugs
@@ -52,6 +53,7 @@ x! block tostop signal
       maybe threshold issue? maybe check scroll viewport?
    phantom buttons
    flowlayout overlapping buttons
+   settings apply button is delayed until ok pressed
 Bugs:
  ? what to do with stderr? always log?
    lots of stuff packed into class noacli that could go elsewhere

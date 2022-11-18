@@ -78,7 +78,7 @@ class Ui_noacli(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.historyView.sizePolicy().hasHeightForWidth())
         self.historyView.setSizePolicy(sizePolicy)
-        self.historyView.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.historyView.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.historyView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.historyView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.historyView.setTextElideMode(QtCore.Qt.ElideMiddle)
@@ -149,7 +149,7 @@ class Ui_noacli(object):
         sizePolicy.setVerticalStretch(2)
         sizePolicy.setHeightForWidth(self.jobTableView.sizePolicy().hasHeightForWidth())
         self.jobTableView.setSizePolicy(sizePolicy)
-        self.jobTableView.setFocusPolicy(QtCore.Qt.ClickFocus)
+        self.jobTableView.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.jobTableView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.jobTableView.setTextElideMode(QtCore.Qt.ElideMiddle)
         self.jobTableView.setSortingEnabled(True)
@@ -223,6 +223,8 @@ class Ui_noacli(object):
         self.actionSync_settings.setObjectName("actionSync_settings")
         self.actionTabifyDocks = QtWidgets.QAction(noacli)
         self.actionTabifyDocks.setObjectName("actionTabifyDocks")
+        self.actionEnvironment_Variables = QtWidgets.QAction(noacli)
+        self.actionEnvironment_Variables.setObjectName("actionEnvironment_Variables")
         self.historyMenu.addAction(self.actionlastCommand)
         self.historyMenu.addAction(self.actionsave_history)
         self.historyMenu.addSeparator()
@@ -232,6 +234,7 @@ class Ui_noacli(object):
         self.menuViews.addSeparator()
         self.menuSettings.addAction(self.actionFavorites_editor)
         self.menuSettings.addAction(self.actionGsettings)
+        self.menuSettings.addAction(self.actionEnvironment_Variables)
         self.menuSettings.addAction(self.actionSync_settings)
         self.menuSettings.addSeparator()
         self.menuSettings.addAction(self.actionGeoSave)
@@ -262,6 +265,7 @@ class Ui_noacli(object):
         self.killButton.clicked.connect(self.smallOutputView.smallKill) # type: ignore
         self.actionSync_settings.triggered.connect(noacli.syncSettings) # type: ignore
         self.commandEdit.newFavorite['QString'].connect(noacli.addFavorite) # type: ignore
+        self.actionEnvironment_Variables.triggered.connect(noacli.actionEsettings) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -301,6 +305,7 @@ class Ui_noacli(object):
         self.actionDeleteProfile.setText(_translate("noacli", "Delete profile"))
         self.actionSync_settings.setText(_translate("noacli", "Sync settings"))
         self.actionTabifyDocks.setText(_translate("noacli", "Tabify all"))
+        self.actionEnvironment_Variables.setText(_translate("noacli", "Environment Variables"))
 from noacli import commandEditor, historyView
 from smalloutput import smallOutput
 from flowlayout import FlowLayout
