@@ -11,47 +11,31 @@ d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
 Things to implement soon:
+ o table parsing in qtail
  o add title to jobinfo and use it when small output dup
- *  button should set title from button name
- * command edit should grab focus after accepting input
    change pick file behavior
      if prefix starts with / and contains no * treat as intial cwd and strip
      if it ends in / select dirs only??
      maybe output dir/{} syntax
  ? close stdin
- * job: double click connect to send command to editor
  o job life cycle
- *   connect to qtail window status
  *   delete job if command is done and window is closed
      timeout if no window?
- * tables: implement vertical headers??
- *   make corner button clickable to reset sort column to -1
- * qtail: resize after visible? or after first read
- * change Qsettings to use sections
- *   only read general settings for settings dialog
- *   move favorites to its own section
-D*   save window position profiles in a section
-D* look at cursor and set file dialog filter
- * delete QSettings that match defaults
    small buttons in dock widget headers
      jobs: clean
      history: reset sort
  * resource manager (may undo this)
  *   noacli-res.qrc
- * at start, send version to smalloutput
- * job pull down menu should also raise window
- x Job and history view: WordWrapMode = WrapWordsOrAnywhere (not supported)
  * if text is selected before pushing template button, save it and paste over mark (document me)
- * small output: replace horiz rule image; scale image to fit box
+   small output: replace horiz rule image; scale image to fit box
    add tooltips to favorites editor command
    qtail: bind ctrl-f to focus on search box
-   
+   translate terminal colors
 
 User visibile bugs:
- * retore geometry doesn't grab the current selected geometry
    favorites editor bugs
       should warn on duplicate names? (color?)
-      fix editing command causing duplicate entries
+ *    fix editing command causing duplicate entries
    history window table needs to be resized sometimes
 ?* commandEdit context menu save to favorites doesn't work
 x! block tostop signal
@@ -76,7 +60,6 @@ Bugs:
    when a dock is pulled out, check if it has scrollbars and resize
    Poor data flow between jobItem and smallOutput (refactor)
    'set max' too often -- use histiresis of mul+1 ?
- * history save bug with newline prefix
    file dialog cwd filter breaks in python 3.8
  o history stupid scroll: fix by removing horizontal scroll bar
 
@@ -271,7 +254,7 @@ d      QTailCaseInsensitive
  * qtail window
    graphical window -- merged logs?
  ! merged log viewer
-   table parser window
+ * table parser window
    iconified -- status from proc
    special -- parsed status
      pie chart for percentages / apt interaction
@@ -324,7 +307,7 @@ Do     find next
  x       run command on current selection?
      text body context menu
  x     change format (reloads text)
-       transform selection to table
+ *     transform selection to table
  *     adjustSize() --> autoresize window?
      command line options / open menu (menu bar)
  *     source from stdin
@@ -451,3 +434,25 @@ D*   for commands that output a small amount and exit in a short time
        run?
        copy to editor
        insert into editor
+
+completed misc. features
+ *  button should set title from button name
+ * command edit should grab focus after accepting input
+ * job: double click connect to send command to editor
+ *   connect to qtail window status
+ * tables: implement vertical headers??
+ *   make corner button clickable to reset sort column to -1
+ * qtail: resize after visible? or after first read
+ * change Qsettings to use sections
+ *   only read general settings for settings dialog
+ *   move favorites to its own section
+D*   save window position profiles in a section
+D* look at cursor and set file dialog filter
+ * delete QSettings that match defaults
+ * at start, send version to smalloutput
+ * job pull down menu should also raise window
+ x Job and history view: WordWrapMode = WrapWordsOrAnywhere (not supported)
+
+fixed bugs
+ * retore geometry doesn't grab the current selected geometry
+ * history save bug with newline prefix

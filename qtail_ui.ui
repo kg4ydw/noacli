@@ -64,7 +64,7 @@
      </layout>
     </item>
     <item>
-     <widget class="QTextBrowser" name="textBrowser">
+     <widget class="myBrowser" name="textBrowser">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>1</horstretch>
@@ -117,6 +117,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>myBrowser</class>
+   <extends>QTextBrowser</extends>
+   <header>qtailbrowser</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

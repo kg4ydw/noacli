@@ -82,7 +82,7 @@ class myOptions():
 
         self.args = parser.positionalArguments()
         return self.args
-
+                
 class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
@@ -348,6 +348,8 @@ class QtTail(QtWidgets.QMainWindow):
             height = rect.height()  # don't resize
         #print(' newsize='+str(width)+','+str(height)) # DEBUG
         self.resize(ceil(width), ceil(height))
+
+##### end QtTail end
         
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

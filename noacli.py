@@ -320,11 +320,12 @@ class Favorites():
         qs = typedQSettings()
         # schema: *=checkbox
         # *keep name key *checkImmediate count command 
-
+        self.oldset = set()
         # collect commands from frequent history
         (_, count) = self.settings.history.countHistory()
         # collect commands from favorites
         f = sorted(self.cmds.keys())
+        self.oldset.update(f)
         data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, (c in count and count[c]) or 0 , c] for c in f]
         # add frequenty history commands
         freq = sorted([k for k in count.keys() if k not in self.cmds], key=lambda k: count[k])
@@ -361,17 +362,28 @@ class Favorites():
     def saveFavs(self,checked):
         #print('save') # DEBUG
         # repopulate favorites and buttons
+        oldset = self.oldset.copy()
+        ## local oldset : stuff left over to delete
+        ## self.oldset: stuff currently in favs
         for row in self.data:
             #print("Check "+str(row)) # DEBUG
             (keep, name, shortcut, immediate, count, command) = row
+            # delete removed and updated stuff 
             if command in self.cmds:
+                oldset.discard(command)
                 #print(' found') # DEBUG
                 fav = favoriteItem(name, shortcut, immediate)
                 if not keep or (keep and self.cmds[command]!=fav):
                     self.delFavorite(command)
+                    self.oldset.discard(command)
             if keep:
                 if command not in self.cmds:
+                    self.oldset.add(command)
                     self.addFavorite(command, name, shortcut, immediate)
+        print('left over: '+' '.join(sorted(oldset))) # DEBUG
+        for c in oldset:
+            self.delFavorite(command)
+            self.oldset.discard(command)
         ## don't destroy this in case apply is clicked a second time
         #self.data = None
 
@@ -382,6 +394,7 @@ class Favorites():
             self.saveFavs(False)
         # destroy temp data
         self.data = None
+        self.oldset = None
         
     def validateData(self, index, val):
         if not index.isValid(): return False

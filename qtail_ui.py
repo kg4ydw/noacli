@@ -40,7 +40,7 @@ class Ui_QtTail(object):
         self.searchTerm.setObjectName("searchTerm")
         self.horizontalLayout.addWidget(self.searchTerm)
         self.verticalLayout.addLayout(self.horizontalLayout)
-        self.textBrowser = QtWidgets.QTextBrowser(self.centralwidget)
+        self.textBrowser = myBrowser(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
@@ -85,3 +85,4 @@ class Ui_QtTail(object):
         self.menuView.setTitle(_translate("QtTail", "View"))
         self.actionAdjust.setText(_translate("QtTail", "Adjust"))
         self.actionAdjust.setToolTip(_translate("QtTail", "Adjust size"))
+from qtailbrowser import myBrowser
