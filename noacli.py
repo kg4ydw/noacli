@@ -3,7 +3,7 @@
 import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.Qt import Qt, pyqtSignal
+from PyQt5.Qt import Qt, pyqtSignal, QBrush
 from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings, QProcessEnvironment
@@ -291,6 +291,63 @@ class favoriteItem():
         self.immediate = immediate
         self.button = None
 
+# data model for favorites to apply validator
+# and add tooltip for command
+class favoritesModel(simpleTable):
+    def __init__(self,data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):
+        super().__init__(data, headers, datatypes, datatypesrow, editmask, validator)
+        # build validator dictionaries
+        self.vdata = {}
+        for col in [1,2,5]:
+            self.vdata[col] = {}
+            for row in range(len(data)):
+                if data[row][col]:
+                    d = data[row][col]
+                    if d in self.vdata[col]:
+                        self.vdata[col][d].add(row)
+                    else:
+                        self.vdata[col][d] = set([row])
+        # color invalid cells
+    def data(self, index, role):
+        if not self.validateIndex(index): return None
+        col = index.column()
+        row = index.row()
+        if col==5 and role==Qt.ToolTipRole and self.mydata[row][col]:
+            return self.mydata[row][col]
+        if role!=Qt.BackgroundRole or not col in [1,2,5] or not self.mydata[row][col]:
+            return super().data(index,role)
+        d = self.mydata[row][col]
+        if d in self.vdata[col] and len(self.vdata[col][d])>1:
+            if col==5: # XXX is key critical too?
+                return QBrush(Qt.red)
+            else:
+                return QBrush(Qt.yellow)
+        return super().data(index,role)
+    
+    # update background of related rows, don't emit for this one
+    def setData(self,index,value,role):
+        if not self.validateIndex(index): return None
+        col = index.column()
+        row = index.row()
+        if col not in [1,2,5] or self.mydata[row][col]==value:
+            return super().setData(index,value,role)
+        oldval = self.mydata[row][col]
+        if oldval:
+            self.vdata[col][oldval].remove(row)
+        if oldval and len(self.vdata[col][oldval])==1: # update oldval if it's ok now
+            remaining = next(iter(self.vdata[col][oldval]))
+            i = self.index(remaining, col, QModelIndex())
+            self.dataChanged.emit(i,i)
+        if value and value in self.vdata[col]:
+            if len(self.vdata[col][value])==1: # update newval if it's now dup
+                remaining = next(iter(self.vdata[col][value]))
+                i = self.index(remaining, col, QModelIndex())
+                self.dataChanged.emit(i,i)
+            self.vdata[col][value].add(row)
+        else:
+            self.vdata[col][value] = set([row])
+        return super().setData(index,value,role)
+        
 class Favorites():
     # buttons, keyboard shortcuts, and other marked commands
     # This doesn't use an abstract data model because one will be
@@ -314,6 +371,9 @@ class Favorites():
 
     def delFavorite(self, command):
         #print('del favorite '+command) # DEBUG
+        if command not in self.cmds:
+            print('missing button: '+command) # DEBUG
+            return
         c = self.cmds.pop(command)
         # remove button
         layout = self.buttonbox.layout()
@@ -339,32 +399,34 @@ class Favorites():
         qs = typedQSettings()
         # schema: *=checkbox
         # *keep name key *checkImmediate count command 
-        self.oldset = set()
         # collect commands from frequent history
         (_, count) = self.settings.history.countHistory()
         # collect commands from favorites
         f = sorted(self.cmds.keys())
-        self.oldset.update(f)
         data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, (c in count and count[c]) or 0 , c] for c in f]
+        # only remember previously saved favorites, and in order
+        self.oldcmds = [ data[x][5] for x in range(len(data))]
+        cmdlist = set(f)  # don't put dup commands in
         # add frequenty history commands
-        freq = sorted([k for k in count.keys() if k not in self.cmds], key=lambda k: count[k])
+        freq = sorted([k for k in count.keys() if k not in cmdlist], key=lambda k: count[k])
         freq.reverse()
         nfreq = int(qs.value('FavFrequent',10))
         data += [ [False, None, None, True, count[k], k] for k in freq[0:nfreq]]
-        freq = set(freq)
+        cmdlist |= set(freq[0:nfreq])
 
         # collect commands from recent history
         nh = int(qs.value('FavRecent',10))
         h = self.settings.history.last()
         while nh>0 and h:
             c = str(h.data())
-            if c not in self.cmds and c not in freq:
+            if c not in cmdlist:
                 data.append([False, None, None, True, count[c], c])
+                cmdlist.add(c)
+                nh -= 1
             h = h.model().prevNoWrap(h)
-
-        datatypes = [bool, str, str, bool, None, str]
+        datatypes = [bool, str, QKeySequence, bool, None, str]
         # XXX might need to subclass simpleTable to make a shortcut editor
-        model = simpleTable(data,
+        model = favoritesModel(data,
             ['keep', 'name',  'key', 'Immediate',  'count', 'command'], datatypesrow=datatypes,
           editmask=[True, True, True, True, False, True],
                             validator=self.validateData)
@@ -379,30 +441,27 @@ class Favorites():
 
     #@QtCore.pyqtSlot(bool)
     def saveFavs(self,checked):
-        #print('save') # DEBUG
         # repopulate favorites and buttons
-        oldset = self.oldset.copy()
-        ## local oldset : stuff left over to delete
-        ## self.oldset: stuff currently in favs
+        # purge deleted and changed stuff
+        for i in range(len(self.oldcmds)):
+            # name, shortcut, immediate
+            (keep, name, shortcut, immediate, count, command) = self.data[i]
+            fav = favoriteItem(name, shortcut, immediate)
+            # delete old stuff that changed
+            if self.oldcmds[i]!=command or not keep or command in self.cmds and self.cmds[command]!=fav:
+                    self.delFavorite(self.oldcmds[i])
+                
+        # only take the first instance of each command
+        gotcmd = set()
         for row in self.data:
-            #print("Check "+str(row)) # DEBUG
             (keep, name, shortcut, immediate, count, command) = row
-            # delete removed and updated stuff 
-            if command in self.cmds:
-                oldset.discard(command)
-                #print(' found') # DEBUG
-                fav = favoriteItem(name, shortcut, immediate)
-                if not keep or (keep and self.cmds[command]!=fav):
-                    self.delFavorite(command)
-                    self.oldset.discard(command)
-            if keep:
+            if command in gotcmd:
+                print("Warning: ignoring duplicate cmd: "+command) # DEBUG
+            elif keep:
                 if command not in self.cmds:
-                    self.oldset.add(command)
+                    gotcmd.add(command)
                     self.addFavorite(command, name, shortcut, immediate)
-        print('left over: '+' '.join(sorted(oldset))) # DEBUG
-        for c in oldset:
-            self.delFavorite(command)
-            self.oldset.discard(command)
+        # XXX above code won't work on a second pass
         ## don't destroy this in case apply is clicked a second time
         #self.data = None
 
@@ -413,7 +472,7 @@ class Favorites():
             self.saveFavs(False)
         # destroy temp data
         self.data = None
-        self.oldset = None
+        self.oldcmd = None
         
     def validateData(self, index, val):
         if not index.isValid(): return False
@@ -585,19 +644,19 @@ class noacli(QtWidgets.QMainWindow):
             signal.signal(signal.SIGINT, self.ouch)
             #X this is for output# signal.signal(signal.SIGTSTP, self.tstp)
             signal.signal(signal.SIGTTIN, self.terminalstop) # XXX didn't work
-            signal.signal(signal.SIGTTIN, signal.SIG_IGN) # XXX didn't work
+            #signal.signal(signal.SIGTTIN, signal.SIG_IGN) # XXX didn't work
         except Exception as e:
             # XX ignore failed signal handler installs
-            print("Not all signal handlers installed"+str(e))
+            print("Not all signal handlers installed"+str(e)) # EXCEPT
             pass
 
     def terminalstop(self, sig, stack):
-        print("Terminal stop blocked!")
+        print("Terminal stop blocked!") # EXCEPT
         self.showMessage("Terminal stop blocked!")
         # do something about the offending child process??
         
     def ouch(self, sig, stack):
-        print('Ouch!')
+        print('Ouch!') # EXCEPT
         # ignore a signal
 
     ## end __init__

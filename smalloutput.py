@@ -240,7 +240,7 @@ class smallOutput(QTextBrowser):
                 self.oneLine.emit(t)
                 emit = True
             if self.gettingFull(num):
-                print('full') # DEBUG
+                #print('full') # DEBUG
                 self.smallDup(t)
             else:
                 c = self.getProcCursor()
@@ -249,7 +249,7 @@ class smallOutput(QTextBrowser):
             if self.visibleRegion().isEmpty() and not emit and start<self.curBlock():
                 self.oneLine.emit('New output {} lines!'.format(self.curBlock()))
             else:
-                #print("no status bar: {} {} {}!<{}".format(self.isVisible(), emit, start, self.curBlock()))
+                # no status bar?
                 pass
                 
         if self.doneProc:
@@ -260,11 +260,11 @@ class smallOutput(QTextBrowser):
             
         pass # XXXX
     def procFinished(self, exitcode, estatus):
-        print('small proc finished ') # DEBUG
+        #print('small proc finished ') # DEBUG
         if not self.gettingFull(2):
             c = self.getProcCursor()
             # XXX get time left / measured on timer
-            if exitcode:
+            if exitcode or self.document().isEmpty(): # XXX
                 c.insertHtml('<b>Exit {}</b><br/>'.format(exitcode))
             #c.insertImage('<svg viewbox="0 0 200 1"><line x1="4" x2="100%" y1="0" y2="1" stroke="black" stroke-width="1" /></svg>')
             #c.insertImage(QImage(':line100.pbm'))

@@ -4,17 +4,28 @@
 
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
 from PyQt5.QtCore import QModelIndex, QProcess, QTimer, QObject, QSettings
+from PyQt5.QtCore import QIODevice
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QKeySequenceEdit
 from qtail import QtTail
 import re   # use python re instead of Qt
 import os
 
 from typedqsettings import typedQSettings
 
+#class keySequenceDelegate(QStyledItemDelegate):
+#    def __init__(self, parent):
+#        super()__init__(self,parent)
+#    def createEditor(self):
+#    def setEditorData(self):
+#    def updateEditorGeometry(self):
+#    def 
+
 class simpleTable(QAbstractTableModel):
     def __init__(self,data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):
         QAbstractTableModel.__init__(self)
         #super().__init__(self)  # why does this break?
-        self.data = data
+        self.mydata = data
         self.headers = headers
         self.datatypes = datatypes
         self.datatypesrow = datatypesrow
@@ -22,26 +33,31 @@ class simpleTable(QAbstractTableModel):
         self.validator = validator
     # required functions rowCount columnCount data
     def rowCount(self, parent):
-        return len(self.data)
+        return len(self.mydata)
     def columnCount(self, parent):
         return len(self.headers)
+    def dataType(self, row,col):
+        if self.datatypes and self.datatypes[row][col]:
+            return  self.datatypes[row][col]
+        elif self.datatypesrow and  self.datatypesrow[col]:
+            return self.datatypesrow[col]
+        return False
     def data(self, index, role):
         if not self.validateIndex(index): return None;
         row = index.row()
         col = index.column()
         # don't return normal data if this is suppose to be a checkbox
-        if ((self.datatypes and self.datatypes[row][col]==bool) or
-           (self.datatypesrow and self.datatypesrow[col]==bool) or
-           type(self.data[row][col])==bool):
+        ctype = self.dataType(row,col)
+        if ctype==bool or type(self.mydata[row][col])==bool:
             if role==Qt.CheckStateRole:
-                if self.data[row][col]:
+                if self.mydata[row][col]:
                     return Qt.Checked
                 else:
                     return Qt.Unchecked
             else:
                 return None
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
-            return self.data[row][col]
+            return self.mydata[row][col]
         return None
     def setData(self, index, value, role):
         if not self.validateIndex(index): return False
@@ -52,23 +68,16 @@ class simpleTable(QAbstractTableModel):
         if self.validator and role in [Qt.EditRole, Qt.CheckStateRole]:
             if not self.validator(index,value): return False
         # validate and force type
-        if self.datatypes and self.datatypes[row][col]:
+        ctype = self.dataType(row,col)
+        if ctype:
             try:
-                self.data[row][col] = self.datatypes[row][col](value)
+                self.mydata[row][col] = ctype(value)
                 self.dataChanged.emit(index,index)
                 return True
             except Exception as e:
                 print(str(e)) # EXCEPT
                 return False
-        elif self.datatypesrow and self.datatypesrow[col]:
-            try:
-                self.data[row][col] = self.datatypesrow[col](value)
-                self.dataChanged.emit(index,index)
-                return True
-            except Exception as e:
-                print(str(e)) # EXCEPT
-                return False
-        self.data[row][col] = value  # do it without any validation or cast
+        self.mydata[row][col] = value  # do it without any validation or cast
         self.dataChanged.emit(index,index)
         return True
 
@@ -77,8 +86,8 @@ class simpleTable(QAbstractTableModel):
         if not (self.datatypesrow or self.editmask) or col<0 or col>=len(self.headers):
             return super(simpleTable,self).flags(index)
         mask = Qt.ItemIsSelectable|Qt.ItemIsEnabled
-        if (self.datatypesrow and self.datatypesrow[col]==bool or
-            self.datatypes and self.datatypes[index.row()][col]==bool):
+        ctype = self.dataType(index.row(),col)
+        if ctype==bool:
             mask |=  Qt.ItemIsUserCheckable
         elif self.editmask and self.editmask[col]:
             mask |= Qt.ItemIsEditable
@@ -87,7 +96,7 @@ class simpleTable(QAbstractTableModel):
     def validateIndex(self, index):
         if not index or not index.isValid(): return False
         row = index.row()
-        if row<0 or row>=len(self.data): return False
+        if row<0 or row>=len(self.mydata): return False
         col = index.column()
         if col<0 or col>=len(self.headers): return false
         return True
@@ -96,7 +105,7 @@ class simpleTable(QAbstractTableModel):
         if role == Qt.DisplayRole:
             if orientation == Qt.Horizontal and col<len(self.headers):
                 return self.headers[col]
-        elif orientation == Qt.Vertical and col<len(self.data):
+        elif orientation == Qt.Vertical and col<len(self.mydata):
             # if you don't like veritcal headers, turn them off in designer
             return str(col)
         return None
@@ -244,7 +253,7 @@ class jobItem():
         self.startSmall(settings)
         #print('start command: '+self.command())  # DEBUG
         # XXX split QSettings.value('SHELL')
-        self.process.start('bash', [ '-c', self.command() ])
+        self.process.start('bash', [ '-c', self.command() ], QIODevice.ReadOnly|QIODevice.Text)
 
     def startSmall(self,settings):
         # XXX cheat with settings: signal?
@@ -560,9 +569,9 @@ class settingsDataModel(simpleTable):
         if not self.validateIndex(index): return None
         col = index.column()
         row = index.row()
-        rowname = self.data[row][0]
+        rowname = self.mydata[row][0]
         # color and supply default data
-        if col==1 and self.data[row][1]==None: # not set, use default
+        if col==1 and self.mydata[row][1]==None: # not set, use default
             if role==Qt.BackgroundRole:
                 return QBrush(Qt.lightGray)
             if self.docdict[rowname][2]==bool:
@@ -575,7 +584,7 @@ class settingsDataModel(simpleTable):
                 # have to fill in default data to get type right
                 return self.docdict[rowname][0]
         if role==Qt.ToolTipRole:  # XX and StatusRole ?
-            if self.data[row][0] not in self.docdict: return None
+            if self.mydata[row][0] not in self.docdict: return None
             doc = self.docdict[rowname]
             # swap tooltip columns
             return doc[1-col]

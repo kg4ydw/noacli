@@ -11,7 +11,11 @@ d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
 Things to implement soon:
+ * print exit value if keep is false
+   tooltips on buttons --> command
+   reimplement qtail horizontal rule as embedded xbm and scale to fit
  o table parsing in qtail
+      fixed width white space tables
  o add title to jobinfo and use it when small output dup
    change pick file behavior
      if prefix starts with / and contains no * treat as intial cwd and strip
@@ -28,13 +32,10 @@ Things to implement soon:
  *   noacli-res.qrc
  * if text is selected before pushing template button, save it and paste over mark (document me)
    small output: replace horiz rule image; scale image to fit box
-   add tooltips to favorites editor command
+ * add tooltips to favarites editor command
    qtail: bind ctrl-f to focus on search box
    translate terminal colors
-   environment: implement saving settings
-   reimplement qtail horizontal rule as embedded xbm and scale to fit
-   tooltip on favorites command
-   tag button template for window title
+   tag name of button template for window title
      hidden text?
      leave out of history & job view (or copy to title)
    regex on commands
@@ -48,13 +49,16 @@ Things to implement soon:
      job manager
      settings
    scroll job manager to bottom on new job?
-   
+   translate terminal colors
+   environment: implement saving settings
+   environment: implement saving settings
+
 User visible bugs:
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac
- o  favorites editor bugs
-      should warn on duplicate names? (color?)
+ * favorites editor bugs
+!*    should warn on duplicate names? (color?)
  *    fix editing command causing duplicate entries
    history window table needs to be resized sometimes
 ?* commandEdit context menu save to favorites doesn't work
@@ -65,7 +69,7 @@ x! block tostop signal
      preconnect pty for this purpose?
    gets middle of file on /usr/dict/words without --whole
    qtail gives useless errors on file not found
- ! favorites editor duplicates entries when you edit commands
+ * favorites editor duplicates entries when you edit commands
  ! default geometry profile used but not checked at start (use setChecked)
    qtail main window doesn't autoresize even when it has horiz scrollbar
       maybe initial size wrong only
@@ -103,7 +107,7 @@ D*   single line (or most recent?) output sent to status bar
        forced (disable auto-qtail)
 
    merged logs window
-     count unviewed messages and show counter in status bar
+     count unviewed messages and show counter in status bar and menu
      send some messages also to small output window
 	if sow is visible and log is not
 	if newly started program exits before next command
@@ -161,22 +165,15 @@ D*        save multiple profiles
        dialog: build a table on the fly and save changes
 D*      *@ history
 D*      *% button dock
-	     right click: dump in editor
-	     draggable gridview ??
-	     reimplement compact button bar GUI and make its own checkbox
-	     option to choose between QToolButton and QPushButton
-	     non-immediate button: marker to move cursor
-	     change immediate button to pulldown
-               run immediate
-	       clear and edit
-	       insert
 D*      *? job manager
-D*      !@ favorites editor (buttons and frequent)
- o	!% environment var editor
-D*      !% settings editor
-	!% command default mode editor
-	     table: command mode
-	     mode: qtail log terminal null local graph (default: pulldown)
+D*      *@ favorites editor (buttons and frequent)
+ o	o% environment var editor
+D*      *% settings editor
+ !	!% command default mode editor
+ 	     table: command mode
+ 	     mode: qtail log terminal null local graph (default: pulldown)
+	 @ ssh manager
+	 @ fancy table viewer
 D* history with arrow keys
    history search with ctrl-s ctrl-r and !?
 D* history with pull down menu (last 10)
@@ -214,7 +211,7 @@ D*   click to redisplay / raise window (qtail)
  !   job manager context menu:
        info? --> process status, time stats, etc
        kill
- o     edit
+       edit
        kill or kill and restart
  o     raise or reopen
        close window
@@ -258,13 +255,13 @@ d      QTailFollow
 d?     QTailWrap
 d      QTailSearchMode
 d      QTailCaseInsensitive
- o environment vars?
+   environment vars?
      inherit for subprocs (active)
      inherited / modified
      save / session
      context menu
        import from external environment
- o     delete
+       delete
        set as deleted --> save
        (column highlight) check/uncheck all
      checkboxes/settings
@@ -366,11 +363,14 @@ D*   for commands that output a small amount and exit in a short time
        close --> icon
        detach / hide
 
-   table
+   table viewer
      options: --delimiter
      select lines, cells, columns, send back to editor
      show / hide / rearrange columns
      sort by column
+     table column selector
+       select in list -- list view?
+       copy selected column names --> space or comma sep
 
    built in special commands
  !   terminal (--set-default)
@@ -444,15 +444,24 @@ D*   for commands that output a small amount and exit in a short time
        regex match?
        match next word to category list
 
-   button box ideas
+   button box dock ideas
+     right click: dump in editor
+     draggable gridview ??
  *   replace gridlayout with (custom) pilelayout or flowlayout
+     reimplement compact button bar GUI and make its own checkbox
+     option to choose between QToolButton and QPushButton
+ *   non-immediate button: marker to move cursor
+     change immediate button to pulldown in editor
+       run immediate
+       clear and edit
+       insert
      context menu:
        Alternate layouts:
 	 greedy layout
 	 alphebetize
 	 draggable / user order
 	 include static buttons in order?
-       refit / expand to fit
+  o    refit / expand to fit
        simulated anealing rearrange / fit
      make button order editable by dragging buttons
      context menu for button
@@ -461,14 +470,14 @@ D*   for commands that output a small amount and exit in a short time
        copy to editor
        insert into editor
 
-ssh manager
-  xterm -e  ssh -fnN  {}
-  config (-o 'key val' )
-    ControlMaster auto (-M ?)
-    ControlPath ~/.ssh/socket.%h.%p.%r  (-S)
-    setsid ssh
-    #ControlPersist 6h (yes | 0 )
-    ## close with ssh -O check (forward cancel) stop exit
+   ssh manager
+     xterm -e  ssh -fnN  {}
+     config (-o 'key val' )
+       ControlMaster auto (-M ?)
+       ControlPath ~/.ssh/socket.%h.%p.%r  (-S)
+       setsid ssh
+       #ControlPersist 6h (yes | 0 )
+       ## close with ssh -O check (forward cancel) stop exit
 
 
 completed misc. features
@@ -492,4 +501,3 @@ D* look at cursor and set file dialog filter
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
  * history save bug with newline prefix
-

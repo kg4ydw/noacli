@@ -32,14 +32,14 @@ class myBrowser(QTextBrowser):
             else: ds[i]=1
         if not ds: return False
         d = max(ds, key=lambda x: ds[x])
-        print('delimiter={} found={}'.format(d,ds[d]))
+        #print('delimiter={} found={}'.format(d,ds[d])) # DEBUG
         return self.csvTable(text,d)
 
     def csvTable(self, text, delimiter=','):
         table = []
         for line in text.splitlines():
             table.append(line.split(delimiter))
-        print("table: {},{}".format(len(table),len(table[0])))
+        print("table: {},{}".format(len(table),len(table[0]))) # DEBUG
         return table
     
     def toTable(self, text):
