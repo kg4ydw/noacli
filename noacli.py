@@ -169,6 +169,33 @@ class settings():
         self.envdata = None
         self.envDia = None
 
+class keySequenceDelegate(QStyledItemDelegate):
+    def __init__(self, parent):
+        super().__init__(parent)
+    
+    ##### manditory virtual functions
+    def createEditor(self,parent,option,index):
+        return QKeySequenceEdit(parent)
+    def setEditorData(self, editor, index):
+        # XXX already did this in createEditor ??
+        data = index.model().data(index, Qt.EditRole)
+        if data:
+            # XXX pick correct translation?
+            editor.setKeySequence(data)
+        # else leave with default
+        
+    #??# def updateEditorGeometry(self, editor, option, index):
+
+    def setModelData(self, editor, model, index):
+        k = editor.keySequence()
+        if k==QKeySequence.Backspace or k.toString()=='Backspace':
+            # cancel shortcut; this is a work around in qt misfeature
+            model.setData(index, '', Qt.EditRole)
+            editor.clear() # looks wierd but works
+        else:
+            model.setData(index, k.toString(), Qt.EditRole)
+    ####
+
 class settingsDialog(QtWidgets.QDialog):
     def __init__(self, parent, title, model, doc=None):
         # need parent so that this isn't persistent in window close
@@ -179,6 +206,11 @@ class settingsDialog(QtWidgets.QDialog):
         self.ui = ui
         ui.setupUi(self)
         ui.tableView.setModel(model)
+        if hasattr(model,'datatypesrow') and model.datatypesrow:
+            for i in range(len(model.datatypesrow)):
+                if model.datatypesrow[i]==QKeySequence:
+                    ui.tableView.setItemDelegateForColumn(i,keySequenceDelegate(ui.tableView))
+                #X add other custom types here
         self.setWindowTitle(title)
         if doc:
             ui.label.setText(doc)
@@ -283,15 +315,6 @@ class commandPushButton(QToolButton):
     def pushButtonAction(self):
         self.actionfunc(self.command, self.text())
 
-
-
-class favoriteItem():
-    def __init__(self, buttonName=None, shortcut=None, immediate=True):
-        self.buttonName = buttonName
-        self.shortcut = shortcut
-        self.immediate = immediate
-        self.button = None
-
 # data model for favorites to apply validator
 # and add tooltip for command
 class favoritesModel(simpleTable):
@@ -333,12 +356,12 @@ class favoritesModel(simpleTable):
         if col not in [1,2,5] or self.mydata[row][col]==value:
             return super().setData(index,value,role)
         oldval = self.mydata[row][col]
-        if oldval:
-            self.vdata[col][oldval].remove(row)
-        if oldval and len(self.vdata[col][oldval])==1: # update oldval if it's ok now
-            remaining = next(iter(self.vdata[col][oldval]))
-            i = self.index(remaining, col, QModelIndex())
-            self.dataChanged.emit(i,i)
+        if oldval and oldval in self.vdata[col]:
+            self.vdata[col][oldval].discard(row)
+            if len(self.vdata[col][oldval])==1: # update oldval if it's ok now
+                remaining = next(iter(self.vdata[col][oldval]))
+                i = self.index(remaining, col, QModelIndex())
+                self.dataChanged.emit(i,i)
         if value and value in self.vdata[col]:
             if len(self.vdata[col][value])==1: # update newval if it's now dup
                 remaining = next(iter(self.vdata[col][value]))
@@ -348,7 +371,14 @@ class favoritesModel(simpleTable):
         else:
             self.vdata[col][value] = set([row])
         return super().setData(index,value,role)
-        
+     
+class favoriteItem():
+    def __init__(self, buttonName=None, shortcut=None, immediate=True):
+        self.buttonName = buttonName
+        self.shortcut = shortcut
+        self.immediate = immediate
+        self.button = None
+   
 class Favorites():
     # buttons, keyboard shortcuts, and other marked commands
     # This doesn't use an abstract data model because one will be
@@ -368,7 +398,19 @@ class Favorites():
         c = self.cmds[command] = favoriteItem(buttonName, keybinding, immediate)
         if buttonName:
             self.addButton(command, c)
-        # XXX add keybinding
+        if c.shortcut:
+            # XXX use button box for parent
+            c.shortcuto = QShortcut(QKeySequence(c.shortcut), self.buttonbox)
+            #print('bind {} to {}'.format(c.shortcut.toString(), command)) # DEBUG
+            if c.immediate:
+                f = self.runfuncs[0]
+            else:
+                f = self.runfuncs[1]  # XXX make right click always do this
+            #c.shortcuto.activated.connect(lambda: f(command, None))
+            c.shortcuto.activated.connect(partial(self.runkey, f, command))
+    def runkey(self, f, command):
+        print('gotkey for '+command)
+        f(command,'')
 
     def delFavorite(self, command):
         #print('del favorite '+command) # DEBUG
@@ -381,7 +423,11 @@ class Favorites():
         if c.button:
             layout.removeWidget(c.button)
             c.button = None
-        # XXXX remove shortcut
+        # remove shortcut
+        if c.shortcut:
+            print('disable shortcut ') # DEBUG
+            c.shortcuto.activated.disconnect()
+            c.shortcuto = None # XXXX is this enough?
 
     def addButton(self, cmd, fav):
         if fav.immediate:
@@ -432,6 +478,7 @@ class Favorites():
           editmask=[True, True, True, True, False, True],
                             validator=self.validateData)
         # extra features
+        
         #XXX if anything is checked or edited (not blanked), check keep
         self.dialog = settingsDialog(parent, 'Favorites editor', model, 'Favorites, shortcuts, and buttons')
         self.dialog.finished.connect(self.doneFavs)

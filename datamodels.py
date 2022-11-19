@@ -5,21 +5,12 @@
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
 from PyQt5.QtCore import QModelIndex, QProcess, QTimer, QObject, QSettings
 from PyQt5.QtCore import QIODevice
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtWidgets import QKeySequenceEdit
 from qtail import QtTail
 import re   # use python re instead of Qt
 import os
 
 from typedqsettings import typedQSettings
 
-#class keySequenceDelegate(QStyledItemDelegate):
-#    def __init__(self, parent):
-#        super()__init__(self,parent)
-#    def createEditor(self):
-#    def setEditorData(self):
-#    def updateEditorGeometry(self):
-#    def 
 
 class simpleTable(QAbstractTableModel):
     def __init__(self,data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):

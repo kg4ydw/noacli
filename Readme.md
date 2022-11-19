@@ -145,12 +145,12 @@ recent commands not already listed.  (These numbers are settings that
 can be changed of course.)  You can check or uncheck the any entry if
 you want to keep it or not.  Named entries show up in the button dock
 for quick access.  Also, a shortcut key binding can be set for any
-favorite (not implemented yet).  A favorite can be flagged to be
-immediately run when selected, or to be inserted into the edit window
-as a template for further modification.  If the command contains a
-marker set to {} by default), the cursor will be placed at the marker
-and the marker selected.  Also, if there was something selected in the
-edit window before selecting the favorite, it will replace the marker.
+favorite.  A favorite can be flagged to be immediately run when
+selected, or to be inserted into the edit window as a template for
+further modification.  If the command contains a marker set to {} by
+default), the cursor will be placed at the marker and the marker
+selected.  Also, if there was something selected in the edit window
+before selecting the favorite, it will replace the marker.
 
 When editing favorites, duplicate commands, buttons, and shortcuts are
 highlighted so you can fix them.  Duplicate commands are not allowed,

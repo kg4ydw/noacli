@@ -51,8 +51,8 @@ D* if text is selected before pushing template button, save it and paste over ma
      settings
    scroll job manager to bottom on new job?
    translate terminal colors
-   environment: implement saving settings
-   environment: implement saving settings
+ ! environment: implement saving settings
+   shortcuts for internal actions
 
 User visible bugs:
    mac bugs
@@ -196,7 +196,7 @@ D* button editor ("favorites")
      make sortable with proxy
        and searchable?
        reset sort
-D!   implement key shortcuts
+D*   implement key shortcuts
 D*   mark edited lines and save? or just mark to keep or expire
  * history manager context menu
  *   (single click copies to edit window, double click runs)
