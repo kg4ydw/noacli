@@ -266,6 +266,7 @@ class commandPushButton(QToolButton):
         super().__init__(parent)
         self.setText(name)
         self.command = command
+        self.setToolTip(command) # XXX different for immediate vs template?
         self.actionfunc = functor
         ## dunno if all this goo is needed, but designer emits it with gridview
         #sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -757,6 +758,7 @@ class noacli(QtWidgets.QMainWindow):
             job.windowOpen = True
             job.window.show()
             job.window.raise_()
+            job.window.activateWindow()
 
 
     # in: view menu  out: all DOCKs
@@ -937,7 +939,6 @@ class noacli(QtWidgets.QMainWindow):
     def restore_geo(self, name):
         # non-recursive version
         #print("Restoring profile "+name) # DEBUG
-        pass # XXXX
         qs = QSettings()
         qs.beginGroup('Geometry/'+name)
         if qs.contains('mainGeo'):

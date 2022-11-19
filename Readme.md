@@ -119,6 +119,9 @@ shows the critical job details and status, and helps you find or reopen lost
 windows.  Finished jobs with closed windows can be manually cleared or will
 automatically clear after a timeout.
 
+If you click on the window name in the job manager, it will raise the
+window if there is one, and you can also rename the window.
+
 Commands shown in both the job window and the history window can be
 clicked on to copy them to the command edit window for further editing
 or to run it again.  If you already had a partially typed command there,
@@ -135,15 +138,23 @@ Settings with default values will have a grey background and will turn
 to a white background when they are edited.
 
 # favorites and button dock #
+
 The favorites editor, when opened, shows your previuosly saved
 favorites, your 10 most frequently run commands, and your 10 most
 recent commands not already listed.  (These numbers are settings that
 can be changed of course.)  You can check or uncheck the any entry if
 you want to keep it or not.  Named entries show up in the button dock
 for quick access.  Also, a shortcut key binding can be set for any
-favorite (not implemented yet).  can be flagged to be immediately run
-when selected, or to be inserted into the edit window as a frequently
-used template for further modification.
+favorite (not implemented yet).  A favorite can be flagged to be
+immediately run when selected, or to be inserted into the edit window
+as a template for further modification.  If the command contains a
+marker set to {} by default), the cursor will be placed at the marker
+and the marker selected.  Also, if there was something selected in the
+edit window before selecting the favorite, it will replace the marker.
+
+When editing favorites, duplicate commands, buttons, and shortcuts are
+highlighted so you can fix them.  Duplicate commands are not allowed,
+and all but the first will be deleted on save.
 
 # main command edit #
 The command edit box allows typing of commands.

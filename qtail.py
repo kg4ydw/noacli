@@ -231,7 +231,20 @@ class QtTail(QtWidgets.QMainWindow):
         # pretend like we did it
         self.file = process
         # get a window title from somewhere
-        if not title: title='qtail: reopen'  # XXXX setting?
+        if not title and process:
+            try:
+                #c = process.program() # XX get args too?
+                # as long as we always wrap in bash -c, just get the args
+                #XXX should set the title from a template in SETTINGs?
+                c = " ".join(process.arguments()[1:])
+                c = c.strip()
+                c = c.partition('\n')[0]  # don't mess with multiple lines
+                c = c.strip('#') # DOCUMENT default title!
+                title=c[0:30] # truncate SETTING?
+            except Exception as e:
+                print(str(e)) # EXCEPT
+        if not title:  # try again
+            title='qtail: reopen'  # XXXX SETTING?
         self.setWindowTitle(title)
         self.textstream = textstream
         self.opt.file = False

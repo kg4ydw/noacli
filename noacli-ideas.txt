@@ -11,6 +11,7 @@ d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
 Things to implement soon:
+   qtail: set extra selections for previously found items (clear when?)
  * print exit value if keep is false
    tooltips on buttons --> command
    reimplement qtail horizontal rule as embedded xbm and scale to fit
@@ -30,7 +31,7 @@ Things to implement soon:
      history: reset sort
  * resource manager (may undo this)
  *   noacli-res.qrc
- * if text is selected before pushing template button, save it and paste over mark (document me)
+D* if text is selected before pushing template button, save it and paste over mark
    small output: replace horiz rule image; scale image to fit box
  * add tooltips to favarites editor command
    qtail: bind ctrl-f to focus on search box
@@ -58,7 +59,7 @@ User visible bugs:
      history arrows don't work on mac
      icons and app name don't work on mac
  * favorites editor bugs
-!*    should warn on duplicate names? (color?)
+D*    should warn on duplicate names? (color?)
  *    fix editing command causing duplicate entries
    history window table needs to be resized sometimes
 ?* commandEdit context menu save to favorites doesn't work
@@ -202,7 +203,7 @@ D*   mark edited lines and save? or just mark to keep or expire
  *   add to favorites
  *   delete selected
  *   remove duplicates
-D  job manager list
+Do job manager list
  o   manager table: pid type command kill raise? info rerun
  *   alternate: QProcess object, status, type, command
  *   window status
@@ -495,7 +496,7 @@ D*   save window position profiles in a section
 D* look at cursor and set file dialog filter
  * delete QSettings that match defaults
  * at start, send version to smalloutput
- * job pull down menu should also raise window
+?* job pull down menu should also raise window
  x Job and history view: WordWrapMode = WrapWordsOrAnywhere (not supported)
 
 fixed bugs
