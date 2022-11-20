@@ -62,7 +62,6 @@ User visible bugs:
 D*    should warn on duplicate names? (color?)
  *    fix editing command causing duplicate entries
    history window table needs to be resized sometimes
-?* commandEdit context menu save to favorites doesn't work
 x! block tostop signal
      detect child proc trying to read stdin/stderr
      kill child proc?
@@ -107,17 +106,17 @@ D*   single line (or most recent?) output sent to status bar
        configured only (default qtail)
        forced (disable auto-qtail)
 
-   merged logs window
+ * merged logs window
      count unviewed messages and show counter in status bar and menu
      send some messages also to small output window
-	if sow is visible and log is not
-	if newly started program exits before next command
-	if exit value is nonzero
-	blacklist list
-	whitelist ?
-     filter by pid, process name, random string
-     purge by ^^
-     max retention
+ 	if sow is visible and log is not
+ !	if newly started program exits before next command
+ !	if exit value is nonzero
+ 	blacklist list
+ 	whitelist ?
+ x   filter by pid, process name, random string
+ *   purge by ^^
+ *   max retention
 
    command parser fd redirection
      prefix or suffix for output dest
@@ -141,8 +140,9 @@ D*   single line (or most recent?) output sent to status bar
    job manager / jobTableVew / noacli
    button editor / settingsDialog>tableView / settingsDialog
    general settings editor / settingsDialog>tableView / settingsDialog
-   command window / plainTextEdit / commandEditor
+ * command window / plainTextEdit / commandEditor
    qtail search / searchTerm / QtTail?
+ * log dock
 
  Main features:
  * main window is a dynamic one line editor
@@ -175,6 +175,8 @@ D*      *% settings editor
  	     mode: qtail log terminal null local graph (default: pulldown)
 	 @ ssh manager
 	 @ fancy table viewer
+	 @ ulimits editor
+	 % internal function keybindings
 D* history with arrow keys
    history search with ctrl-s ctrl-r and !?
 D* history with pull down menu (last 10)
@@ -479,6 +481,22 @@ D*   for commands that output a small amount and exit in a short time
        setsid ssh
        #ControlPersist 6h (yes | 0 )
        ## close with ssh -O check (forward cancel) stop exit
+
+   Possible internal actions for shortcut keys
+     save favorites
+     sync settings
+     switch to profile ...
+     show all / hide all /tabify all docks
+     show/hide dock X
+     run
+     run last command
+     clear command
+     history up
+     history down
+     restore current geometry
+     small dup
+     small log
+     small kill
 
 
 completed misc. features

@@ -1,6 +1,6 @@
 
 UI= qtail_ui.py noacli_ui.py settingsdialog_ui.py
-RESOURCES=noaclires.py qtailres.py smalloutputres.py
+RESOURCES=noaclires.py qtailres.py 
 SRCFILES=$(shell git ls-files | grep -v gitignore)
 DISTFILES=$(SRCFILES) $(UI) $(RESOURCES)
 
@@ -18,7 +18,7 @@ tar: noacli.tgz
 # special case, modify it to use flowlayout
 noacli_ui.py: noacli_ui.ui
 	pyuic5 -o noacli_ui.py noacli_ui.ui
-	sed -ie '/buttonBox/s/QtWidgets.Q.BoxLayout/FlowLayout/' noacli_ui.py
+	sed -i.bak '/buttonBox/s/QtWidgets.Q.BoxLayout/FlowLayout/' noacli_ui.py
 	echo 'from flowlayout import FlowLayout' >> noacli_ui.py
 
 noacli.tgz: $(DISTFILES)
@@ -38,8 +38,8 @@ smalloutputres.py:: line.svg
 qtailres.py:: qtail.png
 
 tags: TAGS
-TAGS:
-	etags datamodels.py qtail.py noacli.py
+TAGS: $(SRCFILES)
+	etags datamodels.py logoutput.py noacli.py qtailbrowser.py qtail.py smalloutput.py typedqsettings.py
 
 
 # can't use this?

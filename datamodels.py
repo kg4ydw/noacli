@@ -174,6 +174,7 @@ class jobItem():
         self.windowOpen = None
         self.windowTitle = None
         self.fullstatus = None
+        self.mode = ''
         self.process = QProcess()
         self.setStatus('init')
         self.process.errorOccurred.connect(self.collectError)
@@ -188,17 +189,24 @@ class jobItem():
         s = str(self.getStatus())+' | '+str(self.title())+' | '+str(self.command())
         return str(s)[0:width]
     def title(self):
-        if self.windowTitle: return self.windowTitle
-        if self.window:
-            self.windowTitle = self.window.windowTitle()
-            return self.windowTitle
-        # XXX or get title from somewhere else?
-        return None # XXX or ''
+        if self.windowTitle:
+            title = self.windowTitle
+        elif self.window:
+            title = self.windowTitle = self.window.windowTitle()
+        else:
+            # XXX or get title from somewhere else?
+            title = ''
+        if self.mode and len(self.mode):
+            return self.mode+': '+title
+        else:
+            return title
     def setTitle(self,title):
         if not title: return
         self.windowTitle = title
         if self.window:
             self.window.setWindowTitle(title)
+    def setMode(self,mode):
+        self.mode = mode
 
     # private slots
     def collectError(self, err):
@@ -284,8 +292,11 @@ class jobTableModel(itemListModel):
         if not self.validateIndex(index): return None
         col = index.column()
         job = self.data[index.row()]
-        if role==Qt.BackgroundRole and col==2 and not job.windowOpen:
-            return QBrush(Qt.gray)
+        if role==Qt.BackgroundRole and col==2:
+            if job.mode:
+                return QBrush(Qt.lightGray)
+            if not job.windowOpen:
+                return QBrush(Qt.gray)
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
             # if you update these, also udpate noacli.jobDoubleClicked
             if col==0: return job.process.processId()

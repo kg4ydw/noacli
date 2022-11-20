@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>529</width>
+    <width>612</width>
     <height>297</height>
    </rect>
   </property>
@@ -38,7 +38,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>529</width>
+     <width>612</width>
      <height>16</height>
     </rect>
    </property>
@@ -323,7 +323,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QToolButton" name="logOutput">
+        <widget class="QToolButton" name="logOutputButton">
          <property name="text">
           <string>log</string>
          </property>
@@ -350,6 +350,45 @@
      </item>
      <item>
       <widget class="smallOutput" name="smallOutputView"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="logDock">
+   <property name="windowTitle">
+    <string>Log viewer</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QVBoxLayout" name="verticalLayout_6">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QCheckBox" name="checkBox">
+         <property name="text">
+          <string>follow</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="logSearch">
+         <property name="placeholderText">
+          <string>Search log</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="logOutput" name="logBrowser"/>
      </item>
     </layout>
    </widget>
@@ -471,9 +510,22 @@
    <extends>QTextBrowser</extends>
    <header>smalloutput</header>
    <slots>
+    <signal>sendToLog(PyQt_PyObject)</signal>
     <slot>smallDup()</slot>
     <slot>smallKeepToggle(bool)</slot>
     <slot>smallKill()</slot>
+    <slot>smallLog()</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>logOutput</class>
+   <extends>QTextBrowser</extends>
+   <header>logoutput</header>
+   <slots>
+    <slot>setFollowCheck(int)</slot>
+    <slot>simpleFindNew(QString)</slot>
+    <slot>simpleFind2()</slot>
+    <slot>receiveJob(PyQt_PyObject)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -710,7 +762,7 @@
    <slot>smallDup()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>404</x>
+     <x>328</x>
      <y>55</y>
     </hint>
     <hint type="destinationlabel">
@@ -726,11 +778,11 @@
    <slot>smallKeepToggle(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>492</x>
+     <x>416</x>
      <y>52</y>
     </hint>
     <hint type="destinationlabel">
-     <x>471</x>
+     <x>395</x>
      <y>75</y>
     </hint>
    </hints>
@@ -742,11 +794,11 @@
    <slot>smallKill()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>451</x>
+     <x>375</x>
      <y>50</y>
     </hint>
     <hint type="destinationlabel">
-     <x>451</x>
+     <x>375</x>
      <y>74</y>
     </hint>
    </hints>
@@ -796,6 +848,86 @@
     <hint type="destinationlabel">
      <x>264</x>
      <y>148</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>logBrowser</receiver>
+   <slot>setFollowCheck(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>494</x>
+     <y>56</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>496</x>
+     <y>80</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>logSearch</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>logBrowser</receiver>
+   <slot>simpleFindNew(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>541</x>
+     <y>58</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>539</x>
+     <y>80</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>logSearch</sender>
+   <signal>returnPressed()</signal>
+   <receiver>logBrowser</receiver>
+   <slot>simpleFind2()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>577</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>578</x>
+     <y>80</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>logOutputButton</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>smallOutputView</receiver>
+   <slot>smallLog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>346</x>
+     <y>59</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>343</x>
+     <y>81</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>smallOutputView</sender>
+   <signal>sendToLog(PyQt_PyObject)</signal>
+   <receiver>logBrowser</receiver>
+   <slot>receiveJob(PyQt_PyObject)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>425</x>
+     <y>135</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>470</x>
+     <y>137</y>
     </hint>
    </hints>
   </connection>

@@ -4,7 +4,7 @@ import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal, QBrush
-from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption 
+from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings, QProcessEnvironment
 
@@ -41,6 +41,7 @@ class settingsDict():
     'HistMenuWidth':[ 30, 'maximum width of commands listed in the history menu', int],
     'JobCleanTime': [120, 'interval in seconds to check for expired jobs', int ], # XX could be float
     'JobMenuWidth': [ 30, 'maximum width of commands listed in the job menu', int],
+    'logMaxLines':    [10000, 'maximum lines remembered in the log window', int],
     'MessageDelay':[10, 'Timeout (seconds) for transient message bar messages', float],
     'SHELL':       [ 'bash -c', 'external shell wrapper command to run complex shell commands', str],
     'TemplateMark':['{}', 'Move cursor to this string after loading a command into the edit window', str],
@@ -409,7 +410,7 @@ class Favorites():
             #c.shortcuto.activated.connect(lambda: f(command, None))
             c.shortcuto.activated.connect(partial(self.runkey, f, command))
     def runkey(self, f, command):
-        print('gotkey for '+command)
+        print('gotkey for '+command) # DEBUG
         f(command,'')
 
     def delFavorite(self, command):
@@ -425,9 +426,8 @@ class Favorites():
             c.button = None
         # remove shortcut
         if c.shortcut:
-            print('disable shortcut ') # DEBUG
             c.shortcuto.activated.disconnect()
-            c.shortcuto = None # XXXX is this enough?
+            c.shortcuto = None
 
     def addButton(self, cmd, fav):
         if fav.immediate:
@@ -577,8 +577,7 @@ class noacli(QtWidgets.QMainWindow):
         self.ui = Ui_noacli()
         self.ui.setupUi(self)
 
-        # mess with style
-        #self.setStyleSheet("QMainWindow::separator{ width: 0px; height: 0px; }");
+        # try to make button box smaller
         f = self.ui.buttonBox.layout()
         f.setContentsMargins(3,3,3,3)
 
@@ -586,7 +585,7 @@ class noacli(QtWidgets.QMainWindow):
         self.want_restore_geo_delay.connect(self.restore_geo, Qt.QueuedConnection) # delay this
 
         self.settings = settings()
-        # cheat a bit
+        # cheat a bit, so nearly everyone can get to these
         self.settings.smallOutputView = self.ui.smallOutputView
         self.settings.statusBar = self.statusBar()
 
@@ -596,9 +595,13 @@ class noacli(QtWidgets.QMainWindow):
 
         # hide all the docks by default (save a profile if you don't like it)
         ui=self.ui
-        self.hideAllDocks()
 
+        self.tabifyAll()
+        self.hideAllDocks()
         ## XXX show buttons by default?
+
+        ui.actionTabifyDocks.triggered.connect(self.tabifyAll)
+
         # connect buttons to favorites
         self.settings.favorites.setButtonBox(self.ui.buttonBox, [ self.runSimpleCommand, self.ui.commandEdit.acceptCommand])
         self.settings.favorites.loadSettings()
@@ -608,9 +611,7 @@ class noacli(QtWidgets.QMainWindow):
         ui.menuViews.addAction(ui.jobManager.toggleViewAction())
         ui.menuViews.addAction(ui.buttons.toggleViewAction())
         ui.menuViews.addAction(ui.smallOutputDock.toggleViewAction())
-
-        self.tabifyAll()
-        ui.actionTabifyDocks.triggered.connect(self.tabifyAll)
+        ui.menuViews.addAction(ui.logDock.toggleViewAction())
 
         # attach the data models to the views
         ui.historyView.setModel(self.settings.history)
@@ -718,6 +719,7 @@ class noacli(QtWidgets.QMainWindow):
         self.tabifyDockWidget( self.ui.buttons,    self.ui.jobManager)
         self.tabifyDockWidget( self.ui.jobManager, self.ui.history)
         self.tabifyDockWidget( self.ui.history,    self.ui.smallOutputDock)
+        self.tabifyDockWidget( self.ui.smallOutputDock, self.ui.logDock)
 
     def start(self):
         # nothing else to initialize yet
@@ -793,6 +795,7 @@ class noacli(QtWidgets.QMainWindow):
         if col==0:
             text = str(index.model().getItem(index).process.processId())
             self.app.clipboard().setText(text)
+            self.app.clipboard().setText(text, QClipboard.Selection)
         elif col==1: index.model().cleanupJob(index)  # job status
         elif col==2: self.windowShowRaise(index)
         elif col==3: self.ui.commandEdit.acceptCommand(index.model().getItem(index).command())
@@ -816,6 +819,7 @@ class noacli(QtWidgets.QMainWindow):
         ui.buttons.setVisible(True)
         ui.jobManager.setVisible(True)
         ui.smallOutputDock.setVisible(True)
+        ui.logDock.setVisible(True)
 
     @QtCore.pyqtSlot()
     def hideAllDocks(self):
@@ -824,6 +828,7 @@ class noacli(QtWidgets.QMainWindow):
         ui.buttons.setVisible(False)
         ui.jobManager.setVisible(False)
         ui.smallOutputDock.setVisible(False)
+        ui.logDock.setVisible(False)
 
     # in: commandEditor runCurrent(button)
     # push button signal
@@ -1010,6 +1015,10 @@ class noacli(QtWidgets.QMainWindow):
         self.actionSaveHistory()
         self.settings.favorites.saveSettings()
         super().closeEvent(event)
+
+    #### job manager fuctions (since it doesn't have its own class)
+    
+    #def jobcontextmenu XXXXX
 
 ################ end noacli end
 

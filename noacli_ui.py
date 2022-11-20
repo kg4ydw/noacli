@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_noacli(object):
     def setupUi(self, noacli):
         noacli.setObjectName("noacli")
-        noacli.resize(529, 297)
+        noacli.resize(612, 297)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -34,7 +34,7 @@ class Ui_noacli(object):
         self.verticalLayout_3.addWidget(self.commandEdit)
         noacli.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(noacli)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 529, 16))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 612, 16))
         self.menubar.setObjectName("menubar")
         self.historyMenu = QtWidgets.QMenu(self.menubar)
         self.historyMenu.setObjectName("historyMenu")
@@ -174,9 +174,9 @@ class Ui_noacli(object):
         self.dupOutput.setSizePolicy(sizePolicy)
         self.dupOutput.setObjectName("dupOutput")
         self.horizontalLayout_2.addWidget(self.dupOutput)
-        self.logOutput = QtWidgets.QToolButton(self.dockWidgetContents_3)
-        self.logOutput.setObjectName("logOutput")
-        self.horizontalLayout_2.addWidget(self.logOutput)
+        self.logOutputButton = QtWidgets.QToolButton(self.dockWidgetContents_3)
+        self.logOutputButton.setObjectName("logOutputButton")
+        self.horizontalLayout_2.addWidget(self.logOutputButton)
         self.killButton = QtWidgets.QToolButton(self.dockWidgetContents_3)
         self.killButton.setObjectName("killButton")
         self.horizontalLayout_2.addWidget(self.killButton)
@@ -189,6 +189,28 @@ class Ui_noacli(object):
         self.verticalLayout_4.addWidget(self.smallOutputView)
         self.smallOutputDock.setWidget(self.dockWidgetContents_3)
         noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.smallOutputDock)
+        self.logDock = QtWidgets.QDockWidget(noacli)
+        self.logDock.setObjectName("logDock")
+        self.dockWidgetContents_2 = QtWidgets.QWidget()
+        self.dockWidgetContents_2.setObjectName("dockWidgetContents_2")
+        self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.dockWidgetContents_2)
+        self.verticalLayout_6.setObjectName("verticalLayout_6")
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.checkBox = QtWidgets.QCheckBox(self.dockWidgetContents_2)
+        self.checkBox.setChecked(True)
+        self.checkBox.setObjectName("checkBox")
+        self.horizontalLayout.addWidget(self.checkBox)
+        self.logSearch = QtWidgets.QLineEdit(self.dockWidgetContents_2)
+        self.logSearch.setClearButtonEnabled(True)
+        self.logSearch.setObjectName("logSearch")
+        self.horizontalLayout.addWidget(self.logSearch)
+        self.verticalLayout_6.addLayout(self.horizontalLayout)
+        self.logBrowser = logOutput(self.dockWidgetContents_2)
+        self.logBrowser.setObjectName("logBrowser")
+        self.verticalLayout_6.addWidget(self.logBrowser)
+        self.logDock.setWidget(self.dockWidgetContents_2)
+        noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.logDock)
         self.actionHistory = QtWidgets.QAction(noacli)
         self.actionHistory.setCheckable(True)
         self.actionHistory.setObjectName("actionHistory")
@@ -266,6 +288,11 @@ class Ui_noacli(object):
         self.actionSync_settings.triggered.connect(noacli.syncSettings) # type: ignore
         self.commandEdit.newFavorite['QString'].connect(noacli.addFavorite) # type: ignore
         self.actionEnvironment_Variables.triggered.connect(noacli.actionEsettings) # type: ignore
+        self.checkBox.stateChanged['int'].connect(self.logBrowser.setFollowCheck) # type: ignore
+        self.logSearch.textChanged['QString'].connect(self.logBrowser.simpleFindNew) # type: ignore
+        self.logSearch.returnPressed.connect(self.logBrowser.simpleFind2) # type: ignore
+        self.logOutputButton.clicked['bool'].connect(self.smallOutputView.smallLog) # type: ignore
+        self.smallOutputView.sendToLog['PyQt_PyObject'].connect(self.logBrowser.receiveJob) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -286,10 +313,13 @@ class Ui_noacli(object):
         self.smallOutputDock.setWindowTitle(_translate("noacli", "Small output"))
         self.dupOutput.setToolTip(_translate("noacli", "Copy output to a new window"))
         self.dupOutput.setText(_translate("noacli", "dup"))
-        self.logOutput.setText(_translate("noacli", "log"))
+        self.logOutputButton.setText(_translate("noacli", "log"))
         self.killButton.setText(_translate("noacli", "kill"))
         self.keepOutput.setToolTip(_translate("noacli", "Keep or (or clear) output between commands"))
         self.keepOutput.setText(_translate("noacli", "keep"))
+        self.logDock.setWindowTitle(_translate("noacli", "Log viewer"))
+        self.checkBox.setText(_translate("noacli", "follow"))
+        self.logSearch.setPlaceholderText(_translate("noacli", "Search log"))
         self.actionHistory.setText(_translate("noacli", "History"))
         self.actionButton_box.setText(_translate("noacli", "Button box"))
         self.actionButton_editor.setText(_translate("noacli", "Button editor"))
@@ -306,6 +336,7 @@ class Ui_noacli(object):
         self.actionSync_settings.setText(_translate("noacli", "Sync settings"))
         self.actionTabifyDocks.setText(_translate("noacli", "Tabify all"))
         self.actionEnvironment_Variables.setText(_translate("noacli", "Environment Variables"))
+from logoutput import logOutput
 from noacli import commandEditor, historyView
 from smalloutput import smallOutput
 from flowlayout import FlowLayout

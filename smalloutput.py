@@ -8,14 +8,14 @@ import re
 from PyQt5 import QtCore
 from PyQt5.Qt import pyqtSignal
 from PyQt5.QtCore import QTimer, QSettings, QTextStream
-from PyQt5.QtGui import QTextCursor, QImage, QTextOption
+from PyQt5.QtGui import QTextCursor, QImage, QTextOption, QPixmap
 from PyQt5.QtWidgets import QTextBrowser
 
 from typedqsettings import typedQSettings
 from datamodels import jobItem
 from qtail import QtTail
 
-import smalloutputres
+#import smalloutputres
 
 #  transfer last command output to qtail if:
 #    output exceeds visible lines
@@ -41,6 +41,7 @@ import smalloutputres
 class smallOutput(QTextBrowser):
     oneLine = pyqtSignal(str)
     newJobStart = pyqtSignal()
+    sendToLog = pyqtSignal('PyQt_PyObject')
     
     def __init__(self, parent):
         super(smallOutput,self).__init__(parent)
@@ -51,7 +52,11 @@ class smallOutput(QTextBrowser):
         # self.rawtext = None  # keep raw text for later use
         self.process = None
         self.procStartLine = 0
-        
+        px = QPixmap(301,2)
+        if not px.loadFromData(b'P1\n301 2\n'+(b'1 0 '*302)):
+            print('image fail')
+        self.lineImage = QImage(px)
+
         # apply settings
         qs = typedQSettings()
         mul = qs.value('SmallMultiplier', 2)
@@ -130,6 +135,10 @@ class smallOutput(QTextBrowser):
         # XX copy out old text first?
         self.disconnectProcess()
         # move process to log window and disconnect XXX
+        # pack up jobitem for easy passing
+        self.jobitem.process = self.process
+        self.jobitem.textstream = self.textstream
+        self.sendToLog.emit(self.jobitem) # XXX pretext?
         self.clearproc()
 
     @QtCore.pyqtSlot(bool)
@@ -154,22 +163,6 @@ class smallOutput(QTextBrowser):
         #self.jobitem = None   # maybe don't clear job item so fast
 
     ################
-
-    def insertLine(self):
-        c = self.textCursor()
-        c.movePosition(QTextCursor.End)
-        # work around bug that Qt won't fix
-        # and none of these workarounds seem to help
-        #blockFmt = c.blockFormat();
-        #c.insertHtml("<hr/>") # XXX ugly, makes subsequent stuff underlined
-        #c.insertText("\n>")
-        c.insertHtml('<img src="line100.png" alt="----"/>')
-        c.insertText("----\n")
-        #c.setBlockFormat(blockFmt);
-        #c.blockFormat().clearProperty(QTextFormat.BlockTrailingHorizontalRulerWidth);
-        #self.setTextCursor(c)
-        #c.insertHtml("<br/>")
-        ##c.insertBlock(QTextBlockFormat());
         
     def getProcCursor(self):
         if not self.procCursor:
@@ -266,10 +259,7 @@ class smallOutput(QTextBrowser):
             # XXX get time left / measured on timer
             if exitcode or self.document().isEmpty(): # XXX
                 c.insertHtml('<b>Exit {}</b><br/>'.format(exitcode))
-            #c.insertImage('<svg viewbox="0 0 200 1"><line x1="4" x2="100%" y1="0" y2="1" stroke="black" stroke-width="1" /></svg>')
-            #c.insertImage(QImage(':line100.pbm'))
-            c.insertImage(QImage(':line.svg'))
-            #c.insertHtml('<img src="line100.png" alt="----" />')
+            c.insertImage(self.lineImage)  # since <hr> is broken in QTextBrowser
             c.insertText("\n")
         # XXX emit exit status if we didn't just send a line
         # emit anyway but keep it short (to append)
@@ -282,7 +272,6 @@ class smallOutput(QTextBrowser):
         else:
             self.disconnectProcess()
             self.clearproc()  # really done now
-
 
     def timeoutProc():
         pass # XXXX
