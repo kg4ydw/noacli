@@ -214,3 +214,25 @@ Suggested window configurations are "teeny minimal", "everything",
 your needs. If you have a default window profile, it will be loaded at
 noacli start and saved at exit (unless you uncheck the DefWinProfile
 setting).
+
+Key bindings
+------------
+
+There are not many key bindings, although you can bind favorites to key bindings.
+
+In addition to the editor key bindings used by Qt, the following keys are used:
+
+While binding keys for favorites, binding a shortcut to Backspace will cancel it.
+(This works around a bug / missing feature in Qt.)
+
+Ctrl-Up     history up (doesn't work on mac)
+Ctrl-P      history up
+Ctrl-Down   history down (doesn't work on mac)
+Ctrl-N 	    history down
+Ctrl-Enter  run command in the command editor
+Ctrl-Return run command in the command editor
+Ctrl-F	    Invoke the file browser and insert the results into the editor
+
+The history keys treat history as a ring, and the position is reset when
+a command is run.
+

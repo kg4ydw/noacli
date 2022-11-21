@@ -21,7 +21,7 @@ from qtail import myOptions as qtailSettings
 import noaclires
 import signal
 
-__version__ = '0.9.4'
+__version__ = '0.9.5'
 
 class settingsDict():
     # key : [ default, tooltip, type ]
@@ -598,8 +598,13 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.statusBar = self.statusBar()
 
         self.historypos = 1;
-        #dir = os.path.dirname(os.path.realpath(__file__))
-        self.setWindowIcon(QtGui.QIcon(':noacli.png'))
+        dir = os.path.dirname(os.path.realpath(__file__))+'/'
+        icon = QtGui.QIcon(':noacli.png')
+        if icon.isNull(): # try again
+            print('icon resources failed trying again') # DEBUG
+            icon = QtGui.QIcon(dir+'noacli.png')
+        print('icon sizes='+str(len(icon.availableSizes()))) # DEBUG
+        self.setWindowIcon(icon)
 
         # hide all the docks by default (save a profile if you don't like it)
         ui=self.ui
@@ -1065,10 +1070,15 @@ class commandEditor(QPlainTextEdit):
         self.ui = parent.parent().ui
         self.histindex = None
         self.history = None
+        # XXX put all these key bindings in an array?
         self.histUp = QShortcut(QKeySequence('ctrl+up'),self)
         self.histUp.activated.connect(self.historyUp)
+        self.histUp2 = QShortcut(QKeySequence('ctrl+p'),self)
+        self.histUp2.activated.connect(self.historyUp)
         self.histDown = QShortcut(QKeySequence('ctrl+down'), self)
         self.histDown.activated.connect(self.historyDown)
+        self.histDown2 = QShortcut(QKeySequence('ctrl+n'), self)
+        self.histDown2.activated.connect(self.historyDown)
         self.runCmd2 = QShortcut(QKeySequence(QKeySequence.InsertLineSeparator), self)
         self.runCmd2.activated.connect(self.runCommand)
         self.runCmd3 = QShortcut(QKeySequence('Ctrl+Return'), self)
@@ -1076,6 +1086,7 @@ class commandEditor(QPlainTextEdit):
         # shift return does not work!?  override keyPressEvent instead?
         self.runCmd4 = QShortcut(QKeySequence('Shift+Return'), self)
         self.runCmd4.activated.connect(self.runCommand)
+        
         self.setContextMenuPolicy(Qt.DefaultContextMenu)
         # why can't designer set this?
         self.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)

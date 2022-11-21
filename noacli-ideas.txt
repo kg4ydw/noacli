@@ -201,6 +201,7 @@ D*   search box --> filter
  *   context menu
  n remember 10 most frequent commands in pull down menu
 D* button editor ("favorites")
+ !   right click -> edit in larger window
      add Settings save menu item somewhere
  *   table: *name *key count *command *checkImmediate
  *   sorted sections: buttons freq
@@ -348,14 +349,14 @@ Do     find next
  *     file
 
 
-   log
- !    saves to a log, either file or short memory buffer
- !    buffer size = bytes and/or time or lines
-      log format:
-	START $pid command
-	$pid output line
-	EXIT $pid $exitval wait stats...
-      view full or filtered log
+ o log
+ *    saves to a log, either file or short memory buffer
+ *    buffer size = bytes and/or time or lines
+ *    log format:
+ *      START $pid command
+ *      $pid output line
+ E      EXIT $pid $exitval wait stats...
+ x    view full or filtered log
 
    status icon? from logged job?
 
@@ -364,15 +365,6 @@ D*   for commands that output a small amount and exit in a short time
  *   rerun / close / clone / save
      pulldown: run this command with mode <> next time
      pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
-
-   log mode
-     show icon initially (icon window? status bar?)
-     open icon
-       process status
-       kill
-       log view
-       close --> icon
-       detach / hide
 
    table viewer
      options: --delimiter
@@ -444,16 +436,31 @@ D*   for commands that output a small amount and exit in a short time
        remove duplicates
        sort
 
-   command processor
-     split
-     check for built in commands
-       immediate: cd pwd
-       output mode: term(inal} log qtail tail
-       parse mode: direct sh pipe ${usershell}
-     if mode not set, guess
-       multi-line --> sh
-       regex match?
-       match next word to category list
+   command parser implementation
+     strip matching first word
+       output mode
+         log
+	 qtail/tail
+	 small
+	 table (qtail with options?)
+       built in commands -> parse rest in subfunction
+         cd pwd? pushd popd (setenv*) favorite/alias 
+       wrapper aliases (sends unparsed remainder to command), user editable with default
+         direct  -> word split and run without wrapper
+	 sh/bash -> bash -c
+	 term -> "xterm -e" or "gnome-terminal --"
+	 $hostname -> ssh -n (-M -P 6h) $hostname
+       regex match? (macro?)
+
+   regex matches
+     output and input separately scanned for regex matches
+     grouped matches are saved to match variables
+     match variabes can substitute into command templates
+
+     can a command template auto trigger on output match?
+        run or just insert into edit buffer?
+	small output window only?
+	enable special one shot output match from command match trigger
 
    button box dock ideas
      right click: dump in editor
@@ -505,7 +512,6 @@ D*   for commands that output a small amount and exit in a short time
      small dup
      small log
      small kill
-
 
 completed misc. features
  *  button should set title from button name
