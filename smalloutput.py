@@ -42,6 +42,7 @@ class smallOutput(QTextBrowser):
     oneLine = pyqtSignal(str)
     newJobStart = pyqtSignal()
     sendToLog = pyqtSignal('PyQt_PyObject')
+    buttonState = pyqtSignal(bool)
     
     def __init__(self, parent):
         super(smallOutput,self).__init__(parent)
@@ -156,6 +157,7 @@ class smallOutput(QTextBrowser):
 
     def clearproc(self):
         # these should have been saved somewhere else
+        self.buttonState.emit(False)
         self.process = None
         self.textstream = None
         self.procCursor = None
@@ -218,6 +220,7 @@ class smallOutput(QTextBrowser):
         self.doneProc = False
         self.process.readyRead.connect(self.readLines)
         self.process.finished.connect(self.procFinished)
+        self.buttonState.emit(True)
 
         qs = typedQSettings()
         # XXX start oneshot timer
@@ -250,8 +253,6 @@ class smallOutput(QTextBrowser):
             self.disconnectProcess()
             self.clearproc()  # really done now
             
-            
-        pass # XXXX
     def procFinished(self, exitcode, estatus):
         #print('small proc finished ') # DEBUG
         if not self.gettingFull(2):
@@ -267,11 +268,8 @@ class smallOutput(QTextBrowser):
             self.oneLine.emit('E({})'.format(exitcode))
         else:
             self.oneLine.emit('(exit)')
-        if self.process.bytesAvailable():
+        if self.process and self.process.bytesAvailable():
             self.doneProc = True # let readLines clean up
         else:
             self.disconnectProcess()
             self.clearproc()  # really done now
-
-    def timeoutProc():
-        pass # XXXX

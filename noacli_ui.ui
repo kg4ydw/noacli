@@ -281,6 +281,9 @@
        <property name="sizeAdjustPolicy">
         <enum>QAbstractScrollArea::AdjustToContents</enum>
        </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
+       </property>
        <property name="textElideMode">
         <enum>Qt::ElideMiddle</enum>
        </property>
@@ -324,6 +327,9 @@
        </item>
        <item>
         <widget class="QToolButton" name="logOutputButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>log</string>
          </property>
@@ -331,6 +337,9 @@
        </item>
        <item>
         <widget class="QToolButton" name="killButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <property name="text">
           <string>kill</string>
          </property>
@@ -349,7 +358,11 @@
       </layout>
      </item>
      <item>
-      <widget class="smallOutput" name="smallOutputView"/>
+      <widget class="smallOutput" name="smallOutputView">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -511,6 +524,7 @@
    <header>smalloutput</header>
    <slots>
     <signal>sendToLog(PyQt_PyObject)</signal>
+    <signal>buttonState(bool)</signal>
     <slot>smallDup()</slot>
     <slot>smallKeepToggle(bool)</slot>
     <slot>smallKill()</slot>

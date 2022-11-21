@@ -176,11 +176,14 @@ class jobItem():
         self.fullstatus = None
         self.mode = ''
         self.process = QProcess()
+        self.pid = None # QProcess deletes pid too fast
         self.setStatus('init')
         self.process.errorOccurred.connect(self.collectError)
         self.process.finished.connect(self.collectFinish)
         self.process.stateChanged.connect(self.collectNewstate)
         self.window=None
+        self.paused = False
+        self.hasmore = True
         # XXX if command starts with # then strip first line and set title
 
     def __str__(self):  # mash some stuff together
@@ -350,7 +353,7 @@ class jobTableModel(itemListModel):
         self.appendItem(jobitem)
         # start a cleanup timer
         qs = typedQSettings()
-        ct = int(qs.value('JobCleanTime', 120))*1000  # XXX could be float
+        ct = int(qs.value('JobCleanTime', 120))*1000  # could be float
         self.cleanTime.start(ct)
 
 class historyItem():
@@ -421,7 +424,7 @@ class History(itemListModel):
                 self.dataChanged.emit(i,i)
                 return i
         self.limitHistorySize()
-        # XXX skip appending if this is a duplicate command and nodup option set
+        # XXX SETTING: skip appending if this is a duplicate command and nodup option set?
         item = historyItem(exitval, command, count)
         return self.appendItem(item)
 
@@ -556,6 +559,7 @@ class History(itemListModel):
                 st = i.status
                 if type(st)==int or (type(st)==str and st.isnumeric()):
                     # XXX this doesn't handle newlines!!!!
+                    # handle embedded newlines in input parser (less safe)
                     file.write("{},{}: {}\n".format(st, i.count, i.command.strip()))
                 else:
                     file.write(": {}\n".format(i.command.strip()))

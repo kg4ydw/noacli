@@ -11,6 +11,9 @@ d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
 Things to implement soon:
+d* log window needs a threshold LogBatchLines = 5?
+ * log window pause / resume process (context)
+ E log window flush process (context)
    qtail: set extra selections for previously found items (clear when?)
  * print exit value if keep is false
    tooltips on buttons --> command
@@ -53,8 +56,14 @@ D* if text is selected before pushing template button, save it and paste over ma
    translate terminal colors
  ! environment: implement saving settings
    shortcuts for internal actions
+   detach processes before exiting (optionally)
+ * add running indicator to small output (kill and log buttons)
 
 User visible bugs:
+   merged log is not clearing exit status if paused before exiting
+     hasmore reset to true incorrectly?
+   log flush context: doesn't do anything?
+   duplicate key bindings don't get background paint until dialog is reopened
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac
@@ -106,7 +115,7 @@ D*   single line (or most recent?) output sent to status bar
        configured only (default qtail)
        forced (disable auto-qtail)
 
- * merged logs window
+D* merged logs window
      count unviewed messages and show counter in status bar and menu
      send some messages also to small output window
  	if sow is visible and log is not
@@ -116,7 +125,7 @@ D*   single line (or most recent?) output sent to status bar
  	whitelist ?
  x   filter by pid, process name, random string
  *   purge by ^^
- *   max retention
+D*   max retention
 
    command parser fd redirection
      prefix or suffix for output dest
@@ -137,7 +146,7 @@ D*   single line (or most recent?) output sent to status bar
 
  context menu / widget / class
  * history manager / historyView
-   job manager / jobTableVew / noacli
+ * job manager / jobTableVew / noacli
    button editor / settingsDialog>tableView / settingsDialog
    general settings editor / settingsDialog>tableView / settingsDialog
  * command window / plainTextEdit / commandEditor
@@ -211,15 +220,15 @@ Do job manager list
  *   window status
      window type
 D*   click to redisplay / raise window (qtail)
- !   job manager context menu:
+ o   job manager context menu:
        info? --> process status, time stats, etc
-       kill
+ *     kill
        edit
-       kill or kill and restart
- o     raise or reopen
-       close window
+ n     kill or kill and restart
+ *     raise or reopen
+ *     close window
        measure output
-       clone?
+ n     clone?
      open status icon
  *   proc/wait info
 D*   delete dead jobs? (life cycle)
@@ -277,14 +286,13 @@ d      QTailCaseInsensitive
 
 
    terminal
- * qtail window
-   graphical window -- merged logs?
- ! merged log viewer
+D* qtail window
+D* merged log viewer
  * table parser window
    iconified -- status from proc
    special -- parsed status
      pie chart for percentages / apt interaction
- * ephemeral -- autoclose
+D* ephemeral -- autoclose
 
 Do scrolly window
 D*   view / follow a log file

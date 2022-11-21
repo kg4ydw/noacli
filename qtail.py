@@ -99,7 +99,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
         self.textbody = self.ui.textBrowser
-        # XXX findflags not used
+        # XXX findflags not used (yet?)
         self.findflags = 0  # QTextDocument::FindBackward FindCaseSensitively FindWholeWords
         self.findcount = 0;
         if self.opt.maxLines>0:
@@ -162,7 +162,6 @@ class QtTail(QtWidgets.QMainWindow):
 
     # @QtCore.pyqtSlot(str)
     def filechanged(self, path):
-        # XXX do something if there are multiple files
         self.readtext()
     # @QtCore.pyqtSlot(QSocketDescriptor, QsocketNotifier.Type)
     def socketActivated(self,socket):  # ,type):
@@ -171,7 +170,6 @@ class QtTail(QtWidgets.QMainWindow):
     def start(self):
         doc = self.textbody.document()
         doc.setMaximumBlockCount(self.opt.maxLines)
-        # XXX initialize other stuff?
 
     def showsize(self):
         self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",0)
@@ -197,7 +195,7 @@ class QtTail(QtWidgets.QMainWindow):
     def openstdin(self):
         if not self.opt.title:
             self.setWindowTitle('qtail: stdin')
-        # XXX File doesn't work with readyRead
+        # QFile doesn't work with readyRead, use QSocketNotifier instead for pipes
         f = QtCore.QFile()
         self.file = f
         f.open(0, QtCore.QFile.ReadOnly);

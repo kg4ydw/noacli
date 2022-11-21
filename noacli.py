@@ -6,7 +6,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal, QBrush
 from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings, QProcessEnvironment
+from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings, QProcessEnvironment, QProcess
 
 from functools import partial
 
@@ -41,7 +41,8 @@ class settingsDict():
     'HistMenuWidth':[ 30, 'maximum width of commands listed in the history menu', int],
     'JobCleanTime': [120, 'interval in seconds to check for expired jobs', int ], # XX could be float
     'JobMenuWidth': [ 30, 'maximum width of commands listed in the job menu', int],
-    'logMaxLines':    [10000, 'maximum lines remembered in the log window', int],
+    'LogMaxLines':    [10000, 'maximum lines remembered in the log window', int],
+    'LogBatchLines': [100, 'number of lines read in a batch for the log window.  Increasing this decreases shell responsiveness but makes logs read faster.', int],
     'MessageDelay':[10, 'Timeout (seconds) for transient message bar messages', float],
     'SHELL':       [ 'bash -c', 'external shell wrapper command to run complex shell commands', str],
     'TemplateMark':['{}', 'Move cursor to this string after loading a command into the edit window', str],
@@ -73,8 +74,9 @@ class settings():
         # don't call this before setting buttonbox, so call it in caller
         #self.favorites.loadSettings()
 
-        # XXX populate environment from system environment
+        # populate environment from system environment
         self.environment = QProcessEnvironment.systemEnvironment()
+        ## XXX load configured env mods
         ## XXX later [ 'name', 'value', 'propagate', 'save' ])
         self.jobs = jobTableModel()
         # job manager gets its own special class
@@ -111,8 +113,10 @@ class settings():
                 if self.settingsDirectory[name][2]==bool and type(val)==str:
                     val = val.lower() in ['true','yes']
                 else:
-                    # XXX put this in a try
-                    val = self.settingsDirectory[name][2](val)
+                    try:
+                        val = self.settingsDirectory[name][2](val)
+                    except: # XX debug msg?
+                        val = None
             # reset if default value
             if  val!=None and val==self.settingsDirectory[name][0]:
                 val = None
@@ -139,7 +143,7 @@ class settings():
         qs = typedQSettings()
         for d in self.data:
             if d[1]!=None:
-                #print('save '+str(d[0])+' = '+str(d[1])) # XXX # DEBUG
+                #print('save '+str(d[0])+' = '+str(d[1])) # DEBUG
                 qs.setValue(d[0], d[1])
         self.copy2qtail()
         qs.sync()
@@ -176,9 +180,13 @@ class keySequenceDelegate(QStyledItemDelegate):
     
     ##### manditory virtual functions
     def createEditor(self,parent,option,index):
-        return QKeySequenceEdit(parent)
+        # XXX do something with option? set background?
+        w = QKeySequenceEdit(parent)
+        ## well this didn't work
+        #if option and option.backgroundBrush:
+        #    w.setBackgroundRole(option.backgroundBrush.color())
+        return w
     def setEditorData(self, editor, index):
-        # XXX already did this in createEditor ??
         data = index.model().data(index, Qt.EditRole)
         if data:
             # XXX pick correct translation?
@@ -309,7 +317,6 @@ class commandPushButton(QToolButton):
         #self.setSizePolicy(sizePolicy)
         self.setObjectName(name) # XX redundant? merge name and data for use?
         self.clicked.connect(self.pushButtonAction)
-        # XXX layout mess
         parent.layout().addWidget(self)
 
     @QtCore.pyqtSlot()
@@ -427,6 +434,8 @@ class Favorites():
         # remove shortcut
         if c.shortcut:
             c.shortcuto.activated.disconnect()
+            c.shortcuto.setKey(QKeySequence())
+            c.shortcuto.setParent(None)
             c.shortcuto = None
 
     def addButton(self, cmd, fav):
@@ -472,14 +481,13 @@ class Favorites():
                 nh -= 1
             h = h.model().prevNoWrap(h)
         datatypes = [bool, str, QKeySequence, bool, None, str]
-        # XXX might need to subclass simpleTable to make a shortcut editor
         model = favoritesModel(data,
             ['keep', 'name',  'key', 'Immediate',  'count', 'command'], datatypesrow=datatypes,
           editmask=[True, True, True, True, False, True],
                             validator=self.validateData)
         # extra features
         
-        #XXX if anything is checked or edited (not blanked), check keep
+        # if anything is checked or edited (not blanked), check keep
         self.dialog = settingsDialog(parent, 'Favorites editor', model, 'Favorites, shortcuts, and buttons')
         self.dialog.finished.connect(self.doneFavs)
         self.dialog.apply.connect(self.saveFavs)
@@ -645,12 +653,16 @@ class noacli(QtWidgets.QMainWindow):
 
         self.ui.smallOutputView.oneLine.connect(self.showMessage)
         self.ui.smallOutputView.newJobStart.connect(self.statusBar().clearMessage)
+        self.ui.jobTableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.ui.jobTableView.customContextMenuRequested.connect(self.jobcontextmenu)
+        
         # close and reopen stdin. We dont need it, and bad things happen
         # if subprocesses try to use it.
         ## nonportable out of unix?
         # XXX this didn't help
         #os.close(0)
         #os.open("/dev/null", os.O_RDWR)
+        # solutions: setsid or pty fork
         
         ##### geometry profiles
         qs = typedQSettings()
@@ -687,6 +699,9 @@ class noacli(QtWidgets.QMainWindow):
 
         self.showMessage('Version '+__version__)
         self.ui.smallOutputView.append('Version '+__version__)
+        # connect slots QtCreator coudln't find
+        self.ui.smallOutputView.buttonState.connect(self.ui.logOutputButton.setEnabled)
+        self.ui.smallOutputView.buttonState.connect(self.ui.killButton.setEnabled)
 
         ##### install signal handlers
         try:  # in case anything here is unportable
@@ -699,6 +714,8 @@ class noacli(QtWidgets.QMainWindow):
             print("Not all signal handlers installed"+str(e)) # EXCEPT
             pass
 
+    ## end __init__
+
     def terminalstop(self, sig, stack):
         print("Terminal stop blocked!") # EXCEPT
         self.showMessage("Terminal stop blocked!")
@@ -708,7 +725,6 @@ class noacli(QtWidgets.QMainWindow):
         print('Ouch!') # EXCEPT
         # ignore a signal
 
-    ## end __init__
 
     def tabifyAll(self):
         # convert all the DOCKs to tabs
@@ -928,8 +944,6 @@ class noacli(QtWidgets.QMainWindow):
         self.mySaveGeometry(n)
         
     def mySaveGeometry(self,name='default' ):
-        # XXX later make this into a named profile
-        # XXX does each window need to be saved separately?
         print("Saving profile "+name) # DEBUG
         qs = QSettings()
         qs.beginGroup('Geometry/'+name)
@@ -1017,8 +1031,28 @@ class noacli(QtWidgets.QMainWindow):
         super().closeEvent(event)
 
     #### job manager fuctions (since it doesn't have its own class)
-    
-    #def jobcontextmenu XXXXX
+    @QtCore.pyqtSlot('QPoint')
+    def jobcontextmenu(self, point):
+        jobView = self.ui.jobTableView
+        index = jobView.indexAt(point)
+        ## apparently QTableView doesn't have a standard context menu
+        #m = jobView.createStandardContextMenu(point)
+        m = QMenu()
+        if index.isValid():
+            job = index.model().getItem(index)
+            if job and job.process and job.process.state()!=QProcess.NotRunning:
+                m.addAction("Kill "+job.title(), job.process.kill)
+            else:
+                m.addAction("clean dead "+job.title(), partial(index.model().cleanupJob,index))
+            if job.window: 
+                m.addAction("Find window", partial(self.windowShowRaise,index))
+                m.addAction("Close window",job.window.close)
+        # XXX jobcontext: convert to log / qtail window
+        # XXX jobcontext: job info
+        #return m
+            # note: don't bother opening menu if there's nothing in it?
+            action = m.exec_(jobView.mapToGlobal(point))
+        # all actions have their own handler, nothing to do here
 
 ################ end noacli end
 

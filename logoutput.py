@@ -32,6 +32,7 @@ from functools import partial
 #    filter options (show/hide/set)
 #    delete
 
+# bugs: QProcess.atEnd is different from (non-existant) QTextStream.atEnd()
 
 
 class logOutput(QTextBrowser):
@@ -47,7 +48,7 @@ class logOutput(QTextBrowser):
         self.searchtext = None
         # apply settings
         qs = typedQSettings()
-        max = qs.value('logMaxLines',10000)
+        max = qs.value('LogMaxLines',10000)
         if max>0:
             self.document().setMaximumBlockCount(max)
         # if a fixed number is set, use it, otherwise delay this
@@ -64,16 +65,20 @@ class logOutput(QTextBrowser):
             self.setTextCursor(c) # jump to end
         return c
 
+    # XXX this isn't used (yet)
     def openProcess(self, process, jobitem, settings, pretext='', title=''):
         # XXX we don't use title here, but should we?
         self.settings = settings  # need this for qtail
         self.joblist.add(jobitem)
         jobitem.process = process
         jobitem.textstream = QTextStream(process)
-        jobitem.prefix = str(process.processId())+': '
+        jobitem.pid = process.processId()
+        jobitem.prefix = str(jobitem.pid)+': '
         jobitem.setMode('Log')
         self.connectProcess(jobitem)
         c = self.endCursor()
+        c.insertHtml(jobitem.prefix+'<b>Start log</b> <br/>')
+        c.insertText("\n")
         if pretext:
             for line in str.splitlines():
                 c.insertText(jobitem.prefix+'(S) '+line+"\n")
@@ -81,8 +86,12 @@ class logOutput(QTextBrowser):
     def receiveJob(self, jobitem):
         # like openProcess but jobitem already packed up
         self.joblist.add(jobitem)
-        jobitem.prefix = str(jobitem.process.processId())+': '
+        jobitem.pid = jobitem.process.processId()
+        jobitem.prefix = str(jobitem.pid)+': '
         jobitem.setMode('Log')
+        c = self.endCursor()
+        c.insertHtml(jobitem.prefix+'<b>Start log</b> <br/>')
+        c.insertText("\n")
         self.connectProcess(jobitem)
                 
     def connectProcess(self, jobitem):
@@ -102,20 +111,44 @@ class logOutput(QTextBrowser):
         # so one process can't cause performance issues.  Also, high
         # volume procs should probably be throttled or moved out of
         # the log window.
-        lines = 10 # SETTING
+        lines = typedQSettings().value('LogBatchLines',5)
         e = self.endCursor()
-        while lines>0 and jobitem.process.canReadLine():
+        e.beginEditBlock()
+        self.hasmore = True
+        while lines>0:  #XXXX and jobitem.process.canReadLine():
             t = jobitem.textstream.readLine()
+            if jobitem.process.atEnd(): print('readmore '+str(len(t))) # DEBUG
             if t:
                 e.insertText(jobitem.prefix+t+"\n")
+            else:
+                self.hasmore = False
+                break
             lines -= 1
-        if jobitem.process.canReadLine():  # more to read but we're not ready
-            self.readmore.emit(jobitem)
+        e.endEditBlock()
+        #if not self.hasmore: # DEBUG
+        #    print("no more: "+str(jobitem.process.state())) # DEBUG XXXXX
+        if self.hasmore or jobitem.process.canReadLine():
+            if not jobitem.paused:  # more to read but we're not ready
+                self.readmore.emit(jobitem)
         elif jobitem.process.atEnd() and jobitem.process.state()==QProcess.NotRunning:
+            #print("ready to clean "+str(self.hasmore)) # DEBUG XXXXX
             self.cleanProc(jobitem)
         if self.followCheck:
             self.setTextCursor(e)
-            
+
+    def pauseJob(self, jobitem):
+        jobitem.paused = True
+        self.disconnectProcess(jobitem)
+        bytes = 0
+        if jobitem.process:
+            bytes = jobitem.process.bytesAvailable()
+            c = self.endCursor()
+            c.insertText("{} paused with {} bytes available\n".format(jobitem.pid, bytes))
+    def resumeJob(self,jobitem):
+        jobitem.paused = False
+        self.connectProcess(jobitem)
+        self.readmore.emit(jobitem)
+    
     def procFinished(self, jobitem, exitcode, estatus):
         # XXXX rewrite this?
         c = self.endCursor()
@@ -125,12 +158,24 @@ class logOutput(QTextBrowser):
             self.oneLine.emit('E({})'.format(exitcode))
         else:
             self.oneLine.emit('(exit)')
-        if jobitem.process.atEnd():
+        if not jobitem.hasmore and jobitem.process.atEnd():
             self.cleanProc(jobitem)
 
     def cleanProc(self, jobitem):
-        self.disconnectProcess(jobitem)
-        self.joblist.discard(jobitem)  # XXX clean anything first?
+        if jobitem and jobitem.process:
+            if jobitem.hasmore or not jobitem.process.atEnd():
+                print("cleanproc too soon m={} e={} b={}".format(jobitem.hasmore, jobitem.process.atEnd(), jobitem.process.bytesAvailable())) # DEBUG
+                # XXXX set timer?
+                return
+            self.disconnectProcess(jobitem)
+            c=self.endCursor()
+            if jobitem in self.joblist:
+                c = self.endCursor()
+                c.insertHtml(jobitem.prefix+'<b>Exit {} cleanproc</b> <br/>'.format(jobitem.process.exitCode()))
+                c.insertText("\n")
+                #c.insertText(str(jobitem.pid)+" clean proc\n")
+                self.joblist.discard(jobitem)  # XXX clean anything first?
+            
 
     ######## GUI stuff
     @QtCore.pyqtSlot(int)
@@ -177,7 +222,7 @@ class logOutput(QTextBrowser):
         self.simpleFind(self.searchtext)
 
     def findPid(self, pid):
-        jobs = [j for j in self.joblist if j.process.processId()==pid]
+        jobs = [j for j in self.joblist if j.pid==pid]
         if len(jobs)==1:
             return next(iter(jobs))
         else:
@@ -199,8 +244,29 @@ class logOutput(QTextBrowser):
             killAct = m.addAction("Kill pid "+pidT)
         else:
             deleteAct = m.addAction("Delete log for pid "+pidT)
-                    
-        # XXX log context menu
+        #if job and job.process!=None: # DEBUG
+        #    print("bytes={} paused={} textstream={}".format(job.process.bytesAvailable(),job.paused, job.textstream.status())) # DEBUG
+        if job and job.textstream:
+            m.addAction("Flush output",job.textstream.flush)
+            if job.paused:
+                try:
+                    status = str(job.process.bytesAvailable())+' bytes'
+                except:
+                    status = ''
+                m.addAction("Resume this pid "+status, partial(self.resumeJob,job))
+            else:
+                m.addAction("Pause this pid",partial(self.pauseJob,job))
+        if job!=None:
+            skipjob = job.pid
+        else:
+            skipjob = 0
+        for job in self.joblist:
+            if not job.paused or job.pid==skipjob: continue
+            m.addAction("Resume pid {} at {} bytes".format(job.pid, job.process.bytesAvailable()) , partial(self.resumeJob,job))
+
+            # XXX autopause if bytes waiting > threshold
+            
+        # XXX log context menu missing items
         # search options
         # delete dead pid entries
 

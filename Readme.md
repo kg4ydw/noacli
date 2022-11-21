@@ -50,7 +50,7 @@ they get lost.
 * Job manager dock window
 * Shortcut button dock
 * Small output dock window
-(log dock window not implemented yet)
+* log dock window 
 
 The following settings dialog boxes allow editing settings:
 * General settings editor
@@ -174,6 +174,21 @@ default file groups.  The default list is editable in settings, or you
 can type a filter in the command window, select it (with keyboard or
 mouse), and then press Ctrl-F to override the default.  If you need to
 select a directory instead of a file, highlight a single `/`
+
+# Log dock window #
+
+If you have a command that typically doesn't output anything
+interesting, or all of its output is debug output (like, for instance,
+a graphical program), then you can transfer its output to the log
+dock.  This window can collect output from mutliple commands at once,
+and tags each line with the process ID and logs the start and exit of
+jobs it is collecting from.  You can use the context menu
+to manipulate the job associated with a particular log line.
+
+Note that the log window is not designed for commands that have huge
+amounts of output.  Use the qtail window for that.  By default, the
+log window only remembers the last 10,000 lines from all processes it
+is logging.
 
 Menus
 -----
