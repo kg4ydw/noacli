@@ -1,17 +1,12 @@
 
 UI= qtail_ui.py noacli_ui.py settingsdialog_ui.py
-RESOURCES=noaclires.py qtailres.py 
 SRCFILES=$(shell git ls-files | grep -v gitignore)
 DISTFILES=$(SRCFILES) $(UI) $(RESOURCES)
 
-all: $(UI) $(RESOURCES)
+all: $(UI)
 
 %.py: %.ui
 	pyuic5 -o $@ $<
-
-%.py: %.qrc
-	rcc -g python -o $@ $<
-# could probably build the qrc here too from dependency info
 
 tar: noacli.tgz
 
@@ -23,7 +18,7 @@ noacli_ui.py: noacli_ui.ui
 
 noacli.tgz: $(DISTFILES)
 	rm -f noacli.tgz
-	tar czvf noacli.tgz $(DISTFILES) $(RESOURCES)
+	tar czvf noacli.tgz $(DISTFILES)
 
 clean:
 	rm *~ TAGS
@@ -33,18 +28,11 @@ clobber: clean
 line100.pbm: line100-ascii.pbm
 	convert line100-ascii.pbm line100.pbm
 
-noaclires.py:: noacli.png
-smalloutputres.py:: line.svg
-qtailres.py:: qtail.png
-
 tags: TAGS
 TAGS: $(SRCFILES)
 	etags datamodels.py logoutput.py noacli.py qtailbrowser.py qtail.py smalloutput.py typedqsettings.py
 
 
-# can't use this?
-noaclires.rcc: noacli-res.qrc line100.pbm  noacli.png  qtail.png
-	rcc -binary -o noacli-res.rcc noacli-res.qrc
 
 # for emacs sometimes
 findprint:

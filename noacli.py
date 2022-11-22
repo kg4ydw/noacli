@@ -17,8 +17,6 @@ from typedqsettings import typedQSettings
 from datamodels import simpleTable, History, jobItem, jobTableModel, settingsDataModel
 from smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
-
-import noaclires
 import signal
 
 __version__ = '0.9.5'
@@ -599,11 +597,10 @@ class noacli(QtWidgets.QMainWindow):
 
         self.historypos = 1;
         dir = os.path.dirname(os.path.realpath(__file__))+'/'
-        icon = QtGui.QIcon(':noacli.png')
-        if icon.isNull(): # try again
+        icon = QtGui.QIcon(dir+'noacli.png')
+        if icon.isNull() or len(icon.availableSizes()): # try again
             print('icon resources failed trying again') # DEBUG
-            icon = QtGui.QIcon(dir+'noacli.png')
-        print('icon sizes='+str(len(icon.availableSizes()))) # DEBUG
+            icon = QtGui.QIcon('noacli.png')
         self.setWindowIcon(icon)
 
         # hide all the docks by default (save a profile if you don't like it)

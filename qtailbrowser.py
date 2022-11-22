@@ -43,6 +43,7 @@ class myBrowser(QTextBrowser):
         return table
     
     def toTable(self, text):
+        # XXX this doesn't handle quoted delimiters correctly in csv
         atable = self.autoTable(text)
         if not atable: return  # fail!
         # normalize the table
@@ -51,9 +52,12 @@ class myBrowser(QTextBrowser):
             if len(row)<width: row +=['']*(width-len(row))
         cursor = self.textCursor()
         t = cursor.insertTable(len(atable), len(atable[0]))
+        # note: must let table be built before starting block to fill it
+        cursor.beginEditBlock()
 
         for arow in atable:
             for cell in arow:
                 cursor.insertText(cell)
                 cursor.movePosition(QTextCursor.NextCell)
+        cursor.endEditBlock()
             

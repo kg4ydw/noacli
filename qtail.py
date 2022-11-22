@@ -12,8 +12,6 @@ from math import ceil
 
 from qtail_ui import Ui_QtTail
 
-import qtailres
-
 # options values -- set defaults
 class myOptions():
     def __init__(self):
@@ -88,7 +86,12 @@ class QtTail(QtWidgets.QMainWindow):
     want_resize = pyqtSignal()
     def __init__(self, options=None, parent=None):
         super().__init__()
-        self.setWindowIcon(QtGui.QIcon(':qtail.png'))
+        dir = os.path.dirname(os.path.realpath(__file__))+'/'
+        icon = QtGui.QIcon(dir+'qtail.png')
+        if icon.isNull() or len(icon.availableSizes()): # try again
+            icon = QtGui.QIcon('qtail.png')
+        self.setWindowIcon(icon)
+
         # connect to my own event so I can send myself a delayed signal
         self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection) # delay this
 
@@ -144,6 +147,8 @@ class QtTail(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def readtext(self):
+        if not self.textstream:
+            return  # trigger: press reload on a pipe
         t = self.textstream.readAll()
         if t:
             # self.textbody.append(t)  # append adds an extra paragraph separator

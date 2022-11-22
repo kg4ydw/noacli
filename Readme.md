@@ -1,5 +1,16 @@
 noacli: the no ampersand cli shell
 
+Dependencies
+------------
+This uses Python and Qt, which are depencies.  To install these:
+
+Mac: (pick one)
+  sudo pip3 install PyQt5
+  pip3 install --user PyQt5
+
+Ubuntu:
+  sudo apt install python3-pyqt5
+
 Philosophy
 ----------
 

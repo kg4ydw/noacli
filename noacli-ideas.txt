@@ -91,6 +91,10 @@ x! block tostop signal
      make sure tableview is resized to fit
 
 Bugs:
+   qtail is slow reading large files
+     read in smaller chunks
+     use cursor.beginEditBlock / endEditBlock
+   reload button should change for pipes
    small output size not set at start if not visible
  ? what to do with stderr? always log?
    lots of stuff packed into class noacli that could go elsewhere
