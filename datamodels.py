@@ -10,7 +10,7 @@ import re   # use python re instead of Qt
 import os
 
 from typedqsettings import typedQSettings
-
+from commandparser import OutWin
 
 class simpleTable(QAbstractTableModel):
     def __init__(self,data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):
@@ -174,10 +174,11 @@ class jobItem():
         self.windowOpen = None
         self.windowTitle = None
         self.fullstatus = None
-        self.mode = ''
+        self.mode = None
         self.process = QProcess()
         self.pid = None # QProcess deletes pid too fast
         self.setStatus('init')
+        self.process.started.connect(self.collectPid)
         self.process.errorOccurred.connect(self.collectError)
         self.process.finished.connect(self.collectFinish)
         self.process.stateChanged.connect(self.collectNewstate)
@@ -186,6 +187,11 @@ class jobItem():
         self.hasmore = True
         # XXX if command starts with # then strip first line and set title
 
+    def getpid(self):
+        if self.pid: return self.pid
+        if self.process:
+            self.pid = self.process.processId()
+            return self.pid
     def __str__(self):  # mash some stuff together
         qs = typedQSettings()
         width = int(qs.value('JobMenuWidth', 30))
@@ -198,20 +204,37 @@ class jobItem():
             title = self.windowTitle = self.window.windowTitle()
         else:
             # XXX or get title from somewhere else?
+            # maybe build it from command?
             title = ''
-        if self.mode and len(self.mode):
-            return self.mode+': '+title
-        else:
-            return title
+        return title
     def setTitle(self,title):
         if not title: return
         self.windowTitle = title
         if self.window:
             self.window.setWindowTitle(title)
-    def setMode(self,mode):
-        self.mode = mode
+            if self.index:
+                i = self.index.siblingAtColumn(3)
+                i.model().dataChanged.emit(i,i)
+    def setMode(self,mode):  # mode is set in command parser
+        if type(mode)==OutWin:
+            self.mode = mode
+            return
+        try:
+            newmode = OutWin[mode]
+            if newmode: 
+                self.mode = OutWin[mode]
+                if self.index:
+                    i = self.index.siblingAtColumn(2)
+                    i.model().dataChanged.emit(i,i)
+            else: print("Failed to convert winmode "+mode) # DEBUG
+        except Exception as e:
+            print(e) # EXCEPT
+            pass
 
     # private slots
+    def collectPid(self):
+        self.pid = self.process.processId() # XXX
+        
     def collectError(self, err):
         self.status += 'E'+str(err)+' '
         self.setStatus(self.status)
@@ -251,18 +274,28 @@ class jobItem():
         # for now, just merge stdout,stderr and send to qtail
         self.process.setProcessChannelMode(QProcess.MergedChannels)
         self.process.closeWriteChannel() # close stdin if we have no infile XXX
-        #self.startQtail(settings)  # XXXX pick one??
-        self.startSmall(settings)
+        outwin = self.mode
+        print('start mode: '+str(outwin)) # XXXXX DEBUG
+        if outwin==OutWin.QTail:
+            print("start qtail") # DEBUG
+            self.setWindow = QtTail(settings.qtail)
+            # XXX Do more parsing and give this a real title
+            self.windowOpen = False
+            qs=typedQSettings()
+            self.window.openProcess(qs.value('QTailDefaultTitle','subprocess') , self.process)
+        elif outwin==OutWin.Log:
+            print("start log") # DEBUG
+            settings.logOutputView.openProcess(self.process, self, settings)
+        else:
+            self.setMode('Small')
+            print("start small") # DEBUG
+            settings.smallOutputView.openProcess(self.process, self, settings)
         #print('start command: '+self.command())  # DEBUG
         # XXX split QSettings.value('SHELL')
-        self.process.start('bash', [ '-c', self.command() ], QIODevice.ReadOnly|QIODevice.Text)
+        #XXX old # self.process.start('bash', [ '-c', self.command() ], QIODevice.ReadOnly|QIODevice.Text)
+        
+        self.process.start(self.args[0], self.args[1:], QIODevice.ReadOnly|QIODevice.Text)
 
-    def startSmall(self,settings):
-        # XXX cheat with settings: signal?
-        settings.smallOutputView.openProcess(self.process, self, settings)
-    def stopSmall(self):
-        # XXX disconnect process??
-        pass
     def setWindow(self,w):
         self.window = w
         self.window.window_close_signal.connect(self.windowClosed)
@@ -270,13 +303,6 @@ class jobItem():
         self.window.show()
         self.window.start()
         
-    def startQtail(self,settings):
-        self.setWindow = QtTail(settings.qtail)
-        # XXX Do more parsing and give this a real title
-        self.windowOpen = False
-        qs=typedQSettings()
-        self.window.openProcess(qs.value('QTailDefaultTitle','subprocess') , self.process)
-
     def windowClosed(self):
         self.windowOpen = False
         if self.index:
@@ -287,7 +313,7 @@ class jobItem():
                    
 class jobTableModel(itemListModel):
     def __init__(self):
-        itemListModel.__init__(self, [ 'pid', 'state', 'window', 'command'] )
+        itemListModel.__init__(self, [ 'pid', 'state','mode', 'window', 'command'] )
         self.cleanTime = QTimer(self)
         self.cleanTime.timeout.connect(self.cleanup)
         # don't start it until we have data
@@ -295,29 +321,33 @@ class jobTableModel(itemListModel):
         if not self.validateIndex(index): return None
         col = index.column()
         job = self.data[index.row()]
-        if role==Qt.BackgroundRole and col==2:
-            if job.mode:
+        if role==Qt.BackgroundRole and col==3:
+            if job.mode and job.mode!=OutWin.QTail: # XXXX color row based on mode?
                 return QBrush(Qt.lightGray)
             if not job.windowOpen:
                 return QBrush(Qt.gray)
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
             # if you update these, also udpate noacli.jobDoubleClicked
+            # also in jobitem emits above
             if col==0: return job.process.processId()
             if col==1: return job.getStatus()
-            if col==2: return job.title()
-            if col==3: return job.command()
+            if col==2:
+                if job.mode: return job.mode.name
+                else: return None
+            if col==3: return job.title()
+            if col==4: return job.command()
         return None
 
     def setData(self, index, value, role):
         if not self.validateIndex(index): return None
         col = index.column()
-        if col!=2: return False  # only window title editable right now
+        if col!=3: return False  # only window title editable right now
         self.data[index.row()].setTitle(value)
         self.dataChanged.emit(index,index)
         return True
     # make window title editable
     def flags(self,index):
-        if not index.isValid() or index.column()!=2:
+        if not index.isValid() or index.column()!=3:
             return super().flags(index)
         return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
     # can't delete a job unless it is dead, so don't implement removeRows

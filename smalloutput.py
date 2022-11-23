@@ -110,6 +110,7 @@ class smallOutput(QTextBrowser):
 
         # XXX if self.keepState leave a placeholder
         self.disconnectProcess()
+        self.jobitem.setMode('Tail')
         if self.jobitem:
             title = self.jobitem.title()
         elif self.process:

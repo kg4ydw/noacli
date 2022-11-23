@@ -30,6 +30,7 @@ class Ui_settingsDialog(object):
         self.label.setObjectName("label")
         self.verticalLayout_2.addWidget(self.label)
         self.tableView = QtWidgets.QTableView(self.scrollAreaWidgetContents)
+        self.tableView.setEditTriggers(QtWidgets.QAbstractItemView.AnyKeyPressed|QtWidgets.QAbstractItemView.DoubleClicked|QtWidgets.QAbstractItemView.EditKeyPressed|QtWidgets.QAbstractItemView.SelectedClicked)
         self.tableView.setObjectName("tableView")
         self.tableView.horizontalHeader().setStretchLastSection(True)
         self.verticalLayout_2.addWidget(self.tableView)

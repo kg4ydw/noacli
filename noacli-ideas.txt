@@ -11,6 +11,8 @@ d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
 Things to implement soon:
+   built in command output should go to small window (too)
+   flag jobmanager column color based on job.window instead of mode
 d* log window needs a threshold LogBatchLines = 5?
  * log window pause / resume process (context)
  E log window flush process (context)
@@ -58,6 +60,7 @@ D* if text is selected before pushing template button, save it and paste over ma
    shortcuts for internal actions
    detach processes before exiting (optionally)
  * add running indicator to small output (kill and log buttons)
+ * history context menu: set vert spacing: expand vs minimum
 
 User visible bugs:
    merged log is not clearing exit status if paused before exiting
@@ -71,7 +74,7 @@ User visible bugs:
 D*    should warn on duplicate names? (color?)
  *    fix editing command causing duplicate entries
    history window table needs to be resized sometimes
-x! block tostop signal
+x! block tostop signal : try os.setsid ?
      detect child proc trying to read stdin/stderr
      kill child proc?
      move to terminal window automatically?

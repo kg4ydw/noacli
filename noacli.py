@@ -17,9 +17,10 @@ from typedqsettings import typedQSettings
 from datamodels import simpleTable, History, jobItem, jobTableModel, settingsDataModel
 from smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
+from commandparser import OutWin, commandParser
 import signal
 
-__version__ = '0.9.5'
+__version__ = '0.9.6'
 
 class settingsDict():
     # key : [ default, tooltip, type ]
@@ -69,6 +70,7 @@ class settings():
         self.history = History()
         self.history.read()
         self.favorites = Favorites(self)
+        self.commandParser = commandParser() # XXX load settings
         # don't call this before setting buttonbox, so call it in caller
         #self.favorites.loadSettings()
 
@@ -144,6 +146,8 @@ class settings():
                 #print('save '+str(d[0])+' = '+str(d[1])) # DEBUG
                 qs.setValue(d[0], d[1])
         self.copy2qtail()
+        # XXXX copy settings that have immediate effect to their widgets
+        # XXXX copy  logDock length setting
         qs.sync()
     def acceptOrReject(self, result):
         if result: self.acceptchanges()
@@ -616,6 +620,8 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.favorites.setButtonBox(self.ui.buttonBox, [ self.runSimpleCommand, self.ui.commandEdit.acceptCommand])
         self.settings.favorites.loadSettings()
 
+        self.settings.logOutputView = self.ui.logBrowser # XX
+
         # populate the view menu for DOCK (is there a more automatic way?)
         ui.menuViews.addAction(ui.history.toggleViewAction())
         ui.menuViews.addAction(ui.jobManager.toggleViewAction())
@@ -815,8 +821,9 @@ class noacli(QtWidgets.QMainWindow):
             self.app.clipboard().setText(text)
             self.app.clipboard().setText(text, QClipboard.Selection)
         elif col==1: index.model().cleanupJob(index)  # job status
-        elif col==2: self.windowShowRaise(index)
-        elif col==3: self.ui.commandEdit.acceptCommand(index.model().getItem(index).command())
+        #elif col==2: #XXX mode
+        elif col==3: self.windowShowRaise(index)
+        elif col==4: self.ui.commandEdit.acceptCommand(index.model().getItem(index).command())
 
     # in: jobView out: jobModel
     def windowShowRaise(self,index):
@@ -838,6 +845,13 @@ class noacli(QtWidgets.QMainWindow):
         ui.jobManager.setVisible(True)
         ui.smallOutputDock.setVisible(True)
         ui.logDock.setVisible(True)
+        # it's not enough to make these visible, need to show them too
+        # OS window manager can close the window
+        ui.history.show()
+        ui.buttons.show()
+        ui.jobManager.show()
+        ui.smallOutputDock.show()
+        ui.logDock.show()
 
     @QtCore.pyqtSlot()
     def hideAllDocks(self):
@@ -877,8 +891,21 @@ class noacli(QtWidgets.QMainWindow):
         if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
             hist=hist.model().mapToSource(hist)
         self.ui.historyView.resetHistorySort()  # XXX this might be annoying
+        cmdargs = self.settings.commandParser.parseCommand(hist.model().getCommand(hist))
+        #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
+        if cmdargs==None: return # done
+        if type(cmdargs)==str:
+            self.statusBar().showMessage(cmdargs) # XXX too much or one linex?
+            print('message: '+cmdargs)# XXXXX send to small output or statusbar?
+            return
+        # ok, we have an external command to run 
+        (title,outwin,args) = cmdargs
         j = jobItem(hist)  # XX construct new job
-        if title: j.setTitle(title)
+        j.args = args
+        j.setMode(outwin)
+        print("parse mode: "+str(outwin))
+        if title and len(title)>0:
+            j.setTitle(title)
         self.settings.jobs.newjob(j)
         j.start(self.settings)
         # XX try to fix job table size every time?
@@ -940,13 +967,13 @@ class noacli(QtWidgets.QMainWindow):
         a = self.ui.profileMenuGroup.checkedAction()
         if a:
             n = a.data()
-            print('Current profile: '+n) # DEBUG
+            #print('Current profile: '+n) # DEBUG
         else:
             n = 'default'
         self.mySaveGeometry(n)
         
     def mySaveGeometry(self,name='default' ):
-        print("Saving profile "+name) # DEBUG
+        #print("Saving profile "+name) # DEBUG
         qs = QSettings()
         qs.beginGroup('Geometry/'+name)
         qs.setValue('mainGeo', self.saveGeometry())
@@ -955,9 +982,11 @@ class noacli(QtWidgets.QMainWindow):
         # check if this is already in the menu, and if not, add it
         gm = self.ui.profileMenuGroup
         c = gm.findChild(QAction, name)
-        if c: print(' already in menu') # DEBUG
+        if c:
+            #print(' already in menu') # DEBUG
+            pass
         else:
-            print(' adding {} to profile menu'.format(name)) # DEBUG
+            #print(' adding {} to profile menu'.format(name)) # DEBUG
             mm = gm.addAction(name)
             mm.setData(name)
             mm.setObjectName(name)
@@ -987,7 +1016,7 @@ class noacli(QtWidgets.QMainWindow):
     def actionRestoreGeomAct(self, act):
         # checkedAction()
         n = act.data()
-        print("action: "+n) # DEBUG
+        #print("action: "+n) # DEBUG
         if n: self.myRestoreGeometry(n)
 
     @QtCore.pyqtSlot()

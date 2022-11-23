@@ -65,32 +65,34 @@ class logOutput(QTextBrowser):
             self.setTextCursor(c) # jump to end
         return c
 
-    # XXX this isn't used (yet)
+    # call triggered by dcommand processor
     def openProcess(self, process, jobitem, settings, pretext='', title=''):
         # XXX we don't use title here, but should we?
         self.settings = settings  # need this for qtail
         self.joblist.add(jobitem)
         jobitem.process = process
         jobitem.textstream = QTextStream(process)
-        jobitem.pid = process.processId()
-        jobitem.prefix = str(jobitem.pid)+': '
+        ## do this in job item XX
+        #p = process.processId()
+        #if p: jobitem.pid = p # don't accidentally zero it
+        #jobitem.prefix = str(jobitem.pid)+': ' # XXX buggy
         jobitem.setMode('Log')
         self.connectProcess(jobitem)
         c = self.endCursor()
-        c.insertHtml(jobitem.prefix+'<b>Start log</b> <br/>')
+        c.insertHtml(str(jobitem.getpid())+': <b>Start log</b> <br/>')
         c.insertText("\n")
         if pretext:
             for line in str.splitlines():
-                c.insertText(jobitem.prefix+'(S) '+line+"\n")
+                c.insertText(str(jobitem.getpid())+': (S) '+line+"\n")
 
     def receiveJob(self, jobitem):
         # like openProcess but jobitem already packed up
         self.joblist.add(jobitem)
-        jobitem.pid = jobitem.process.processId()
-        jobitem.prefix = str(jobitem.pid)+': '
-        jobitem.setMode('Log')
+        #jobitem.pid = jobitem.process.processId() # XX do this in jobitem
+        #jobitem.prefix = str(jobitem.pid)+': ' # this works, but not above
+        jobitem.setMode('Log') # XX redundant?
         c = self.endCursor()
-        c.insertHtml(jobitem.prefix+'<b>Start log</b> <br/>')
+        c.insertHtml(str(jobitem.getpid())+': <b>Start log</b> <br/>')
         c.insertText("\n")
         self.connectProcess(jobitem)
                 
@@ -117,9 +119,9 @@ class logOutput(QTextBrowser):
         self.hasmore = True
         while lines>0:  #XXXX and jobitem.process.canReadLine():
             t = jobitem.textstream.readLine()
-            if jobitem.process.atEnd(): print('readmore '+str(len(t))) # DEBUG
+            #if jobitem.process.atEnd(): print('readmore '+str(len(t))) # DEBUG
             if t:
-                e.insertText(jobitem.prefix+t+"\n")
+                e.insertText(str(jobitem.getpid())+': '+t+"\n")
             else:
                 self.hasmore = False
                 break
@@ -152,7 +154,7 @@ class logOutput(QTextBrowser):
     def procFinished(self, jobitem, exitcode, estatus):
         # XXXX rewrite this?
         c = self.endCursor()
-        c.insertHtml(jobitem.prefix+'<b>Exit {}</b> <br/>'.format(exitcode))
+        c.insertHtml('{}: <b>Exit {}</b> <br/>'.format(jobitem.pid, exitcode))
         c.insertText("\n")
         if exitcode:
             self.oneLine.emit('E({})'.format(exitcode))
@@ -171,7 +173,7 @@ class logOutput(QTextBrowser):
             c=self.endCursor()
             if jobitem in self.joblist:
                 c = self.endCursor()
-                c.insertHtml(jobitem.prefix+'<b>Exit {} cleanproc</b> <br/>'.format(jobitem.process.exitCode()))
+                c.insertHtml('{}: <b>Exit {} cleanproc</b> <br/>'.format(jobitem.pid, jobitem.process.exitCode()))
                 c.insertText("\n")
                 #c.insertText(str(jobitem.pid)+" clean proc\n")
                 self.joblist.discard(jobitem)  # XXX clean anything first?
@@ -275,7 +277,7 @@ class logOutput(QTextBrowser):
         action = m.exec_(event.globalPos())
         # use action if things weren't attached above
         if job and action==killAct:
-            job.process.kill()
+            job.process.kill() # XXX should this use terminate instead?
         elif deleteAct and action==deleteAct:
             c = self.textCursor()
             c.movePosition(QTextCursor.Start)
