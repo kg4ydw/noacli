@@ -2,10 +2,12 @@
 # simple tables and widgets
 # contaminated with app specific classes and GUI pieces
 
+from PyQt5 import QtWidgets
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
 from PyQt5.QtCore import QModelIndex, QProcess, QTimer, QObject, QSettings
 from PyQt5.QtCore import QIODevice
 from qtail import QtTail
+from settingsdialog_ui import Ui_settingsDialog
 import re   # use python re instead of Qt
 import os
 
@@ -100,7 +102,12 @@ class simpleTable(QAbstractTableModel):
             # if you don't like veritcal headers, turn them off in designer
             return str(col)
         return None
-  
+    def appendRow(self, row):
+        lastrow = len(self.mydata)
+        self.beginInsertRows(QModelIndex(), lastrow,lastrow)
+        self.mydata.append(row)
+        self.endInsertRows()
+
 class itemListModel(QAbstractTableModel):
     # an array of items, where each item is a row
     def __init__(self, headers):
@@ -634,3 +641,33 @@ class settingsDataModel(simpleTable):
             # swap tooltip columns
             return doc[1-col]
         return super(settingsDataModel,self).data(index, role)
+
+class settingsDialog(QtWidgets.QDialog):
+    typedelegates = {}
+    def __init__(self, parent, title, model, doc=None):
+        # need parent so that this isn't persistent in window close
+        super().__init__(parent)
+        ui = Ui_settingsDialog()
+        self.model = model
+        # XXX proxy model?  search?
+        self.ui = ui
+        ui.setupUi(self)
+        ui.tableView.setModel(model)
+        if hasattr(model,'datatypesrow') and model.datatypesrow:
+            for i in range(len(model.datatypesrow)):
+                typename = model.datatypesrow[i].__class__.__name__
+                if typename in self.typedelegates:
+                    ui.tableView.setItemDelegateForColumn(i,self.typedelegates[typename](ui.tableView))
+        self.setWindowTitle(title)
+        if doc:
+            ui.label.setText(doc)
+        else:
+            ui.label.setText(title)
+        ui.tableView.resizeColumnsToContents()
+        self.apply = self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Apply).clicked
+        # XX resize top window too?
+        self.show()
+
+    @classmethod
+    def registerType(cls, type, delegate):
+        cls.typedelegates[type.__class__.__name__] = delegate

@@ -275,7 +275,7 @@ class smallOutput(QTextBrowser):
         t = self.textstream.readAll()
         self.addLines(t)
         if self.doneProc:
-            print('last read') # DEBUG
+            #print('last read') # DEBUG
             self.disconnectProcess()
             self.clearproc()  # really done now
 

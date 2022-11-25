@@ -11,13 +11,13 @@ from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QMod
 from functools import partial
 
 from noacli_ui import Ui_noacli
-from settingsdialog_ui import Ui_settingsDialog
 from typedqsettings import typedQSettings
 
-from datamodels import simpleTable, History, jobItem, jobTableModel, settingsDataModel
+from datamodels import simpleTable, History, jobItem, jobTableModel, settingsDataModel, settingsDialog
 from smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
 from commandparser import OutWin, commandParser
+from envdatamodel import envSettings
 import signal
 
 __version__ = '0.9.6'
@@ -74,8 +74,8 @@ class settings():
         # don't call this before setting buttonbox, so call it in caller
         #self.favorites.loadSettings()
 
-        # populate environment from system environment
-        self.environment = QProcessEnvironment.systemEnvironment()
+        self.environment = envSettings()
+
         ## XXX load configured env mods
         ## XXX later [ 'name', 'value', 'propagate', 'save' ])
         self.jobs = jobTableModel()
@@ -160,26 +160,6 @@ class settings():
         self.dialog = None
         self.data = None
 
-    def envDialog(self,parent):
-        # make an editable table of environment settings and add some blanks
-        self.envset = set(self.environment.keys())
-        self.envdata = [ [key, self.environment.value(key)] for key in sorted(self.envset)]
-        self.envdata += [['',''],['','']]
-        model = simpleTable(self.envdata, ['Env Var','Value'], editmask=[True, True])
-        self.envDia = settingsDialog(parent,'Environment variables', model)
-        self.envDia.finished.connect(self.finishEnv)
-    def finishEnv(self, result):
-        if result:
-            for row in self.envdata:
-                if row[0] and row[1]:
-                    self.environment.insert(row[0], row[1])
-                    self.envset.discard(row[0])
-            for missing in self.envset:
-                self.environment.remove(missing)
-        self.envset = None
-        self.envdata = None
-        self.envDia = None
-
 class keySequenceDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
@@ -210,31 +190,6 @@ class keySequenceDelegate(QStyledItemDelegate):
         else:
             model.setData(index, k.toString(), Qt.EditRole)
     ####
-
-class settingsDialog(QtWidgets.QDialog):
-    def __init__(self, parent, title, model, doc=None):
-        # need parent so that this isn't persistent in window close
-        super().__init__(parent)
-        ui = Ui_settingsDialog()
-        self.model = model
-        # XXX proxy model?  search?
-        self.ui = ui
-        ui.setupUi(self)
-        ui.tableView.setModel(model)
-        if hasattr(model,'datatypesrow') and model.datatypesrow:
-            for i in range(len(model.datatypesrow)):
-                if model.datatypesrow[i]==QKeySequence:
-                    ui.tableView.setItemDelegateForColumn(i,keySequenceDelegate(ui.tableView))
-                #X add other custom types here
-        self.setWindowTitle(title)
-        if doc:
-            ui.label.setText(doc)
-        else:
-            ui.label.setText(title)
-        ui.tableView.resizeColumnsToContents()
-        self.apply = self.ui.buttonBox.button(QDialogButtonBox.Apply).clicked
-        # XX resize top window too?
-        self.show()
 
 class historyView(QTableView):
     newFavorite = pyqtSignal(str)
@@ -403,6 +358,7 @@ class Favorites():
         self.settings = settings
         self.buttonbox = None
         self.runfuncs = None
+        settingsDialog.registerType(QKeySequence, keySequenceDelegate)
 
     def setButtonBox(self, box, runfuncs):
         self.buttonbox = box
@@ -928,7 +884,7 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.makeDialog(self)
     @QtCore.pyqtSlot()
     def actionEsettings(self):
-        self.settings.envDialog(self)
+        self.settings.environment.envDialog(self)
 
     @QtCore.pyqtSlot(str)
     def runSimpleCommand(self, cmd, title):
