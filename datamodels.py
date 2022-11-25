@@ -175,17 +175,22 @@ class jobItem():
         self.windowTitle = None
         self.fullstatus = None
         self.mode = None
-        self.process = QProcess()
         self.pid = None # QProcess deletes pid too fast
-        self.setStatus('init')
-        self.process.started.connect(self.collectPid)
-        self.process.errorOccurred.connect(self.collectError)
-        self.process.finished.connect(self.collectFinish)
-        self.process.stateChanged.connect(self.collectNewstate)
         self.window=None
         self.paused = False
-        self.hasmore = True
-        # XXX if command starts with # then strip first line and set title
+        if history:  # only for real jobs
+            self.setStatus('init')
+            self.process = QProcess()
+            self.process.started.connect(self.collectPid)
+            self.process.errorOccurred.connect(self.collectError)
+            self.process.finished.connect(self.collectFinish)
+            self.process.stateChanged.connect(self.collectNewstate)
+            self.hasmore = True
+        else:  # fake jobitem for internal commands
+            self.hasmore = False
+            self.fullstatus=' '
+            self.setStatus(' ')
+            self.process = None
 
     def getpid(self):
         if self.pid: return self.pid
@@ -198,6 +203,7 @@ class jobItem():
         s = str(self.getStatus())+' | '+str(self.title())+' | '+str(self.command())
         return str(s)[0:width]
     def title(self):
+        # XXX if command starts with # then strip first line and set title
         if self.windowTitle:
             title = self.windowTitle
         elif self.window:
@@ -254,13 +260,16 @@ class jobItem():
         if self.index:
             index = self.index.model().sibling(self.index.row(),1,QModelIndex())
             self.index.model().dataChanged.emit(index,index)
-        if exitStatus!=None:
+        if not self.history: # not a real job
+            pass
+        elif exitStatus!=None:
             self.history.model().setStatus(self.history, exitStatus)
         else:
             self.history.model().setStatus(self.history,status)
 
     # public interfaces
     def command(self):
+        if not self.history: return None
         return self.history.model().getCommand(self.history)
     def getStatus(self):
         if self.fullstatus: return self.fullstatus
@@ -329,7 +338,7 @@ class jobTableModel(itemListModel):
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
             # if you update these, also udpate noacli.jobDoubleClicked
             # also in jobitem emits above
-            if col==0: return job.process.processId()
+            if col==0 and job.process: return job.process.processId()
             if col==1: return job.getStatus()
             if col==2:
                 if job.mode: return job.mode.name

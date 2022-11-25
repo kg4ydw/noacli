@@ -14,12 +14,15 @@ from enum import Enum
 class OutWin(Enum):
     Default = 0  # use current default or command default
     Small = 1
-    "Send output to the small output dock window"
     QTail = 2
     Tail = 2 # alias
-    "View possibly growing output in a scrollable browser"
     Log = 3
-    "Merge output from this and other commands into the merged log dock window"
+    Internal = 99  # only use internally
+
+# enums don't natively support doc strings; this is used by cmd_help
+OutWin.Small.__doc__ = "Send output to the small output dock window"
+OutWin.QTail.__doc__ = "View possibly growing output in a scrollable browser"
+OutWin.Log.__doc__ = "Merge output from this and other commands into the merged log dock window"
 
 builtinCommands = {
  #### output destinations
@@ -163,11 +166,11 @@ class commandParser:
         for word in words:
             if word in builtinCommands:
                 if hasattr(builtinCommands[word],'__doc__'):
-                    text += "{}: {}\n\n".format(word, builtinCommands[word].__doc__)
+                    text += "{}: {}\n".format(word, builtinCommands[word].__doc__)
                 else:
-                    text += "{}: no documentation\n\n".format(word)
+                    text += "{}: no documentation\n".format(word)
             else:
-                text += "{} not found\n\n".format(word)
+                text += "{} not found\n".format(word)
         return text
 
 
@@ -177,12 +180,42 @@ class commandParser:
         from noacli import __version__
         return 'Version '+__version__
 
-    #@builtin('type')
-    #def cmd_type(self, title, outwin, rest):
-    #'''Find what things match the given command'''
-    #    t=''
-    #    words=rest.split()
-
+    @builtin('type')
+    def cmd_type(self, title, outwin, rest):
+        '''Find what things match the given command'''
+        t=''
+        words=rest.split()
+        # XXX this shoudl get the path from the propagated environment
+        # but only the real one is available here, hope the user didn't change it
+        pathdirs = os.get_exec_path()
+        for cmd in words:
+            t+= cmd+':\n'
+            # check internal command dictionary
+            if cmd in builtinCommands:
+                t += '  built in command\n'
+            # check wrappers
+            if cmd in self.wrappers:
+                t += '  wrapper: '+(' '.join(['(', self.wrappers[cmd][0].name,')']+ self.wrappers[cmd][1:]))+"\n"
+            if cmd[0]=='/': continue # XX ignore full path commands for now
+            # check external paths
+            for dir in pathdirs:
+                prefix='  '
+                f = os.path.join(dir,cmd)
+                if os.path.islink(f):
+                    try:
+                        rf = os.path.realpath(f, strict=True)
+                        t += prefix + f + ' ==> '+ rf +'\n'
+                        # look again
+                        f = rf
+                        prefix += '  '
+                    except:
+                        t += prefix + f + ' broken symlink\n'
+                        continue
+                elif os.path.isfile(f):
+                    t += prefix + f +'\n'
+                    # XXX
+        return t
+            
     #### Other future built-in commands not implemented yet
     # 'pwd':  is this needed at all?  external pwd works fine
     # 'pushd':'popd': needs internal directory stack and probable parsing

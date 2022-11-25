@@ -122,16 +122,27 @@ class smallOutput(QTextBrowser):
 
         # XXX if self.keepState leave a placeholder
         self.disconnectProcess()
-        self.jobitem.setMode('Tail')
-        if self.jobitem:
-            title = self.jobitem.title()
-        elif self.process:
-            title = self.process.command()[0] # XX
-            self.jobitem.setTitle(title)
+
+        if not self.jobitem: # internal command!
+            title = 'internal'
+            # construct a fake jobitem
+            self.jobitem = jobItem(None)
+            self.jobitem.setTitle('internal')
+            self.jobitem.setMode('Internal')
+            # add ourself to the job list since we're about to get a window
+            if self.settings:
+                self.settings.jobs.newjob(self.jobitem)
         else:
-            title = 'dead' # XXX pull default? SETTING
-        
+            self.jobitem.setMode('Tail')
+            if self.jobitem:
+                title = self.jobitem.title()
+            elif self.process:
+                title = self.process.command()[0] # XX
+                self.jobitem.setTitle(title)
+            else:
+                title = 'dead' # XXX pull default? SETTING
         qt = QtTail(self.settings.qtail)
+        
         self.jobitem.setWindow(qt)
         qt.openPretext(self.process, self.textstream, pretext=text, title=title)
         self.clearproc()
@@ -244,11 +255,33 @@ class smallOutput(QTextBrowser):
         qs = typedQSettings()
         # XXX start oneshot timer
     
+    def internalOutput(self, settings, msg):
+        ## Accept output from internal commands
+        # Note: do the normal thing if the previous was an internal command
+        # otherwise, merge it and lose previous output
+        if self.process:
+            self.smallDup()
+            if not self.keepState:
+                self.clear()
+        self.settings = settings
+        # don't clear or dup for previous small output
+        c = self.getProcCursor() # always do this just to intialize it
+        self.setTextCursor(c) # jump to end
+        self.procStartLine = self.document().blockCount()
+        self.doneProc = True
+        self.addLines(msg)
         
     def readLines(self):
         t = self.textstream.readAll()
+        self.addLines(t)
+        if self.doneProc:
+            print('last read') # DEBUG
+            self.disconnectProcess()
+            self.clearproc()  # really done now
+
+    def addLines(self,t):
+        # XXX this bypasses clearing buffer from previous job
         emit = False
-        start = self.curBlock()
         if t:
             num = self.countLines(t)
             if num==1:
@@ -266,12 +299,7 @@ class smallOutput(QTextBrowser):
             else:
                 # no status bar?
                 pass
-                
-        if self.doneProc:
-            print('last read') # DEBUG
-            self.disconnectProcess()
-            self.clearproc()  # really done now
-            
+         
     def procFinished(self, exitcode, estatus):
         #print('small proc finished ') # DEBUG
         if not self.gettingFull(2):

@@ -712,7 +712,7 @@ class noacli(QtWidgets.QMainWindow):
         qs.endGroup()
 
         self.showMessage('Version '+__version__)
-        self.ui.smallOutputView.append('Version '+__version__)
+        self.ui.smallOutputView.append('Version '+__version__+"\n")
         # connect slots QtCreator coudln't find
         self.ui.smallOutputView.buttonState.connect(self.ui.logOutputButton.setEnabled)
         self.ui.smallOutputView.buttonState.connect(self.setTerminateButton)
@@ -840,7 +840,7 @@ class noacli(QtWidgets.QMainWindow):
                 if startdir:
                     fs[0] = fs[0].removeprefix(startdir)
             except Exception as e:
-                #print(e) # EXCEPT
+                #print(e) # EXCEPT DEBUG
                 pass
             ## and return the results to the editor
             f = ' '.join(fs)+' '  # leave a trailing space after filename
@@ -944,8 +944,7 @@ class noacli(QtWidgets.QMainWindow):
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
         if cmdargs==None: return # done
         if type(cmdargs)==str:
-            self.statusBar().showMessage(cmdargs) # XXX too much or one linex?
-            print('message: '+cmdargs)# XXXXX send to small output or statusbar?
+            self.ui.smallOutputView.internalOutput(self.settings,cmdargs+"\n")
             return
         # ok, we have an external command to run 
         (title,outwin,args) = cmdargs

@@ -55,7 +55,6 @@ D* if text is selected before pushing template button, save it and paste over ma
    SETTING: max qtail window size
 
 User visible bugs:
-   log flush context: doesn't do anything?
    duplicate key bindings don't get background paint until dialog is reopened
    mac bugs
      history arrows don't work on mac
@@ -63,7 +62,6 @@ User visible bugs:
  * favorites editor bugs
 DE    should warn on duplicate names? (color?)
  *    fix editing command causing duplicate entries
- ? history window table needs to be resized sometimes
 x! block tostop signal : try os.setsid ?
      detect child proc trying to read stdin/stderr
      kill child proc?
@@ -73,22 +71,18 @@ x! block tostop signal : try os.setsid ?
    qtail gives useless errors on file not found
  * favorites editor duplicates entries when you edit commands
  ! default geometry profile used but not checked at start (use setChecked)
-   qtail main window doesn't autoresize even when it has horiz scrollbar
-      maybe initial size wrong only
-      maybe threshold issue? maybe check scroll viewport?
-   phantom buttons
    flowlayout overlapping buttons
    settings apply button is delayed until ok pressed
-   resize history to fit window at start (scroll bar bug)
-     change stretch mode?
+   resize history to fit window at start (scroll bar bug, only when tiny)
      make sure tableview is resized to fit
+ ? history window table needs to be resized sometimes
 
 Bugs:
+   log flush context: doesn't do anything?
    qtail is slow reading large files
      read in smaller chunks
      use cursor.beginEditBlock / endEditBlock
    reload button should change for pipes
-   small output size not set at start if not visible
  ? what to do with stderr? always log?
    lots of stuff packed into class noacli that could go elsewhere
  ? make file dialog not modal
@@ -96,7 +90,7 @@ Bugs:
    when a dock is pulled out, check if it has scrollbars and resize
    Poor data flow between jobItem and smallOutput (refactor)
    'set max' too often -- use histiresis of mul+1 ?
-   file dialog cwd filter breaks in python 3.8
+   file dialog cwd filter breaks in python 3.8 (work around in place)
  o history stupid scroll: fix by removing horizontal scroll bar
    history and job views should probably reimplement sizeHint and use minExp
 
@@ -115,16 +109,16 @@ D*   single line (or most recent?) output sent to status bar
 
 D* merged logs window
      count unviewed messages and show counter in status bar and menu
-     send some messages also to small output window
- 	if sow is visible and log is not
- !	if newly started program exits before next command
- !	if exit value is nonzero
- 	blacklist list
- 	whitelist ?
+ n?  send some messages also to small output window
+  	if sow is visible and log is not
+  	if newly started program exits before next command
+  	if exit value is nonzero
+  	blacklist list
+  	whitelist ?
  x   filter by pid, process name, random string
  *   purge by ^^
 D*   max retention
-
+  
    command parser fd redirection
      prefix or suffix for output dest
        stdout:stderr
@@ -135,13 +129,13 @@ D*   max retention
      handle >
      set window title based on regex filter list
    update status bar with recent process status and errors
-   short output in status window
-   single lines to status bar (and status window?)
-
+ * short output in status window
+ * single lines to status bar (and status window?)
+ 
  * job manager and history:
  *   scroll to new entry
  *   resize columns
-
+ 
  context menu / widget / class
  * history manager / historyView
  * job manager / jobTableVew / noacli
@@ -544,3 +538,5 @@ D*   if it ends in / select dirs only??
  n   maybe output dir/{} syntax (this is just too clever for its own good)
  * add tooltips to favarites editor command
  * scroll job manager to bottom on new job?
+ * qtail main window doesn't autoresize even when it has horiz scrollbar
+ * small output size not set at start if not visible
