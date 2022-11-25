@@ -1,4 +1,4 @@
-noacli: the no ampersand cli shell
+noacli: the No Ampersand CLI shell
 
 Dependencies
 ------------
@@ -23,19 +23,23 @@ This is a hybrid shell, with both cli and graphical features.
 It is not a full turing complete parsed language, but it supports using
 one underneath if you want that.   It doesn't even think about being a
 full gui shell with integrated window manager either, it expects you to
-have one.
+have one, although it can help find or close lost windows.
 
 The intent of this shell is to simplify a lot of cli things that make you
 dedicate a terminal window to them and display their results in a more
 convenient way made possible by using a full graphical interface instead
 of a terminal window.
 
+It's not that we hate background jobs, but that they seem silly when
+you could have just opened another window.  It's not that we like a
+proliferation of windows either -- this has measures to minimize that.
+
 This shell tries to make the following concepts obsolete;
 * terminal based text pagers
 * background jobs
 * waiting for jobs to complete before starting another
 * terminal multiplexers
-* terminal based scrol back buffers
+* terminal based scroll back buffers
 
 None of these really make sense when you can just open another graphical window.
 
@@ -66,7 +70,7 @@ they get lost.
 The following settings dialog boxes allow editing settings:
 * General settings editor
 * Favorites editor
-
+* Environment variable editor
 
 # qtail #
 The qtail window also works as a separate application from the shell,
@@ -180,21 +184,24 @@ button in the button dock.
 If, for some reason, you need a list of files in a command, you can
 press Ctrl-F to get a normal file browser window.  You can select
 multiple files there and when "opened" the filenames will be inserted
-into the command.  The file browser is preconfigured with a number of
-default file groups.  The default list is editable in settings, or you
-can type a filter in the command window, select it (with keyboard or
-mouse), and then press Ctrl-F to override the default.  If you need to
-select a directory instead of a file, highlight a single `/`
+into the command.  If you open the file browser with text immediately
+before the cursor, it will treat that as a starting directory.  The
+file browser is preconfigured with a number of default file groups.
+The default list is editable in settings, or you can type a filter in
+the command window, select it (with keyboard or mouse), and then press
+Ctrl-F to override the default this once.  If you need to select a
+directory instead of a file, highlight a single `/`
 
 # Log dock window #
 
 If you have a command that typically doesn't output anything
 interesting, or all of its output is debug output (like, for instance,
-a graphical program), then you can transfer its output to the log
-dock.  This window can collect output from mutliple commands at once,
-and tags each line with the process ID and logs the start and exit of
-jobs it is collecting from.  You can use the context menu
-to manipulate the job associated with a particular log line.
+a graphical program), then you can transfer its output to the log dock
+(or start it there).  This window can collect output from mutliple
+commands at once, and tags each line with the process ID and logs the
+start and exit of jobs it is collecting from.  You can use the context
+menu to manipulate the job associated with a particular log line or
+clear the output from finished jobs.
 
 Note that the log window is not designed for commands that have huge
 amounts of output.  Use the qtail window for that.  By default, the

@@ -35,6 +35,13 @@ TAGS: $(SRCFILES)
 
 
 # for emacs sometimes
+# marger tags:
+#  XX  possibly unfinished feature
+#  XXX unfinished feature
+#  XXXX very unfinished feature
+#  XXXXX FIX ME NOW
+#  DEBUG debug print
+#  EXCEPT print if something unexpected went wrong
 findprint:
 	grep --color -nH -e print *.py|egrep -av 'DEBUG|EXCEPT'
 findxx:

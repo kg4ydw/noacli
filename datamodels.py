@@ -275,20 +275,20 @@ class jobItem():
         self.process.setProcessChannelMode(QProcess.MergedChannels)
         self.process.closeWriteChannel() # close stdin if we have no infile XXX
         outwin = self.mode
-        print('start mode: '+str(outwin)) # XXXXX DEBUG
+        #print('start mode: '+str(outwin)) # DEBUG
         if outwin==OutWin.QTail:
-            print("start qtail") # DEBUG
-            self.setWindow = QtTail(settings.qtail)
-            # XXX Do more parsing and give this a real title
-            self.windowOpen = False
-            qs=typedQSettings()
-            self.window.openProcess(qs.value('QTailDefaultTitle','subprocess') , self.process)
+            #print("start qtail") # DEBUG
+            self.setWindow(QtTail(settings.qtail))
+            title = self.title()
+            if not title or len(title)==0:
+                title = typedQSettings().value('QTailDefaultTitle','subprocess')
+            self.window.openProcess(title , self.process)
         elif outwin==OutWin.Log:
-            print("start log") # DEBUG
+            #print("start log") # DEBUG
             settings.logOutputView.openProcess(self.process, self, settings)
         else:
             self.setMode('Small')
-            print("start small") # DEBUG
+            #print("start small") # DEBUG
             settings.smallOutputView.openProcess(self.process, self, settings)
         #print('start command: '+self.command())  # DEBUG
         # XXX split QSettings.value('SHELL')
@@ -322,7 +322,7 @@ class jobTableModel(itemListModel):
         col = index.column()
         job = self.data[index.row()]
         if role==Qt.BackgroundRole and col==3:
-            if job.mode and job.mode!=OutWin.QTail: # XXXX color row based on mode?
+            if job.mode and not job.window:
                 return QBrush(Qt.lightGray)
             if not job.windowOpen:
                 return QBrush(Qt.gray)

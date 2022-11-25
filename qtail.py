@@ -148,6 +148,7 @@ class QtTail(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def readtext(self):
         if not self.textstream:
+            self.rebutton('Close', self.close)
             return  # trigger: press reload on a pipe
         t = self.textstream.readAll()
         if t:
@@ -177,7 +178,7 @@ class QtTail(QtWidgets.QMainWindow):
         doc.setMaximumBlockCount(self.opt.maxLines)
 
     def showsize(self):
-        self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",0)
+        self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",-1)
 
     def openfile(self,filename):
         # XXX assume tail mode
@@ -225,7 +226,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.textstream = QtCore.QTextStream(process)
         self.opt.file = False
         self.file.readyRead.connect(self.readtext)
-        self.rebutton('Kill', self.killProcess)
+        self.rebutton('kill', self.terminateProcess)
         self.file.finished.connect(self.procFinished)
 
     def openPretext(self, process, textstream, pretext='', title=None):
@@ -253,7 +254,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.opt.file = False
         if self.file:
             self.file.readyRead.connect(self.readtext)
-            self.rebutton('Kill', self.killProcess)
+            self.rebutton('Kill', self.terminateProcess)
             self.file.finished.connect(self.procFinished)
         # these are likely too soon
         #self.actionAdjust()
@@ -270,6 +271,11 @@ class QtTail(QtWidgets.QMainWindow):
         if self.ui.textBrowser.document().isEmpty():
             # XXX should this be conditional?
             self.close()
+
+    def terminateProcess(self, checked):
+        self.file.terminate()
+        self.rebutton('Kill harder', self.killProcess)
+        # XXX or rerun?
 
     def killProcess(self, checked):
         self.file.kill()
@@ -303,6 +309,9 @@ class QtTail(QtWidgets.QMainWindow):
             self.showsize()
         self.readtext()
 
+    # this can take either QAction or QCheckBox
+    # checkbox was removed from UI main panel and moved into a menu
+    @QtCore.pyqtSlot(bool)
     @QtCore.pyqtSlot(int)
     def wrapChanged(self, state):
         e = self.textbody.textCursor()
@@ -348,11 +357,12 @@ class QtTail(QtWidgets.QMainWindow):
         ## try to pick a decent size
         height = docrect.height()
         width = docrect.width()
-        #print(' docsize='+str(width)+','+str(height)) # DEBUG
+        #print(' docsize=%d,%d newsize=%d,%d'%(width,height,newsize.width(),newsize.height())) # DEBUG
         if height > newsize.height():
             height = newsize.height()
-        if width < newsize.width()*0.80:  # allow 20% growth
+        if width<newsize.width() and width*1.5 > newsize.width():  # allow 50% growth
             width = newsize.width()*1.2 # Qt underesitmates
+            #print('expand %d'%width) # DEBUG
         elif width > newsize.width(): # shrink
             width = newsize.width()
         width += framedx

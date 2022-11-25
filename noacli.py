@@ -146,13 +146,17 @@ class settings():
                 #print('save '+str(d[0])+' = '+str(d[1])) # DEBUG
                 qs.setValue(d[0], d[1])
         self.copy2qtail()
-        # XXXX copy settings that have immediate effect to their widgets
-        # XXXX copy  logDock length setting
+        # copy settings that have immediate effect to their widgets
+        # most settings are retrieved dynamically, but a few are set in widgets
+        self.logOutputView.applySettings()
+        self.smallOutputView.applySettings()
+        # history size is reset when history is added? XX
         qs.sync()
     def acceptOrReject(self, result):
         if result: self.acceptchanges()
         #print('finished') # DEBUG
         # destroy everything
+        self.dialog.setParent(None)
         self.dialog = None
         self.data = None
 
@@ -258,6 +262,7 @@ class historyView(QTableView):
         self.horizontalHeader().setSortIndicator(-1,0)
         #self.historyProxy.invalidate()
         self.resizeColumnsToContents()
+        self.adjustSize()
 
     def deleteOne(self, index):
         index.model().removeRow(index.row(), QModelIndex())
@@ -601,9 +606,10 @@ class noacli(QtWidgets.QMainWindow):
 
         self.historypos = 1;
         dir = os.path.dirname(os.path.realpath(__file__))+'/'
-        icon = QtGui.QIcon(dir+'noacli.png')
+        p = dir+'noacli.png'
+        icon = QtGui.QIcon(p)
         if icon.isNull() or len(icon.availableSizes()): # try again
-            print('icon resources failed trying again') # DEBUG
+            print('icon {} failed trying again'.format(p)) # DEBUG
             icon = QtGui.QIcon('noacli.png')
         self.setWindowIcon(icon)
 
@@ -709,7 +715,7 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.smallOutputView.append('Version '+__version__)
         # connect slots QtCreator coudln't find
         self.ui.smallOutputView.buttonState.connect(self.ui.logOutputButton.setEnabled)
-        self.ui.smallOutputView.buttonState.connect(self.ui.killButton.setEnabled)
+        self.ui.smallOutputView.buttonState.connect(self.setTerminateButton)
 
         ##### install signal handlers
         try:  # in case anything here is unportable
@@ -724,6 +730,22 @@ class noacli(QtWidgets.QMainWindow):
 
     ## end __init__
 
+    ## small output UI actions
+    def rebuttonKill(self, label, slot, enab=True):
+        self.ui.killButton.setText(label)
+        self.ui.killButton.setEnabled(enab)
+        self.ui.killButton.disconnect()
+        self.ui.killButton.clicked.connect(slot)
+
+    def terminateButton(self):
+        self.ui.smallOutputView.smallTerminate()
+        self.rebuttonKill('Kill harder',self.ui.smallOutputView.smallKill)
+                      
+    def setTerminateButton(self,enab):
+        self.rebuttonKill('Kill',self.terminateButton,enab)
+
+    ####
+    
     def terminalstop(self, sig, stack):
         print("Terminal stop blocked!") # EXCEPT
         self.showMessage("Terminal stop blocked!")
@@ -765,6 +787,27 @@ class noacli(QtWidgets.QMainWindow):
         # also make it non-modal
 
         fd = QFileDialog(None, Qt.Dialog)
+
+        # check if user was trying to complete a partially typed path
+        c = editor.textCursor() # get a fresh cursor
+        c.clearSelection()
+        c.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
+        while (c.positionInBlock()>0):
+            d = QTextCursor(c) # don't mess with previous one yet
+            d.movePosition(QTextCursor.PreviousCharacter,QTextCursor.KeepAnchor)
+            ch = d.selectedText()[0]
+            if not ch.isprintable() or ch.isspace(): break
+            c=d
+            c.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
+
+        startdir = c.selectedText()
+        print("dir="+startdir) # DEBUG
+        if startdir:
+            # XX if startdir doesn't exist or has junk at the end, it may be partially ignored and then the prefix removal code below is funky
+            fd.setDirectory(startdir)
+        else:
+            fd.setDirectory('.') # otherwise it remembers the previous dir
+        
         #default# fd.setFileMode(QFileDialog.AnyFile) # Directory
         ## the following seems restrictive, but it's the only alternatives
         if pattern[0]=='/':
@@ -782,6 +825,8 @@ class noacli(QtWidgets.QMainWindow):
             fs = fd.selectedFiles()
         else:
             fs = None
+        fd.setParent(None) # destroy
+        fd=None
 
         #print(str(fs)) # DEBUG
         cwd = os.getcwd()+'/'
@@ -791,10 +836,14 @@ class noacli(QtWidgets.QMainWindow):
             try:
                 # python 3.9 feature
                 fs = [x.removeprefix(cwd) or x for x in fs]
-            except:
+                # remove startdir from first entry only
+                if startdir:
+                    fs[0] = fs[0].removeprefix(startdir)
+            except Exception as e:
+                #print(e) # EXCEPT
                 pass
             ## and return the results to the editor
-            f = ' '.join(fs)
+            f = ' '.join(fs)+' '  # leave a trailing space after filename
             editor.insertPlainText(f)
         
     ################
@@ -903,7 +952,7 @@ class noacli(QtWidgets.QMainWindow):
         j = jobItem(hist)  # XX construct new job
         j.args = args
         j.setMode(outwin)
-        print("parse mode: "+str(outwin))
+        # print("parse mode: "+str(outwin)) #DEBUG
         if title and len(title)>0:
             j.setTitle(title)
         self.settings.jobs.newjob(j)
@@ -922,7 +971,9 @@ class noacli(QtWidgets.QMainWindow):
         hm = self.ui.historyMenu
         # first destroy old entries
         for a in hm.actions():
-            if a.data(): hm.removeAction(a)
+            if a.data():
+                hm.removeAction(a)
+                a.setParent(None)
         # add new entries
         h = self.settings.history.last()
         qs = typedQSettings()

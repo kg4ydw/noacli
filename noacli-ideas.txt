@@ -11,22 +11,15 @@ d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
 Things to implement soon:
+   built in commands should get marked done in history
    built in command output should go to small window (too)
-   flag jobmanager column color based on job.window instead of mode
-d* log window needs a threshold LogBatchLines = 5?
  * log window pause / resume process (context)
- E log window flush process (context)
+ E log window flush process (context) doesn't work
    qtail: set extra selections for previously found items (clear when?)
  * print exit value if keep is false
-   tooltips on buttons --> command
-   reimplement qtail horizontal rule as embedded xbm and scale to fit
  o table parsing in qtail
       fixed width white space tables
  o add title to jobinfo and use it when small output dup
-   change pick file behavior
-     if prefix starts with / and contains no * treat as intial cwd and strip
-     if it ends in / select dirs only??
-     maybe output dir/{} syntax
  ? close stdin
  o job life cycle
  *   delete job if command is done and window is closed
@@ -37,11 +30,10 @@ d* log window needs a threshold LogBatchLines = 5?
  * resource manager (may undo this)
  *   noacli-res.qrc
 D* if text is selected before pushing template button, save it and paste over mark
-   small output: replace horiz rule image; scale image to fit box
- * add tooltips to favarites editor command
+ x small output: replace horiz rule image; scale image to fit box
    qtail: bind ctrl-f to focus on search box
-   translate terminal colors
-   tag name of button template for window title
+   qtail: translate terminal colors
+ * tag name of button template for window title
      hidden text?
      leave out of history & job view (or copy to title)
    regex on commands
@@ -51,29 +43,27 @@ D* if text is selected before pushing template button, save it and paste over ma
    regex on output
      sbatch -> tail
    timestamps
+     by option
      qtail?
      job manager
-     settings
-   scroll job manager to bottom on new job?
-   translate terminal colors
  ! environment: implement saving settings
    shortcuts for internal actions
    detach processes before exiting (optionally)
  * add running indicator to small output (kill and log buttons)
  * history context menu: set vert spacing: expand vs minimum
+   SETTING: delay after first data before initial window resize
+   SETTING: max qtail window size
 
 User visible bugs:
-   merged log is not clearing exit status if paused before exiting
-     hasmore reset to true incorrectly?
    log flush context: doesn't do anything?
    duplicate key bindings don't get background paint until dialog is reopened
    mac bugs
      history arrows don't work on mac
-     icons and app name don't work on mac
+     icons and app name don't work on mac (wrong geom?)
  * favorites editor bugs
-D*    should warn on duplicate names? (color?)
+DE    should warn on duplicate names? (color?)
  *    fix editing command causing duplicate entries
-   history window table needs to be resized sometimes
+ ? history window table needs to be resized sometimes
 x! block tostop signal : try os.setsid ?
      detect child proc trying to read stdin/stderr
      kill child proc?
@@ -108,6 +98,7 @@ Bugs:
    'set max' too often -- use histiresis of mul+1 ?
    file dialog cwd filter breaks in python 3.8
  o history stupid scroll: fix by removing horizontal scroll bar
+   history and job views should probably reimplement sizeHint and use minExp
 
 D* small output window
 D*   transfer last command output to qtail if:
@@ -184,7 +175,7 @@ D*      *@ history
 D*      *% button dock
 D*      *? job manager
 D*      *@ favorites editor (buttons and frequent)
- o	o% environment var editor
+Do	o% environment var editor
 D*      *% settings editor
  !	!% command default mode editor
  	     table: command mode
@@ -433,6 +424,10 @@ D*   for commands that output a small amount and exit in a short time
    predefined list of commands and types?
    autodetect by output size and runtime
    handle .desktop files, prepopulate graphical applications from those
+     ignore everything not Type=Application
+     look for ^Exec=
+     look for Terminal=true
+     ignore everything NoDisplay=true
 
    fancy environment variable editor
      split on delimiter, default :
@@ -451,7 +446,7 @@ D*   for commands that output a small amount and exit in a short time
 	 small
 	 table (qtail with options?)
        built in commands -> parse rest in subfunction
-         cd pwd? pushd popd (setenv*) favorite/alias 
+         cd pwd? pushd popd (setenv*) favorite/alias
        wrapper aliases (sends unparsed remainder to command), user editable with default
          direct  -> word split and run without wrapper
 	 sh/bash -> bash -c
@@ -541,3 +536,11 @@ D* look at cursor and set file dialog filter
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
  * history save bug with newline prefix
+d* log window needs a threshold LogBatchLines = 5?
+ * tooltips on buttons --> command
+D* change pick file behavior (without conditions here)
+ *   if prefix starts with / and contains no * treat as intial cwd and strip
+D*   if it ends in / select dirs only??
+ n   maybe output dir/{} syntax (this is just too clever for its own good)
+ * add tooltips to favarites editor command
+ * scroll job manager to bottom on new job?

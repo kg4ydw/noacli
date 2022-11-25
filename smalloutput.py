@@ -55,18 +55,30 @@ class smallOutput(QTextBrowser):
         self.procStartLine = 0
         px = QPixmap(301,2)
         if not px.loadFromData(b'P1\n301 2\n'+(b'1 0 '*302)):
-            print('image fail')
+            print('image fail') # EXCEPT
         self.lineImage = QImage(px)
+        self.applySettings()
+        # why can't designer set this?
+        self.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
 
-        # apply settings
+    def applySettings(self):
         qs = typedQSettings()
         mul = qs.value('SmallMultiplier', 2)
         # if a fixed number is set, use it, otherwise delay this
-        if mul>10:
+        if mul>10 or mul<=0: # no max or fixed number of lines
             self.document().setMaximumBlockCount(mul)
-        # why can't designer set this?
-        self.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
-            
+        elif mul<10:
+            num_lines = 10 # guess at the window size? decent default
+            doc = self.document()
+            if not doc: return  # just give up
+            margin = doc.documentMargin()
+            fm = self.fontMetrics().height()
+            size = self.size() # what if it hasn't been shown yet?
+            if fm and size and size.height():
+                num_lines = (size.height() - 2*margin)/fm
+            lines=int(num_lines * mul)+1
+            self.document().setMaximumBlockCount(lines)
+                
     ##### overrides
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -128,6 +140,12 @@ class smallOutput(QTextBrowser):
     def smallKill(self):
         if self.process:
             self.process.kill()
+        else:
+            self.oneLine.emit('Nothing to kill')
+    @QtCore.pyqtSlot()
+    def smallTerminate(self):
+        if self.process:
+            self.process.terminate()
         else:
             self.oneLine.emit('Nothing to kill')
 

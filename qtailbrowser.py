@@ -1,3 +1,4 @@
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import QTextBrowser
 from PyQt5.QtGui import QTextCursor
 
@@ -61,3 +62,10 @@ class myBrowser(QTextBrowser):
                 cursor.movePosition(QTextCursor.NextCell)
         cursor.endEditBlock()
             
+    @QtCore.pyqtSlot(bool)
+    def jumpToEndMaybe(self,checked):
+        if not checked: return
+        c=self.textCursor()
+        c.movePosition(QTextCursor.End)
+        self.setTextCursor(c)
+

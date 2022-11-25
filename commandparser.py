@@ -132,6 +132,22 @@ class commandParser:
         else:
             return "Wrapper '{}' not found.".format(rest)
         return None
+    @builtin('addwrap')
+    def cmd_addwrap(self, title, outwin, rest):
+        '''Add a wrapper shortcut to wrap unparsed commands'''
+        words = rest.split()
+        if len(words)<1:
+          return 'addwrap: '+(' '.join(self.wrappers.keys()))
+        elif len(words)==1:
+          w = words[0]
+          if w in self.wrappers:
+            return ' '.join(['addwrap',w,'= (', self.wrappers[w][0].name,')']+ self.wrappers[w][1:])
+          else:
+            return 'addwrap {} not found'.format(w)
+        self.wrappers[words[0]] = [outwin] + words[1:]
+        # XXX and should save this probably
+        return "Added wrap "+words[0]
+
     @builtin('direct')
     def cmd_direct(self, title, outwin, rest):
         '''Run an executable with arguments directly instead of sending it to a wrapper for parsing and execution'''
@@ -153,6 +169,19 @@ class commandParser:
             else:
                 text += "{} not found\n\n".format(word)
         return text
+
+
+    @builtin('version')
+    def cmd_version(self, title, outwin, rest):
+        '''What version is am I?'''
+        from noacli import __version__
+        return 'Version '+__version__
+
+    #@builtin('type')
+    #def cmd_type(self, title, outwin, rest):
+    #'''Find what things match the given command'''
+    #    t=''
+    #    words=rest.split()
 
     #### Other future built-in commands not implemented yet
     # 'pwd':  is this needed at all?  external pwd works fine

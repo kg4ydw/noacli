@@ -29,6 +29,12 @@
    <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="commandEditor" name="commandEdit">
@@ -97,8 +103,8 @@
     <bool>true</bool>
    </property>
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-     <horstretch>0</horstretch>
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>1</horstretch>
      <verstretch>2</verstretch>
     </sizepolicy>
    </property>
@@ -146,7 +152,7 @@
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
-         <verstretch>1</verstretch>
+         <verstretch>2</verstretch>
         </sizepolicy>
        </property>
        <property name="focusPolicy">
@@ -180,7 +186,7 @@
   </widget>
   <widget class="QDockWidget" name="buttons">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+    <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
@@ -188,7 +194,7 @@
    <property name="minimumSize">
     <size>
      <width>98</width>
-     <height>105</height>
+     <height>20</height>
     </size>
    </property>
    <property name="floating">
@@ -254,7 +260,7 @@
   </widget>
   <widget class="QDockWidget" name="jobManager">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>2</verstretch>
     </sizepolicy>
@@ -280,8 +286,8 @@
        </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>1</horstretch>
-         <verstretch>1</verstretch>
+         <horstretch>2</horstretch>
+         <verstretch>2</verstretch>
         </sizepolicy>
        </property>
        <property name="focusPolicy">
@@ -308,6 +314,12 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="smallOutputDock">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+     <horstretch>1</horstretch>
+     <verstretch>1</verstretch>
+    </sizepolicy>
+   </property>
    <property name="windowTitle">
     <string>Small output</string>
    </property>
@@ -371,12 +383,24 @@
        <property name="enabled">
         <bool>true</bool>
        </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>1</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
       </widget>
      </item>
     </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="logDock">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+     <horstretch>1</horstretch>
+     <verstretch>2</verstretch>
+    </sizepolicy>
+   </property>
    <property name="windowTitle">
     <string>Log viewer</string>
    </property>
@@ -410,7 +434,14 @@
       </layout>
      </item>
      <item>
-      <widget class="logOutput" name="logBrowser"/>
+      <widget class="logOutput" name="logBrowser">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>1</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -807,22 +838,6 @@
     <hint type="destinationlabel">
      <x>395</x>
      <y>75</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>killButton</sender>
-   <signal>clicked()</signal>
-   <receiver>smallOutputView</receiver>
-   <slot>smallKill()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>375</x>
-     <y>50</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>375</x>
-     <y>74</y>
     </hint>
    </hints>
   </connection>

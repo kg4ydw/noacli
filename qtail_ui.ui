@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,0">
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0">
       <property name="sizeConstraint">
        <enum>QLayout::SetDefaultConstraint</enum>
       </property>
@@ -24,16 +24,6 @@
        <widget class="QCheckBox" name="followCheck">
         <property name="text">
          <string>Follow</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="wrapCheck">
-        <property name="text">
-         <string>Wrap</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -104,6 +94,8 @@
      <string>View</string>
     </property>
     <addaction name="actionAdjust"/>
+    <addaction name="actionCount_lines"/>
+    <addaction name="actionWrap_lines"/>
    </widget>
    <addaction name="menuView"/>
   </widget>
@@ -116,12 +108,31 @@
     <string>Adjust size</string>
    </property>
   </action>
+  <action name="actionCount_lines">
+   <property name="text">
+    <string>Count lines</string>
+   </property>
+  </action>
+  <action name="actionWrap_lines">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Wrap lines</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
    <class>myBrowser</class>
    <extends>QTextBrowser</extends>
    <header>qtailbrowser</header>
+   <slots>
+    <slot>jumpToEndMaybe(bool)</slot>
+   </slots>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -149,28 +160,12 @@
    <slot>reload()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>152</x>
+     <x>99</x>
      <y>33</y>
     </hint>
     <hint type="destinationlabel">
      <x>139</x>
      <y>17</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>wrapCheck</sender>
-   <signal>stateChanged(int)</signal>
-   <receiver>QtTail</receiver>
-   <slot>wrapChanged(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>97</x>
-     <y>35</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>72</x>
-     <y>18</y>
     </hint>
    </hints>
   </connection>
@@ -206,6 +201,70 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionCount_lines</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>showsize()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionCount_lines</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>showsize()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionWrap_lines</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>QtTail</receiver>
+   <slot>wrapChanged(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>followCheck</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>textBrowser</receiver>
+   <slot>jumpToEndMaybe(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>19</x>
+     <y>34</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>26</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>simpleFind(QString)</slot>
@@ -215,5 +274,7 @@
   <slot>simpleFind2()</slot>
   <slot>actionAdjust()</slot>
   <slot>simpleFindNew(QString)</slot>
+  <slot>showsize()</slot>
+  <slot>wrapChanged(bool)</slot>
  </slots>
 </ui>

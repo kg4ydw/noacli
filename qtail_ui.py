@@ -25,10 +25,6 @@ class Ui_QtTail(object):
         self.followCheck = QtWidgets.QCheckBox(self.centralwidget)
         self.followCheck.setObjectName("followCheck")
         self.horizontalLayout.addWidget(self.followCheck)
-        self.wrapCheck = QtWidgets.QCheckBox(self.centralwidget)
-        self.wrapCheck.setChecked(True)
-        self.wrapCheck.setObjectName("wrapCheck")
-        self.horizontalLayout.addWidget(self.wrapCheck)
         self.reloadButton = QtWidgets.QPushButton(self.centralwidget)
         self.reloadButton.setObjectName("reloadButton")
         self.horizontalLayout.addWidget(self.reloadButton)
@@ -63,26 +59,38 @@ class Ui_QtTail(object):
         QtTail.setStatusBar(self.statusbar)
         self.actionAdjust = QtWidgets.QAction(QtTail)
         self.actionAdjust.setObjectName("actionAdjust")
+        self.actionCount_lines = QtWidgets.QAction(QtTail)
+        self.actionCount_lines.setObjectName("actionCount_lines")
+        self.actionWrap_lines = QtWidgets.QAction(QtTail)
+        self.actionWrap_lines.setCheckable(True)
+        self.actionWrap_lines.setChecked(True)
+        self.actionWrap_lines.setObjectName("actionWrap_lines")
         self.menuView.addAction(self.actionAdjust)
+        self.menuView.addAction(self.actionCount_lines)
+        self.menuView.addAction(self.actionWrap_lines)
         self.menubar.addAction(self.menuView.menuAction())
         self.label.setBuddy(self.searchTerm)
 
         self.retranslateUi(QtTail)
         self.searchTerm.textChanged['QString'].connect(QtTail.simpleFindNew) # type: ignore
         self.reloadButton.clicked.connect(QtTail.reload) # type: ignore
-        self.wrapCheck.stateChanged['int'].connect(QtTail.wrapChanged) # type: ignore
         self.searchTerm.returnPressed.connect(QtTail.simpleFind2) # type: ignore
         self.actionAdjust.triggered.connect(QtTail.actionAdjust) # type: ignore
+        self.actionCount_lines.triggered.connect(QtTail.showsize) # type: ignore
+        self.actionCount_lines.triggered.connect(QtTail.showsize) # type: ignore
+        self.actionWrap_lines.triggered['bool'].connect(QtTail.wrapChanged) # type: ignore
+        self.followCheck.toggled['bool'].connect(self.textBrowser.jumpToEndMaybe) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
         _translate = QtCore.QCoreApplication.translate
         QtTail.setWindowTitle(_translate("QtTail", "qtail"))
         self.followCheck.setText(_translate("QtTail", "Follow"))
-        self.wrapCheck.setText(_translate("QtTail", "Wrap"))
         self.reloadButton.setText(_translate("QtTail", "Reload"))
         self.label.setText(_translate("QtTail", "Search:"))
         self.menuView.setTitle(_translate("QtTail", "View"))
         self.actionAdjust.setText(_translate("QtTail", "Adjust"))
         self.actionAdjust.setToolTip(_translate("QtTail", "Adjust size"))
+        self.actionCount_lines.setText(_translate("QtTail", "Count lines"))
+        self.actionWrap_lines.setText(_translate("QtTail", "Wrap lines"))
 from qtailbrowser import myBrowser
