@@ -17,7 +17,7 @@ class OutWin(Enum):
     QTail = 2
     Tail = 2 # alias
     Log = 3
-    Internal = 99  # only use internally
+    Internal = 99  # only use internally as a status
 
 # enums don't natively support doc strings; this is used by cmd_help
 OutWin.Small.__doc__ = "Send output to the small output dock window"

@@ -192,6 +192,9 @@ the command window, select it (with keyboard or mouse), and then press
 Ctrl-F to override the default this once.  If you need to select a
 directory instead of a file, highlight a single `/`
 
+If you want full pathnames instead of relative pathnames, tye a * by
+itself before the cursor (not selected) before activating Ctrl-F.
+
 # Log dock window #
 
 If you have a command that typically doesn't output anything
@@ -207,6 +210,114 @@ Note that the log window is not designed for commands that have huge
 amounts of output.  Use the qtail window for that.  By default, the
 log window only remembers the last 10,000 lines from all processes it
 is logging.
+
+# Output destinations #
+
+When commands are run, their output is sent to an initial destination.
+The currently available output destinations are:
+
+Small: output dock window
+QTail: large output browser
+Log:  window
+
+These output destinations are described above, but if the first word in a
+command is one of the keywords (small log tail qtail) then the output
+will be initially sent there, overriding any other defaults set.
+
+Other possible special output targets may be added in the future.
+Currently stdout and stderr are both sent to the same target,
+but in the future, splitting them may be possible, although this
+can be done now using mechanisms available in the wrapper shell.
+
+# Wrappers #
+
+This shell does not have the programmability of typical command line
+shells and only does etremely limited parsing.  Instead, it leans on
+those older shells for that functionality.
+
+So most command lines are wrapped in a command that does the actual
+parsing and execution.  This is the wrapper.  Wrappers are named,
+and there is a default wrapper.  The default wrapper is named bash,
+which wraps commands with [ 'bash', '-c' ].  The command itself is
+fed to this wrapper unquoted and unmodified as the third argument.
+Any quoting will be interpreted by the shell in the wrapper.
+
+A wrapper can also specify the default destination for its output,
+although the user can override this on a per command basis.
+
+The following sample wrappers are included by default:
+bash : (small) [ 'bash' , '-c' ]
+xterm : (log)  [ 'xterm' , '-e' ]
+gterm : (log)  [ 'gnome-terminal', '--', 'bash', '-c']
+
+Note that gnome-terminal needs bash's help to continue parsing the command.
+
+It is also possible to use ssh as a wrapper, sending the command to
+an external for parsing and execution.  A wrapper for each host would be
+needed.
+
+Wrappers can be trivially created on the fly with the addwrapper command.
+(An editor for wrappers may be added later.)
+
+# Built in commands #
+
+(Numbers in () in the following are a count of bash built in commands.)
+
+Noacli does not have many built in commands, as such commands are
+usually needed to support scripting (0/19) which noacli doesn't
+support.  Other commands are used to adjust shell settings
+(4/9). manipulate jobs (3/8) and history (2/2), and environment
+settings (6/13), which noacli does mostly with a graphial interface.
+
+Having said that, there are a few things that need commands or work best
+when embedded in the command line even if there is a graphical way to do it.
+
+The following are the built in commands noacli has (so far).
+These commands must be run by themselves, not combined with other commands.
+
+help
+  list all of these and their description
+version
+ show version
+cd chdir
+  change directories
+direct
+  run without a wrapper using trivial parsing (space splitting only)
+addwrap
+  add a new named wrapper
+setwrap
+  set the default command wrapper
+type
+  Find what things match the given command; shows both internal and
+  external matches
+
+The following builtins must be the first word of a regular command
+and change the default output destination:
+  
+small (default if none specified)
+  Send output to the small output dock window
+qtail tail (small output overflow or by button)
+  View possibly growing output in a scrollable browser
+log (small output button)
+  Merge output from this and other commands into the merged log dock window
+
+Additionally, wrappers are activated by keyword somewhat like builtin
+commands and can be placed after the above output direction commands.
+
+# Buffering #
+
+Internally, noacli handles data in lines (which Qt calls paragraphs).
+Otherwise, very little is done to control buffering, and this is
+nearly completely in control of the subprocess and wrapping shell.
+This is slightly complicated by noacli not using ptys (yet) to run
+commands, but standard unix commands like `stdbuf` can control
+buffering normally.
+
+Except some programs (like python) completely ignore this and do their
+own buffering anyway.  You can fix python by using `python -u` to run
+unbuffered.  This might incur a performance penalty for large amounts
+of output.  Otherwise, adding well placed flush() commands in your
+code may help.
 
 Menus
 -----

@@ -800,8 +800,13 @@ class noacli(QtWidgets.QMainWindow):
             c=d
             c.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
 
+        cwd = os.getcwd()+'/'
         startdir = c.selectedText()
         print("dir="+startdir) # DEBUG
+        if startdir=='*':
+            startdir = None  # cancel!
+            cwd = ''
+            c.removeSelectedText()
         if startdir:
             # XX if startdir doesn't exist or has junk at the end, it may be partially ignored and then the prefix removal code below is funky
             fd.setDirectory(startdir)
@@ -829,7 +834,6 @@ class noacli(QtWidgets.QMainWindow):
         fd=None
 
         #print(str(fs)) # DEBUG
-        cwd = os.getcwd()+'/'
         print(fs) # DEBUG
         #print(cwd) # DEBUG
         if fs:  # do nothing if nothing selected

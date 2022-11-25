@@ -281,6 +281,7 @@ class smallOutput(QTextBrowser):
 
     def addLines(self,t):
         # XXX this bypasses clearing buffer from previous job
+        start = self.curBlock()
         emit = False
         if t:
             num = self.countLines(t)

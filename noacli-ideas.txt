@@ -53,6 +53,7 @@ D* if text is selected before pushing template button, save it and paste over ma
  * history context menu: set vert spacing: expand vs minimum
    SETTING: delay after first data before initial window resize
    SETTING: max qtail window size
+   add another kill button:  stop(2) terminate kill
 
 User visible bugs:
    duplicate key bindings don't get background paint until dialog is reopened
@@ -118,7 +119,7 @@ D* merged logs window
  x   filter by pid, process name, random string
  *   purge by ^^
 D*   max retention
-  
+
    command parser fd redirection
      prefix or suffix for output dest
        stdout:stderr
@@ -131,11 +132,11 @@ D*   max retention
    update status bar with recent process status and errors
  * short output in status window
  * single lines to status bar (and status window?)
- 
+
  * job manager and history:
  *   scroll to new entry
  *   resize columns
- 
+
  context menu / widget / class
  * history manager / historyView
  * job manager / jobTableVew / noacli
@@ -171,6 +172,7 @@ D*      *? job manager
 D*      *@ favorites editor (buttons and frequent)
 Do	o% environment var editor
 D*      *% settings editor
+	 % wrapper editor
  !	!% command default mode editor
  	     table: command mode
  	     mode: qtail log terminal null local graph (default: pulldown)
@@ -260,25 +262,30 @@ d      QTailFollow
 d?     QTailWrap
 d      QTailSearchMode
 d      QTailCaseInsensitive
-   environment vars?
-     inherit for subprocs (active)
-     inherited / modified
-     save / session
-     context menu
-       import from external environment
-       delete
-       set as deleted --> save
-       (column highlight) check/uncheck all
-     checkboxes/settings
-       external (inherit/ignore/replace)
-       save settings (save/session only)
-       export (pass to subproc) (activate/deactivate)
 
+ o environment vars?
+ o   key : [ mode. value ]
+ !   mode = inherited, session, save, deleted, mask
+     tooltips:
+ *     inherit: inherited from external environment
+ *     session: keep these changes for this session only
+ !     save: changes saved for future sessions
+ o     deleted: will not be used for subprocesses
+ !     mask: will be masked from use in this and future sessions
+     inherit -> reset value from env
+     mod value -> (delete,inherit)->session or mask->save
+     new key -> save
+     mark changed values
+
+Do wrapper table
+ o   name : [ save, OutWin, args... ]
+ !   load from file
+ !   save to file
 
  * short output commands -- display last line in editor/launcher
 
 
-   terminal
+ o terminal
 D* qtail window
 D* merged log viewer
  * table parser window
@@ -347,7 +354,7 @@ Do     find next
  *    log format:
  *      START $pid command
  *      $pid output line
- E      EXIT $pid $exitval wait stats...
+ *x     EXIT $pid $exitval wait stats...
  x    view full or filtered log
 
    status icon? from logged job?
@@ -368,55 +375,65 @@ D*   for commands that output a small amount and exit in a short time
        copy selected column names --> space or comma sep
 
    built in special commands
- !   terminal (--set-default)
- *   scrolly / qtail / tail
- !   log
-     direct run / sh wrapper
-
-     simple --shared (default)
-     simple --dedicated
-     simple --clone
+D*   terminal (--set-default)
+D*   scrolly / qtail / tail
+D*   log
+D*   direct run / sh wrapper
      table
-     parse / display (pie?)
-     (feature) name completion
-     host (similar to cd) --> send commands to ssh
-	use remote stub?
-	pty password mode for sudo?
-     button --> adds a button for the following command
+     parse and display graphically (chart, table, pie? matplotlib?)
+Do   (feature) name completion
+ *   host (similar to cd) --> send commands to ssh
+ *	use remote stub?
+  	pty password mode for sudo?
+ o   button --> adds a button for the following command
      pushd dir --> creates button fur current directory and cd
      pushd * --> creates buttons for all listed directories
 
-   built in standard commands
- !   cd / pwd
- !   set environment / set from command output (modules)
-     set command category (above list, default)
-     (feature) support commands for module
+   bash built in commands by category
+   shared with noacli marked with *=command !=grpahical or ?=future
+   misc (1/1)
+     command*
+   environment settings (6/13)
+     cd* dirs export! hash logout exit popd pushd pwd times? type*
+     ulimit? umask?
+   shell settings (4.5/9)
+     source alias bind!? builtin* readonly set! shopt! unalias unset
+   user interface settings
+     compgen complete compopt
+   job control (3/8)
+     bg disown? exec fg jobs! kill! suspend wait
+   history (2/2)
+     fc! history!
+   scripting (0/19)
+     break caller continue declare typeset echo enable eval getopts
+     let local mapfile printf read readarray return shift test trap
+
+
+   built in standard commands to implement
+     commands for module
        source ?
        export
-     disown --> disconnect job
 
-   questional built in commands -- gui eqivs
-     set / shopt / unset
-     hash / type --> performance needed??
-     jobs history --> pop up window?
+   commands to implement as graphical functionality
+     disown --> disconnect job (context menu?)
+     times or other process stats (context menu, infobox, graph)
+     ulimit umask (settings dialog)
+     key bindings for builtin functions
+
+   questional built in commands -- or gui eqivs
+ *   set / shopt / unset
+ n   hash / type --> performance needed??
+ *   jobs history --> pop up window?
      pushd popd dirs / dirstack --> use buttons instead?
      alias / unalias
-     kill
-     exit
+ *   kill
+ n   exit
      ulimit
      umask
      bind (key)
-     builtin command enable disable
-     help
+D*   help
      times
-   useless builtins
-     exec fg bg echo eval let local logout mapfile readarray printf suspend
-   turing complete builtins
-     break caller continue declare typeset getopts read readonly return shift test trap wait
 
-
-   predefined list of commands and types?
-   autodetect by output size and runtime
    handle .desktop files, prepopulate graphical applications from those
      ignore everything not Type=Application
      look for ^Exec=
@@ -432,20 +449,22 @@ D*   for commands that output a small amount and exit in a short time
        remove duplicates
        sort
 
-   command parser implementation
-     strip matching first word
-       output mode
-         log
-	 qtail/tail
-	 small
-	 table (qtail with options?)
-       built in commands -> parse rest in subfunction
-         cd pwd? pushd popd (setenv*) favorite/alias
-       wrapper aliases (sends unparsed remainder to command), user editable with default
-         direct  -> word split and run without wrapper
-	 sh/bash -> bash -c
-	 term -> "xterm -e" or "gnome-terminal --"
-	 $hostname -> ssh -n (-M -P 6h) $hostname
+ * command parser implementation
+ *   strip matching first word
+ *     output mode
+D*       log
+D*	 qtail/tail
+D*	 small
+ 	 table (qtail with options?)
+ *     built in commands -> parse rest in subfunction
+D*       cd
+ 	 pwd?
+ 	 pushd popd
+D*     wrapper aliases
+D*       direct  -> word split and run without wrapper
+D*	 sh/bash -> bash -c
+D*	 term -> "xterm -e" or "gnome-terminal --"
+  	 $hostname -> ssh -n (-M -P 6h) $hostname
        regex match? (macro?)
 
    regex matches
@@ -472,10 +491,10 @@ D*   for commands that output a small amount and exit in a short time
      context menu:
        Alternate layouts:
 	 greedy layout
-	 alphebetize
-	 draggable / user order
-	 include static buttons in order?
-  o    refit / expand to fit
+ 	 alphebetize
+ 	 draggable / user order
+ 	 include static buttons in order?
+ o     refit / expand to fit
        simulated anealing rearrange / fit
      make button order editable by dragging buttons
      context menu for button
@@ -526,6 +545,7 @@ D* look at cursor and set file dialog filter
  * at start, send version to smalloutput
 ?* job pull down menu should also raise window
  x Job and history view: WordWrapMode = WrapWordsOrAnywhere (not supported)
+D* file dialog: disable path prefix stripping without changing start dir
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
