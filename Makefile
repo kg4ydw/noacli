@@ -1,5 +1,5 @@
 
-UI= qtail_ui.py noacli_ui.py settingsdialog_ui.py
+UI= qtail_ui.py noacli_ui.py settingsdialog_ui.py tableviewer_ui.py
 SRCFILES=$(shell git ls-files | grep -v gitignore)
 DISTFILES=$(SRCFILES) $(UI) $(RESOURCES)
 
