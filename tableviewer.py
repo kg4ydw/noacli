@@ -34,10 +34,11 @@ class TableViewer(QtWidgets.QMainWindow):
     def __init__(self, options=None, parent=None):
         super().__init__()
         self.data = []
+        self.hasmore = True
+        self.firstread = True
         # XXX icon
         # connect to my own event so I can send myself a delayed signal
         self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection) # delay this
-        self.firstRead = True
         self.ui = Ui_TableViewer()
         self.ui.setupUi(self)
         self.ui.menuView.addAction(self.ui.colPickerDock.toggleViewAction())
@@ -74,13 +75,26 @@ class TableViewer(QtWidgets.QMainWindow):
         self.setWindowTitle(filename)
         with open(filename) as csvfile:
             self.openfd(csvfile)
+        
     def openstdin(self):
+        # hopefully we at least get the first line with blocking off
+        os.set_blocking(sys.stdin.fileno(),False)
+        self.csvfile = sys.stdin
+        self.notifier = QSocketNotifier(0,QSocketNotifier.Read, self) # XXX 0
+        self.notifier.activated.connect(self.readmore)
         self.openfd(sys.stdin)
         self.setWindowTitle('table stdin')
-        
+        # set up notifier for incoming data
+
     def openfd(self, csvfile):
+        print("openfd"+str(csvfile))
         maxx=0
         peek = csvfile.buffer.peek(1024).decode('utf-8') # XX unportable?
+        if not peek:  # must be on a pipe
+            print("No data on first read")
+            return
+        # print("peek = "+str(len(peek))) #XXX
+        self.firstread = False
         try:
             dialect = csv.Sniffer().sniff(peek, delimiters='\t,|:')
         except csv.Error:
@@ -101,6 +115,7 @@ class TableViewer(QtWidgets.QMainWindow):
                 raise
         # csvfile.seek(0) # peek makes seek unnecessary
         reader = csv.reader(csvfile, dialect)
+        self.csvreader = reader
         for row in reader:
             self.data.append(row)
             x = len(row)
@@ -121,7 +136,30 @@ class TableViewer(QtWidgets.QMainWindow):
         self.ui.colPicker.setModel(self.headermodel)
         self.tableSelectFix()
         self.want_resize.emit()
+        self.firstread = False
 
+    def readmore(self):
+        if self.firstread:  # didn't have any data at start, try again now
+            self.openfd(self.csvfile)
+        # just one line for now
+        self.hasmore = True
+        try:
+            # XXX this would be faster if it grabbed multiple rows
+            row = self.csvreader.__next__()
+            if row:
+                self.model.appendRow(row)
+                # XXXX update headers if row is longer
+            else:
+                self.hasmore = False
+        except StopIteration:
+            self.hasmore=False
+            # why is the stocket still bothering us
+            #self.notifier.activated.disconnect()
+            # maybe close file too? meh.
+        except Exception as e:
+            print(e)
+            exit(1)
+        
     def hideCols(self):
         indexes = self.ui.colPicker.selectedIndexes()
         for i in indexes:
