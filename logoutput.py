@@ -38,7 +38,6 @@ from functools import partial
 class logOutput(QTextBrowser):
     oneLine = pyqtSignal(str)
     readmore = pyqtSignal(jobItem)
-    # XXX set a watcher on the maxlines option?
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -122,7 +121,7 @@ class logOutput(QTextBrowser):
         #p.finished.disconnect(partial(self.procFinished,jobitem))
 
     def readLines(self, jobitem):
-        # XXX For now, this will read up to 10 lines and then move on,
+        # For now, this will read up to 10 lines and then move on,
         # so one process can't cause performance issues.  Also, high
         # volume procs should probably be throttled or moved out of
         # the log window.

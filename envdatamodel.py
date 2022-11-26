@@ -11,7 +11,7 @@ class envModes(Enum):
     Save = 2
     Deleted = 3
     Mask = 4
-envModes.Inherit.__doc__ = "Inherit from external environment"
+envModes.Inherit.__doc__ = "Inherit from external environment, delete local changse"
 envModes.Session.__doc__ = "Changed for this session only" 
 envModes.Save.__doc__ = "Save changes for future sessions"
 envModes.Deleted.__doc__ = "Not used for subprocesses in this session"
@@ -180,7 +180,7 @@ class envSettings(QProcessEnvironment):
         self.envDia = None
         self.origenv = None
         self.model = None
-        self.saveEnvironment() # XXXXX not yet
+        self.saveEnvironment()
 
     #@QtCore.pyqtSlot(QtCore.QPoint)
     def envContextMenu(self, point):

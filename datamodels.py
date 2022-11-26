@@ -41,7 +41,7 @@ class simpleTable(QAbstractTableModel):
         col = index.column()
         # don't return normal data if this is suppose to be a checkbox
         ctype = self.dataType(row,col)
-        if ctype==bool or type(self.mydata[row][col])==bool:
+        if ctype and (ctype==bool or type(self.mydata[row][col])==bool):
             if role==Qt.CheckStateRole:
                 if self.mydata[row][col]:
                     return Qt.Checked
@@ -50,7 +50,10 @@ class simpleTable(QAbstractTableModel):
             else:
                 return None
         if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
-            return self.mydata[row][col]
+            try:  # ignore messy tables
+                return self.mydata[row][col]
+            except:
+                return None
         return None
     def setData(self, index, value, role):
         if not self.validateIndex(index): return False
@@ -210,7 +213,7 @@ class jobItem():
         s = str(self.getStatus())+' | '+str(self.title())+' | '+str(self.command())
         return str(s)[0:width]
     def title(self):
-        # XXX if command starts with # then strip first line and set title
+        # XXX if command starts with # then strip first line and set title # DOCUMENT?
         if self.windowTitle:
             title = self.windowTitle
         elif self.window:
@@ -246,7 +249,7 @@ class jobItem():
 
     # private slots
     def collectPid(self):
-        self.pid = self.process.processId() # XXX
+        self.pid = self.process.processId()
         
     def collectError(self, err):
         self.status += 'E'+str(err)+' '
@@ -388,7 +391,7 @@ class jobTableModel(itemListModel):
     def cleanup(self):
         #print('cleanup') # DEBUG
         i=0
-        while i<len(self.data): # XXX watch for infinite loops!
+        while i<len(self.data): # watch for infinite loops!
             if self.data[i].finished and not self.data[i].windowOpen:
                 self.deleteJob(i)
             else:

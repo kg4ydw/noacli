@@ -165,7 +165,7 @@ class smallOutput(QTextBrowser):
         if not self.process: return
         # XX copy out old text first?
         self.disconnectProcess()
-        # move process to log window and disconnect XXX
+        # move process to log window and disconnect
         # pack up jobitem for easy passing
         self.jobitem.process = self.process
         self.jobitem.textstream = self.textstream
@@ -280,7 +280,8 @@ class smallOutput(QTextBrowser):
             self.clearproc()  # really done now
 
     def addLines(self,t):
-        # XXX this bypasses clearing buffer from previous job
+        # This bypasses clearing buffer from previous job, should not
+        # be called externally, use internalOutput instead
         start = self.curBlock()
         emit = False
         if t:
@@ -306,7 +307,7 @@ class smallOutput(QTextBrowser):
         if not self.gettingFull(2):
             c = self.getProcCursor()
             # XXX get time left / measured on timer
-            if exitcode or self.document().isEmpty(): # XXX
+            if exitcode or self.document().isEmpty():
                 c.insertHtml('<b>Exit {}</b><br/>'.format(exitcode))
             c.insertImage(self.lineImage)  # since <hr> is broken in QTextBrowser
             c.insertText("\n")

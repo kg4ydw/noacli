@@ -5,12 +5,13 @@ import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QTextEdit, QSizePolicy
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize
+from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer
 from PyQt5.Qt import Qt, pyqtSignal
-
 from math import ceil
 
 from qtail_ui import Ui_QtTail
+
+from typedqsettings import typedQSettings
 
 # options values -- set defaults
 class myOptions():
@@ -164,6 +165,14 @@ class QtTail(QtWidgets.QMainWindow):
             if self.firstRead:
                 self.firstRead=False
                 self.actionAdjust()
+                rdelay = 0
+                try:  
+                    rdelay = typedQSettings().value('QTailDelayResize',3)
+                except:
+                    pass
+                if rdelay:
+                    print("set timer to "+str(rdelay))
+                    QTimer.singleShot(int(rdelay)*1000, Qt.VeryCoarseTimer, self.actionAdjust)
             self.showsize()
 
     # @QtCore.pyqtSlot(str)
@@ -380,7 +389,7 @@ class QtTail(QtWidgets.QMainWindow):
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     # display
-    #XXX QtCore.QCoreApplication.setOrganizationName("ssdApps");
+    QtCore.QCoreApplication.setOrganizationName("kg4ydw");
     QtCore.QCoreApplication.setApplicationName("QtTail");
 
     options = myOptions()

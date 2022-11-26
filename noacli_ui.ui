@@ -194,7 +194,7 @@
    <property name="minimumSize">
     <size>
      <width>98</width>
-     <height>20</height>
+     <height>81</height>
     </size>
    </property>
    <property name="floating">
@@ -204,7 +204,7 @@
     <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="windowTitle">
-    <string>buttons</string>
+    <string>Buttons</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>4</number>

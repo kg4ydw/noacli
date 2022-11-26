@@ -185,7 +185,7 @@ class commandParser:
         '''Find what things match the given command'''
         t=''
         words=rest.split()
-        # XXX this shoudl get the path from the propagated environment
+        # XXXX this should get the path from the propagated environment
         # but only the real one is available here, hope the user didn't change it
         pathdirs = os.get_exec_path()
         for cmd in words:
@@ -213,7 +213,6 @@ class commandParser:
                         continue
                 elif os.path.isfile(f):
                     t += prefix + f +'\n'
-                    # XXX
         return t
             
     #### Other future built-in commands not implemented yet

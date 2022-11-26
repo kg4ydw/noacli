@@ -12,27 +12,25 @@ t  documented internally with tool tip
 
 Things to implement soon:
    built in commands should get marked done in history
-   built in command output should go to small window (too)
- * log window pause / resume process (context)
  E log window flush process (context) doesn't work
    qtail: set extra selections for previously found items (clear when?)
- * print exit value if keep is false
  o table parsing in qtail
       fixed width white space tables
  o add title to jobinfo and use it when small output dup
  ? close stdin
  o job life cycle
  *   delete job if command is done and window is closed
-     timeout if no window?
+ o   timeout if no window?
    small buttons in dock widget headers
      jobs: clean
      history: reset sort
- * resource manager (may undo this)
- *   noacli-res.qrc
+   resource manager (may undo this)
+     noacli-res.qrc
+     icons broken again
 D* if text is selected before pushing template button, save it and paste over mark
- x small output: replace horiz rule image; scale image to fit box
    qtail: bind ctrl-f to focus on search box
    qtail: translate terminal colors
+   qtail: resize on zoom?
  * tag name of button template for window title
      hidden text?
      leave out of history & job view (or copy to title)
@@ -46,14 +44,14 @@ D* if text is selected before pushing template button, save it and paste over ma
      by option
      qtail?
      job manager
- ! environment: implement saving settings
    shortcuts for internal actions
    detach processes before exiting (optionally)
- * add running indicator to small output (kill and log buttons)
- * history context menu: set vert spacing: expand vs minimum
    SETTING: delay after first data before initial window resize
-   SETTING: max qtail window size
+   SETTING: max qtail window size (in px), to allow free expansion
    add another kill button:  stop(2) terminate kill
+   context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
+   history context menu: set vert spacing: expand vs minimum
+   qtail on files directly
 
 User visible bugs:
    duplicate key bindings don't get background paint until dialog is reopened
@@ -70,13 +68,13 @@ x! block tostop signal : try os.setsid ?
      preconnect pty for this purpose?
    gets middle of file on /usr/dict/words without --whole
    qtail gives useless errors on file not found
- * favorites editor duplicates entries when you edit commands
- ! default geometry profile used but not checked at start (use setChecked)
+   default geometry profile used but not checked at start (use setChecked)
    flowlayout overlapping buttons
-   settings apply button is delayed until ok pressed
+ ! settings apply button is delayed until ok pressed
    resize history to fit window at start (scroll bar bug, only when tiny)
      make sure tableview is resized to fit
- ? history window table needs to be resized sometimes
+     add better sizehint and set to minexpanding
+   history and job views should probably reimplement sizeHint and use minExp
 
 Bugs:
    log flush context: doesn't do anything?
@@ -92,8 +90,6 @@ Bugs:
    Poor data flow between jobItem and smallOutput (refactor)
    'set max' too often -- use histiresis of mul+1 ?
    file dialog cwd filter breaks in python 3.8 (work around in place)
- o history stupid scroll: fix by removing horizontal scroll bar
-   history and job views should probably reimplement sizeHint and use minExp
 
 D* small output window
 D*   transfer last command output to qtail if:
@@ -105,8 +101,8 @@ D*   single line (or most recent?) output sent to status bar
  *   don't remember more than visisible lines * 2 (option setting?)
      option: disable small output window and send everything to qtail
  *     auto
-       configured only (default qtail)
-       forced (disable auto-qtail)
+ o     configured only (default qtail)
+ o     forced (disable auto-qtail)
 
 D* merged logs window
      count unviewed messages and show counter in status bar and menu
@@ -162,7 +158,7 @@ D*      save/restore geometry (QWidget)
 D*        save multiple profiles
  *      save/restore history?
  o      read history on command
-	save env changes?
+ *	save env changes?
      docks* and +dialogs?  (%hash @array)
        dock: QT data structure is persistent and master
        dialog: build a table on the fly and save changes
@@ -170,16 +166,16 @@ D*      *@ history
 D*      *% button dock
 D*      *? job manager
 D*      *@ favorites editor (buttons and frequent)
-Do	o% environment var editor
+D*	o% environment var editor
 D*      *% settings editor
-	 % wrapper editor
+ !	 % wrapper editor
  !	!% command default mode editor
  	     table: command mode
  	     mode: qtail log terminal null local graph (default: pulldown)
-	 @ ssh manager
-	 @ fancy table viewer
-	 @ ulimits editor
-	 % internal function keybindings
+ 	 @ ssh manager
+ 	 @ fancy table viewer
+ 	 @ ulimits editor
+ 	 % internal function keybindings
 D* history with arrow keys
    history search with ctrl-s ctrl-r and !?
 D* history with pull down menu (last 10)
@@ -263,18 +259,18 @@ d?     QTailWrap
 d      QTailSearchMode
 d      QTailCaseInsensitive
 
- o environment vars?
- o   key : [ mode. value ]
- !   mode = inherited, session, save, deleted, mask
-     tooltips:
+ * environment vars?
+ *   key : [ mode. value ]
+ *   mode = inherited, session, save, deleted, mask
+ *   tooltips:
  *     inherit: inherited from external environment
  *     session: keep these changes for this session only
- !     save: changes saved for future sessions
- o     deleted: will not be used for subprocesses
- !     mask: will be masked from use in this and future sessions
-     inherit -> reset value from env
-     mod value -> (delete,inherit)->session or mask->save
-     new key -> save
+ *     save: changes saved for future sessions
+ *     deleted: will not be used for subprocesses
+ *     mask: will be masked from use in this and future sessions
+ *   inherit -> reset value from env
+ *   mod value -> (delete,inherit)->session or mask->save
+ *   new key -> save
      mark changed values
 
 Do wrapper table
@@ -371,8 +367,8 @@ D*   for commands that output a small amount and exit in a short time
      show / hide / rearrange columns
      sort by column
      table column selector
-       select in list -- list view?
-       copy selected column names --> space or comma sep
+       select fields in list -- list view?
+       export selected column names --> space or comma sep
 
    built in special commands
 D*   terminal (--set-default)
@@ -546,6 +542,11 @@ D* look at cursor and set file dialog filter
 ?* job pull down menu should also raise window
  x Job and history view: WordWrapMode = WrapWordsOrAnywhere (not supported)
 D* file dialog: disable path prefix stripping without changing start dir
+ * built in command output should go to small window (too)
+ * log window pause / resume process (context)
+ * print exit value if keep is false
+ x small output: replace horiz rule image; scale image to fit box
+ * add running indicator to small output (kill and log buttons)
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry

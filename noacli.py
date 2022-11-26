@@ -49,6 +49,7 @@ class settingsDict():
     'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
     'QTailEndBytes': [ 1024*1024, 'Number of bytes qtail rewinds a file', int],
     'QTailDefaultTitle': [ 'subprocess', 'Default title for a qtail process window', str ],
+    'QTailDelayResize':[ 3, 'Resize qtail to fit output again seconds after first input arrives', int],
    #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
    #'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
    #'QTailWrap':  [ True, 'wrap long lines', bool ]
@@ -76,8 +77,6 @@ class settings():
 
         self.environment = envSettings()
 
-        ## XXX load configured env mods
-        ## XXX later [ 'name', 'value', 'propagate', 'save' ])
         self.jobs = jobTableModel()
         # job manager gets its own special class
         
@@ -380,7 +379,7 @@ class Favorites():
             #c.shortcuto.activated.connect(lambda: f(command, None))
             c.shortcuto.activated.connect(partial(self.runkey, f, command))
     def runkey(self, f, command):
-        print('gotkey for '+command) # DEBUG
+        #print('gotkey for '+command) # DEBUG
         f(command,'')
 
     def delFavorite(self, command):
@@ -480,7 +479,7 @@ class Favorites():
                 if command not in self.cmds:
                     gotcmd.add(command)
                     self.addFavorite(command, name, shortcut, immediate)
-        # XXX above code won't work on a second pass
+        # XXXX above code won't work on a second pass
         ## don't destroy this in case apply is clicked a second time
         #self.data = None
 
