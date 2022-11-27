@@ -28,12 +28,14 @@ class Ui_TableViewer(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 500, 542))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 674, 542))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.tableView = QtWidgets.QTableView(self.scrollAreaWidgetContents)
+        self.tableView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.tableView.setObjectName("tableView")
+        self.tableView.verticalHeader().setVisible(False)
         self.verticalLayout_3.addWidget(self.tableView)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout_2.addWidget(self.scrollArea)
@@ -87,13 +89,28 @@ class Ui_TableViewer(object):
         self.actionColumn_picker = QtWidgets.QAction(TableViewer)
         self.actionColumn_picker.setCheckable(True)
         self.actionColumn_picker.setObjectName("actionColumn_picker")
+        self.actionShow_line_numbers = QtWidgets.QAction(TableViewer)
+        self.actionShow_line_numbers.setCheckable(True)
+        self.actionShow_line_numbers.setObjectName("actionShow_line_numbers")
+        self.actionResize_rows = QtWidgets.QAction(TableViewer)
+        self.actionResize_rows.setObjectName("actionResize_rows")
+        self.actionShow_headings = QtWidgets.QAction(TableViewer)
+        self.actionShow_headings.setCheckable(True)
+        self.actionShow_headings.setChecked(True)
+        self.actionShow_headings.setObjectName("actionShow_headings")
         self.menuView.addAction(self.actionAdjust_size)
+        self.menuView.addAction(self.actionResize_rows)
+        self.menuView.addAction(self.actionShow_line_numbers)
+        self.menuView.addAction(self.actionShow_headings)
         self.menubar.addAction(self.menuView.menuAction())
 
         self.retranslateUi(TableViewer)
         self.actionAdjust_size.triggered.connect(TableViewer.actionAdjust) # type: ignore
         self.hideButton.clicked.connect(TableViewer.hideCols) # type: ignore
         self.showButton.clicked.connect(TableViewer.showCols) # type: ignore
+        self.actionResize_rows.triggered.connect(self.tableView.resizeRowsToContents) # type: ignore
+        self.actionShow_line_numbers.triggered['bool'].connect(TableViewer.showRowNumbers) # type: ignore
+        self.actionShow_headings.toggled['bool'].connect(TableViewer.showHeadings) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(TableViewer)
 
     def retranslateUi(self, TableViewer):
@@ -105,3 +122,6 @@ class Ui_TableViewer(object):
         self.showButton.setText(_translate("TableViewer", "show"))
         self.actionAdjust_size.setText(_translate("TableViewer", "Adjust size"))
         self.actionColumn_picker.setText(_translate("TableViewer", "Column picker"))
+        self.actionShow_line_numbers.setText(_translate("TableViewer", "Show line numbers"))
+        self.actionResize_rows.setText(_translate("TableViewer", "Resize rows vertically"))
+        self.actionShow_headings.setText(_translate("TableViewer", "Show headings"))

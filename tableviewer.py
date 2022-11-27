@@ -27,6 +27,25 @@ from datamodels import simpleTable
 # resize top level window
 # export headers in select order or dragged header order?
 
+class fakeBufferedReader():
+    ''' This pretends a QIODevice is a BufferedReader
+        by implementing the bare minimum needed here.
+        Note that both types include all the same functionality, but
+        with different return types and names.
+    '''
+    def __init__(self, qio):
+        self.qio = qio
+    def peek(self, size):
+        return str(self.qio.peek(size),'utf-8')
+    def __iter__(self):
+        return self
+    def __next__(self):
+        # maybe this should have used TextStream ?
+        if self.qio.canReadLine():
+            return str(self.qio.readLine(), 'utf-8')
+        else:
+            raise StopIteration # not sure file is done
+        # XXX stop iter?
 
 class TableViewer(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
@@ -48,6 +67,9 @@ class TableViewer(QtWidgets.QMainWindow):
         # XXX hide colPickerDock by default?
         # set model after opening file
 
+    def start(self):
+        pass
+
     def actionAdjust(self):
         view = self.ui.tableView
         view.resizeColumnsToContents()
@@ -59,6 +81,12 @@ class TableViewer(QtWidgets.QMainWindow):
         frame = mysize-viewsize  # XXX probably wrong
         # ### need to get screen size and max out
         #self.resize(ceil(width), ceil(height))
+
+    def showRowNumbers(self, checked):
+        self.ui.tableView.verticalHeader().setVisible(checked)
+
+    def showHeadings(self, checked):
+        self.ui.tableView.horizontalHeader().setVisible(checked)
 
     def tableSelectFix(self):
         sm = self.ui.tableView.selectionModel()
@@ -75,6 +103,21 @@ class TableViewer(QtWidgets.QMainWindow):
         self.setWindowTitle(filename)
         with open(filename) as csvfile:
             self.openfd(csvfile)
+
+    def openProcess(self, title, process):
+        self.process = process
+        if title:
+            self.setWindowTitle(title)
+        else:
+            self.setWindowTitle('tableviewer window') # SETTING
+        self.csvfile = fakeBufferedReader(process)
+        # QProcess has a peek but not under buffer, so loop this
+        #self.csvfile.buffer = self.csvfile
+        process.readyRead.connect(self.readmore)
+        self.openfd(self.csvfile)
+        # self.rebutton('kill', self.terminateProcess) XXX
+        # self.file.finished.connect(self.procFinished) ###
+        
         
     def openstdin(self):
         # hopefully we at least get the first line with blocking off
@@ -87,9 +130,13 @@ class TableViewer(QtWidgets.QMainWindow):
         # set up notifier for incoming data
 
     def openfd(self, csvfile):
-        print("openfd"+str(csvfile))
         maxx=0
-        peek = csvfile.buffer.peek(1024).decode('utf-8') # XX unportable?
+        # handle either a QProcess.peek or a io.TextIOWrapper.buffer.peek
+        # which return different types
+        if issubclass(type(csvfile),fakeBufferedReader):
+            peek = csvfile.peek(1024)
+        else: # python BufferedReader
+            peek = csvfile.buffer.peek(1024).decode('utf-8') # XX unportable?
         if not peek:  # must be on a pipe
             print("No data on first read")
             return

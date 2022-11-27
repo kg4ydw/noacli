@@ -186,7 +186,7 @@
   </widget>
   <widget class="QDockWidget" name="buttons">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
@@ -194,7 +194,7 @@
    <property name="minimumSize">
     <size>
      <width>98</width>
-     <height>81</height>
+     <height>20</height>
     </size>
    </property>
    <property name="floating">

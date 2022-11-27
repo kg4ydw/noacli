@@ -13,7 +13,8 @@ from functools import partial
 from noacli_ui import Ui_noacli
 from typedqsettings import typedQSettings
 
-from datamodels import simpleTable, History, jobItem, jobTableModel, settingsDataModel, settingsDialog
+from datamodels import simpleTable, settingsDataModel, settingsDialog
+from noajobs import jobItem, jobTableModel, History
 from smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
 from commandparser import OutWin, commandParser
@@ -541,7 +542,7 @@ class menuLineEdit(QLineEdit):
             
 class noacli(QtWidgets.QMainWindow):
     want_restore_geo_delay = pyqtSignal(str)
-    def __init__(self):
+    def __init__(self, app):
         settingsDict()   # do this very early
         super().__init__()
         self.ui = Ui_noacli()
@@ -555,6 +556,7 @@ class noacli(QtWidgets.QMainWindow):
         self.want_restore_geo_delay.connect(self.restore_geo, Qt.QueuedConnection) # delay this
 
         self.settings = settings()
+        self.settings.app = app
         # cheat a bit, so nearly everyone can get to these
         self.settings.smallOutputView = self.ui.smallOutputView
         self.settings.statusBar = self.statusBar()
@@ -1212,8 +1214,7 @@ if __name__ == '__main__':
 
     # XXX process command line args
 
-    mainwin = noacli()
-    mainwin.app = app
+    mainwin = noacli(app)
     w = mainwin.ui
 
     mainwin.show()

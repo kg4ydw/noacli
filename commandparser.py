@@ -17,12 +17,14 @@ class OutWin(Enum):
     QTail = 2
     Tail = 2 # alias
     Log = 3
+    Table = 4
     Internal = 99  # only use internally as a status
 
 # enums don't natively support doc strings; this is used by cmd_help
 OutWin.Small.__doc__ = "Send output to the small output dock window"
 OutWin.QTail.__doc__ = "View possibly growing output in a scrollable browser"
 OutWin.Log.__doc__ = "Merge output from this and other commands into the merged log dock window"
+OutWin.Table.__doc__="Parse file output as a table (delimiters autodetected)"
 
 builtinCommands = {
  #### output destinations
@@ -31,7 +33,7 @@ builtinCommands = {
     'tail': OutWin.QTail,
     'qtail': OutWin.QTail,
     'small': OutWin.Small, # default
-    #'table': XXX not implemented yet!
+    'table': OutWin.Table,
     ## actual commands will be added by @builtin('command')
 }
 

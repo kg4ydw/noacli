@@ -12,7 +12,7 @@ from PyQt5.QtGui import QTextCursor, QImage, QTextOption
 from PyQt5.QtWidgets import QTextBrowser
 
 from typedqsettings import typedQSettings
-from datamodels import jobItem
+from noajobs import jobItem
 from qtail import QtTail
 from functools import partial
 
