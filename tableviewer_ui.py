@@ -29,6 +29,11 @@ class Ui_TableViewer(object):
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
         self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 674, 542))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.scrollAreaWidgetContents.sizePolicy().hasHeightForWidth())
+        self.scrollAreaWidgetContents.setSizePolicy(sizePolicy)
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
@@ -50,7 +55,7 @@ class Ui_TableViewer(object):
         self.statusbar.setObjectName("statusbar")
         TableViewer.setStatusBar(self.statusbar)
         self.colPickerDock = QtWidgets.QDockWidget(TableViewer)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.colPickerDock.sizePolicy().hasHeightForWidth())
@@ -70,7 +75,7 @@ class Ui_TableViewer(object):
         self.horizontalLayout.addWidget(self.showButton)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.colPicker = QtWidgets.QListView(self.dockWidgetContents)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.colPicker.sizePolicy().hasHeightForWidth())
@@ -98,10 +103,21 @@ class Ui_TableViewer(object):
         self.actionShow_headings.setCheckable(True)
         self.actionShow_headings.setChecked(True)
         self.actionShow_headings.setObjectName("actionShow_headings")
+        self.actionResize_window = QtWidgets.QAction(TableViewer)
+        self.actionResize_window.setObjectName("actionResize_window")
+        self.actionSqueeze_columns = QtWidgets.QAction(TableViewer)
+        self.actionSqueeze_columns.setObjectName("actionSqueeze_columns")
+        self.actionUse_numerical_headings = QtWidgets.QAction(TableViewer)
+        self.actionUse_numerical_headings.setCheckable(True)
+        self.actionUse_numerical_headings.setObjectName("actionUse_numerical_headings")
         self.menuView.addAction(self.actionAdjust_size)
+        self.menuView.addAction(self.actionResize_window)
         self.menuView.addAction(self.actionResize_rows)
-        self.menuView.addAction(self.actionShow_line_numbers)
+        self.menuView.addAction(self.actionSqueeze_columns)
+        self.menuView.addSeparator()
         self.menuView.addAction(self.actionShow_headings)
+        self.menuView.addAction(self.actionUse_numerical_headings)
+        self.menuView.addAction(self.actionShow_line_numbers)
         self.menubar.addAction(self.menuView.menuAction())
 
         self.retranslateUi(TableViewer)
@@ -111,6 +127,9 @@ class Ui_TableViewer(object):
         self.actionResize_rows.triggered.connect(self.tableView.resizeRowsToContents) # type: ignore
         self.actionShow_line_numbers.triggered['bool'].connect(TableViewer.showRowNumbers) # type: ignore
         self.actionShow_headings.toggled['bool'].connect(TableViewer.showHeadings) # type: ignore
+        self.actionResize_window.triggered.connect(TableViewer.resizeWindowToTable) # type: ignore
+        self.actionSqueeze_columns.triggered.connect(TableViewer.squeezeColumns) # type: ignore
+        self.actionUse_numerical_headings.toggled['bool'].connect(TableViewer.numberHeadings) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(TableViewer)
 
     def retranslateUi(self, TableViewer):
@@ -125,3 +144,6 @@ class Ui_TableViewer(object):
         self.actionShow_line_numbers.setText(_translate("TableViewer", "Show line numbers"))
         self.actionResize_rows.setText(_translate("TableViewer", "Resize rows vertically"))
         self.actionShow_headings.setText(_translate("TableViewer", "Show headings"))
+        self.actionResize_window.setText(_translate("TableViewer", "Resize window"))
+        self.actionSqueeze_columns.setText(_translate("TableViewer", "Squeeze columns"))
+        self.actionUse_numerical_headings.setText(_translate("TableViewer", "Use numerical headings"))

@@ -35,6 +35,12 @@
          <height>542</height>
         </rect>
        </property>
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QTableView" name="tableView">
@@ -66,16 +72,20 @@
      <string>View</string>
     </property>
     <addaction name="actionAdjust_size"/>
+    <addaction name="actionResize_window"/>
     <addaction name="actionResize_rows"/>
-    <addaction name="actionShow_line_numbers"/>
+    <addaction name="actionSqueeze_columns"/>
+    <addaction name="separator"/>
     <addaction name="actionShow_headings"/>
+    <addaction name="actionUse_numerical_headings"/>
+    <addaction name="actionShow_line_numbers"/>
    </widget>
    <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="colPickerDock">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
@@ -109,7 +119,7 @@
      <item>
       <widget class="QListView" name="colPicker">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -169,6 +179,24 @@
    </property>
    <property name="text">
     <string>Show headings</string>
+   </property>
+  </action>
+  <action name="actionResize_window">
+   <property name="text">
+    <string>Resize window</string>
+   </property>
+  </action>
+  <action name="actionSqueeze_columns">
+   <property name="text">
+    <string>Squeeze columns</string>
+   </property>
+  </action>
+  <action name="actionUse_numerical_headings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use numerical headings</string>
    </property>
   </action>
  </widget>
@@ -270,6 +298,54 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionResize_window</sender>
+   <signal>triggered()</signal>
+   <receiver>TableViewer</receiver>
+   <slot>resizeWindowToTable()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSqueeze_columns</sender>
+   <signal>triggered()</signal>
+   <receiver>TableViewer</receiver>
+   <slot>squeezeColumns()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionUse_numerical_headings</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>TableViewer</receiver>
+   <slot>numberHeadings(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>actionAdjust()</slot>
@@ -277,5 +353,8 @@
   <slot>showCols()</slot>
   <slot>showRowNumbers(bool)</slot>
   <slot>showHeadings(bool)</slot>
+  <slot>resizeWindowToTable()</slot>
+  <slot>squeezeColumns()</slot>
+  <slot>numberHeadings(bool)</slot>
  </slots>
 </ui>

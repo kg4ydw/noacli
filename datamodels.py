@@ -96,7 +96,7 @@ class simpleTable(QAbstractTableModel):
                 return self.headers[col]
             elif orientation == Qt.Vertical and col<len(self.mydata):
                 # if you don't like veritcal headers, turn them off in designer
-                return str(col)
+                return str(col+1)
         return None
     def appendRow(self, row):
         lastrow = len(self.mydata)

@@ -9,9 +9,10 @@ from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QMenu
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QModelIndex, QItemSelectionModel
 from PyQt5.Qt import Qt, pyqtSignal
 from functools import partial
-from math import ceil
+from math import ceil, floor
 import csv
 import re
+from statistics import stdev, mean, median
 
 from tableviewer_ui import Ui_TableViewer
 
@@ -24,8 +25,15 @@ from datamodels import simpleTable
 #  refactor columns
 # filter/search rows by column
 # sort / reset sort
-# resize top level window
-# export headers in select order or dragged header order?
+# resize column on double click header
+# copy cell to clipboard on click
+# copy cell to both clipboards on double click
+# select column as vertical header
+
+# signals
+#  header.sectionClicked(logical)
+#  header.sectionDoubleClocked(logical)
+#  
 
 class fakeBufferedReader():
     ''' This pretends a QIODevice is a BufferedReader
@@ -55,6 +63,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.data = []
         self.hasmore = True
         self.firstread = True
+        self.useheader = True
         # XXX icon
         # connect to my own event so I can send myself a delayed signal
         self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection) # delay this
@@ -73,7 +82,7 @@ class TableViewer(QtWidgets.QMainWindow):
     def actionAdjust(self):
         view = self.ui.tableView
         view.resizeColumnsToContents()
-        #view.adjustSize()  # does stupid stuff
+        ##view.adjustSize()  # does stupid stuff
         self.ui.colPicker.adjustSize() # does stupid stuff
         #self.ui.colPickerDock.adjustSize() # ignored
         mysize = self.size()
@@ -87,6 +96,54 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def showHeadings(self, checked):
         self.ui.tableView.horizontalHeader().setVisible(checked)
+
+    def numberHeadings(self, checked):
+        if checked:
+            self.model.headers = [str(col+1) for col in range(len(self.model.headers))]
+        else: # recopy first row
+            self.model.headers = self.model.mydata[0]
+        self.model.headerDataChanged.emit(Qt.Horizontal, 0, len(self.model.headers))
+
+    def squeezeColumns(self):
+        # measure the width of every column and set the width to mean+2*stdev
+        # XXX ignore hidden columns head.isSectionHidden head.{logical,visual}Index
+        
+        head = self.ui.tableView.horizontalHeader()
+        shown = list([ i for i in range(len(self.headers)) if not head.isSectionHidden(i) ])
+        widths = [ head.sectionSize(i) for i in shown]
+        width = self.ui.tableView.width()-50
+        m = min(median(widths),mean(widths))
+        s = stdev(widths)
+        target = ceil(m+s)
+        wmin = [ widths[i] for i in range(len(widths)) if widths[i]<target]
+        tmin = sum(wmin)
+        nwide = len(widths)-len(wmin)
+        tavg = tmin + m*nwide
+        tmid = tmin + target*nwide
+        tmax = sum(widths)
+        extra = (width-tmin)/nwide # distribute what is left over
+        print("squeeze: m={} sd={} w={} tmin={} mid={} max={} e={}".format(m,s,width, tmin, tmid, tmax, extra))
+        if tmax<width: return  # doesn't need to be squeezed
+        if tmid>width:  # restrict to std
+            extra = 0
+        else:
+            extra=floor(extra)
+        print(" final e={} target={}".format(extra, target))
+        for i in range(len(widths)):
+            if widths[i]> target+extra:
+                head.resizeSection(shown[i],target+extra)
+            #elif width[i]>target:
+            #    head.resizeSection(i,target)
+
+    def resizeWindowToTable(self):
+        oldsize = self.size()
+        frame = oldsize - self.ui.tableView.size() 
+        vh = self.ui.tableView.verticalHeader()
+        hh = self.ui.tableView.horizontalHeader()
+        size = QtCore.QSize(hh.length(), vh.length())
+        size += QtCore.QSize(vh.size().width(), hh.size().height())
+        size += frame + QtCore.QSize(30, 100)
+        self.resize(size)
 
     def tableSelectFix(self):
         sm = self.ui.tableView.selectionModel()
@@ -191,7 +248,7 @@ class TableViewer(QtWidgets.QMainWindow):
         # just one line for now
         self.hasmore = True
         try:
-            # XXX this would be faster if it grabbed multiple rows
+            # XXXXX this would be faster if it grabbed multiple rows
             row = self.csvreader.__next__()
             if row:
                 self.model.appendRow(row)
