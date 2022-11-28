@@ -20,7 +20,7 @@ from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 import signal
 
-__version__ = '0.9.6'
+__version__ = '0.9.7'
 
 # These could be hidden in each module, but we've put them all here
 class settingsDict():
