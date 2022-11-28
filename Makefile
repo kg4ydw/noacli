@@ -43,7 +43,7 @@ TAGS: $(SRCFILES)
 #  DEBUG debug print
 #  EXCEPT print if something unexpected went wrong
 findprint:
-	grep --color -nH -e print *.py|egrep -av 'DEBUG|EXCEPT'
+	grep --color -nH -e 'print(' *.py|egrep -av 'DEBUG|EXCEPT'
 findxx:
 	grep --color -nH -e XX *.py
 findxxx:

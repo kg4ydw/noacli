@@ -98,6 +98,21 @@ class simpleTable(QAbstractTableModel):
                 # if you don't like veritcal headers, turn them off in designer
                 return str(col+1)
         return None
+    def insertRowsAt(self, where, rows):
+        # non-standard manipulator
+        # where=0 at start, where=1 at end
+        count = len(rows)
+        if where:
+            start=len(self.mydata)
+        else:
+            start=0
+        self.beginInsertRows(QModelIndex(),start,start+count-1)
+        if where:
+            self.mydata = self.mydata+rows
+        else:
+            self.mydata = rows + self.mydata
+        self.endInsertRows()
+        
     def appendRow(self, row):
         lastrow = len(self.mydata)
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)

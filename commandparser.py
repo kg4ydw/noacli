@@ -110,9 +110,9 @@ class commandParser:
                 if outwin==OutWin.Default:
                     outwin = self.wrappers[word][0]
                 return [title, outwin, self.wrappers[word][1:] + [rest]]
-            print('iloop: This cant happen') # DEBUG
+            print('iloop: This cant happen') # EXCEPT
             # can't get here
-        print('oloop This cant happen') # DEBUG
+        print('oloop This cant happen') # EXCEPT
         # can't get here
 
     @builtin('cd')

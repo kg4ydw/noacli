@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -59,6 +58,7 @@ class settingsDict():
    #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
     'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is in screens, >=10 is paragraphs, <1 for infinite', int],
     'TableviewerPickerCols': [10,'Threshold of columns in table, over which the column picker is displayed by default', int],
+    'DEBUG': [False, 'Enable debug prints', bool],
     }
 
     def __init__(self):
@@ -141,7 +141,7 @@ class settings():
         # XXX more qtail settings not implemented yet
         
     def acceptchanges(self):
-        print('accept') # DEBUG
+        if typedQSettings().value('DEBUG',False):print('accept') # DEBUG
         qs = typedQSettings()
         for d in self.data:
             if d[1]!=None:
@@ -590,7 +590,7 @@ class noacli(QtWidgets.QMainWindow):
         p = dir+'noacli.png'
         icon = QtGui.QIcon(p)
         if icon.isNull() or len(icon.availableSizes()): # try again
-            print('icon {} failed trying again'.format(p)) # DEBUG
+            if typedQSettings().value('DEBUG',False):print('icon {} failed trying again'.format(p)) # DEBUG
             icon = QtGui.QIcon('noacli.png')
         self.setWindowIcon(icon)
 
@@ -699,15 +699,15 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.smallOutputView.buttonState.connect(self.setTerminateButton)
 
         ##### install signal handlers
-        try:  # in case anything here is unportable
-            signal.signal(signal.SIGINT, self.ouch)
-            #X this is for output# signal.signal(signal.SIGTSTP, self.tstp)
-            signal.signal(signal.SIGTTIN, self.terminalstop) # XXX didn't work
-            #signal.signal(signal.SIGTTIN, signal.SIG_IGN) # XXX didn't work
-        except Exception as e:
-            # XX ignore failed signal handler installs
-            print("Not all signal handlers installed"+str(e)) # EXCEPT
-            pass
+        #try:  # in case anything here is unportable
+        #    signal.signal(signal.SIGINT, self.ouch)
+        #    #X this is for output# signal.signal(signal.SIGTSTP, self.tstp)
+        #    signal.signal(signal.SIGTTIN, self.terminalstop) # XXX didn't work
+        #    #signal.signal(signal.SIGTTIN, signal.SIG_IGN) # XXX didn't work
+        #except Exception as e:
+        #    # XX ignore failed signal handler installs
+        #    print("Not all signal handlers installed"+str(e)) # EXCEPT
+        #    pass
 
     ## end __init__
 
@@ -815,7 +815,6 @@ class noacli(QtWidgets.QMainWindow):
         fd=None
 
         #print(str(fs)) # DEBUG
-        print(fs) # DEBUG
         #print(cwd) # DEBUG
         if fs:  # do nothing if nothing selected
             try:
@@ -1078,7 +1077,7 @@ class noacli(QtWidgets.QMainWindow):
             self.restoreState(qs.value('mainState',None))
             self.restoreGeometry(qs.value('mainGeo',None))
         else:
-            print('No profile for {} found'.format(name)) # DEBUG EXCEPTION this can't happen
+            if typedQSettings().value('DEBUG',False):print('No profile for {} found'.format(name)) # DEBUG EXCEPTION this can't happen
         qs.endGroup()
 
 

@@ -40,7 +40,7 @@ class myBrowser(QTextBrowser):
         table = []
         for line in text.splitlines():
             table.append(line.split(delimiter))
-        print("table: {},{}".format(len(table),len(table[0]))) # DEBUG
+        if typedQSettings().value('DEBUG',False):print("table: {},{}".format(len(table),len(table[0]))) # DEBUG
         return table
     
     def toTable(self, text):
