@@ -346,6 +346,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>tableView</sender>
+   <signal>clicked(QModelIndex)</signal>
+   <receiver>TableViewer</receiver>
+   <slot>copyClip1(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>195</x>
+     <y>49</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>226</x>
+     <y>196</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>tableView</sender>
+   <signal>doubleClicked(QModelIndex)</signal>
+   <receiver>TableViewer</receiver>
+   <slot>copyClip2(QModelIndex)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>132</x>
+     <y>157</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>224</x>
+     <y>235</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>actionAdjust()</slot>
@@ -356,5 +388,7 @@
   <slot>resizeWindowToTable()</slot>
   <slot>squeezeColumns()</slot>
   <slot>numberHeadings(bool)</slot>
+  <slot>copyClip1(QModelIndex)</slot>
+  <slot>copyClip2(QModelIndex)</slot>
  </slots>
 </ui>

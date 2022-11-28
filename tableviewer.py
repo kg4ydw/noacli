@@ -18,8 +18,7 @@ from tableviewer_ui import Ui_TableViewer
 
 from datamodels import simpleTable
 
-# newData(x1,y1,x2,y2) -> emtChanged.emit([])
-
+from typedqsettings import typedQSettings
 
 # context menu
 #  refactor columns
@@ -51,10 +50,49 @@ class fakeBufferedReader():
         # maybe this should have used TextStream ?
         if self.qio.canReadLine():
             return str(self.qio.readLine(), 'utf-8')
+        elif self.qio.atEnd():
+            print('done at end')
+            raise StopIteration
         else:
-            raise StopIteration # not sure file is done
-        # XXX stop iter?
+            print('out of data')
+            return None
 
+
+class FixedWidthParser():
+    def __init__(self, f):
+        # optimistically do this without peek for now
+        # XX this doesn't handle right justified or centered columns
+        # which might be fixable with peek
+        self.lines = f.__iter__()
+        s = next(self.lines)
+        self.s = s = s.expandtabs()
+        col = [0]
+        i=0
+        while i>=0:
+            i=s.find('  ',i)
+            if i>=0: # find end of column
+                i+=2
+                while s[i]==' ':
+                    i+=1
+                col.append(i-1) # back up one, put border in the column
+        self.col = col
+        #print("col = "+(" ".join([str(i) for i in col]))) # DEBUG
+    
+    def __len__(self):
+        return len(self.col)
+    def __iter__(self):
+        while True:
+            if self.s:
+                s = self.s
+                self.s = None
+            else:
+                try:
+                    s = next(self.lines).expandtabs()
+                except StopIteration:
+                    return
+            yield [ s[self.col[i]:self.col[i+1]-1] for i in range(len(self.col)-1) ] + [  s[self.col[-1]:].strip() ]
+
+        
 class TableViewer(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
@@ -66,18 +104,29 @@ class TableViewer(QtWidgets.QMainWindow):
         self.useheader = True
         # XXX icon
         # connect to my own event so I can send myself a delayed signal
-        self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection) # delay this
+        self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection) # XXX or adjustAll ?? OPTION
         self.ui = Ui_TableViewer()
         self.ui.setupUi(self)
         self.ui.menuView.addAction(self.ui.colPickerDock.toggleViewAction())
         self.ui.colPicker.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.colPicker.customContextMenuRequested.connect(self.colPickerContext)
-        self.ui.tableView.horizontalHeader().setSectionsMovable(True)
-        # XXX hide colPickerDock by default?
+        hh = self.ui.tableView.horizontalHeader()
+        hh.setSectionsMovable(True)
+        hh.sectionDoubleClicked.connect(self.resizeHheader)
+        self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
+        
         # set model after opening file
 
     def start(self):
+        # probably should do more here and less in open 
         pass
+
+    ################ GUI stuff
+    
+    def actionAdjustAll(self):
+        self.actionAdjust()
+        # self.ui.tableView.resizeRowsToContents()  # XXX optional?
+        self.resizeWindowToTable()  # XX premature?
 
     def actionAdjust(self):
         view = self.ui.tableView
@@ -88,8 +137,6 @@ class TableViewer(QtWidgets.QMainWindow):
         mysize = self.size()
         viewsize = view.size()
         frame = mysize-viewsize  # XXX probably wrong
-        # ### need to get screen size and max out
-        #self.resize(ceil(width), ceil(height))
 
     def showRowNumbers(self, checked):
         self.ui.tableView.verticalHeader().setVisible(checked)
@@ -156,6 +203,28 @@ class TableViewer(QtWidgets.QMainWindow):
         self.window_close_signal.emit()
         super().closeEvent(event)
 
+    def copyClip1(self, index):
+        text = index.data(Qt.DisplayRole)
+        #print("Copy1 "+text) # DEBUG
+        if type(text)!=str:
+            text = str(text)
+        self.app.clipboard().setText(text)
+
+    def copyClip2(self, index):
+        text = index.data(Qt.DisplayRole)
+        #print("Copy2 "+text) # DEBUG
+        if type(text)!=str:
+            text = str(text)
+        self.app.clipboard().setText(text)
+        self.app.clipboard().setText(text, QtGui.QClipboard.Selection)
+            
+    def resizeHheader(self, logical):
+        self.ui.tableView.resizeColumnToContents(logical)
+    def resizeVheader(self, logical):
+        self.ui.tableView.resizeRowToContents(logical)
+        
+    ################ table parsing stuff
+
     def openfile(self,filename):
         self.setWindowTitle(filename)
         with open(filename) as csvfile:
@@ -171,7 +240,7 @@ class TableViewer(QtWidgets.QMainWindow):
         # QProcess has a peek but not under buffer, so loop this
         #self.csvfile.buffer = self.csvfile
         process.readyRead.connect(self.readmore)
-        self.openfd(self.csvfile)
+        #XX let this autotrigger ## self.openfd(self.csvfile)
         # self.rebutton('kill', self.terminateProcess) XXX
         # self.file.finished.connect(self.procFinished) ###
         
@@ -201,26 +270,16 @@ class TableViewer(QtWidgets.QMainWindow):
         self.firstread = False
         try:
             dialect = csv.Sniffer().sniff(peek, delimiters='\t,|:')
+            self.csvreader = csv.reader(csvfile, dialect)
         except csv.Error:
-            print('csv failed to detect dialoect, trying again')
-            # well, try my dumb heuristic instead
-            ds = {}
-            for i in re.findall('[\t,|:]', peek):
-                if i in ds: ds[i]+=1
-                else: ds[i]=1
-            delimiter = max(ds, key=lambda x: ds[x])
-            if delimiter=='\t':
-                dialect = csv.excel_tab()
-            elif delimiter:
-                csv.register_dialect('mine', delimiter=delimiter, quoting=csv.QUOTE_NONE)
-                dialect = 'mine'
-            else:
-                print('No delimiter found, I give up')
-                raise
-        # csvfile.seek(0) # peek makes seek unnecessary
-        reader = csv.reader(csvfile, dialect)
-        self.csvreader = reader
-        for row in reader:
+            self.parser = FixedWidthParser(csvfile) # XX could use peek
+            # XX so what if it's a one column table?  better than raising.
+            #if len(self.parser)<2:
+            #    print('No delimiter found, I give up!'+str(len(self.parser)))
+            #    return
+            self.csvreader = iter(self.parser)
+            print("Using FixedWidthParser")
+        for row in self.csvreader:
             self.data.append(row)
             x = len(row)
             if x>maxx: maxx=x
@@ -229,11 +288,16 @@ class TableViewer(QtWidgets.QMainWindow):
         headers = self.data[0] # XXX copy or steal first row as headers
         if len(headers)<maxx: # extend as necessary
             headers += []*(maxx-len(headers))
-        # go ahead and normalize all the rows in the data too
+        # go ahead and normalize all the rows in the data too (might be moot)
         for row in self.data:
             if len(row)<maxx: # extend as necessary
                 row += []*(maxx-len(row))
-        self.headers = headers
+        try:
+            if maxx < typedQSettings().value('TableviewerPickerCols', 10):
+                self.ui.colPickerDock.setVisible(False)
+        except:
+            pass
+        self.headers = headers  # too many copies of this? confusing.
         self.model = simpleTable(self.data, headers)
         self.ui.tableView.setModel(self.model)
         self.headermodel = QtCore.QStringListModel(headers, self)
@@ -249,7 +313,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.hasmore = True
         try:
             # XXXXX this would be faster if it grabbed multiple rows
-            row = self.csvreader.__next__()
+            row = next(self.csvreader)
             if row:
                 self.model.appendRow(row)
                 # XXXX update headers if row is longer

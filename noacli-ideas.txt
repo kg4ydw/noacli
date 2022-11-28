@@ -10,6 +10,17 @@ D  documented feature (in Readme.md)
 d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
+User interface questions:
+   Should all the tables be respaced with resizeRowsToContents()
+   Is column selection between tableviewer and column picker awkward
+   is the documentation unclear or too wordy
+   is a wrapper editor and save needed
+   is a keybindings viewer / editor needed
+   is it OK to automatically resize the window to max screen size
+   are the options named well
+   should the window auto-resize theshold be a setting
+   # annoying tags
+
 Things to implement soon:
    built in commands should get marked done in history
  E log window flush process (context) doesn't work
@@ -52,6 +63,9 @@ D* if text is selected before pushing template button, save it and paste over ma
    context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
    history context menu: set vert spacing: expand vs minimum
    qtail on files directly
+   history view row height
+     autosize rows if they would be smaller
+     reset to default on corner button?
 
 User visible bugs:
    duplicate key bindings don't get background paint until dialog is reopened
@@ -69,14 +83,21 @@ x! block tostop signal : try os.setsid ?
    gets middle of file on /usr/dict/words without --whole
    qtail gives useless errors on file not found
    default geometry profile used but not checked at start (use setChecked)
-   flowlayout overlapping buttons
+   flowlayout overlapping buttons (rare? one time glitch?)
  ! settings apply button is delayed until ok pressed
-   resize history to fit window at start (scroll bar bug, only when tiny)
+ o resize history to fit window at start (scroll bar bug, only when tiny)
      make sure tableview is resized to fit
-     add better sizehint and set to minexpanding
-   history and job views should probably reimplement sizeHint and use minExp
+       at start
+       when dock is popped out or resized
+ *   corner button resets width
+  ? job manager column viwe width issues
+      fix with corner reset button
+      use header double click to resize
+   bind hitory context menu to history headers too   
 
 Bugs:
+   fixed width viewer handles slow sockets badly
+   job manager context menu missing terminate
    log flush context: doesn't do anything?
    qtail is slow reading large files
      read in smaller chunks
@@ -191,7 +212,9 @@ D*   search box --> filter
  *   context menu
  n remember 10 most frequent commands in pull down menu
 D* button editor ("favorites")
- !   right click -> edit in larger window
+ !   right click context menu
+ ?      edit in larger window (or just stretch the cell)
+ 	ui.tableView.resizerowsToContents
      add Settings save menu item somewhere
  *   table: *name *key count *command *checkImmediate
  *   sorted sections: buttons freq
@@ -561,3 +584,6 @@ D*   if it ends in / select dirs only??
  * scroll job manager to bottom on new job?
  * qtail main window doesn't autoresize even when it has horiz scrollbar
  * small output size not set at start if not visible
+   make template buttons distinctive
+     immediate buttons are bold
+     template buttons are italic

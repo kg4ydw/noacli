@@ -23,6 +23,7 @@ import signal
 
 __version__ = '0.9.6'
 
+# These could be hidden in each module, but we've put them all here
 class settingsDict():
     # key : [ default, tooltip, type ]
     settingsDirectory = {
@@ -57,6 +58,7 @@ class settingsDict():
    #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
    #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
     'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is in screens, >=10 is paragraphs, <1 for infinite', int],
+    'TableviewerPickerCols': [10,'Threshold of columns in table, over which the column picker is displayed by default', int],
     }
 
     def __init__(self):
@@ -203,6 +205,8 @@ class historyView(QTableView):
         if cb:
             cb.disconnect()
             cb.clicked.connect(self.resetHistorySort)
+        self.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
+        self.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
 
     def setModel(self,model):
         self.realModel = model
@@ -210,14 +214,24 @@ class historyView(QTableView):
         self.historyProxy.setFilterKeyColumn(1)
         super().setModel(self.historyProxy)
         # this is probably too soon
-        self.resizeColumnsToContents()
+        # self.resizeColumnsToContents()  # XX this makes last column too wide
+        self.resizeColumnToContents(0)  # just fix the first column
 
     def resetHistorySort(self):
         self.historyProxy.sort(-1)
         self.horizontalHeader().setSortIndicator(-1,0)
         #self.historyProxy.invalidate()
-        self.resizeColumnsToContents()
+        #self.resizeColumnsToContents() # set width below instead
         self.adjustSize()
+        # squeeze the last column
+        hh = self.horizontalHeader()
+        width = self.parent().width()-50 # XX arbitrary 50
+        left = hh.sectionSize(0)
+        #print("resize: w={} l={} old={} parent={}".format(width, left, hh.sectionSize(1), self.parent().width())) # DEBUG
+        hh.resizeSection(1, width-left)
+        
+        self.scrollToBottom()  # XX is this annoying?
+        
 
     def deleteOne(self, index):
         index.model().removeRow(index.row(), QModelIndex())
@@ -262,7 +276,11 @@ class historyView(QTableView):
         else:
             self.scrollToBottom()
 
-            
+    def resizeHheader(self, logical):
+        self.resizeColumnToContents(logical)
+    def resizeVheader(self, logical):
+        self.resizeRowToContents(logical)
+
 class commandPushButton(QToolButton):
     # this is a push button that remembers what it is suppose to do
     def __init__(self, name, command,parent, functor):
@@ -407,6 +425,12 @@ class Favorites():
         else:
             f = self.runfuncs[1]  # XXX make right click always do this
         b = commandPushButton(fav.buttonName, cmd, self.buttonbox, f)
+        if fav.immediate:
+            b.setStyleSheet("QToolButton { font-weight: bold; }")
+        else:
+            b.setStyleSheet("QToolButton { font-style: italic; }")
+
+
         fav.button = b
         return b
         

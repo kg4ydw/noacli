@@ -130,6 +130,8 @@ class Ui_TableViewer(object):
         self.actionResize_window.triggered.connect(TableViewer.resizeWindowToTable) # type: ignore
         self.actionSqueeze_columns.triggered.connect(TableViewer.squeezeColumns) # type: ignore
         self.actionUse_numerical_headings.toggled['bool'].connect(TableViewer.numberHeadings) # type: ignore
+        self.tableView.clicked['QModelIndex'].connect(TableViewer.copyClip1) # type: ignore
+        self.tableView.doubleClicked['QModelIndex'].connect(TableViewer.copyClip2) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(TableViewer)
 
     def retranslateUi(self, TableViewer):
