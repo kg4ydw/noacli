@@ -366,6 +366,8 @@ class TableViewer(QtWidgets.QMainWindow):
             row = next(self.csvreader)
             if row: rows.append(row)
             lines -= 1
+        if lines<=0:
+            self.want_readmore.emit('more more') # get more on next pass
         if rows:
             if DEBUG: print("Read {} rows".format(len(rows))) # DEBUG
             self.model.insertRowsAt(1,rows)
