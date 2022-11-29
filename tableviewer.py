@@ -20,6 +20,7 @@ from datamodels import simpleTable
 
 from typedqsettings import typedQSettings
 
+## ideas to implement and/or document
 # context menu
 #  refactor columns
 # filter/search rows by column
@@ -29,52 +30,72 @@ from typedqsettings import typedQSettings
 # copy cell to both clipboards on double click
 # select column as vertical header
 
-# signals
-#  header.sectionClicked(logical)
-#  header.sectionDoubleClocked(logical)
-#  
+# I/O here is messy because Qt needs non-blocking I/O but the Qt file types
+# don't handle the python I/O interface csv expects and the python I/O libs
+# don't handle non-blocking I/O properly.  I wanted to use either input
+# stream (so we can use stdin or QProcess).  With use of peek() this code
+# doesn't call something that would block waiting for more data.
 
-class WaitRead(Exception):
-   pass
 
-class fakeBufferedReader():
-    ''' This pretends a QIODevice is a BufferedReader
-        by implementing the bare minimum needed here.
-        Note that both types include all the same functionality, but
-        with different return types and names.
+################
+# Both python and Qt file I/O are missing important features.
+# Try to cover this up with two classes that merge features.
+
+# Monkeypatching both QProcess and BufferedReader because neither class
+# provided a good way to subclass and init with an existing object.
+
+# monkey patch functor into old only if it isn't already there.
+# Don't step on the real one if they actually implement it later.
+import types
+def monkey(old, functor, name):
+    if not hasattr(old, name):
+        setattr(old, name, types.MethodType(functor,old))
+
+# can't monkeypatch QProcess, so wrapping it instead
+class betterQProcess():
+    '''This pretends a QIODevice is a BufferedReader by implementing the
+        bare minimum needed here.  Note that both types include all
+        the same functionality, but with different function names and
+        return types.
     '''
     def __init__(self, qio):
         self.qio = qio
-    def peek(self, size):
+    def strpeek(self, size):
         return str(self.qio.peek(size),'utf-8')
     def __iter__(self):
         return self
     def __next__(self):
-        # maybe this should have used TextStream ?
-        if self.qio.canReadLine():
-            s= str(self.qio.readLine(), 'utf-8')
-            #print('read: '+s) # DEBUG
-            return s
-        else:
-            raise WaitRead
-            if self.qio.atEnd() and not self.qio.isOpen() and self.qio.state()==QProcess.NotRunning:
-                    if typedQSettings().value('DEBUG',False): print('stop') # DEBUG
-                    return None
-                    #raise StopIteration
-            # print('raise waitread') DEBUG
-            raise WaitRead
-            return ''
-            return None  # can't detect eof here
+        return str(self.qio.readLine(), 'utf-8')
+    ## try to dynamicaly patch in anything else
+    def __getattr__(self, name):
+        f=getattr(self.qio,name) # next time get it direct
+        setattr(self,name,f)
+        return f
 
 
+## missing stuff from TextIOWrapper
+def TIOstrpeek(self, size):  # XX not gonna fake size default
+    return self.buffer.peek(size).decode('utf-8')
+def TIOcanReadLine(self):
+    return '\n' in self.strpeek(1024)
+# It says TextIOWrapper is immutable, but our target is sys.stdin anyway
+monkey(sys.stdin, TIOstrpeek, 'strpeek')
+monkey(sys.stdin, TIOcanReadLine, 'canReadLine')
+
+## and csv could have done this...
 class FixedWidthParser():
     def __init__(self, f):
         # optimistically do this without peek for now
         # XX this doesn't handle right justified or centered columns
         # which might be fixable with peek
-        self.lines = f.__iter__()
-        s = next(self.lines)
-        self.s = s = s.expandtabs()
+        
+        #self.lines = iter(f)
+        #s = next(self.lines)
+        #self.s = s = s.expandtabs()
+
+        peek = f.strpeek(1024)
+        lines = peek.splitlines()  # XXX should use this better
+        s = lines[0]
         
         col = [0]
         i=0
@@ -86,26 +107,23 @@ class FixedWidthParser():
                     i+=1
                 col.append(i-1) # back up one, put border in the column
         self.col = col
+        self.lines = iter(f)
         #print("col = "+(" ".join([str(i) for i in col]))) # DEBUG
     
     def __len__(self):
         return len(self.col)
     def __iter__(self):
         while True:
-            if self.s and len(self.s): # XXXXXXX
-                s = self.s
-                self.s = None
-            else:
-                try:
-                    s = next(self.lines)
-                    if s!=None:
-                        s=s.expandtabs()
-                    else:
-                        yield None  # not end of file
-                        continue
-                except StopIteration:
-                    if typedQSettings().value('Debug',False): print('fixed got stop') # DEBUG
-                    return
+            try:
+                s = next(self.lines)
+                if s!=None:
+                    s=s.expandtabs()
+                else:
+                    yield None  # not end of file
+                    continue
+            except StopIteration:
+                if typedQSettings().value('Debug',False): print('fixed got stop') # DEBUG
+                return
             yield [ s[self.col[i]:self.col[i+1]-1] for i in range(len(self.col)-1) ] + [  s[self.col[-1]:].strip() ]
 
         
@@ -245,54 +263,48 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def openfile(self,filename):
         self.setWindowTitle(filename)
-        with open(filename) as csvfile:
-            self.openfd(csvfile)
+        self.csvfile =  open(filename)  # XXX need better exception handling
+        self.openfd(self.csvfile)
 
     def openProcess(self, title, process):
         self.process = process
+        self.csvfile = betterQProcess(process)
         if title:
             self.setWindowTitle(title)
         else:
             self.setWindowTitle('tableviewer window') # SETTING
-        self.csvfile = fakeBufferedReader(process)
-        # QProcess has a peek but not under buffer, so loop this
-        #self.csvfile.buffer = self.csvfile
         process.readyRead.connect(partial(self.readmore,'readyread'))
         #XX let this autotrigger ## self.openfd(self.csvfile)
+        #XX Note that QProcess might not even be open yet
         # self.rebutton('kill', self.terminateProcess) XXX
         # self.file.finished.connect(self.procFinished) ###
         
-        
     def openstdin(self):
-        # hopefully we at least get the first line with blocking off
         os.set_blocking(sys.stdin.fileno(),False)
         self.csvfile = sys.stdin
-        self.notifier = QSocketNotifier(0,QSocketNotifier.Read, self) # XXX 0
+        self.notifier = QSocketNotifier(sys.stdin.fileno(),QSocketNotifier.Read, self)
+        # set up notifier for incoming data
         self.notifier.activated.connect(partial(self.readmore,'socket'))
         self.openfd(sys.stdin)
         self.setWindowTitle('table stdin')
-        # set up notifier for incoming data
 
     def openfd(self, csvfile):
         DEBUG = typedQSettings().value('DEBUG',False)
         maxx=0
-        # handle either a QProcess.peek or a io.TextIOWrapper.buffer.peek
-        # which return different types
-        if issubclass(type(csvfile),fakeBufferedReader):
-            peek = csvfile.peek(1024)
-        else: # python BufferedReader
-            peek = csvfile.buffer.peek(1024).decode('utf-8') # XX unportable?
-        if not peek:  # must be on a pipe
-            # print("No data on first read") # DEBUG
+        # handle either a QProcess io.TextIOWrapper as long as they
+        # are properly monkeypatched
+        if not csvfile.canReadLine():  # try again later
             return
-        self.firstread = False
-        # print("peek = "+str(len(peek))) # DEBUG
-        if '\t ' in peek:
+        peek = csvfile.strpeek(1024)
+        if not peek:  # must be on a pipe, try again later
+            return 
+        # self.firstread = False  # got something, initialize! but in case anything goes wrong, set this later
+        if '\t ' in peek or ' \t' in peek:  # maybe 3 spaces too?
             if DEBUG: print("Found tabs and spaces, trying fixed width parser") # DEBUG
             self.parser = FixedWidthParser(csvfile)
             self.csvreader = iter(self.parser)
         else:
-            self.firstread = False
+            # give csv a try and then we try again
             try:
                 dialect = csv.Sniffer().sniff(peek, delimiters='\t,|:')
                 self.csvreader = csv.reader(csvfile, dialect)
@@ -305,31 +317,25 @@ class TableViewer(QtWidgets.QMainWindow):
                 #    return
                 self.csvreader = iter(self.parser)
                 if DEBUG: print("csv failed, using FixedWidthParser")
-        # just read one chunk
+                self.firstread=False
+        # just read a few chunks to get us started
         lines = 3
-        try:
-            for row in self.csvreader:
-                if not row or lines<0:
-                    print('break')
-                    break
+        while self.csvfile.canReadLine() and lines>0:
+            # be brave without a try
+                row = self.csvreader.__next__()
+                # XXX if not row: what??
                 self.data.append(row)
                 x = len(row)
                 if x>maxx: maxx=x
                 lines -= 1
-        except WaitRead:
-            self.hasmore=False
-        if lines<0 and self.hasmore:
-            self.want_readmore.emit('initial')  # assume there's more
-        # XXX except?
-        if not self.data: return # XXX error
+        if lines<0 and self.csvfile.canReadLine():
+            self.want_readmore.emit('initial') # get more without waiting
         headers = self.data[0] # XXX copy or steal first row as headers
         if len(headers)<maxx: # extend as necessary
-            headers += []*(maxx-len(headers))
-        # go ahead and normalize all the rows in the data too (might be moot)
-        for row in self.data:
-            if len(row)<maxx: # extend as necessary
-                row += []*(maxx-len(row))
+            for i in range(len(headers),maxx):
+                headers.append(str(i)) # give the empty header a useful value
         try:
+            # optionally hide column picker for small tables
             if maxx < typedQSettings().value('TableviewerPickerCols', 10):
                 self.ui.colPickerDock.setVisible(False)
         except:
@@ -345,56 +351,25 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def readmore(self,fromwhere):
         DEBUG = typedQSettings().value('DEBUG',False)
+        if not self.csvfile.canReadLine():
+            # why did you bother us, you're not ready yet
+            return
         if self.firstread:  # didn't have any data at start, try again now
-            if DEBUG: print('first read') # DEBUG
+            #if DEBUG: print('first read') # DEBUG
             self.openfd(self.csvfile)
-        # just one line for now
-        self.hasmore = True
-        #try:
-        #if True:
         rows = []
         if DEBUG: print('readmore '+fromwhere)  # DEBUG
-        lines = typedQSettings().value('LogBatchLines',100)
-        # don't read too many lines at once (prevent lockup)
         row=None
-        try:
+        # don't read too many lines at once (prevent lockup from large data)
+        lines = int(typedQSettings().value('LogBatchLines',100))
+        while lines>0 and self.csvfile.canReadLine():
             row = next(self.csvreader)
-            while lines>0 and row:
-                rows.append(row)
-                try:
-                    row = next(self.csvreader)
-                except csv.Error:
-                    self.hasmore=False
-                    break
-                lines -= 1
-            if row:
-                rows.append(row)
-        except WaitRead:
-            if DEBUG: print(' got waitread')
-            self.hasmore = False
-            if DEBUG:print('  rows={}'.format(len(rows)))
-        except StopIteration:
-            if DEBUG:print(' got stop')
-            self.hasmore = False
-            if DEBUG:print('  rows={}'.format(len(rows)))
-        if row and self.hasmore:
-            if DEBUG:print('emit readmore') # DEBUG
-            self.want_readmore.emit('readmore')
-        else:
-            self.hasmore = False
+            if row: rows.append(row)
+            lines -= 1
         if rows:
             if DEBUG: print("Read {} rows".format(len(rows))) # DEBUG
             self.model.insertRowsAt(1,rows)
-            # XXX update headers if row is longer?
-        #except StopIteration:
-        #    self.hasmore=False
-        #    print("Stopping") # EXCEPT this doesn't happen?
-        #    # why is the stocket still bothering us
-        #    #self.notifier.activated.disconnect()
-        #    # maybe close file too? meh.
-        #except Exception as e:
-        #    print("readmore: "+str(e)) # EXCEPT
-        #   # exit(1)
+            # update headers if any row is longer XXX
         
     def hideCols(self):
         indexes = self.ui.colPicker.selectedIndexes()

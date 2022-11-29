@@ -225,7 +225,7 @@ class QtTail(QtWidgets.QMainWindow):
         n.activated.connect(self.socketActivated)
 
         self.opt.file = False  #XXX sometimes this might be a file
-        if typedQSettings().value('DEBUG',False):print("stdin") # DEBUG
+        #if typedQSettings().value('DEBUG',False):print("stdin") # DEBUG
         #self.reload();  # socket notifier makes this redundant
         
     def openProcess(self, title, process):

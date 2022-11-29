@@ -200,7 +200,7 @@ class settingsDataModel(simpleTable):
                 return QBrush(Qt.lightGray)
             if self.docdict[rowname][2]==bool:
                 if role==Qt.CheckStateRole:
-                    if self.docdict[rowname][1]: return Qt.Checked
+                    if self.docdict[rowname][0]: return Qt.Checked
                     else: return Qt.Unchecked
                 elif role!=Qt.ToolTipRole:
                     return None  # no text label on bools

@@ -79,7 +79,8 @@ class jobItem():
                     i = self.index.siblingAtColumn(2)
                     i.model().dataChanged.emit(i,i)
             else:
-               if typedQSettings().value('DEBUG',False): print("Failed to convert winmode "+mode) # DEBUG
+               #if typedQSettings().value('DEBUG',False): print("Failed to convert winmode "+mode) # DEBUG
+                pass
         except Exception as e:
             print(e) # EXCEPT
             pass

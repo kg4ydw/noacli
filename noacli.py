@@ -20,12 +20,13 @@ from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 import signal
 
-__version__ = '0.9.7'
+__version__ = '0.9.8'
 
 # These could be hidden in each module, but we've put them all here
 class settingsDict():
     # key : [ default, tooltip, type ]
     settingsDirectory = {
+    'DEBUG': [False, 'Enable debug prints', bool],
     # All uppercase are inherited(?) from bash
     'DefWinProfile':[True, 'Load the Default window profile at start', bool],
     'FavFrequent':  [10, 'Number of frequently used commands automatically imported into favorites', int],
@@ -58,7 +59,6 @@ class settingsDict():
    #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
     'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is in screens, >=10 is paragraphs, <1 for infinite', int],
     'TableviewerPickerCols': [10,'Threshold of columns in table, over which the column picker is displayed by default', int],
-    'DEBUG': [False, 'Enable debug prints', bool],
     }
 
     def __init__(self):
@@ -404,7 +404,7 @@ class Favorites():
     def delFavorite(self, command):
         #print('del favorite '+command) # DEBUG
         if command not in self.cmds:
-            print('missing button: '+command) # DEBUG
+            #print('missing button: '+command) # DEBUG
             return
         c = self.cmds.pop(command)
         # remove button
@@ -783,7 +783,7 @@ class noacli(QtWidgets.QMainWindow):
 
         cwd = os.getcwd()+'/'
         startdir = c.selectedText()
-        print("dir="+startdir) # DEBUG
+        #print("dir="+startdir) # DEBUG
         if startdir=='*':
             startdir = None  # cancel!
             cwd = ''
@@ -1077,7 +1077,8 @@ class noacli(QtWidgets.QMainWindow):
             self.restoreState(qs.value('mainState',None))
             self.restoreGeometry(qs.value('mainGeo',None))
         else:
-            if typedQSettings().value('DEBUG',False):print('No profile for {} found'.format(name)) # DEBUG EXCEPTION this can't happen
+            #if typedQSettings().value('DEBUG',False):print('No profile for {} found'.format(name)) # DEBUG EXCEPTION this can't happen
+            pass
         qs.endGroup()
 
 

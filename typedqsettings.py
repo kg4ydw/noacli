@@ -44,7 +44,7 @@ class typedQSettings(QSettings):
         if key not in self.setdict: # return what we have
             print("Warning: setting {} missing from settings dictionary.".format(key)) # DEBUG EXCEPT
             # add it to dict, guess at type, add caller?
-            self.setdict[key] = [v,"Unknown setting", str]
+            self.setdict[key] = [v,"Unknown setting", type(v)]
             return v
         # bools don't cast well
         if self.setdict[key][2]==bool:
