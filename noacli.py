@@ -135,7 +135,7 @@ class settings():
         # copy qtail settings
         self.qtail.maxLines = int(qs.value('QTailMaxLines', self.qtail.maxLines))
         self.qtail.tailFrag = int(qs.value('QTailEndBytes', self.qtail.tailFrag))
-        # QTailDefaultTitle: default title is set somewhere else XXX
+        # QTailDefaultTitle: default title is set somewhere else XX
         # XXX more qtail settings not implemented yet
         
     def acceptchanges(self):
@@ -175,7 +175,7 @@ class keySequenceDelegate(QStyledItemDelegate):
     def setEditorData(self, editor, index):
         data = index.model().data(index, Qt.EditRole)
         if data:
-            # XXX pick correct translation?
+            # XXX pick correct keySequence translation flavor?  important for mac?
             editor.setKeySequence(data)
         # else leave with default
         
@@ -253,7 +253,7 @@ class historyView(QTableView):
     
     def contextMenuEvent(self, event):
         m = QMenu(self)
-        # XXX disable or omit inappropriate actions
+        # XXX disable or omit inappropriate actions in this menu
         index = self.indexAt(event.pos())
         m.addAction("Add to favorites",partial(self.addFav, index))
         m.addAction("Delete",partial(self.deleteOne, index))
@@ -291,7 +291,7 @@ class commandPushButton(QToolButton):
         super().__init__(parent)
         self.setText(name)
         self.command = command
-        self.setToolTip(command) # XXX different for immediate vs template?
+        self.setToolTip(command)
         self.actionfunc = functor
         ## dunno if all this goo is needed, but designer emits it with gridview
         #sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)

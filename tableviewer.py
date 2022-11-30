@@ -151,7 +151,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.useheader = True
         # XXX icon
         # connect to my own event so I can send myself a delayed signal
-        self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection) # XXX or adjustAll ?? OPTION
+        self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection)
         self.ui = Ui_TableViewer()
         self.ui.setupUi(self)
         self.ui.menuView.addAction(self.ui.colPickerDock.toggleViewAction())
@@ -170,10 +170,6 @@ class TableViewer(QtWidgets.QMainWindow):
         pass
 
     ################ GUI stuff
-    
-    def actionAdjustAll(self):
-        self.actionAdjust()
-        self.resizeWindowToTable(False)  # XX premature?
 
     def actionAdjust(self):
         view = self.ui.tableView
@@ -181,12 +177,6 @@ class TableViewer(QtWidgets.QMainWindow):
         if typedQSettings().value('TableviewerResizeRows',False):
             self.ui.tableView.resizeRowsToContents()
         self.resizeWindowToTable(True)
-        ##view.adjustSize()  # does stupid stuff
-        self.ui.colPicker.adjustSize() # does stupid stuff
-        #self.ui.colPickerDock.adjustSize() # ignored
-        mysize = self.size()
-        viewsize = view.size()
-        frame = mysize-viewsize  # XXX probably wrong
 
     def showRowNumbers(self, checked):
         self.ui.tableView.verticalHeader().setVisible(checked)
@@ -202,9 +192,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.model.headerDataChanged.emit(Qt.Horizontal, 0, len(self.model.headers))
 
     def squeezeColumns(self):
-        # measure the width of every column and set the width to mean+2*stdev
-        # XXX ignore hidden columns head.isSectionHidden head.{logical,visual}Index
-        
+        # measure the width of every visible column and set the width to mean+2*stdev
         head = self.ui.tableView.horizontalHeader()
         shown = list([ i for i in range(len(self.headers)) if not head.isSectionHidden(i) ])
         widths = [ head.sectionSize(i) for i in shown]
@@ -293,7 +281,7 @@ class TableViewer(QtWidgets.QMainWindow):
         # and clear the selection now that we've got the cell list.
         # This gives feedback in case the user tried to do something wierd.
         sm.clear()
-        # XX this is pretty primitive, only supports merging two cells
+        # XXXX this is pretty primitive, only supports merging two cells
         # XXX and it gives no error messages if things go wrong
         if len(slist)!=2: return
         if slist[0].row()!=slist[1].row(): return
