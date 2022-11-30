@@ -29,7 +29,8 @@ class typedQSettings(QSettings):
     def __init__(self, setdict=None):
         super().__init__()
     def setDict(self,d):
-        self.setdict = d
+        
+        self.setdict.add(d)
     def value(self, key, default):
         try:
             if key in self.setdict: # replace supplied default
@@ -58,3 +59,15 @@ class typedQSettings(QSettings):
             print("Bad setting value for {}: '{}'".format(key,v)) # EXCEPT
             print(str(e)) # EXCEPT
             return default
+
+    @classmethod
+    def registerOptions(cls, options):
+        '''Add new options to the settings.  Call this in each module if
+           desired.
+        '''
+        for key,val in options.items():
+            if key in cls.setdict:
+                if value!=cls.setdict[key]:
+                    print('Warning: conflicting option '+key)
+            else:
+                cls.setdict[key] = val

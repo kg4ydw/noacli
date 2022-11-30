@@ -22,7 +22,7 @@ import signal
 
 __version__ = '0.9.8'
 
-# These could be hidden in each module, but we've put them all here
+# Some settings have been moved to relevant modules
 class settingsDict():
     # key : [ default, tooltip, type ]
     settingsDirectory = {
@@ -58,12 +58,10 @@ class settingsDict():
    #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
    #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
     'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is in screens, >=10 is paragraphs, <1 for infinite', int],
-    'TableviewerPickerCols': [10,'Threshold of columns in table, over which the column picker is displayed by default', int],
     }
 
     def __init__(self):
-        q= typedQSettings()
-        q.setDict(self.settingsDirectory)
+        typedQSettings().registerOptions(self.settingsDirectory)
 
 # initialize, load, hold, and save various global settings
 class settings():
@@ -257,14 +255,20 @@ class historyView(QTableView):
         m = QMenu(self)
         # XXX disable or omit inappropriate actions
         index = self.indexAt(event.pos())
-        act = m.addAction("Add to favorites",partial(self.addFav, index))
-        act = m.addAction("Delete",partial(self.deleteOne, index))
-        act = m.addAction("Delete selected rows",self.deleteSelected)
+        m.addAction("Add to favorites",partial(self.addFav, index))
+        m.addAction("Delete",partial(self.deleteOne, index))
+        m.addAction("Delete selected rows",self.deleteSelected)
         # make the model do these two
-        act = m.addAction("Collapse duplicates",self.realModel.collapseDups)
-        act = m.addAction("Delete earlier duplicates",self.realModel.deletePrevDups)
+        m.addAction("Collapse duplicates",self.realModel.collapseDups)
+        m.addAction("Delete earlier duplicates",self.realModel.deletePrevDups)
+        m.addAction("Resize rows vertically", self.resizeRowsToContents)
+
+
         action = m.exec_(event.globalPos())
         #print(action) # DEBUG
+
+    def resizeVheader(self, logical):
+        self.ui.tableView.resizeRowToContents(logical)
 
     def resetView(self, index=None):
         self.resetHistorySort()
@@ -651,7 +655,7 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.jobTableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.jobTableView.customContextMenuRequested.connect(self.jobcontextmenu)
         
-        # close and reopen stdin. We dont need it, and bad things happen
+        # close and reopen stdin. We dont need it, and bad things happen XXX use filenull ?
         # if subprocesses try to use it.
         ## nonportable out of unix?
         # XXX this didn't help
@@ -662,7 +666,7 @@ class noacli(QtWidgets.QMainWindow):
         ##### geometry profiles
         qs = typedQSettings()
         v = qs.value('DefWinProfile', True)
-        if v: # XXX str convert?
+        if v:
             # load default config
             self.myRestoreGeometry()
         ## fix up the menu

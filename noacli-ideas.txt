@@ -22,6 +22,7 @@ User interface questions:
    # annoying tags
 
 Things to implement soon:
+ ! doubleclick on favorites editor headers to resize row
    built in commands should get marked done in history
  E log window flush process (context) doesn't work
    qtail: set extra selections for previously found items (clear when?)
@@ -66,6 +67,10 @@ D* if text is selected before pushing template button, save it and paste over ma
    history view row height
      autosize rows if they would be smaller
      reset to default on corner button?
+   menu item
+     close all windows
+     kill all subprocesses
+     disown all subprocesses (default on exit?)
 
 User visible bugs:
    duplicate key bindings don't get background paint until dialog is reopened
@@ -93,7 +98,7 @@ x! block tostop signal : try os.setsid ?
   ? job manager column viwe width issues
       fix with corner reset button
       use header double click to resize
-   bind hitory context menu to history headers too   
+   bind hitory context menu to history headers too
 
 Bugs:
    fixed width viewer handles slow sockets badly
@@ -313,7 +318,7 @@ D* merged log viewer
      pie chart for percentages / apt interaction
 D* ephemeral -- autoclose
 
-Do scrolly window
+Do scrolly window (qtail)
 D*   view / follow a log file
 D*   take input from a pipe
 DE   keep only last X lines? (initial input overload)
@@ -329,6 +334,9 @@ DE   keep only last X lines? (initial input overload)
  /     if open stdin -> stop (close)
  /     if closed -> close window
      autoclose after exit on specified timeout without user interaction
+     command line options (for inside noacli)
+       --file
+       --maxlines ?Z
 D*   search / filter ?
      search context menu
 Do     find next
@@ -367,7 +375,7 @@ Do     find next
  *     file
 
 
- o log
+ o log viewer
  *    saves to a log, either file or short memory buffer
  *    buffer size = bytes and/or time or lines
  *    log format:
@@ -375,6 +383,8 @@ Do     find next
  *      $pid output line
  *x     EXIT $pid $exitval wait stats...
  x    view full or filtered log
+        fold filtered entries
+	
 
    status icon? from logged job?
 
@@ -384,14 +394,23 @@ D*   for commands that output a small amount and exit in a short time
      pulldown: run this command with mode <> next time
      pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
 
-   table viewer
+ * table viewer
      options: --delimiter
-     select lines, cells, columns, send back to editor
-     show / hide / rearrange columns
+ *   select lines, cells, columns, send to clipboard
+ *   show / hide / rearrange columns
      sort by column
-     table column selector
-       select fields in list -- list view?
-       export selected column names --> space or comma sep
+ *   table column selector
+ *     select fields in list -- list view?
+ *     export selected column names --> space or comma sep
+     context menu
+       merge selected cells in this row
+       (split cell here)
+     extend header to max columns
+     command line options
+       --file
+       --csv --delimiter
+       --regex (delimiter or split pattern? depends on if groups?)
+       --fixed --gap=2 
 
    built in special commands
 D*   terminal (--set-default)
@@ -426,6 +445,11 @@ Do   (feature) name completion
    scripting (0/19)
      break caller continue declare typeset echo enable eval getopts
      let local mapfile printf read readarray return shift test trap
+   folded sections
+     fold selected region
+     unfold icon
+     fold converted table
+     send selection to to tableviewer?
 
 
    built in standard commands to implement

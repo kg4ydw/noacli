@@ -111,13 +111,35 @@ class simpleTable(QAbstractTableModel):
             self.mydata = self.mydata+rows
         else:
             self.mydata = rows + self.mydata
+        maxx = max([len(row) for row in rows])
         self.endInsertRows()
+        self.checkExtendHeaders(maxx)
+        
+    def checkExtendHeaders(self, maxx):
+        if maxx> len(self.headers):
+            start = len(self.headers)
+            for i in range(start,maxx):
+                self.headers.append(str(i+1))
+            self.headerDataChanged.emit(Qt.Horizontal, start,maxx)
         
     def appendRow(self, row):
         lastrow = len(self.mydata)
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)
         self.mydata.append(row)
         self.endInsertRows()
+
+    def mergeCells(self, index):
+        '''merge this cell with its next neighbor in the same row, shifting
+           down remaining cells
+        '''
+        # note: model doesn't have a beginMangleCells, sigh.
+        row = index.row()
+        col = index.column()
+        if col+1>=len(self.mydata[row]): return False # whoops!
+        # XXX this should merge cells with the correct delimiter, oops
+        self.mydata[row][col] += ' '+self.mydata[row][col+1]
+        del self.mydata[row][col+1]
+        self.dataChanged.emit(self.index(row,col), self.index(row,len(self.mydata[row])))
 
 class itemListModel(QAbstractTableModel):
     # an array of items, where each item is a row
@@ -186,7 +208,7 @@ class itemListModel(QAbstractTableModel):
 class settingsDataModel(simpleTable):
     def __init__(self, docdict, data, typedata=None):
         self.docdict = docdict
-        # XXX this could be 3 column with the tool tips in col 3
+        # XX this could be 3 column with the tool tips in col 3
         super().__init__(data, ['Setting', 'Value'], typedata, editmask=[False, True])
         # nothing else to do, most done in gui model
     def data(self, index, role):
@@ -221,7 +243,7 @@ class settingsDialog(QtWidgets.QDialog):
         super().__init__(parent)
         ui = Ui_settingsDialog()
         self.model = model
-        # XXX proxy model?  search?
+        # XX proxy model?  search?
         self.ui = ui
         ui.setupUi(self)
         ui.tableView.setModel(model)
@@ -237,8 +259,16 @@ class settingsDialog(QtWidgets.QDialog):
             ui.label.setText(title)
         ui.tableView.resizeColumnsToContents()
         self.apply = self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Apply).clicked
+        #XXX not without reset function ### self.ui.tableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
+        self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
+
         # XX resize top window too?
         self.show()
+
+    def resizeHheader(self, logical):
+        self.ui.tableView.resizeColumnToContents(logical)
+    def resizeVheader(self, logical):
+        self.ui.tableView.resizeRowToContents(logical)
 
     @classmethod
     def registerType(cls, type, delegate):

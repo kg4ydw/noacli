@@ -20,6 +20,13 @@ from datamodels import simpleTable
 
 from typedqsettings import typedQSettings
 
+typedQSettings().registerOptions({
+    'TableviewerResizeRows': [ False, 'Resize rows automatically after data is read', bool],
+    'TableviewerResizeRatio': [ 1.5, 'Max ratio of current size to larger size for automatic window resize if larger', float],
+    'TableviewerPickerCols': [10,'Threshold of columns in table, over which the column picker is displayed by default', int],
+
+    })
+
 ## ideas to implement and/or document
 # context menu
 #  refactor columns
@@ -47,9 +54,6 @@ from typedqsettings import typedQSettings
 # monkey patch functor into old only if it isn't already there.
 # Don't step on the real one if they actually implement it later.
 import types
-def monkey(old, functor, name):
-    if not hasattr(old, name):
-        setattr(old, name, types.MethodType(functor,old))
 
 # can't monkeypatch QProcess, so wrapping it instead
 class betterQProcess():
@@ -72,15 +76,22 @@ class betterQProcess():
         setattr(self,name,f)
         return f
 
-
+        
 ## missing stuff from TextIOWrapper
-def TIOstrpeek(self, size):  # XX not gonna fake size default
-    return self.buffer.peek(size).decode('utf-8')
-def TIOcanReadLine(self):
-    return '\n' in self.strpeek(1024)
-# It says TextIOWrapper is immutable, but our target is sys.stdin anyway
-monkey(sys.stdin, TIOstrpeek, 'strpeek')
-monkey(sys.stdin, TIOcanReadLine, 'canReadLine')
+class betterTextIOWrapper():
+    def __init__(self, tiow):
+        self.tiow = tiow
+    def strpeek(self, size):  # XX not gonna fake size default
+        return self.tiow.buffer.peek(size).decode('utf-8')
+    def canReadLine(self):
+        return '\n' in self.strpeek(1024)
+    
+    def __iter__(self): return self.tiow.__iter__()
+    def __next__(self): return self.tiow.__next__()
+    def __getattr__(self, name):
+        f=getattr(self.tiow, name) # next time get it direct
+        setattr(self, name, f)
+        return f
 
 ## and csv could have done this...
 class FixedWidthParser():
@@ -103,12 +114,13 @@ class FixedWidthParser():
             i=s.find('  ',i)
             if i>=0: # find end of column
                 i+=2
-                while s[i]==' ':
+                while i<len(s) and s[i]==' ':
                     i+=1
-                col.append(i-1) # back up one, put border in the column
+                if i<len(s):
+                    col.append(i-1) # back up one, put border in the column
         self.col = col
         self.lines = iter(f)
-        #print("col = "+(" ".join([str(i) for i in col]))) # DEBUG
+        print("col = "+(" ".join([str(i) for i in col]))) # DEBUG
     
     def __len__(self):
         return len(self.col)
@@ -161,12 +173,14 @@ class TableViewer(QtWidgets.QMainWindow):
     
     def actionAdjustAll(self):
         self.actionAdjust()
-        # self.ui.tableView.resizeRowsToContents()  # XXX optional?
-        self.resizeWindowToTable()  # XX premature?
+        self.resizeWindowToTable(False)  # XX premature?
 
     def actionAdjust(self):
         view = self.ui.tableView
         view.resizeColumnsToContents()
+        if typedQSettings().value('TableviewerResizeRows',False):
+            self.ui.tableView.resizeRowsToContents()
+        self.resizeWindowToTable(True)
         ##view.adjustSize()  # does stupid stuff
         self.ui.colPicker.adjustSize() # does stupid stuff
         #self.ui.colPickerDock.adjustSize() # ignored
@@ -218,14 +232,21 @@ class TableViewer(QtWidgets.QMainWindow):
             #elif width[i]>target:
             #    head.resizeSection(i,target)
 
-    def resizeWindowToTable(self):
+    def resizeWindowToTable(self, useratio=False):
         oldsize = self.size()
+        ratio = typedQSettings().value('TableviewerResizeRatio', 2)
         frame = oldsize - self.ui.tableView.size() 
         vh = self.ui.tableView.verticalHeader()
         hh = self.ui.tableView.horizontalHeader()
         size = QtCore.QSize(hh.length(), vh.length())
         size += QtCore.QSize(vh.size().width(), hh.size().height())
         size += frame + QtCore.QSize(30, 100)
+        # check V and H separately
+        if useratio:
+            if oldsize.height()*ratio < size.height():
+                size.setHeight(oldsize.height())
+            if oldsize.width()*ratio < size.width():
+                size.setWidth(oldsize.width())
         self.resize(size)
 
     def tableSelectFix(self):
@@ -258,12 +279,35 @@ class TableViewer(QtWidgets.QMainWindow):
         self.ui.tableView.resizeColumnToContents(logical)
     def resizeVheader(self, logical):
         self.ui.tableView.resizeRowToContents(logical)
-        
+
+    def contextMenuEvent(self, event):
+        m=QMenu()
+        m.addAction('Merge two adjacent selected cells', self.collapseSelectedCells)
+        # XXX more tableviewer context items??
+        action = m.exec_(event.globalPos())
+
+    # context menu triggered
+    def collapseSelectedCells(self):
+        sm = self.ui.tableView.selectionModel()
+        slist = sm.selectedIndexes()
+        # and clear the selection now that we've got the cell list.
+        # This gives feedback in case the user tried to do something wierd.
+        sm.clear()
+        # XX this is pretty primitive, only supports merging two cells
+        # XXX and it gives no error messages if things go wrong
+        if len(slist)!=2: return
+        if slist[0].row()!=slist[1].row(): return
+        a = slist[0].column()
+        b = slist[1].column()
+        if a>b: (a,b)=(b,a)
+        if a+1!=b: return
+        self.model.mergeCells(self.model.index(slist[0].row(),a))
+                              
     ################ table parsing stuff
 
     def openfile(self,filename):
         self.setWindowTitle(filename)
-        self.csvfile =  open(filename)  # XXX need better exception handling
+        self.csvfile =  betterTextIOWrapper(open(filename))  # XXX need better exception handling
         self.openfd(self.csvfile)
 
     def openProcess(self, title, process):
@@ -281,7 +325,7 @@ class TableViewer(QtWidgets.QMainWindow):
         
     def openstdin(self):
         os.set_blocking(sys.stdin.fileno(),False)
-        self.csvfile = sys.stdin
+        self.csvfile = betterTextIOWrapper(sys.stdin)
         self.notifier = QSocketNotifier(sys.stdin.fileno(),QSocketNotifier.Read, self)
         # set up notifier for incoming data
         self.notifier.activated.connect(partial(self.readmore,'socket'))
@@ -331,9 +375,6 @@ class TableViewer(QtWidgets.QMainWindow):
         if lines<0 and self.csvfile.canReadLine():
             self.want_readmore.emit('initial') # get more without waiting
         headers = self.data[0] # XXX copy or steal first row as headers
-        if len(headers)<maxx: # extend as necessary
-            for i in range(len(headers),maxx):
-                headers.append(str(i)) # give the empty header a useful value
         try:
             # optionally hide column picker for small tables
             if maxx < typedQSettings().value('TableviewerPickerCols', 10):
@@ -342,6 +383,7 @@ class TableViewer(QtWidgets.QMainWindow):
             pass
         self.headers = headers  # too many copies of this? confusing.
         self.model = simpleTable(self.data, headers)
+        self.model.checkExtendHeaders(maxx)
         self.ui.tableView.setModel(self.model)
         self.headermodel = QtCore.QStringListModel(headers, self)
         self.ui.colPicker.setModel(self.headermodel)
@@ -372,7 +414,8 @@ class TableViewer(QtWidgets.QMainWindow):
             if DEBUG: print("Read {} rows".format(len(rows))) # DEBUG
             self.model.insertRowsAt(1,rows)
             # update headers if any row is longer XXX
-        
+
+
     def hideCols(self):
         indexes = self.ui.colPicker.selectedIndexes()
         for i in indexes:

@@ -67,15 +67,11 @@ class logOutput(QTextBrowser):
 
     # call triggered by dcommand processor
     def openProcess(self, process, jobitem, settings, pretext='', title=''):
-        # XXX we don't use title here, but should we?
+        # XX we don't use title here, but should we?
         self.settings = settings  # need this for qtail
         self.joblist.add(jobitem)
         jobitem.process = process
         jobitem.textstream = QTextStream(process)
-        ## do this in job item XX
-        #p = process.processId()
-        #if p: jobitem.pid = p # don't accidentally zero it
-        #jobitem.prefix = str(jobitem.pid)+': ' # XXX buggy
         jobitem.setMode('Log')
         self.connectProcess(jobitem)
         c = self.endCursor()
@@ -285,7 +281,7 @@ class logOutput(QTextBrowser):
             m.addAction("Check status of log jobs",self.checkStatus)
         # XXX log context menu missing items
         # search options
-        # Unfortuantely as of Qt 5.15 block.setVisibility doesn't do anything useful so can't filter log
+        # Unfortuantely as of Qt 5.15 QTextBrowser.block.setVisibility doesn't do anything useful so can't filter log
 
         action = m.exec_(event.globalPos())
         # non-context sensitive stuff handlers go here
