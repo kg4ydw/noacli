@@ -43,6 +43,7 @@ class smallOutput(QTextBrowser):
     newJobStart = pyqtSignal()
     sendToLog = pyqtSignal('PyQt_PyObject')
     buttonState = pyqtSignal(bool)
+    gotNewLines = pyqtSignal(int)
     
     def __init__(self, parent):
         super(smallOutput,self).__init__(parent)
@@ -100,6 +101,7 @@ class smallOutput(QTextBrowser):
 
     @QtCore.pyqtSlot()
     def smallDup(self,more=''):
+        self.gotNewLines.emit(-1)
         if not self.process and self.document().isEmpty():
             # allow duping a process that is dead
             # but not if there's no text either
@@ -286,6 +288,7 @@ class smallOutput(QTextBrowser):
         emit = False
         if t:
             num = self.countLines(t)
+            self.gotNewLines.emit(num)
             if num==1:
                 self.oneLine.emit(t)
                 emit = True

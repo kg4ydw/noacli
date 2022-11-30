@@ -194,7 +194,7 @@
    <property name="minimumSize">
     <size>
      <width>98</width>
-     <height>20</height>
+     <height>81</height>
     </size>
    </property>
    <property name="floating">
@@ -313,7 +313,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="smallOutputDock">
+  <widget class="myDock" name="smallOutputDock">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
      <horstretch>1</horstretch>
@@ -394,7 +394,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="logDock">
+  <widget class="myDock" name="logDock">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
      <horstretch>1</horstretch>
@@ -565,6 +565,7 @@
    <slots>
     <signal>sendToLog(PyQt_PyObject)</signal>
     <signal>buttonState(bool)</signal>
+    <signal>gotNewLines(int)</signal>
     <slot>smallDup()</slot>
     <slot>smallKeepToggle(bool)</slot>
     <slot>smallKill()</slot>
@@ -576,10 +577,21 @@
    <extends>QTextBrowser</extends>
    <header>logoutput</header>
    <slots>
+    <signal>gotNewLines(int)</signal>
     <slot>setFollowCheck(int)</slot>
     <slot>simpleFindNew(QString)</slot>
     <slot>simpleFind2()</slot>
     <slot>receiveJob(PyQt_PyObject)</slot>
+    <slot>newLines(int)</slot>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>myDock</class>
+   <extends>QDockWidget</extends>
+   <header>mydock</header>
+   <container>1</container>
+   <slots>
+    <slot>newLines(int)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -966,6 +978,38 @@
     <hint type="destinationlabel">
      <x>470</x>
      <y>137</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>logBrowser</sender>
+   <signal>gotNewLines(int)</signal>
+   <receiver>logDock</receiver>
+   <slot>newLines(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>474</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>459</x>
+     <y>87</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>smallOutputView</sender>
+   <signal>gotNewLines(int)</signal>
+   <receiver>smallOutputDock</receiver>
+   <slot>newLines(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>307</x>
+     <y>94</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>295</x>
+     <y>117</y>
     </hint>
    </hints>
   </connection>

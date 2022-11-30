@@ -22,8 +22,10 @@ User interface questions:
    # annoying tags
 
 Things to implement soon:
+ ! small output title counter (half done)
+ ! table should send stderr to log
  ! doubleclick on favorites editor headers to resize row
-   built in commands should get marked done in history
+ ? built in commands should get marked done in history
  E log window flush process (context) doesn't work
    qtail: set extra selections for previously found items (clear when?)
  o table parsing in qtail

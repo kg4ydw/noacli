@@ -104,7 +104,7 @@ class Ui_noacli(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.buttons.sizePolicy().hasHeightForWidth())
         self.buttons.setSizePolicy(sizePolicy)
-        self.buttons.setMinimumSize(QtCore.QSize(98, 20))
+        self.buttons.setMinimumSize(QtCore.QSize(98, 81))
         self.buttons.setFloating(False)
         self.buttons.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)
         self.buttons.setObjectName("buttons")
@@ -167,7 +167,7 @@ class Ui_noacli(object):
         self.verticalLayout.addWidget(self.jobTableView)
         self.jobManager.setWidget(self.dockWidgetContents_5)
         noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.jobManager)
-        self.smallOutputDock = QtWidgets.QDockWidget(noacli)
+        self.smallOutputDock = myDock(noacli)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(1)
@@ -177,6 +177,7 @@ class Ui_noacli(object):
         self.dockWidgetContents_3 = QtWidgets.QWidget()
         self.dockWidgetContents_3.setObjectName("dockWidgetContents_3")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.dockWidgetContents_3)
+        self.verticalLayout_4.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_2.setObjectName("horizontalLayout_2")
@@ -211,7 +212,7 @@ class Ui_noacli(object):
         self.verticalLayout_4.addWidget(self.smallOutputView)
         self.smallOutputDock.setWidget(self.dockWidgetContents_3)
         noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.smallOutputDock)
-        self.logDock = QtWidgets.QDockWidget(noacli)
+        self.logDock = myDock(noacli)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(2)
@@ -221,6 +222,7 @@ class Ui_noacli(object):
         self.dockWidgetContents_2 = QtWidgets.QWidget()
         self.dockWidgetContents_2.setObjectName("dockWidgetContents_2")
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.dockWidgetContents_2)
+        self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -324,6 +326,8 @@ class Ui_noacli(object):
         self.logSearch.returnPressed.connect(self.logBrowser.simpleFind2) # type: ignore
         self.logOutputButton.clicked['bool'].connect(self.smallOutputView.smallLog) # type: ignore
         self.smallOutputView.sendToLog['PyQt_PyObject'].connect(self.logBrowser.receiveJob) # type: ignore
+        self.logBrowser.gotNewLines['int'].connect(self.logDock.newLines) # type: ignore
+        self.smallOutputView.gotNewLines['int'].connect(self.smallOutputDock.newLines) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -368,6 +372,7 @@ class Ui_noacli(object):
         self.actionTabifyDocks.setText(_translate("noacli", "Tabify all"))
         self.actionEnvironment_Variables.setText(_translate("noacli", "Environment Variables"))
 from logoutput import logOutput
+from mydock import myDock
 from noacli import commandEditor, historyView
 from smalloutput import smallOutput
 from flowlayout import FlowLayout

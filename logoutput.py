@@ -38,6 +38,7 @@ from functools import partial
 class logOutput(QTextBrowser):
     oneLine = pyqtSignal(str)
     readmore = pyqtSignal(jobItem)
+    gotNewLines = pyqtSignal(int)
     
     def __init__(self, parent):
         super().__init__(parent)
@@ -125,16 +126,19 @@ class logOutput(QTextBrowser):
         e = self.endCursor()
         e.beginEditBlock()
         jobitem.hasmore = True
+        newlines = 0
         # note: when reading textstream, don't worry about what's unread in fd
         while lines>0:
             t = jobitem.textstream.readLine()
             if t:
                 e.insertText(str(jobitem.getpid())+': '+t+"\n")
+                newlines += 1
             else:
                 jobitem.hasmore = False
                 break
             lines -= 1
         e.endEditBlock()
+        self.gotNewLines.emit(newlines)
         if jobitem.hasmore or jobitem.process.canReadLine():
             if not jobitem.paused:  # more to read but we're not ready
                 self.readmore.emit(jobitem)
@@ -238,6 +242,7 @@ class logOutput(QTextBrowser):
             return None
         
     def contextMenuEvent(self, event):
+        self.gotNewLines.emit(0) # force title update
         m=super().createStandardContextMenu(event.pos())
         c = self.cursorForPosition(event.pos())
         # get pid
