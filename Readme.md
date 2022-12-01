@@ -365,3 +365,26 @@ Ctrl-F	    Invoke the file browser and insert the results into the editor
 The history keys treat history as a ring, and the position is reset when
 a command is run.
 
+Odds and ends
+-------------
+Many items are internally documented with tooltips.
+* The general settings editor shows a description of the option and
+  the default value as tooltips for the two columns.
+* Favorites buttons, history, and favorites display teh full command as a tooltip
+
+Built in commands are documented with the help command.
+
+Tables windows will reset sort order and sizes when the top left
+corner are clicked.  Double clicking on row and column headings will
+resize the row to fit the contents if appropriate.
+
+Clicking or double clicking on values in the table viwer copy the
+contents to the clipboard.
+
+Double clicking on the command in the history and jobs managers copies
+it to the command edit window. (A partially edited command is saved to
+history so it isn't lost.)
+
+Many items have a context menu (right click) with additional actions.
+
+

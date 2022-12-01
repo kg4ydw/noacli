@@ -11,38 +11,41 @@ d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
 User interface questions:
-   Should all the tables be respaced with resizeRowsToContents()
+o  Should all the tables be respaced with resizeRowsToContents()
    Is column selection between tableviewer and column picker awkward
    is the documentation unclear or too wordy
    is a wrapper editor and save needed
    is a keybindings viewer / editor needed
-   is it OK to automatically resize the window to max screen size
+*  is it OK to automatically resize the window to max screen size
    are the options named well
-   should the window auto-resize theshold be a setting
-   # annoying tags
+*  should the window auto-resize theshold be a setting
+   is it annoing that history scrolls to bottom and resets sort order
+     when a command is run
+     when history items are copied from the docs
 
 Things to implement soon:
- ! small output title counter (half done)
+ * small output title counter
  ! table should send stderr to log
- ! doubleclick on favorites editor headers to resize row
+ * doubleclick on favorites editor headers to resize row
  ? built in commands should get marked done in history
  E log window flush process (context) doesn't work
    qtail: set extra selections for previously found items (clear when?)
- o table parsing in qtail
+ * table parsing in qtail
       fixed width white space tables
  o add title to jobinfo and use it when small output dup
- ? close stdin
+   close stdin
  o job life cycle
  *   delete job if command is done and window is closed
- o   timeout if no window?
+ *   timeout if no window?
    small buttons in dock widget headers
      jobs: clean
      history: reset sort
+ *   alternately: document table corner button that does this
    resource manager (may undo this)
      noacli-res.qrc
-     icons broken again
+ !   icons broken again
 D* if text is selected before pushing template button, save it and paste over mark
-   qtail: bind ctrl-f to focus on search box
+ ! qtail: bind ctrl-f to focus on search box
    qtail: translate terminal colors
    qtail: resize on zoom?
  * tag name of button template for window title
@@ -60,7 +63,7 @@ D* if text is selected before pushing template button, save it and paste over ma
      job manager
    shortcuts for internal actions
    detach processes before exiting (optionally)
-   SETTING: delay after first data before initial window resize
+ * SETTING: delay after first data before initial window resize
    SETTING: max qtail window size (in px), to allow free expansion
    add another kill button:  stop(2) terminate kill
    context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
@@ -386,7 +389,7 @@ Do     find next
  *x     EXIT $pid $exitval wait stats...
  x    view full or filtered log
         fold filtered entries
-	
+
 
    status icon? from logged job?
 
@@ -397,22 +400,22 @@ D*   for commands that output a small amount and exit in a short time
      pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
 
  * table viewer
-     options: --delimiter
  *   select lines, cells, columns, send to clipboard
  *   show / hide / rearrange columns
      sort by column
  *   table column selector
  *     select fields in list -- list view?
  *     export selected column names --> space or comma sep
-     context menu
-       merge selected cells in this row
+ o   context menu
+ o!    merge selected cells in this row
        (split cell here)
      extend header to max columns
      command line options
+ !     --skip N lines
        --file
        --csv --delimiter
        --regex (delimiter or split pattern? depends on if groups?)
-       --fixed --gap=2 
+       --fixed --gap=2
 
    built in special commands
 D*   terminal (--set-default)

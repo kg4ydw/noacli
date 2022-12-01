@@ -20,7 +20,7 @@ from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 import signal
 
-__version__ = '0.9.8.1'
+__version__ = '0.9.8.2'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -701,6 +701,8 @@ class noacli(QtWidgets.QMainWindow):
         # connect slots QtCreator coudln't find
         self.ui.smallOutputView.buttonState.connect(self.ui.logOutputButton.setEnabled)
         self.ui.smallOutputView.buttonState.connect(self.setTerminateButton)
+        # commandParser is not a Qt object, so we do it our own way
+        self.settings.commandParser.new_default_wrapper = self.setTitleFromWrap
 
         ##### install signal handlers
         #try:  # in case anything here is unportable
@@ -715,6 +717,9 @@ class noacli(QtWidgets.QMainWindow):
 
     ## end __init__
 
+    def setTitleFromWrap(self, title):
+        self.setWindowTitle('noacli: '+title)
+    
     ## small output UI actions
     def rebuttonKill(self, label, slot, enab=True):
         self.ui.killButton.setText(label)
@@ -967,7 +972,7 @@ class noacli(QtWidgets.QMainWindow):
         i = int(qs.value('HistMenuSize', 10))
         cmds=set()
         width = int(qs.value('HistMenuWidth',30))
-        while i>0 and h:
+        while i>0 and h and h.data():
             c = str(h.data())
             if c not in cmds:
                 act = QAction(h.data()[0:width], self)
@@ -1231,6 +1236,9 @@ class commandEditor(QPlainTextEdit):
         self.histindex = idx;
         str = idx.siblingAtColumn(1).data(Qt.EditRole)
         self.setPlainText(str)
+        c = self.textCursor()
+        c.movePosition(QTextCursor.End)
+        self.setTextCursor(c)
         #unnecssary?# self.document().setModified( idx.siblingAtColumn(0).data(Qt.DisplayRole)==None)
         # scroll history window to this entry XX optional?
         self.ui.historyView.resetView(idx)

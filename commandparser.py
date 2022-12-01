@@ -1,5 +1,6 @@
 import os
 from enum import Enum
+from PyQt5.Qt import pyqtSignal
 
 
 # This is a very primitive command parser, but it should be sufficent for the
@@ -38,8 +39,9 @@ builtinCommands = {
 }
 
 class commandParser:
+    new_default_wrapper = None # non-Qt fake signal (unfancy, but we only need one)
     # decorator generator to register commands
-    # maybe use __doc__ strings as help strings eventually
+    # use __doc__ strings as help strings
     def builtin(name):
         def decorator(func):
             builtinCommands[name] = func
@@ -129,11 +131,16 @@ class commandParser:
             return e.strerror
         return os.getcwd()
     
+    @builtin('setwrapper') # how do you spell this again?
     @builtin('setwrap')
     def cmd_setwrap(self, title, outwin, rest):
-        '''Change to a new default command wrapper'''
+        '''Change to a new default command wrapper, or lists the current wrapper if none is supplied'''
+        if rest=='':
+            return 'Current default wrapper is set to '+self.defaultWrapper
         if rest in self.wrappers:
             self.defaultWrapper = rest
+            if self.new_default_wrapper:
+                self.new_default_wrapper(rest)
         else:
             return "Wrapper '{}' not found.".format(rest)
         return None
