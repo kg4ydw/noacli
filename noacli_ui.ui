@@ -86,6 +86,8 @@
     <addaction name="actionFavorites_editor"/>
     <addaction name="actionGsettings"/>
     <addaction name="actionEnvironment_Variables"/>
+    <addaction name="actionEditor_font"/>
+    <addaction name="actionBrowser_font"/>
     <addaction name="actionSync_settings"/>
     <addaction name="separator"/>
     <addaction name="actionGeoSave"/>
@@ -536,6 +538,16 @@
   <action name="actionEnvironment_Variables">
    <property name="text">
     <string>Environment Variables</string>
+   </property>
+  </action>
+  <action name="actionEditor_font">
+   <property name="text">
+    <string>Editor font</string>
+   </property>
+  </action>
+  <action name="actionBrowser_font">
+   <property name="text">
+    <string>Browser default font</string>
    </property>
   </action>
  </widget>
@@ -1013,6 +1025,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionEditor_font</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>pickDefaultFont()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>305</x>
+     <y>148</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionBrowser_font</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>pickBrowserFont()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>305</x>
+     <y>148</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
@@ -1030,5 +1074,7 @@
   <slot>smallKeepToggle(bool)</slot>
   <slot>syncSettings()</slot>
   <slot>actionEsettings()</slot>
+  <slot>pickDefaultFont()</slot>
+  <slot>pickBrowserFont()</slot>
  </slots>
 </ui>

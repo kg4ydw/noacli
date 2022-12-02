@@ -65,9 +65,12 @@ class Ui_QtTail(object):
         self.actionWrap_lines.setCheckable(True)
         self.actionWrap_lines.setChecked(True)
         self.actionWrap_lines.setObjectName("actionWrap_lines")
+        self.actionFont = QtWidgets.QAction(QtTail)
+        self.actionFont.setObjectName("actionFont")
         self.menuView.addAction(self.actionAdjust)
         self.menuView.addAction(self.actionCount_lines)
         self.menuView.addAction(self.actionWrap_lines)
+        self.menuView.addAction(self.actionFont)
         self.menubar.addAction(self.menuView.menuAction())
         self.label.setBuddy(self.searchTerm)
 
@@ -80,6 +83,7 @@ class Ui_QtTail(object):
         self.actionCount_lines.triggered.connect(QtTail.showsize) # type: ignore
         self.actionWrap_lines.triggered['bool'].connect(QtTail.wrapChanged) # type: ignore
         self.followCheck.toggled['bool'].connect(self.textBrowser.jumpToEndMaybe) # type: ignore
+        self.actionFont.triggered.connect(self.textBrowser.pickFont) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
@@ -93,4 +97,5 @@ class Ui_QtTail(object):
         self.actionAdjust.setToolTip(_translate("QtTail", "Adjust size"))
         self.actionCount_lines.setText(_translate("QtTail", "Count lines"))
         self.actionWrap_lines.setText(_translate("QtTail", "Wrap lines"))
+        self.actionFont.setText(_translate("QtTail", "Font"))
 from qtailbrowser import myBrowser

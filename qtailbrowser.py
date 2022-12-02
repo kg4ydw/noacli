@@ -1,5 +1,5 @@
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QTextBrowser
+from PyQt5.QtWidgets import QTextBrowser, QFontDialog
 from PyQt5.QtGui import QTextCursor
 
 import re
@@ -69,3 +69,7 @@ class myBrowser(QTextBrowser):
         c.movePosition(QTextCursor.End)
         self.setTextCursor(c)
 
+    def pickFont(self):
+        (font, ok)  = QFontDialog.getFont(self.document().defaultFont(), None, "Select editor font")
+        if ok:
+            self.document().setDefaultFont(font)

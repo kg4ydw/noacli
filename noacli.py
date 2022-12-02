@@ -73,6 +73,7 @@ class settings():
         self.history.read()
         self.favorites = Favorites(self)
         self.commandParser = commandParser() # XXX load settings
+        self.browserFont = None
         # don't call this before setting buttonbox, so call it in caller
         #self.favorites.loadSettings()
 
@@ -843,6 +844,30 @@ class noacli(QtWidgets.QMainWindow):
     # external slots
     # some of these could be moved
 
+    @QtCore.pyqtSlot()
+    def pickDefaultFont(self):
+        oldfont = self.ui.commandEdit.document().defaultFont()
+        (font, ok)  = QFontDialog.getFont(oldfont, None, "Select editor font")
+        if ok:
+            ui = self.ui
+            ui.commandEdit.document().setDefaultFont(font)
+            ui.smallOutputView.document().setDefaultFont(font)
+            ui.logBrowser.document().setDefaultFont(font)
+            #ui.smallOutputView.setCurrentFont(font)
+            #ui.logBrowser.setCurrentFont(font)
+            # XXX SETTING editor font
+
+    def pickBrowserFont(self):
+        font = self.settings.browserFont
+        if font==None: 
+            font = self.ui.commandEdit.document().defaultFont()
+        if font:
+            (font, ok)  = QFontDialog.getFont(font, None, "Select editor font")
+        else:
+            (font, ok)  = QFontDialog.getFont()
+        if ok:
+            self.settings.browserFont = font
+        
     @QtCore.pyqtSlot()
     def syncSettings(self):
         qs = QSettings()

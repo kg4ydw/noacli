@@ -281,6 +281,10 @@ class Ui_noacli(object):
         self.actionTabifyDocks.setObjectName("actionTabifyDocks")
         self.actionEnvironment_Variables = QtWidgets.QAction(noacli)
         self.actionEnvironment_Variables.setObjectName("actionEnvironment_Variables")
+        self.actionEditor_font = QtWidgets.QAction(noacli)
+        self.actionEditor_font.setObjectName("actionEditor_font")
+        self.actionBrowser_font = QtWidgets.QAction(noacli)
+        self.actionBrowser_font.setObjectName("actionBrowser_font")
         self.historyMenu.addAction(self.actionlastCommand)
         self.historyMenu.addAction(self.actionsave_history)
         self.historyMenu.addSeparator()
@@ -291,6 +295,8 @@ class Ui_noacli(object):
         self.menuSettings.addAction(self.actionFavorites_editor)
         self.menuSettings.addAction(self.actionGsettings)
         self.menuSettings.addAction(self.actionEnvironment_Variables)
+        self.menuSettings.addAction(self.actionEditor_font)
+        self.menuSettings.addAction(self.actionBrowser_font)
         self.menuSettings.addAction(self.actionSync_settings)
         self.menuSettings.addSeparator()
         self.menuSettings.addAction(self.actionGeoSave)
@@ -328,6 +334,8 @@ class Ui_noacli(object):
         self.smallOutputView.sendToLog['PyQt_PyObject'].connect(self.logBrowser.receiveJob) # type: ignore
         self.logBrowser.gotNewLines['int'].connect(self.logDock.newLines) # type: ignore
         self.smallOutputView.gotNewLines['int'].connect(self.smallOutputDock.newLines) # type: ignore
+        self.actionEditor_font.triggered.connect(noacli.pickDefaultFont) # type: ignore
+        self.actionBrowser_font.triggered.connect(noacli.pickBrowserFont) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -371,6 +379,8 @@ class Ui_noacli(object):
         self.actionSync_settings.setText(_translate("noacli", "Sync settings"))
         self.actionTabifyDocks.setText(_translate("noacli", "Tabify all"))
         self.actionEnvironment_Variables.setText(_translate("noacli", "Environment Variables"))
+        self.actionEditor_font.setText(_translate("noacli", "Editor font"))
+        self.actionBrowser_font.setText(_translate("noacli", "Browser font"))
 from logoutput import logOutput
 from mydock import myDock
 from noacli import commandEditor, historyView

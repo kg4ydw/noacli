@@ -24,24 +24,34 @@ o  Should all the tables be respaced with resizeRowsToContents()
      when history items are copied from the docs
 
 Things to implement soon:
- * small output title counter
+ o try changing default font
+ !   settings
+     change cursor on clear for QText*
+     application font
+     application style sheet / search paths
+       sbbl.css sbbl_font.css
+       body { font-family:[etc.]
+       textbrowser->document()->setDefaultStyleSheet()
+      QFont myfont ("Monospace");
+      myfont.setStyleHint(QFont::Monospace);
+      this->MessageBrowser->setFont(myfont);
+ ! qtail button mode
+      keep vs. transient
+      rerun vs. close
  ! table should send stderr to log
- * doubleclick on favorites editor headers to resize row
  ? built in commands should get marked done in history
+   qtail resize leaves too much space at bottom
+     setting?
+     threshold?
+     leave less for jobs that finish
  E log window flush process (context) doesn't work
    qtail: set extra selections for previously found items (clear when?)
- * table parsing in qtail
-      fixed width white space tables
- o add title to jobinfo and use it when small output dup
    close stdin
- o job life cycle
- *   delete job if command is done and window is closed
- *   timeout if no window?
    small buttons in dock widget headers
      jobs: clean
      history: reset sort
  *   alternately: document table corner button that does this
-   resource manager (may undo this)
+   resource manager
      noacli-res.qrc
  !   icons broken again
 D* if text is selected before pushing template button, save it and paste over mark
@@ -64,10 +74,11 @@ D* if text is selected before pushing template button, save it and paste over ma
    shortcuts for internal actions
    detach processes before exiting (optionally)
  * SETTING: delay after first data before initial window resize
-   SETTING: max qtail window size (in px), to allow free expansion
+ o SETTING: max qtail window size (in px), to allow free expansion
    add another kill button:  stop(2) terminate kill
    context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
    history context menu: set vert spacing: expand vs minimum
+ !   context menu -> reset to default height
    qtail on files directly
    history view row height
      autosize rows if they would be smaller
@@ -100,18 +111,14 @@ x! block tostop signal : try os.setsid ?
        at start
        when dock is popped out or resized
  *   corner button resets width
-  ? job manager column viwe width issues
-      fix with corner reset button
-      use header double click to resize
    bind hitory context menu to history headers too
 
 Bugs:
-   fixed width viewer handles slow sockets badly
-   job manager context menu missing terminate
-   log flush context: doesn't do anything?
+ ? job manager context menu missing terminate
+ ! log flush context: doesn't do anything?
    qtail is slow reading large files
-     read in smaller chunks
-     use cursor.beginEditBlock / endEditBlock
+ !   read in smaller chunks
+ *   use cursor.beginEditBlock / endEditBlock
    reload button should change for pipes
  ? what to do with stderr? always log?
    lots of stuff packed into class noacli that could go elsewhere
@@ -576,8 +583,39 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
      small log
      small kill
 
+   man page viewer
+     qtail base
+     fixed with font?
+     regex replace cross references with links
+     links trigger reading other man pages
+     database
+       detect new pages since last init / newly installed pages
+       cross reference tree
+       timestamp of last time a page is read
+       pick a random not-recent page
+       pages by families?
+       side bar / dock of (recent, related) man pages
+       sort list by
+	 time
+	 relation depth
+	 alphabetically
+	 section, then alpha
+	 num similar letters
+       search by
+         apropos
+	 read (on,before,after) date
+	 related
+	 filter by section
+        clear database	
+
 completed misc. features
+ * table parsing in qtail
+ *    fixed width white space tables
+ * add title to jobinfo and use it when small output dup
  *  button should set title from button name
+ o job life cycle
+ *   delete job if command is done and window is closed
+ *   timeout if no window?
  * command edit should grab focus after accepting input
  * job: double click connect to send command to editor
  *   connect to qtail window status
@@ -599,6 +637,8 @@ D* file dialog: disable path prefix stripping without changing start dir
  * print exit value if keep is false
  x small output: replace horiz rule image; scale image to fit box
  * add running indicator to small output (kill and log buttons)
+ * small output title counter
+ * doubleclick on favorites editor headers to resize row
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -613,6 +653,9 @@ D*   if it ends in / select dirs only??
  * scroll job manager to bottom on new job?
  * qtail main window doesn't autoresize even when it has horiz scrollbar
  * small output size not set at start if not visible
-   make template buttons distinctive
-     immediate buttons are bold
-     template buttons are italic
+ * make template buttons distinctive
+ *   immediate buttons are bold
+ *   template buttons are italic
+ * job manager column view width issues
+ *   fix with corner reset button
+ ?   use header double click to resize

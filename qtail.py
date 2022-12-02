@@ -5,7 +5,7 @@ import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QTextEdit, QSizePolicy
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer
+from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt5.Qt import Qt, pyqtSignal
 from math import ceil
 
@@ -27,7 +27,7 @@ class myOptions():
         # whole file mode vs tail mode?  oneshot vs. follow?
         # alternate format options: html markdown fixed-font
 
-    def process(self, app):
+    def processOptions(self, app):
         parser = QCommandLineParser()
         parser.setApplicationDescription("View and follow the tail end of a file")
         parser.addHelpOption()
@@ -171,7 +171,7 @@ class QtTail(QtWidgets.QMainWindow):
                 except:
                     pass
                 if rdelay:
-                    if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
+                    #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
                     QTimer.singleShot(int(rdelay)*1000, Qt.VeryCoarseTimer, self.actionAdjust)
             self.showsize()
 
@@ -375,8 +375,12 @@ class QtTail(QtWidgets.QMainWindow):
         elif width > newsize.width(): # shrink
             width = newsize.width()
         width += framedx
+        heightadjust = 100 # SETTING
+        ## this was worse
+        #if type(self.file)==QProcess and self.file.state()==QProcess.NotRunning:
+        #    heightadjust = 0 # don't leave extra space if it is already dead
         if height > 50 and height < rect.height()*1.1:
-            height += 100   # guess at frame size
+            height += heightadjust   # guess at frame size
             #print('shrink height') # DEBUG
         else:
             # insane height was supplied
@@ -393,7 +397,7 @@ if __name__ == '__main__':
     QtCore.QCoreApplication.setApplicationName("QtTail");
 
     options = myOptions()
-    args = options.process(app)
+    args = options.processOptions(app)
 
     if options.isCommand:
         print('--Command not implemented yet')  # XXXX

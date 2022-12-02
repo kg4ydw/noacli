@@ -96,6 +96,7 @@
     <addaction name="actionAdjust"/>
     <addaction name="actionCount_lines"/>
     <addaction name="actionWrap_lines"/>
+    <addaction name="actionFont"/>
    </widget>
    <addaction name="menuView"/>
   </widget>
@@ -124,6 +125,11 @@
     <string>Wrap lines</string>
    </property>
   </action>
+  <action name="actionFont">
+   <property name="text">
+    <string>Font</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -132,6 +138,7 @@
    <header>qtailbrowser</header>
    <slots>
     <slot>jumpToEndMaybe(bool)</slot>
+    <slot>pickFont()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -262,6 +269,22 @@
     <hint type="destinationlabel">
      <x>26</x>
      <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionFont</sender>
+   <signal>triggered()</signal>
+   <receiver>textBrowser</receiver>
+   <slot>pickFont()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>265</y>
     </hint>
    </hints>
   </connection>
