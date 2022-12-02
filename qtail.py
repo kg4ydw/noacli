@@ -4,7 +4,7 @@ import sys
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy
+from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWidgetAction
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt5.Qt import Qt, pyqtSignal
 from math import ceil
@@ -12,6 +12,19 @@ from math import ceil
 from qtail_ui import Ui_QtTail
 
 from typedqsettings import typedQSettings
+
+typedQSettings().registerOptions({
+    'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
+    'QTailEndBytes': [ 1024*1024, 'Number of bytes qtail rewinds a file', int],
+    'QTailDefaultTitle': [ 'subprocess', 'Default title for a qtail process window', str ],
+    'QTailDelayResize':[ 3, 'Resize qtail to fit output again seconds after first input arrives', int],
+   #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
+   #'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
+   #'QTailWrap':  [ True, 'wrap long lines', bool ]
+   #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
+   #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
+    'QTailWatchInterval': [20, "Default automatic refresh interval for qtail in watch mode", int],
+})    
 
 # options values -- set defaults
 class myOptions():
@@ -109,6 +122,64 @@ class QtTail(QtWidgets.QMainWindow):
         if self.opt.maxLines>0:
             self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
 
+        ## build the Mode menu because QtDesigner can't do it
+        m = self.ui.menuMode
+        # XXX put a label on this
+        line = QLineEdit(m)
+        line.setPlaceholderText('Interval')
+        line.setText(str(typedQSettings().value('QTailWatchInterval',20)))
+        line.setInputMask('D000')
+        line.setToolTip('Refresh interval')
+        line.editingFinished.connect(self.setWatchInterval)
+        self.ui.intervalLine = line
+        wa = QWidgetAction(m)
+        wa.setDefaultWidget(line)
+        m.addAction(wa)
+        ### can't do this yet
+        #if type(self.file)!=QProcess: # can't watch a non-process
+        #    self.ui.actionWatch.setEnabled(False) 
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.reloadOrRerun)
+        # note: this intentionally doesn't refresh on settings change
+        self.reinterval = typedQSettings().value('QTailWatchInterval',20)
+
+    def setButtonMode(self):
+        if type(self.file)==QProcess:
+            if self.file.state()==QProcess.Running:
+                self.rebutton('Kill', self.terminateProcess)
+            elif self.ui.actionWatch.isChecked():
+                self.rebutton('Rerun', self.reloadOrRerun)
+            else:
+                self.rebutton('Close', self.close)
+        else: ## XXX distinguish between stdin and a file
+            self.rebutton('Close', self.close)
+        #else: # file
+        #   self.rebuttion('Reload',self.reload)
+        
+    def setWatchInterval(self):
+        val = self.ui.intervalLine.text()
+        try:
+            self.reinterval = int(val)
+        except Exception as e:
+            print('set reinterval: '+e)
+            
+    def actionAutoRefresh(self):
+        checked = self.ui.actionAutorefresh.isChecked()
+        if checked:
+            self.timer.start(self.reinterval*1000)
+        else:
+            self.timer.stop()
+            
+    def reloadOrRerun(self):
+        if type(self.file)==QProcess:
+            if self.file.state()==QProcess.Running:  # it's taking a long time
+                return
+            else:
+                self.ui.textBrowser.clear()
+                self.file.start()  # XXX does this work?
+        else:
+            self.reload()
+            
     def closeEvent(self,event):
         self.window_close_signal.emit()
         super().closeEvent(event)
@@ -235,7 +306,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.textstream = QtCore.QTextStream(process)
         self.opt.file = False
         self.file.readyRead.connect(self.readtext)
-        self.rebutton('kill', self.terminateProcess)
+        self.rebutton('Kill', self.terminateProcess)
         self.file.finished.connect(self.procFinished)
 
     def openPretext(self, process, textstream, pretext='', title=None):
@@ -276,7 +347,8 @@ class QtTail(QtWidgets.QMainWindow):
 
     def procFinished(self, exitcode, estatus):
         # XXX if exitcode: rebutton("Rerun", self.rerun)
-        self.rebutton('Close', self.close)
+        # self.rebutton('Close', self.close)
+        self.setButtonMode()
         if self.ui.textBrowser.document().isEmpty():
             # XXX should this be conditional?
             self.close()
@@ -288,7 +360,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def killProcess(self, checked):
         self.file.kill()
-        self.rebutton('Close', self.close)
+        self.rebutton('Close', self.close) # reassign when it dies
         # XXX or rerun?
 
     def rebutton(self, label, slot):

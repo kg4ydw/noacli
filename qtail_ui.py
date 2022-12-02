@@ -53,6 +53,8 @@ class Ui_QtTail(object):
         self.menubar.setObjectName("menubar")
         self.menuView = QtWidgets.QMenu(self.menubar)
         self.menuView.setObjectName("menuView")
+        self.menuMode = QtWidgets.QMenu(self.menubar)
+        self.menuMode.setObjectName("menuMode")
         QtTail.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(QtTail)
         self.statusbar.setObjectName("statusbar")
@@ -67,11 +69,20 @@ class Ui_QtTail(object):
         self.actionWrap_lines.setObjectName("actionWrap_lines")
         self.actionFont = QtWidgets.QAction(QtTail)
         self.actionFont.setObjectName("actionFont")
+        self.actionWatch = QtWidgets.QAction(QtTail)
+        self.actionWatch.setCheckable(True)
+        self.actionWatch.setObjectName("actionWatch")
+        self.actionAutorefresh = QtWidgets.QAction(QtTail)
+        self.actionAutorefresh.setCheckable(True)
+        self.actionAutorefresh.setObjectName("actionAutorefresh")
         self.menuView.addAction(self.actionAdjust)
         self.menuView.addAction(self.actionCount_lines)
         self.menuView.addAction(self.actionWrap_lines)
         self.menuView.addAction(self.actionFont)
+        self.menuMode.addAction(self.actionWatch)
+        self.menuMode.addAction(self.actionAutorefresh)
         self.menubar.addAction(self.menuView.menuAction())
+        self.menubar.addAction(self.menuMode.menuAction())
         self.label.setBuddy(self.searchTerm)
 
         self.retranslateUi(QtTail)
@@ -84,6 +95,8 @@ class Ui_QtTail(object):
         self.actionWrap_lines.triggered['bool'].connect(QtTail.wrapChanged) # type: ignore
         self.followCheck.toggled['bool'].connect(self.textBrowser.jumpToEndMaybe) # type: ignore
         self.actionFont.triggered.connect(self.textBrowser.pickFont) # type: ignore
+        self.actionAutorefresh.triggered.connect(QtTail.actionAutoRefresh) # type: ignore
+        self.actionWatch.triggered.connect(QtTail.setButtonMode) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
@@ -93,9 +106,12 @@ class Ui_QtTail(object):
         self.reloadButton.setText(_translate("QtTail", "Reload"))
         self.label.setText(_translate("QtTail", "Search:"))
         self.menuView.setTitle(_translate("QtTail", "View"))
+        self.menuMode.setTitle(_translate("QtTail", "Mode"))
         self.actionAdjust.setText(_translate("QtTail", "Adjust"))
         self.actionAdjust.setToolTip(_translate("QtTail", "Adjust size"))
         self.actionCount_lines.setText(_translate("QtTail", "Count lines"))
         self.actionWrap_lines.setText(_translate("QtTail", "Wrap lines"))
         self.actionFont.setText(_translate("QtTail", "Font"))
+        self.actionWatch.setText(_translate("QtTail", "Watch"))
+        self.actionAutorefresh.setText(_translate("QtTail", "Autorefresh"))
 from qtailbrowser import myBrowser

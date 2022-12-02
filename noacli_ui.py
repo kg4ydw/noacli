@@ -380,7 +380,7 @@ class Ui_noacli(object):
         self.actionTabifyDocks.setText(_translate("noacli", "Tabify all"))
         self.actionEnvironment_Variables.setText(_translate("noacli", "Environment Variables"))
         self.actionEditor_font.setText(_translate("noacli", "Editor font"))
-        self.actionBrowser_font.setText(_translate("noacli", "Browser font"))
+        self.actionBrowser_font.setText(_translate("noacli", "Browser default font"))
 from logoutput import logOutput
 from mydock import myDock
 from noacli import commandEditor, historyView

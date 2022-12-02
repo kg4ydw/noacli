@@ -26,18 +26,18 @@ o  Should all the tables be respaced with resizeRowsToContents()
 Things to implement soon:
  o try changing default font
  !   settings
-     change cursor on clear for QText*
      application font
      application style sheet / search paths
-       sbbl.css sbbl_font.css
-       body { font-family:[etc.]
-       textbrowser->document()->setDefaultStyleSheet()
       QFont myfont ("Monospace");
       myfont.setStyleHint(QFont::Monospace);
-      this->MessageBrowser->setFont(myfont);
  ! qtail button mode
-      keep vs. transient
-      rerun vs. close
+ o    watch vs. transient
+ E    rerun vs. close
+ *    automatic reload checkbox
+ *    rerun interval
+      bug: is watch mode necessary or checkbox enough?
+      file doesn't need autorefresh??
+      line edit is ugly
  ! table should send stderr to log
  ? built in commands should get marked done in history
    qtail resize leaves too much space at bottom
@@ -606,7 +606,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
 	 read (on,before,after) date
 	 related
 	 filter by section
-        clear database	
+        clear database
 
 completed misc. features
  * table parsing in qtail

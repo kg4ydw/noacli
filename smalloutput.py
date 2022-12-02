@@ -144,7 +144,8 @@ class smallOutput(QTextBrowser):
             else:
                 title = 'dead' # XXX pull default? SETTING
         qt = QtTail(self.settings.qtail)
-        qt.ui.textBrowser.document().setDefaultFont(self.settings.browserFont)
+        if self.settings.browserFont:
+            qt.ui.textBrowser.document().setDefaultFont(self.settings.browserFont)
         
         self.jobitem.setWindow(qt)
         qt.openPretext(self.process, self.textstream, pretext=text, title=title)

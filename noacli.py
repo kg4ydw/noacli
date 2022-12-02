@@ -20,7 +20,7 @@ from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 import signal
 
-__version__ = '0.9.8.2'
+__version__ = '0.9.9'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -47,16 +47,6 @@ class settingsDict():
     'MessageDelay':[10, 'Timeout (seconds) for transient message bar messages', float],
     'SHELL':       [ 'bash -c', 'external shell wrapper command to run complex shell commands', str],
     'TemplateMark':['{}', 'Move cursor to this string after loading a command into the edit window', str],
-# qtail options
-    'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
-    'QTailEndBytes': [ 1024*1024, 'Number of bytes qtail rewinds a file', int],
-    'QTailDefaultTitle': [ 'subprocess', 'Default title for a qtail process window', str ],
-    'QTailDelayResize':[ 3, 'Resize qtail to fit output again seconds after first input arrives', int],
-   #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
-   #'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
-   #'QTailWrap':  [ True, 'wrap long lines', bool ]
-   #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
-   #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
     'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is in screens, >=10 is paragraphs, <1 for infinite', int],
     }
 
