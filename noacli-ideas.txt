@@ -33,7 +33,6 @@ Things to implement soon:
    fix icons!!
    fixed format fence post with slurm 1 char margins  sacct -a -X
    tableviewer: number blank cols too
-   finish table cell merge
    make qtail mode interval less ugly, change default
    cd should parse ~
    sync should load missing geom settings
@@ -59,7 +58,7 @@ Things to implement soon:
    add small buttons in dock widget headers
      jobs: clean
      history: reset sort
- *   alternately: document table corner button that does this
+D*   alternately: document table corner button that does this
    resource manager
      noacli-res.qrc
  !   icons broken again
@@ -82,7 +81,7 @@ D* if text is selected before pushing template button, save it and paste over ma
      job manager
    shortcuts for internal actions
    detach processes before exiting (optionally)
- * SETTING: delay after first data before initial window resize
+d* SETTING: delay after first data before initial window resize
  o SETTING: max qtail window size (in px), to allow free expansion
    add another kill button:  stop(2) terminate kill
    context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
@@ -104,7 +103,6 @@ User visible bugs:
      icons and app name don't work on mac (wrong geom?)
  * favorites editor bugs
 DE    should warn on duplicate names? (color?)
- *    fix editing command causing duplicate entries
 x! block tostop signal : try os.setsid ?
      detect child proc trying to read stdin/stderr
      kill child proc?
@@ -147,11 +145,10 @@ D*     output exceeds visible lines-1
 D*     another command is run that produces output
 D*     user presses dup button (or shortcut?)
 D*   single line (or most recent?) output sent to status bar
- *   don't remember more than visisible lines * 2 (option setting?)
-     option: disable small output window and send everything to qtail
- *     auto
- o     configured only (default qtail)
- o     forced (disable auto-qtail)
+d*   don't remember more than visisible lines * 2 (option setting?)
+D*   auto
+ o   configured only (default qtail)
+ o   forced (disable auto-qtail)
 
 D* merged logs window
      count unviewed messages and show counter in status bar and menu
@@ -221,12 +218,12 @@ D*      *% settings editor
  !	!% command default mode editor
  	     table: command mode
  	     mode: qtail log terminal null local graph (default: pulldown)
- 	 @ ssh manager
- 	 @ fancy table viewer
+  	 @ ssh manager
+D*	 @ fancy table viewer
  	 @ ulimits editor
  	 % internal function keybindings
 D* history with arrow keys
-   history search with ctrl-s ctrl-r and !?
+ n history search with ctrl-s ctrl-r and !?
 D* history with pull down menu (last 10)
 D* history manager
 D*   table: index frequency exitval command button-name checkbox:edit/run
@@ -257,24 +254,24 @@ D*   mark edited lines and save? or just mark to keep or expire
  *   delete selected
  *   remove duplicates
 Do job manager list
- o   manager table: pid type command kill raise? info rerun
+ *   manager table: pid type command kill raise? info rerun
  *   alternate: QProcess object, status, type, command
  *   window status
-     window type
+ *   window type
 D*   click to redisplay / raise window (qtail)
  o   job manager context menu:
-       info? --> process status, time stats, etc
+ x     info? --> process status, time stats, etc
  *     kill
-       edit
+ n     edit
  n     kill or kill and restart
  *     raise or reopen
  *     close window
        measure output
  n     clone?
-     open status icon
+ n   open status icon
  *   proc/wait info
 D*   delete dead jobs? (life cycle)
-     change default type
+ n   change default type
    pipe / fd / job
      handle stdout
        stderr channels separately
@@ -284,7 +281,7 @@ D*   delete dead jobs? (life cycle)
        send file
        pipe  (connect multiple commands, tree style jobs)
  ?     close when not used
-Do settings
+D* settings
  *   table: name default tooltip currentval
 D*   show default in table ? or unmark when set to default?
  !   context menu: reset selected to default
@@ -335,10 +332,11 @@ Do wrapper table
  o terminal
 D* qtail window
 D* merged log viewer
- * table parser window
+D* table parser window
    iconified -- status from proc
    special -- parsed status
      pie chart for percentages / apt interaction
+     debconf-apt-progress progress bar protocol
 D* ephemeral -- autoclose
 
 Do scrolly window (qtail)
@@ -375,7 +373,7 @@ Do     find next
 	 buffering: tail [size] / all
 	 format/view
  **x       plain text html markdown
- x         fixed width font
+ o 	   alternate fonts
  o     memory saver (limit scrollback to 1M / 10000 lines by default)
        find menu
 	 advanced --> find dialog
@@ -443,8 +441,8 @@ D*   direct run / sh wrapper
      table
      parse and display graphically (chart, table, pie? matplotlib?)
 Do   (feature) name completion
- *   host (similar to cd) --> send commands to ssh
- *	use remote stub?
+ *   host (setwrap) (similar to cd) --> send commands to ssh
+ 	use remote stub?
   	pty password mode for sudo?
  o   button --> adds a button for the following command
      pushd dir --> creates button fur current directory and cd
@@ -468,12 +466,13 @@ Do   (feature) name completion
    scripting (0/19)
      break caller continue declare typeset echo enable eval getopts
      let local mapfile printf read readarray return shift test trap
+
+
    folded sections
      fold selected region
      unfold icon
      fold converted table
      send selection to to tableviewer?
-
 
    built in standard commands to implement
      commands for module

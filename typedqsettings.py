@@ -71,6 +71,6 @@ class typedQSettings(QSettings):
         for key,val in options.items():
             if key in cls.setdict:
                 if val!=cls.setdict[key]:
-                    print('Warning: conflicting option '+key)
+                    print('Warning: conflicting option '+key) # EXCEPT
             else:
                 cls.setdict[key] = val

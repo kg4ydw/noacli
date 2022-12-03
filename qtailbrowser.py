@@ -95,9 +95,9 @@ class myBrowser(QTextBrowser):
     
     ## this doesn't work any differently than the above
     #def pickFontMono(self):
-    #    print('mono')
+    #    print('mono') # DEBUG
     #    opts =  ( QFontDialog.MonospacedFonts, )
     #    (font, ok)  = QFontDialog.getFont(self.document().defaultFont(), None, "Select editor font", *opts)
     #    if ok:
     #        self.document().setDefaultFont(font)
-    #    print(font)
+    #    print(font) # DEBUG

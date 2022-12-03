@@ -60,7 +60,7 @@ class settingsDict():
     'MessageDelay':[10, 'Timeout (seconds) for transient message bar messages', float],
     'SHELL':       [ 'bash -c', 'external shell wrapper command to run complex shell commands', str],
     'TemplateMark':['{}', 'Move cursor to this string after loading a command into the edit window', str],
-    'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is in screens, >=10 is paragraphs, <1 for infinite', int],
+    'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is screen multiples, >=10 is paragraphs, <1 for infinite', int],
     }
 
     def __init__(self):
@@ -1171,6 +1171,7 @@ class noacli(QtWidgets.QMainWindow):
         if index.isValid():
             job = index.model().getItem(index)
             if job and job.process and job.process.state()!=QProcess.NotRunning:
+                m.addAction("Terminate "+job.title(), job.process.terminate)
                 m.addAction("Kill "+job.title(), job.process.kill)
             else:
                 m.addAction("clean dead "+job.title(), partial(index.model().cleanupJob,index))

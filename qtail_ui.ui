@@ -95,6 +95,7 @@
     </property>
     <addaction name="actionAdjust"/>
     <addaction name="actionCount_lines"/>
+    <addaction name="actionClearFinds"/>
     <addaction name="actionWrap_lines"/>
     <addaction name="actionFont"/>
    </widget>
@@ -162,6 +163,16 @@
   <action name="actionFontMono_2">
    <property name="text">
     <string>Pick monospaced font</string>
+   </property>
+  </action>
+  <action name="actionClear_selections">
+   <property name="text">
+    <string>Clear finds</string>
+   </property>
+  </action>
+  <action name="actionClearFinds">
+   <property name="text">
+    <string>Clear finds</string>
    </property>
   </action>
  </widget>
@@ -355,6 +366,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionClearFinds</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>clearFinds()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>simpleFind(QString)</slot>
@@ -368,5 +395,6 @@
   <slot>wrapChanged(bool)</slot>
   <slot>setButtonMode()</slot>
   <slot>actionAutoRefresh()</slot>
+  <slot>clearFinds()</slot>
  </slots>
 </ui>

@@ -37,7 +37,7 @@ typedQSettings().registerOptions({
    #'QTailWrap':  [ True, 'wrap long lines', bool ]
    #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
    #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
-    'QTailWatchInterval': [20, "Default automatic refresh interval for qtail in watch mode", int],
+    'QTailWatchInterval': [30, "Default automatic refresh interval for qtail in watch mode", int],
 })    
 
 # options values -- set defaults
@@ -175,7 +175,7 @@ class QtTail(QtWidgets.QMainWindow):
         try:
             self.reinterval = int(val)
         except Exception as e:
-            print('set reinterval: '+e)
+            print('set reinterval: '+e) # EXCEPT
             
     def actionAutoRefresh(self):
         checked = self.ui.actionAutorefresh.isChecked()
@@ -198,13 +198,33 @@ class QtTail(QtWidgets.QMainWindow):
         self.window_close_signal.emit()
         super().closeEvent(event)
 
+    @QtCore.pyqtSlot()
+    def clearFinds(self):
+        self.textbody.setExtraSelections([])
+        
     @QtCore.pyqtSlot(str)
     def simpleFind(self, text):
         start = self.textbody.textCursor()
+        # remember previous find
+        if start.hasSelection():
+            ess = self.textbody.extraSelections()
+            e=None
+            for e in ess:
+                if e.cursor.anchor()==start.anchor():
+                    break
+            if e and e.cursor.anchor()==start.anchor():
+                e.cursor = start  # in case selection changed
+            else: # make a new one
+                es = QTextEdit.ExtraSelection()
+                es.format.setBackground(QtGui.QBrush(Qt.yellow)) # SETTING
+                es.cursor = start
+                ess.append(es)
+            self.textbody.setExtraSelections(ess)
         success = self.textbody.find(text)
         if success:
             self.findcount += 1
-            self.statusBar().showMessage('Found '+str(self.findcount))
+            es = self.textbody.extraSelections()
+            self.statusBar().showMessage('Found {}/{}'.format(self.findcount, len(es)))
         else:
             # try again
             cursor = self.textbody.textCursor()
@@ -213,7 +233,12 @@ class QtTail(QtWidgets.QMainWindow):
             success = self.textbody.find(text)
             if success:
                 if self.findcount:
-                    m = 'Wrapped after '+str(self.findcount)
+                    m = 'Wrapped after {}/{}'.format(self.findcount,len(self.textbody.extraSelections()))
+                    es = self.textbody.extraSelections()
+                    cs = sorted([e.cursor for e in es])
+                    ## XXX would a list of findings be useful to show?
+                    #for e in cs:
+                    #    print("{}: {}".format(e.position(), e.selectedText())) # DEBUG
                 else:
                     m = 'Wrapped'
                 self.statusBar().showMessage(m)

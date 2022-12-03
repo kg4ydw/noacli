@@ -295,6 +295,7 @@ class Ui_noacli(object):
         self.menuSettings.addAction(self.actionFavorites_editor)
         self.menuSettings.addAction(self.actionGsettings)
         self.menuSettings.addAction(self.actionEnvironment_Variables)
+        self.menuSettings.addSeparator()
         self.menuSettings.addAction(self.actionEditor_font)
         self.menuSettings.addAction(self.actionBrowser_font)
         self.menuSettings.addAction(self.actionSync_settings)

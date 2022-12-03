@@ -44,7 +44,7 @@ class myDock(QDockWidget):
     # this is never called
     #def visibilityChanged(self, visible):
     #    # XXX also check tabifiedDockWidgets(myDock).isEmpty())
-    #    print("dock change "+str(visible))
+    #    print("dock change "+str(visible)) # DEBUG
     #    if visible:
     #        self.newlines = 0
     #        self.adjustTitle()

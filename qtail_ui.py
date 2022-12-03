@@ -79,8 +79,13 @@ class Ui_QtTail(object):
         self.actionFontMono.setObjectName("actionFontMono")
         self.actionFontMono_2 = QtWidgets.QAction(QtTail)
         self.actionFontMono_2.setObjectName("actionFontMono_2")
+        self.actionClear_selections = QtWidgets.QAction(QtTail)
+        self.actionClear_selections.setObjectName("actionClear_selections")
+        self.actionClearFinds = QtWidgets.QAction(QtTail)
+        self.actionClearFinds.setObjectName("actionClearFinds")
         self.menuView.addAction(self.actionAdjust)
         self.menuView.addAction(self.actionCount_lines)
+        self.menuView.addAction(self.actionClearFinds)
         self.menuView.addAction(self.actionWrap_lines)
         self.menuView.addAction(self.actionFont)
         self.menuMode.addAction(self.actionWatch)
@@ -101,6 +106,7 @@ class Ui_QtTail(object):
         self.actionFont.triggered.connect(self.textBrowser.pickFont) # type: ignore
         self.actionAutorefresh.triggered.connect(QtTail.actionAutoRefresh) # type: ignore
         self.actionWatch.triggered.connect(QtTail.setButtonMode) # type: ignore
+        self.actionClearFinds.triggered.connect(QtTail.clearFinds) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
@@ -120,4 +126,6 @@ class Ui_QtTail(object):
         self.actionAutorefresh.setText(_translate("QtTail", "Autorefresh"))
         self.actionFontMono.setText(_translate("QtTail", "Pick monospace font"))
         self.actionFontMono_2.setText(_translate("QtTail", "Pick monospaced font"))
+        self.actionClear_selections.setText(_translate("QtTail", "Clear finds"))
+        self.actionClearFinds.setText(_translate("QtTail", "Clear finds"))
 from qtailbrowser import myBrowser
