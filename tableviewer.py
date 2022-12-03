@@ -106,18 +106,23 @@ class FixedWidthParser():
 
         peek = f.strpeek(1024)
         lines = peek.splitlines()  # XXX should use this better
-        s = lines[0]
-        
+        if lines[1][0] in '=-': # second line looks better
+            s=lines[1]
+            gapthresh = 1  # OPTION SETTING
+            # XXX if this works we should eat the two header lines
+        else:
+            gapthresh=2
+            s = lines[0] # hopefully this is left justified headers
         col = [0]
         i=0
         while i>=0:
-            i=s.find('  ',i)
+            i=s.find(' '*gapthresh,i)
             if i>=0: # find end of column
-                i+=2
+                i+=gapthresh
                 while i<len(s) and s[i]==' ':
                     i+=1
                 if i<len(s):
-                    col.append(i-1) # back up one, put border in the column
+                    col.append(i-(gapthresh-1)) # back up one, put border in the column
         self.col = col
         self.lines = iter(f)
         print("col = "+(" ".join([str(i) for i in col]))) # DEBUG
@@ -362,7 +367,10 @@ class TableViewer(QtWidgets.QMainWindow):
                 lines -= 1
         if lines<0 and self.csvfile.canReadLine():
             self.want_readmore.emit('initial') # get more without waiting
-        headers = self.data[0] # XXX copy or steal first row as headers
+        headers = list[self.data[0]] # XXX copy or steal first row as headers
+        # fix blank headers
+        for i in range(len(headers)):
+            if headers[i]=='': headers[i] = str(i+1) # XXX doesn't work?
         try:
             # optionally hide column picker for small tables
             if maxx < typedQSettings().value('TableviewerPickerCols', 10):

@@ -1,4 +1,7 @@
 
+# Written by Steven Dick, who releases this file to Public Domain
+# in the hopes that the terrible ideas here might get adopted into pyqt or qt
+
 # replace qsettings with a python type safe version
 # based on a dictionary of application specific settings
 
@@ -14,6 +17,12 @@
 
 # dictionary format:
 #  setting: [ default, description, type ]
+#
+# Use this by registering a dictionary fragment in each module like this:
+# typedQSettings().registerOptions({
+#   'optionname': [ 10, 'sample option defaulting to ten', int ],
+# })
+#
 
 import sys
 from PyQt5.QtCore import QSettings
@@ -21,16 +30,10 @@ from PyQt5.QtCore import QSettings
 
 class typedQSettings(QSettings):
     setdict = {}
-    beginGroup = False
-    def __new__(cls, *args, **kwargs):
-        obj = super(typedQSettings, cls).__new__(cls, *args, **kwargs)
-        obj.__dict__ = cls.setdict
-        return obj
-    def __init__(self, setdict=None):
+    beginGroup = False  # not supported, use QSettings directly if you want this
+    def __init__(self):
         super().__init__()
-    def setDict(self,d):
-        
-        self.setdict.add(d)
+
     def value(self, key, default):
         try:
             if key in self.setdict: # replace supplied default
