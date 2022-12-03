@@ -1,7 +1,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QTextBrowser, QFontDialog
 from PyQt5.QtGui import QTextCursor
-
+from functools import partial
 import re
 
 class myBrowser(QTextBrowser):
@@ -69,7 +69,29 @@ class myBrowser(QTextBrowser):
         c.movePosition(QTextCursor.End)
         self.setTextCursor(c)
 
-    def pickFont(self):
-        (font, ok)  = QFontDialog.getFont(self.document().defaultFont(), None, "Select editor font")
-        if ok:
+    def liveFont(self,font):
+        if font:
             self.document().setDefaultFont(font)
+
+    def doneFont(self):
+        self.fontdialog.setParent(None)
+        self.fontdialog = None
+
+    def pickFont(self):
+        startfont = self.document().defaultFont()
+        fd = QFontDialog(startfont, None)
+        fd.currentFontChanged.connect(self.liveFont)
+        fd.rejected.connect(partial(self.liveFont,startfont) )
+        fd.finished.connect(self.doneFont)
+        fd.setWindowTitle("Pick qtail browser font")
+        self.fontdialog = fd
+        fd.open()
+    
+    ## this doesn't work any differently than the above
+    #def pickFontMono(self):
+    #    print('mono')
+    #    opts =  ( QFontDialog.MonospacedFonts, )
+    #    (font, ok)  = QFontDialog.getFont(self.document().defaultFont(), None, "Select editor font", *opts)
+    #    if ok:
+    #        self.document().setDefaultFont(font)
+    #    print(font)

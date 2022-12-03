@@ -135,7 +135,7 @@
   </action>
   <action name="actionFont">
    <property name="text">
-    <string>Font</string>
+    <string>Pick font</string>
    </property>
   </action>
   <action name="actionWatch">
@@ -154,6 +154,16 @@
     <string>Autorefresh</string>
    </property>
   </action>
+  <action name="actionFontMono">
+   <property name="text">
+    <string>Pick monospace font</string>
+   </property>
+  </action>
+  <action name="actionFontMono_2">
+   <property name="text">
+    <string>Pick monospaced font</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -163,6 +173,7 @@
    <slots>
     <slot>jumpToEndMaybe(bool)</slot>
     <slot>pickFont()</slot>
+    <slot>pickFontMono()</slot>
    </slots>
   </customwidget>
  </customwidgets>

@@ -66,7 +66,8 @@ class jobItem():
             self.window.setWindowTitle(title)
             if self.index:
                 i = self.index.siblingAtColumn(3)
-                i.model().dataChanged.emit(i,i)
+                if i and i.model():
+                    i.model().dataChanged.emit(i,i)
     def setMode(self,mode):  # mode is set in command parser
         if type(mode)==OutWin:
             self.mode = mode

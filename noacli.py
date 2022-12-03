@@ -834,30 +834,57 @@ class noacli(QtWidgets.QMainWindow):
     # external slots
     # some of these could be moved
 
+    # I hate modal dialog boxes.  Rather do this the hard way,
+    # and get live font changes too!
+    
     @QtCore.pyqtSlot()
     def pickDefaultFont(self):
-        oldfont = self.ui.commandEdit.document().defaultFont()
-        (font, ok)  = QFontDialog.getFont(oldfont, None, "Select editor font")
-        if ok:
-            ui = self.ui
-            ui.commandEdit.document().setDefaultFont(font)
-            ui.smallOutputView.document().setDefaultFont(font)
-            ui.logBrowser.document().setDefaultFont(font)
-            #ui.smallOutputView.setCurrentFont(font)
-            #ui.logBrowser.setCurrentFont(font)
-            # XXX SETTING editor font
-
+        startfont = self.ui.commandEdit.document().defaultFont()
+        fd = QFontDialog(startfont, None)
+        fd.currentFontChanged.connect(self.liveFont)
+        fd.rejected.connect(partial(self.liveFont,startfont) )
+        fd.accepted.connect(self.acceptedFont)
+        fd.finished.connect(self.doneFont)
+        fd.setWindowTitle("Select editor font")
+        self.fontdialog = fd
+        fd.open()
+     
+    def liveFont(self, font):
+        if font: # just change one
+            self.ui.commandEdit.document().setDefaultFont(font)
+    def acceptedFont(self):
+        # grab the font from the command window and copy
+        ui = self.ui
+        font = ui.commandEdit.document().defaultFont()
+        ui.smallOutputView.document().setDefaultFont(font)
+        ui.logBrowser.document().setDefaultFont(font)
+        # XXX SETTING editor font
+    def doneFont(self):
+        # tear it down
+        self.fontdialog.setParent(None)
+        self.fontdialog = None
+    
+    # don't need to be so fancy to pick browser font, but make this not modal
     def pickBrowserFont(self):
         font = self.settings.browserFont
         if font==None: 
             font = self.ui.commandEdit.document().defaultFont()
         if font:
-            (font, ok)  = QFontDialog.getFont(font, None, "Select editor font")
+            fd = QFontDialog(font, None)
         else:
-            (font, ok)  = QFontDialog.getFont()
-        if ok:
-            self.settings.browserFont = font
+            fd = QFontDialog.getFont()
+        fd.setWindowTitle("Pick browser default font")
+        fd.fontSelected.connect(self.saveBrowserFont)
+        fd.finished.connect(self.doneBrowserFont)
+        self.browserFontDialog=fd
+        fd.open()
         
+    def saveBrowserFont(self, font):
+        self.settings.browserFont = font
+    def doneBrowserFont(self):
+        self.browserFontDialog.setParent(None)
+        self.browserFontDialog = None
+
     @QtCore.pyqtSlot()
     def syncSettings(self):
         qs = QSettings()
