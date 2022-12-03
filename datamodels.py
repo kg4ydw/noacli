@@ -131,18 +131,20 @@ class simpleTable(QAbstractTableModel):
         self.mydata.append(row)
         self.endInsertRows()
 
-    def mergeCells(self, index):
-        '''merge this cell with its next neighbor in the same row, shifting
+    def mergeCells(self, index, count=1):
+        '''merge this cell with its adjacent neighbors in the same row, shifting
            down remaining cells
         '''
         # note: model doesn't have a beginMangleCells, sigh.
         row = index.row()
         col = index.column()
-        if col+1>=len(self.mydata[row]): return False # whoops!
-        # XXX this should merge cells with the correct delimiter, oops
-        self.mydata[row][col] += ' '+self.mydata[row][col+1]
-        del self.mydata[row][col+1]
+        if col+count>=len(self.mydata[row]): return False # whoops!
+        # XX this should merge cells with the correct delimiter, oops
+        for i in range(1,count+1):
+            self.mydata[row][col] += ' '+self.mydata[row][col+i]
+        del self.mydata[row][col+1:col+count+1]
         self.dataChanged.emit(self.index(row,col), self.index(row,len(self.mydata[row])))
+        return True
 
 class itemListModel(QAbstractTableModel):
     # an array of items, where each item is a row

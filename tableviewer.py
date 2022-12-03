@@ -196,7 +196,7 @@ class TableViewer(QtWidgets.QMainWindow):
         view.resizeColumnsToContents()
         if typedQSettings().value('TableviewerResizeRows',False):
             self.ui.tableView.resizeRowsToContents()
-        self.resizeWindowToTable(True)
+        self.resizeWindowToTable(True) # for automatic calls
 
     def showRowNumbers(self, checked):
         self.ui.tableView.verticalHeader().setVisible(checked)
@@ -246,10 +246,12 @@ class TableViewer(QtWidgets.QMainWindow):
         frame = oldsize - self.ui.tableView.size() 
         vh = self.ui.tableView.verticalHeader()
         hh = self.ui.tableView.horizontalHeader()
+        # calculate max size based on header sizes and add other decorations
         size = QtCore.QSize(hh.length(), vh.length())
         size += QtCore.QSize(vh.size().width(), hh.size().height())
         size += frame + QtCore.QSize(30, 100)
         # check V and H separately
+        # don't resize if ratio is exceeded
         if useratio:
             if oldsize.height()*ratio < size.height():
                 size.setHeight(oldsize.height())
@@ -290,27 +292,31 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def contextMenuEvent(self, event):
         m=QMenu()
-        m.addAction('Merge two adjacent selected cells', self.collapseSelectedCells)
+        m.addAction('Merge adjacent selected cells', self.collapseSelectedCells)
         # XXX more tableviewer context items??
         action = m.exec_(event.globalPos())
 
     # context menu triggered
     def collapseSelectedCells(self):
         sm = self.ui.tableView.selectionModel()
-        slist = sm.selectedIndexes()
+        slist = sorted(sm.selectedIndexes())
         # and clear the selection now that we've got the cell list.
         # This gives feedback in case the user tried to do something wierd.
-        sm.clear()
-        # XXXX this is pretty primitive, only supports merging two cells
-        # XXX and it gives no error messages if things go wrong
-        if len(slist)!=2: return
-        if slist[0].row()!=slist[1].row(): return
-        a = slist[0].column()
-        b = slist[1].column()
-        if a>b: (a,b)=(b,a)
-        if a+1!=b: return
-        self.model.mergeCells(self.model.index(slist[0].row(),a))
-                              
+        sm.clear() # XXX only clear ones we've fixed?
+        # XXX This gives no error messages if things go wrong
+        while len(slist)>1:
+            # find consecutive items in the same row
+            row = slist[0].row()
+            i = 0;
+            while i+1<len(slist) and slist[i+1].row()==row and slist[i].column()+1==slist[i+1].column():
+                i+=1
+            if i>0:
+                self.model.mergeCells(slist[0], i)
+            # skip remaining cells in same row because indexes out of sync XX
+            while i<len(slist) and slist[i].row()==row:
+                i+=1
+            del slist[0:i]
+        
     ################ table parsing stuff
 
     def openfile(self,filename):
@@ -382,7 +388,7 @@ class TableViewer(QtWidgets.QMainWindow):
                 lines -= 1
         if lines<0 and self.csvfile.canReadLine():
             self.want_readmore.emit('initial') # get more without waiting
-        headers = list[self.data[0]] # XXX copy or steal first row as headers
+        headers = self.data[0] # XXX copy or steal first row as headers
         # fix blank headers
         for i in range(len(headers)):
             if headers[i]=='': headers[i] = str(i+1) # XXX doesn't work?
