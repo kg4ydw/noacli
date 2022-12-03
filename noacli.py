@@ -1,4 +1,17 @@
 #!/usr/bin/env python3
+
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
+# The No Ampersand CLI shell
+#
+# Do most things regular CLI shells do (except full parsing and turing
+# complete programming), but in a graphical interface.  Take full
+# advantage of having a GUI as much as possible, including common
+# trivial data visualization stuff.
+#
+# See Readme.md for more documentation.
+
 import os
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets

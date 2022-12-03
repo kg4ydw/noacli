@@ -1,5 +1,10 @@
 noacli: the No Ampersand CLI shell
 
+This shell does most things regular CLI shells do (except full parsing
+and turing complete programming), but in a graphical interface.
+Noacli takes full advantage of having a GUI as much as possible,
+including common trivial data visualization stuff.
+
 Dependencies
 ------------
 This uses Python and Qt, which are depencies.  To install these:
@@ -20,10 +25,11 @@ Gnome shell even has a text interface (looking glass) that is nice, but
 not very convenient for every day use.
 
 This is a hybrid shell, with both cli and graphical features.
-It is not a full turing complete parsed language, but it supports using
-one underneath if you want that.   It doesn't even think about being a
-full gui shell with integrated window manager either, it expects you to
-have one, although it can help find or close lost windows.
+It is not a full turing complete parsed language, but it fully
+supports using one underneath if you want that.  It doesn't even think
+about being a full gui shell with integrated window manager either, it
+expects you to have one, although it can help find or close lost
+windows.
 
 The intent of this shell is to simplify a lot of cli things that make you
 dedicate a terminal window to them and display their results in a more
@@ -52,11 +58,15 @@ and follow the end, similar to what tail -f does.
 
 If you run another command, you get another window dedicated to it.
 
+Structure and details
+---------------------
+
 The graphical interface includes the following items as described below:
 * Pull down menus
 * Command edit window
 * status message bar
 * "qtail" independant large scrolling output window
+* Table viewer (makes up for proportional fonts and removes the need for 80 column fixed text)
 
 The following dock windows can be rearranged, resized, and pulled off
 the main window.  The view menu lets you bring back any of these if
@@ -216,9 +226,10 @@ is logging.
 When commands are run, their output is sent to an initial destination.
 The currently available output destinations are:
 
-Small: output dock window
-QTail: large output browser
-Log:  window
+small: output dock window
+qtail: large output browser
+log:   dock window
+table: table parser and viewer
 
 These output destinations are described above, but if the first word in a
 command is one of the keywords (small log tail qtail) then the output
@@ -239,7 +250,7 @@ So most command lines are wrapped in a command that does the actual
 parsing and execution.  This is the wrapper.  Wrappers are named,
 and there is a default wrapper.  The default wrapper is named bash,
 which wraps commands with [ 'bash', '-c' ].  The command itself is
-fed to this wrapper unquoted and unmodified as the third argument.
+fed to this wrapper unquoted and unmodified as the last argument.
 Any quoting will be interpreted by the shell in the wrapper.
 
 A wrapper can also specify the default destination for its output,
@@ -252,11 +263,11 @@ gterm : (log)  [ 'gnome-terminal', '--', 'bash', '-c']
 
 Note that gnome-terminal needs bash's help to continue parsing the command.
 
-It is also possible to use ssh as a wrapper, sending the command to
-an external for parsing and execution.  A wrapper for each host would be
-needed.
+It is also possible to use ssh as a wrapper, sending the command to an
+external host for parsing and execution.  A wrapper for each host
+would be needed.
 
-Wrappers can be trivially created on the fly with the addwrapper command.
+Wrappers can be trivially created on the fly with the addwrap command.
 (An editor for wrappers may be added later.)
 
 # Built in commands #
@@ -300,6 +311,9 @@ qtail tail (small output overflow or by button)
   View possibly growing output in a scrollable browser
 log (small output button)
   Merge output from this and other commands into the merged log dock window
+table
+  Attempt to parse the output as a table; designed to handle delimited
+  text, fixed width tables, and large numbers of columns.
 
 Additionally, wrappers are activated by keyword somewhat like builtin
 commands and can be placed after the above output direction commands.

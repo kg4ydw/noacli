@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
 
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
+# This could be a stand alone application but integreates into noacli
+# Think of this as a graphical version of less, but for tables.
+#
+# Given a blob of text, guess how to interpret it as a table
+# and then allow minor manipulations for easier viewing.
+# Designed to handle large tables.
+
+## bugs:
+# XX buffering on stdin and files isn't working yet. (works integrated)
+# XX Doesn't have its own icon (yet)
+# XX Doesn't parse command line options, but it should have a few.
+
 import sys
 import os
 import io

@@ -24,30 +24,39 @@ o  Should all the tables be respaced with resizeRowsToContents()
      when history items are copied from the docs
 
 Things to implement soon:
+ ! save font settings in settings
+     create styled item delegate for QFont
+     qtail primary and secondary fonts
+   fix qtail buffering to chunk like log
+   save wrappers
+   automatic $SHELL wrappers
+   fix icons!!
+   fixed format fence post with slurm 1 char margins  sacct -a -X
+   tableviewer: number blank cols too
+   finish table cell merge
+   make qtail mode interval less ugly, change default
+   cd should parse ~
+   sync should load missing geom settings
+
  o try changing default font
  !   settings
-     application font
-     application style sheet / search paths
-      QFont myfont ("Monospace");
-      myfont.setStyleHint(QFont::Monospace);
- ! qtail button mode
- o    watch vs. transient
- E    rerun vs. close
+ *   live font selection
+     qtail: primary and secondary font
+ n   application font
+ n   application style sheet / search paths
+ * qtail button mode
+ *    watch vs. transient
+ *    rerun vs. close
  *    automatic reload checkbox
- *    rerun interval
+ o    rerun interval
       bug: is watch mode necessary or checkbox enough?
       file doesn't need autorefresh??
       line edit is ugly
  ! table should send stderr to log
  ? built in commands should get marked done in history
-   qtail resize leaves too much space at bottom
-     setting?
-     threshold?
-     leave less for jobs that finish
- E log window flush process (context) doesn't work
    qtail: set extra selections for previously found items (clear when?)
    close stdin
-   small buttons in dock widget headers
+   add small buttons in dock widget headers
      jobs: clean
      history: reset sort
  *   alternately: document table corner button that does this
@@ -114,6 +123,8 @@ x! block tostop signal : try os.setsid ?
    bind hitory context menu to history headers too
 
 Bugs:
+   tableviewer doesn't work on files or stdin
+   QSortFilterProxyModel: index from wrong model passed to mapFromSource
  ? job manager context menu missing terminate
  ! log flush context: doesn't do anything?
    qtail is slow reading large files

@@ -86,6 +86,7 @@
     <addaction name="actionFavorites_editor"/>
     <addaction name="actionGsettings"/>
     <addaction name="actionEnvironment_Variables"/>
+    <addaction name="separator"/>
     <addaction name="actionEditor_font"/>
     <addaction name="actionBrowser_font"/>
     <addaction name="actionSync_settings"/>

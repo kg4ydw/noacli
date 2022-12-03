@@ -1,4 +1,7 @@
 
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
 # receiver window for small amounts of output, send to qtail if it gets big
 
 import os

@@ -1,5 +1,9 @@
 
-# receiver for output from multiple processes
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
+# Receiver for output from multiple processes
+# Manage the output and the processes generating it.
 
 import os
 import sys
@@ -16,7 +20,7 @@ from noajobs import jobItem
 from qtail import QtTail
 from functools import partial
 
-# features:
+# features: (possible and implemented)
 #  collect logs from multiple processes
 #  each line tagged (pid, command?)
 #  collect stderr separate from stdout? (small vs. log)
@@ -25,7 +29,7 @@ from functools import partial
 #  notification filters (regex, pid, command, whitelist, blacklist)?
 #  adjust word wrap mode
 #  move process back to smalloutput or qtail?
-#  filter log: hide/show by pid or regex
+#  filter log: hide/show by pid or regex (not supported in QTextBrowser, maybe later)
 #  context menu
 #    search options (find next/prev)
 #    kill
@@ -262,7 +266,6 @@ class logOutput(QTextBrowser):
         #if job and job.process!=None: # DEBUG
         #    print("bytes={} paused={} textstream={}".format(job.process.bytesAvailable(),job.paused, job.textstream.status())) # DEBUG
         if job and job.textstream:
-            m.addAction("Flush output",job.textstream.flush)
             if job.paused:
                 try:
                     status = str(job.process.bytesAvailable())+' bytes'

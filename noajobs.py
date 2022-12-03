@@ -1,4 +1,9 @@
 
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
+# Do all the job manipulation (view and model) parts of noacli
+
 from PyQt5.Qt import Qt, QBrush
 from PyQt5.QtCore import QIODevice, QTimer, QModelIndex, QProcess
 from datamodels import itemListModel
@@ -183,6 +188,7 @@ class jobTableModel(itemListModel):
         self.cleanTime = QTimer(self)
         self.cleanTime.timeout.connect(self.cleanup)
         # don't start it until we have data
+
     def data(self, index, role):
         if not self.validateIndex(index): return None
         col = index.column()

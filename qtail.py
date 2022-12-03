@@ -1,5 +1,19 @@
 #!/usr/bin/env python3
 
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
+# qtail: think of this as a graphical version of less
+#
+# Given a big blob of text, dump it in a window with a scrollbar.
+# Handle files that grow, stdin, and integration with noacli
+#
+# Tries to not run out of memory by only keeping 10k lines by default.
+
+## Bugs:
+# Doesn't handle backscrolling beyond its internal buffers
+# Currently doesn't chunk input well which causes delays and hangups
+
 import sys
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -37,8 +51,8 @@ class myOptions():
         self.whole = False
         self.title = None
         self.format = None # p=PlainText m=Markdown h=Html
-        # whole file mode vs tail mode?  oneshot vs. follow?
-        # alternate format options: html markdown fixed-font
+        # XX whole file mode vs tail mode?  oneshot vs. follow?
+        # XX alternate format options: html markdown fixed-font
 
     def processOptions(self, app):
         parser = QCommandLineParser()

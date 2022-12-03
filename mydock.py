@@ -1,4 +1,8 @@
 
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
+# Add a few features to QDockWidget to make activity in log windows obvious.
 
 from PyQt5 import QtCore
 from PyQt5.Qt import Qt, pyqtSignal

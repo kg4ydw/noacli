@@ -1,3 +1,9 @@
+
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
+# viewer portion of the qtail application
+
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QTextBrowser, QFontDialog
 from PyQt5.QtGui import QTextCursor

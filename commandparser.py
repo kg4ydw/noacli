@@ -1,7 +1,12 @@
+
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
+# Command parser and implementation for internal commands
+
 import os
 from enum import Enum
 from PyQt5.Qt import pyqtSignal
-
 
 # This is a very primitive command parser, but it should be sufficent for the
 # kinds of things this shell needs.
@@ -9,7 +14,10 @@ from PyQt5.Qt import pyqtSignal
 # Note that this explicitly doesn't handle quotes or backslashes and
 # doesn't do much with spaces.  As is, it can pass arguments to
 # commands with spaces in them.  If this worked harder on spaces, it
-# would have to also add quoting to support filenames with spacse.
+# would have to also add quoting to support filenames with spaces.
+#
+# This tries to pass commands to the wrapper shell as unmolested as possible.
+# This reduces needing multiple layers of quoting to get things through.
 
 # will use the names of these for the pull down menu
 class OutWin(Enum):
