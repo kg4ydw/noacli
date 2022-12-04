@@ -2,17 +2,37 @@
 __license__   = 'GPL v3'
 __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 
-# Add a few features to QDockWidget to make activity in log windows obvious.
+# Add a few features to QDockWidget to
+# * make activity in log windows obvious.
+# * resize to use available space
 
 from PyQt5 import QtCore
 from PyQt5.Qt import Qt, pyqtSignal
-from PyQt5.QtWidgets import QDockWidget
+from PyQt5.QtWidgets import QDockWidget, QAbstractScrollArea, QWidget
 
 class myDock(QDockWidget):
     def __init__(self, parent):
         super().__init__(parent)
         self.basetitle = 'dock'
+        self.visibilityChanged.connect(self.adjustTitle)
+        self.topLevelChanged.connect(self.resizeOnFloat)
 
+    # resize the dock when it floats to get rid of horizontal scrollbar
+    def resizeOnFloat(self, float):
+        if not float: return
+        o = self.findChild(QAbstractScrollArea)
+        if o:
+            hw =  o.sizeHint().width()
+            w = self.size().width()
+            frame = w  - o.viewport().size().width()
+            nw = hw+frame # + 50  # XX 50 is a guess
+            hsbv = o.horizontalScrollBar().isVisible()
+            #print('sbv={} w={} hw={} ow={} vsw={} nw={}'.format(hsbv, w, hw ,o.size().width(),  o.viewport().size().width(),nw)) # DEBUG
+            if hsbv and w==nw: # hint wasn't enough to get rid of HScrollBar
+                nw += 20
+            if nw>w and hsbv:
+                self.resize(QtCore.QSize(nw, self.size().height()))
+        
     @QtCore.pyqtSlot(str)
     def setWindowTitle(self, title):
         # XXX only change number of lines if not visible?
@@ -41,11 +61,4 @@ class myDock(QDockWidget):
             super().setWindowTitle(self.basetitle)
         else:
             super().setWindowTitle("{} ({})".format(self.basetitle, self.newlines))
-    # this is never called
-    #def visibilityChanged(self, visible):
-    #    # XXX also check tabifiedDockWidgets(myDock).isEmpty())
-    #    print("dock change "+str(visible)) # DEBUG
-    #    if visible:
-    #        self.newlines = 0
-    #        self.adjustTitle()
             

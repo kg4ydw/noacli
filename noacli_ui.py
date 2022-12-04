@@ -56,7 +56,7 @@ class Ui_noacli(object):
         self.statusbar = QtWidgets.QStatusBar(noacli)
         self.statusbar.setObjectName("statusbar")
         noacli.setStatusBar(self.statusbar)
-        self.history = QtWidgets.QDockWidget(noacli)
+        self.history = myDock(noacli)
         self.history.setEnabled(True)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
@@ -74,6 +74,7 @@ class Ui_noacli(object):
         self.dockWidgetContents.setSizePolicy(sizePolicy)
         self.dockWidgetContents.setObjectName("dockWidgetContents")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.dockWidgetContents)
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.historySearch = QtWidgets.QLineEdit(self.dockWidgetContents)
         self.historySearch.setFrame(True)
@@ -87,7 +88,7 @@ class Ui_noacli(object):
         sizePolicy.setHeightForWidth(self.historyView.sizePolicy().hasHeightForWidth())
         self.historyView.setSizePolicy(sizePolicy)
         self.historyView.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.historyView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.historyView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.historyView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.historyView.setTextElideMode(QtCore.Qt.ElideMiddle)
         self.historyView.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
@@ -138,7 +139,7 @@ class Ui_noacli(object):
         self.verticalLayout_5.addWidget(self.rerunLast)
         self.buttons.setWidget(self.buttonBox)
         noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.buttons)
-        self.jobManager = QtWidgets.QDockWidget(noacli)
+        self.jobManager = myDock(noacli)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(2)
@@ -149,6 +150,7 @@ class Ui_noacli(object):
         self.dockWidgetContents_5 = QtWidgets.QWidget()
         self.dockWidgetContents_5.setObjectName("dockWidgetContents_5")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents_5)
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.jobTableView = QtWidgets.QTableView(self.dockWidgetContents_5)
         self.jobTableView.setEnabled(True)
@@ -161,8 +163,9 @@ class Ui_noacli(object):
         self.jobTableView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.jobTableView.setEditTriggers(QtWidgets.QAbstractItemView.AnyKeyPressed|QtWidgets.QAbstractItemView.DoubleClicked|QtWidgets.QAbstractItemView.EditKeyPressed|QtWidgets.QAbstractItemView.SelectedClicked)
         self.jobTableView.setTextElideMode(QtCore.Qt.ElideMiddle)
-        self.jobTableView.setSortingEnabled(True)
+        self.jobTableView.setSortingEnabled(False)
         self.jobTableView.setObjectName("jobTableView")
+        self.jobTableView.horizontalHeader().setSortIndicatorShown(False)
         self.jobTableView.horizontalHeader().setStretchLastSection(True)
         self.verticalLayout.addWidget(self.jobTableView)
         self.jobManager.setWidget(self.dockWidgetContents_5)
@@ -313,7 +316,7 @@ class Ui_noacli(object):
         self.actionShowDocks.triggered.connect(noacli.showAllDocks) # type: ignore
         self.historyView.doubleClicked['QModelIndex'].connect(self.commandEdit.acceptHistory) # type: ignore
         self.runCurrent.clicked.connect(self.commandEdit.runCommand) # type: ignore
-        self.commandEdit.command_to_run['QString','QModelIndex'].connect(noacli.runCommand) # type: ignore
+        self.commandEdit.command_to_run['QString','QPersistentModelIndex'].connect(noacli.runCommand) # type: ignore
         self.rerunLast.clicked.connect(noacli.runLastCommand) # type: ignore
         self.jobTableView.doubleClicked['QModelIndex'].connect(noacli.jobDoubleClicked) # type: ignore
         self.actionsave_history.triggered.connect(noacli.actionSaveHistory) # type: ignore

@@ -7,6 +7,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 import os
 from enum import Enum
 from PyQt5.Qt import pyqtSignal
+from PyQt5.QtCore import QSettings
 
 # This is a very primitive command parser, but it should be sufficent for the
 # kinds of things this shell needs.
@@ -74,6 +75,28 @@ class commandParser:
     def __init__(self):
         self.defaultWrapper = 'bash' #  SETTING
         self.defaultOutWin = OutWin.Small # SETTING
+        # get default shell and make it the default wrapper
+        shell = os.environ.get('SHELL')
+        base = os.path.basename(shell)
+        basem, ext = os.path.splitext(base)  # windows??
+        # this intentionally bypasses setwrap so it doesn't get saved
+        if basem not in self.wrappers: # don't override if it exists already
+            # This assumes '$SHELL -c' works for $SHELL
+            self.wrappers[basem] = [ OutWin.Small, shell, '-c' ]
+        self.defaultWrapper = basem  # SETTING ?
+        self.applySettings() # but this can override
+
+    # Should this be called with sync settings?
+    def applySettings(self):
+        qs = QSettings()
+        qs.beginGroup('Wrappers')
+        for key in qs.childKeys():
+            # probably unnecessary sanity checks
+            v = qs.value(key,None)
+            if not v or len(v)<2: continue
+            if type(v[0])!=OutWin: continue
+            # not gonna verify the rest
+            self.wrappers[key] = v
         
     def parseCommand(self, cmd):
         # returns one of
@@ -138,16 +161,17 @@ class commandParser:
         except OSError as e:
             return e.strerror
         return os.getcwd()
-    
+
     @builtin('setwrapper') # how do you spell this again?
     @builtin('setwrap')
     def cmd_setwrap(self, title, outwin, rest):
         '''Change to a new default command wrapper, or lists the current wrapper if none is supplied'''
+        # NOTE: setwrap INTENTIONALLY does not save this as a setting!
         if rest=='':
             return 'Current default wrapper is set to '+self.defaultWrapper
         if rest in self.wrappers:
             self.defaultWrapper = rest
-            if self.new_default_wrapper:
+            if self.new_default_wrapper:  # fake signal
                 self.new_default_wrapper(rest)
         else:
             return "Wrapper '{}' not found.".format(rest)
@@ -165,8 +189,33 @@ class commandParser:
           else:
             return 'addwrap {} not found'.format(w)
         self.wrappers[words[0]] = [outwin] + words[1:]
-        # XXX and should save wrapper probably SETTING
+        # and save it
+        qs = QSettings()
+        qs.beginGroup('Wrappers')
+        qs.setValue(words[0], self.wrappers[words[0]])
         return "Added wrap "+words[0]
+    
+    @builtin('unwrap')
+    def cmd_unwrap(self, title, outwin, rest):
+        '''Delete a wrapper'''
+        # Note that built in wrappers will return on next start.
+        rest = rest.strip()
+        if rest=='':
+            return "No wrapper specified for deletion."
+        if rest==self.defaultWrapper:
+            return "Can't delete default wrapper "+self.defaultWrapper
+        if rest not in self.wrappers:
+            return "Wrapper {} already deleted.".format(rest)
+        try:
+            del self.wrappers[rest]
+        except:
+            # This can't happen, but if it does, whatever.
+            pass
+        qs = QSettings()
+        qs.beginGroup('Wrappers')
+        qs.remove(rest)
+        qs.endGroup()
+        return "Wrapper {} removed.".format(rest)
 
     @builtin('direct')
     def cmd_direct(self, title, outwin, rest):
@@ -220,16 +269,23 @@ class commandParser:
                 f = os.path.join(dir,cmd)
                 if os.path.islink(f):
                     try:
-                        rf = os.path.realpath(f, strict=True)
-                        t += prefix + f + ' ==> '+ rf +'\n'
-                        # look again
-                        f = rf
-                        prefix += '  '
-                    except:
-                        t += prefix + f + ' broken symlink\n'
+                        # rf = os.path.realpath(f, strict=True) # maybe not
+                        rf = os.path.realpath(f)
+                        if not os.path.exists(rf):
+                            t += prefix + f + ' BROKEN symlink to '+rf+'\n'
+                        else:
+                            t += prefix + f + ' ==> '+ rf +'\n'
+                    except OSError:
+                        t += prefix + f + ' BROKEN symlink\n'
+                        continue
+                    except Exception as e:
+                        t += prefix + f + ' broken\n'
+                        print('realpath: '+str(e)) # EXCEPT
                         continue
                 elif os.path.isfile(f):
                     t += prefix + f +'\n'
+                # else: don't say anything if it isn't found in this dir
+
         return t
             
     #### Other future built-in commands not implemented yet

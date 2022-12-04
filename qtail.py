@@ -18,7 +18,7 @@ import sys
 import os
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWidgetAction
+from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWidgetAction, QSpinBox, QAbstractSpinBox, QShortcut
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt5.Qt import Qt, pyqtSignal
 from math import ceil
@@ -114,9 +114,9 @@ class QtTail(QtWidgets.QMainWindow):
     want_resize = pyqtSignal()
     def __init__(self, options=None, parent=None):
         super().__init__()
-        dir = os.path.dirname(os.path.realpath(__file__))+'/'
-        icon = QtGui.QIcon(dir+'qtail.png')
-        if icon.isNull() or len(icon.availableSizes()): # try again
+        dir = os.path.dirname(os.path.realpath(__file__))
+        icon = QtGui.QIcon(os.path.join(dir,'qtail.png'))
+        if icon.isNull() or len(icon.availableSizes())<1: # try again
             icon = QtGui.QIcon('qtail.png')
         self.setWindowIcon(icon)
 
@@ -138,13 +138,17 @@ class QtTail(QtWidgets.QMainWindow):
 
         ## build the Mode menu because QtDesigner can't do it
         m = self.ui.menuMode
-        # XXX put a label on this
-        line = QLineEdit(m)
-        line.setPlaceholderText('Interval')
-        line.setText(str(typedQSettings().value('QTailWatchInterval',20)))
-        line.setInputMask('D000')
+        # XXX put a label on interval box
+
+        line = QSpinBox(m)  # or double?
+        line.setMaximum(86400)
+        line.setSingleStep(10)  # redundant with adaptive on
+        line.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
+        line.setWrapping(False) # stick at ends of range
+        line.setValue(typedQSettings().value('QTailWatchInterval',30))
         line.setToolTip('Refresh interval')
         line.editingFinished.connect(self.setWatchInterval)
+        line.setSuffix(' seconds') # XXX
         self.ui.intervalLine = line
         wa = QWidgetAction(m)
         wa.setDefaultWidget(line)
@@ -156,6 +160,10 @@ class QtTail(QtWidgets.QMainWindow):
         self.timer.timeout.connect(self.reloadOrRerun)
         # note: this intentionally doesn't refresh on settings change
         self.reinterval = typedQSettings().value('QTailWatchInterval',20)
+        # find
+        self.editorShortcut = QShortcut(QtGui.QKeySequence('ctrl+f'), self)
+        self.editorShortcut.activated.connect(self.ui.searchTerm.setFocus)
+
 
     def setButtonMode(self):
         if type(self.file)==QProcess:
@@ -171,11 +179,8 @@ class QtTail(QtWidgets.QMainWindow):
         #   self.rebuttion('Reload',self.reload)
         
     def setWatchInterval(self):
-        val = self.ui.intervalLine.text()
-        try:
-            self.reinterval = int(val)
-        except Exception as e:
-            print('set reinterval: '+e) # EXCEPT
+        val = self.ui.intervalLine.value()
+        self.reinterval = val
             
     def actionAutoRefresh(self):
         checked = self.ui.actionAutorefresh.isChecked()

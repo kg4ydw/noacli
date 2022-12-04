@@ -6,7 +6,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # contaminated with app specific classes and GUI pieces
 
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
-from PyQt5.QtCore import QObject, QModelIndex
+from PyQt5.QtCore import QObject, QModelIndex, QPersistentModelIndex
 from PyQt5 import QtWidgets
 from settingsdialog_ui import Ui_settingsDialog
 
@@ -197,7 +197,7 @@ class itemListModel(QAbstractTableModel):
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)
         self.data.append(item)
         self.endInsertRows()
-        item.index = self.index(lastrow,1) # and item remembers itself
+        item.index = QPersistentModelIndex(self.index(lastrow,1)) # and item remembers itself
         return item.index
 
     # subclass needs to first verify these can be deleted

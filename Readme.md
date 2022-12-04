@@ -117,7 +117,7 @@ button to pop the output to a qtail window, whether not the process
 has exited.
 
 Programs that emit single lines and exit, or emit single lines slowly
-will also have their output sent to the status bar at the bottom of
+ will also have their output sent to the status bar at the bottom of
 the main window.  Also, if the small output window is not visible when
 a command sends output or exits, a notification will show in the
 status bar temporarily. (Delay is settable.)
@@ -261,6 +261,9 @@ bash : (small) [ 'bash' , '-c' ]
 xterm : (log)  [ 'xterm' , '-e' ]
 gterm : (log)  [ 'gnome-terminal', '--', 'bash', '-c']
 
+If your $SHELL is not one of these, a wrapper will be created,
+This assumes  your shell accepts '-c' to run commands on the command line.
+
 Note that gnome-terminal needs bash's help to continue parsing the command.
 
 It is also possible to use ssh as a wrapper, sending the command to an
@@ -375,9 +378,13 @@ Ctrl-N 	    history down
 Ctrl-Enter  run command in the command editor
 Ctrl-Return run command in the command editor
 Ctrl-F	    Invoke the file browser and insert the results into the editor
+Alt-C	    Move keyboard focus to command editor
 
 The history keys treat history as a ring, and the position is reset when
 a command is run.
+
+In qtail:
+Ctrl-F      Moves keybaord focus to the find box
 
 Odds and ends
 -------------

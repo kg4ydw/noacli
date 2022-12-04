@@ -42,7 +42,7 @@ class Ui_QtTail(object):
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.textBrowser.sizePolicy().hasHeightForWidth())
         self.textBrowser.setSizePolicy(sizePolicy)
-        self.textBrowser.setMinimumSize(QtCore.QSize(100, 100))
+        self.textBrowser.setMinimumSize(QtCore.QSize(100, 50))
         self.textBrowser.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.textBrowser.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.textBrowser.setObjectName("textBrowser")

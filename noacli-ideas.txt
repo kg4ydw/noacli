@@ -4,13 +4,13 @@ o  started, partial implementation
 *  done
 !/ next
 E  buggy
--  gui implelemented, no code
 x  not supported in Qt
+n  decided to not implement this
 D  documented feature (in Readme.md)
 d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
-User interface questions:
+User interface questions: (please send feedback!!!)
 o  Should all the tables be respaced with resizeRowsToContents()
    Is column selection between tableviewer and column picker awkward
    is the documentation unclear or too wordy
@@ -22,59 +22,38 @@ o  Should all the tables be respaced with resizeRowsToContents()
    is it annoing that history scrolls to bottom and resets sort order
      when a command is run
      when history items are copied from the docs
+   when history wraps it should clear instead of immediately wrapping
 
 Things to implement soon:
- ! save font settings in settings
+ ! table should send stderr to log
+ ! fix qtail buffering to chunk like log
+ o font changes
+ !   save font settings in settings
+ *   live font selection
+ n   application font
      create styled item delegate for QFont
      qtail primary and secondary fonts
-   fix qtail buffering to chunk like log
-   save wrappers
-   automatic $SHELL wrappers
-   fix icons!!
    fixed format fence post with slurm 1 char margins  sacct -a -X
-   tableviewer: number blank cols too
-   make qtail mode interval less ugly, change default
    cd should parse ~
-   sync should load missing geom settings
 
- o try changing default font
- !   settings
- *   live font selection
-     qtail: primary and secondary font
- n   application font
- n   application style sheet / search paths
+Misc things to implement
  * qtail button mode
  *    watch vs. transient
  *    rerun vs. close
  *    automatic reload checkbox
- o    rerun interval
-      bug: is watch mode necessary or checkbox enough?
+d*    rerun interval
       file doesn't need autorefresh??
-      line edit is ugly
- ! table should send stderr to log
  ? built in commands should get marked done in history
-   qtail: set extra selections for previously found items (clear when?)
    close stdin
    add small buttons in dock widget headers
      jobs: clean
      history: reset sort
 D*   alternately: document table corner button that does this
-   resource manager
-     noacli-res.qrc
- !   icons broken again
-D* if text is selected before pushing template button, save it and paste over mark
- ! qtail: bind ctrl-f to focus on search box
-   qtail: translate terminal colors
-   qtail: resize on zoom?
+   qtail: translate terminal colors (for git diff)
+   sync should load missing geom settings
  * tag name of button template for window title
      hidden text?
      leave out of history & job view (or copy to title)
-   regex on commands
-     aliases
-     ssh -> setsid
-     ssh, man -> set title
-   regex on output
-     sbatch -> tail
    timestamps
      by option
      qtail?
@@ -83,7 +62,7 @@ D* if text is selected before pushing template button, save it and paste over ma
    detach processes before exiting (optionally)
 d* SETTING: delay after first data before initial window resize
  o SETTING: max qtail window size (in px), to allow free expansion
-   add another kill button:  stop(2) terminate kill
+ x add another kill button:  stop(2) terminate kill
    context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
    history context menu: set vert spacing: expand vs minimum
  !   context menu -> reset to default height
@@ -95,12 +74,19 @@ d* SETTING: delay after first data before initial window resize
      close all windows
      kill all subprocesses
      disown all subprocesses (default on exit?)
+   if output windows are not visible, add extra status to main window?
 
 User visible bugs:
-   duplicate key bindings don't get background paint until dialog is reopened
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac (wrong geom?)
+   command buttons can be broken by setwrap (more testing needed)
+   duplicate key bindings don't get background paint until dialog is reopened
+   empty dock bug
+     qt bug?
+     if dock window is pulled out and then restored by code, empty window left
+     QBackingStore::flush() called for  QWidgetWindow(0x7f7f94008740, name="QDockWidgetGroupWindowClassWindow")  which does not have a handle.
+
  * favorites editor bugs
 DE    should warn on duplicate names? (color?)
 x! block tostop signal : try os.setsid ?
@@ -121,10 +107,10 @@ x! block tostop signal : try os.setsid ?
    bind hitory context menu to history headers too
 
 Bugs:
+   file dialog doesn't strip paths correctly for python <= 3.8 (3.6?)
+   'type' builtin fails on old python (fix untested)
    tableviewer doesn't work on files or stdin
-   QSortFilterProxyModel: index from wrong model passed to mapFromSource
- ? job manager context menu missing terminate
- ! log flush context: doesn't do anything?
+ ? QSortFilterProxyModel: index from wrong model passed to mapFromSource
    qtail is slow reading large files
  !   read in smaller chunks
  *   use cursor.beginEditBlock / endEditBlock
@@ -329,7 +315,7 @@ Do wrapper table
  * short output commands -- display last line in editor/launcher
 
 
- o terminal
+ o terminal (find one in python?)
 D* qtail window
 D* merged log viewer
 D* table parser window
@@ -568,7 +554,32 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
        copy to editor
        insert into editor
 
+   regex match stuff
+     scan input and output with a list of regex
+     save named groups in a dictionary
+     use dictionary format() style for command templates
+     possibly trigger rules
+     rule actions:
+       (de)activate other regex
+       internal slots
+         set title
+       	 special: ssh setsid?
+ 	 change view dest options
+	 GUI indicator change?? dialog message?
+	 open / bring to top output window
+     dictionary value dock
+       edit values
+       delete values
+       watch rules --> trigger action on value match/change
+   regex on commands
+     aliases
+     ssh -> setsid
+     ssh, man -> set title
+   regex on output
+     sbatch -> tail
+
    ssh manager
+     even if nothing directly is implemented, document the below
      xterm -e  ssh -fnN  {}
      config (-o 'key val' )
        ControlMaster auto (-M ?)
@@ -648,24 +659,32 @@ D* file dialog: disable path prefix stripping without changing start dir
  x small output: replace horiz rule image; scale image to fit box
  * add running indicator to small output (kill and log buttons)
  * small output title counter
- * doubleclick on favorites editor headers to resize row
+D* doubleclick on favorites editor headers to resize row
+D* automatic $SHELL wrappers
+ * save wrappers
+ * qtail: set extra selections for previously found items (clear when?)
+D* if text is selected before pushing template button, save it and paste over mark
+D* qtail: bind ctrl-f to focus on search box
+ x qtail: resize on zoom?
+ * dock autoresize if scrollbar on topLevelChanged(floating==true)
+D* tooltips on buttons --> command
+ * make template buttons distinctive
+ *   immediate buttons are bold
+ *   template buttons are italic
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
  * history save bug with newline prefix
 d* log window needs a threshold LogBatchLines = 5?
- * tooltips on buttons --> command
 D* change pick file behavior (without conditions here)
  *   if prefix starts with / and contains no * treat as intial cwd and strip
 D*   if it ends in / select dirs only??
  n   maybe output dir/{} syntax (this is just too clever for its own good)
- * add tooltips to favarites editor command
+ * add tooltips to favorites editor command
  * scroll job manager to bottom on new job?
  * qtail main window doesn't autoresize even when it has horiz scrollbar
  * small output size not set at start if not visible
- * make template buttons distinctive
- *   immediate buttons are bold
- *   template buttons are italic
  * job manager column view width issues
  *   fix with corner reset button
  ?   use header double click to resize
+ * tableviewer: number blank cols too

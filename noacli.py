@@ -14,11 +14,13 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 
 import os
 import sys
+from pathlib import Path
+import pathlib
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal, QBrush
 from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex, QSettings, QProcessEnvironment, QProcess
+from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex,QPersistentModelIndex, QSettings, QProcessEnvironment, QProcess
 
 from functools import partial
 
@@ -197,6 +199,7 @@ class keySequenceDelegate(QStyledItemDelegate):
 
 class historyView(QTableView):
     newFavorite = pyqtSignal(str)
+    delayedScroll = pyqtSignal(QModelIndex)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -206,9 +209,10 @@ class historyView(QTableView):
         cb = self.findChild(QtWidgets.QAbstractButton)
         if cb:
             cb.disconnect()
-            cb.clicked.connect(self.resetHistorySort)
+            cb.clicked.connect(partial(self.resetHistorySort,True))
         self.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
         self.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
+        self.delayedScroll.connect(self.doDelayedScroll, Qt.QueuedConnection)
 
     def setModel(self,model):
         self.realModel = model
@@ -219,7 +223,18 @@ class historyView(QTableView):
         # self.resizeColumnsToContents()  # XX this makes last column too wide
         self.resizeColumnToContents(0)  # just fix the first column
 
-    def resetHistorySort(self):
+    def resetHistorySort(self, remember=True):
+        if remember:
+            # keep the selected line on screen if there is one
+            selected = self.selectedIndexes()
+            if len(selected)<1:
+                selected=None
+            else:
+                selected = selected[0] # just the first (last?) one
+            oldrow = self.rowAt(10)
+            hp = self.historyProxy
+            row = hp.mapToSource(hp.index(oldrow,0)).row()
+            #print('oldrow={}={}'.format(oldrow,row)) # DEBUG
         self.historyProxy.sort(-1)
         self.horizontalHeader().setSortIndicator(-1,0)
         #self.historyProxy.invalidate()
@@ -232,8 +247,15 @@ class historyView(QTableView):
         #print("resize: w={} l={} old={} parent={}".format(width, left, hh.sectionSize(1), self.parent().width())) # DEBUG
         hh.resizeSection(1, width-left)
         
-        self.scrollToBottom()  # XX is this annoying?
-        
+        #print('sort bottom')
+        # self.scrollToBottom()  # this doesn't work due to a conflict
+        #self.delayedScroll.emit(-1)
+        if remember:
+            if selected:
+                self.delayedScroll.emit(selected)
+            else:
+                i=hp.index(row,0)
+                self.delayedScroll.emit(i)
 
     def deleteOne(self, index):
         index.model().removeRow(index.row(), QModelIndex())
@@ -266,7 +288,8 @@ class historyView(QTableView):
         m.addAction("Collapse duplicates",self.realModel.collapseDups)
         m.addAction("Delete earlier duplicates",self.realModel.deletePrevDups)
         m.addAction("Resize rows vertically", self.resizeRowsToContents)
-
+        m.addAction("Scroll to top", self.scrollToTop)
+        m.addAction("Scroll to bottom", self.scrollToBottom)
 
         action = m.exec_(event.globalPos())
         #print(action) # DEBUG
@@ -275,12 +298,36 @@ class historyView(QTableView):
         self.ui.tableView.resizeRowToContents(logical)
 
     def resetView(self, index=None):
-        self.resetHistorySort()
+        #print('start {},{}'.format(index.row(),index.column()))
+        row = None
+        # XXX if index is invalid, should remember the current position instead
+        # get the native row and rebuild the index later
         if index:
-            # one of these should work
-            #self.scrollTo(index)
-            i = self.historyProxy.mapFromSource(index)
-            self.scrollTo(i.siblingAtColumn(0))
+            if type(index)==QPersistentModelIndex or type(index.model())==History:
+                row = index.row()
+                # i = self.historyProxy.mapFromSource(index)
+            else:
+                row = self.historyProxy.mapToSource(index).row()
+        # else scroll to bottom
+        self.resetHistorySort(False)
+        ## now base model and proxy model indexes are the same
+        # print('new {},{}'.format(i.row(),i.column()))
+        if row:
+            # build a fresh index
+            i = self.model().index(row,0)
+            if i.isValid():
+                self.delayedScroll.emit(i)
+        elif index and index.isValid():
+            self.delayedScroll.emit(index)
+        else:
+            #self.scrollToBottom()
+            print('bototm')
+            self.delayedScroll.emit(None)
+       
+
+    def doDelayedScroll(self, index):
+        if index:
+            self.scrollTo(index, 1)  # XXX does this make sense?
         else:
             self.scrollToBottom()
 
@@ -594,10 +641,10 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.statusBar = self.statusBar()
 
         self.historypos = 1;
-        dir = os.path.dirname(os.path.realpath(__file__))+'/'
-        p = dir+'noacli.png'
+        dir = os.path.dirname(os.path.realpath(__file__))
+        p =  os.path.join(dir,'noacli.png')
         icon = QtGui.QIcon(p)
-        if icon.isNull() or len(icon.availableSizes()): # try again
+        if icon.isNull() or len(icon.availableSizes())<1: # try again
             if typedQSettings().value('DEBUG',False):print('icon {} failed trying again'.format(p)) # DEBUG
             icon = QtGui.QIcon('noacli.png')
         self.setWindowIcon(icon)
@@ -643,6 +690,10 @@ class noacli(QtWidgets.QMainWindow):
             cb.disconnect()
             cb.clicked.connect(self.settings.jobs.cleanup)
 
+        self.ui.jobTableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeJobHheader)
+        self.ui.jobTableView.verticalHeader().sectionDoubleClicked.connect(self.resizeJobVheader)
+
+
         # build history context menu
         self.ui.historyMenu.aboutToShow.connect(self.buildHistoryMenu)
         self.ui.menuJobs.aboutToShow.connect(self.buildJobMenu)
@@ -653,6 +704,10 @@ class noacli(QtWidgets.QMainWindow):
         # file browser shortcut
         self.fileShortcut = QShortcut(QKeySequence('ctrl+f'), self)
         self.fileShortcut.activated.connect(self.pickFile)
+
+        # jump to command editor XXX can this be made more global?
+        self.editorShortcut = QShortcut(QKeySequence('alt+c'), self)
+        self.editorShortcut.activated.connect(self.ui.commandEdit.setFocus)
 
         self.ui.smallOutputView.oneLine.connect(self.showMessage)
         self.ui.smallOutputView.newJobStart.connect(self.statusBar().clearMessage)
@@ -794,6 +849,7 @@ class noacli(QtWidgets.QMainWindow):
             c=d
             c.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
 
+        # XXX possibly non-portable path construction
         cwd = os.getcwd()+'/'
         startdir = c.selectedText()
         #print("dir="+startdir) # DEBUG
@@ -902,6 +958,8 @@ class noacli(QtWidgets.QMainWindow):
     def syncSettings(self):
         qs = QSettings()
         qs.sync() # XX is this necessary?
+        # XXX maybe this should call various apply settings?
+        self.settings.commandParser.applySettings()
 
     # in: whoever  out: favorites
     @QtCore.pyqtSlot(str)
@@ -987,7 +1045,7 @@ class noacli(QtWidgets.QMainWindow):
             hist = self.settings.history.saveItem(command, None, None)
         if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
             hist=hist.model().mapToSource(hist)
-        self.ui.historyView.resetHistorySort()  # XXX this might be annoying
+        self.ui.historyView.resetHistorySort(False)  # XXX this might be annoying
         cmdargs = self.settings.commandParser.parseCommand(hist.model().getCommand(hist))
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
         if cmdargs==None: return # done
@@ -1185,10 +1243,16 @@ class noacli(QtWidgets.QMainWindow):
             action = m.exec_(jobView.mapToGlobal(point))
         # all actions have their own handler, nothing to do here
 
+    def resizeJobHheader(self, logical):
+        self.ui.jobTableView.resizeColumnToContents(logical)
+    def resizeJobVheader(self, logical):
+        self.ui.jobTableView.resizeRowToContents(logical)
+
+        
 ################ end noacli end
 
 class commandEditor(QPlainTextEdit):
-    command_to_run = pyqtSignal(str, QModelIndex)
+    command_to_run = pyqtSignal(str,QPersistentModelIndex )
     newFavorite = pyqtSignal(str)
 
     def __init__(self, parent):
@@ -1243,6 +1307,7 @@ class commandEditor(QPlainTextEdit):
         self.acceptHistory(self.history.prev(self.histindex))
     @QtCore.pyqtSlot()
     def historyDown(self):
+        if not self.history: return
         self.acceptHistory(self.history.next(self.histindex))
 
     @QtCore.pyqtSlot()
@@ -1289,8 +1354,11 @@ class commandEditor(QPlainTextEdit):
     #is this right? @QtCore.pyqtSlot(QModelIndex)
     def acceptHistory(self, idx):
         self.clear()
+        if type(idx)!=QPersistentModelIndex: idx=QPersistentModelIndex(idx)
         self.histindex = idx;
-        str = idx.siblingAtColumn(1).data(Qt.EditRole)
+        if not idx: return  # None when wrapping, leave editor blank.
+        # unwrap QPeristentIndex and QSortProxy
+        str = idx.model().index(idx.row(),1).data(Qt.EditRole)
         self.setPlainText(str)
         c = self.textCursor()
         c.movePosition(QTextCursor.End)

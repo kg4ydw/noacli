@@ -226,7 +226,10 @@ class TableViewer(QtWidgets.QMainWindow):
         tavg = tmin + m*nwide
         tmid = tmin + target*nwide
         tmax = sum(widths)
-        extra = (width-tmin)/nwide # distribute what is left over
+        if nwide>0:
+            extra = (width-tmin)/nwide # distribute what is left over
+        else:
+            extra = 0 # nobody to distribute it to
         #print("squeeze: m={} sd={} w={} tmin={} mid={} max={} e={}".format(m,s,width, tmin, tmid, tmax, extra)) # DEBUG
         if tmax<width: return  # doesn't need to be squeezed
         if tmid>width:  # restrict to std
@@ -292,9 +295,17 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def contextMenuEvent(self, event):
         m=QMenu()
+        # XX could count selected cells before adding to menu...
         m.addAction('Merge adjacent selected cells', self.collapseSelectedCells)
+        col = self.ui.tableView.columnAt(event.pos().x())
+        if col>=0:
+            m.addAction('Hide column',partial(self.hideColumn, col))
         # XXX more tableviewer context items??
         action = m.exec_(event.globalPos())
+
+    # context menu triggered
+    def hideColumn(self, col):
+        self.ui.tableView.setColumnHidden(col, True)
 
     # context menu triggered
     def collapseSelectedCells(self):
@@ -388,10 +399,11 @@ class TableViewer(QtWidgets.QMainWindow):
                 lines -= 1
         if lines<0 and self.csvfile.canReadLine():
             self.want_readmore.emit('initial') # get more without waiting
-        headers = self.data[0] # XXX copy or steal first row as headers
+        headers = self.data[0].copy() # XXX copy or steal first row as headers
         # fix blank headers
         for i in range(len(headers)):
-            if headers[i]=='': headers[i] = str(i+1) # XXX doesn't work?
+            if headers[i].strip()=='':
+                headers[i] = str(i+1)
         try:
             # optionally hide column picker for small tables
             if maxx < typedQSettings().value('TableviewerPickerCols', 10):

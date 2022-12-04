@@ -42,6 +42,10 @@ class jobItem():
             self.fullstatus=' '
             self.setStatus(' ')
             self.process = None
+        # events this should/could receive to update view:
+        #   process state change
+        #   window state change
+        #   window title change
 
     def getpid(self):
         if self.pid: return self.pid
@@ -70,7 +74,8 @@ class jobItem():
         if self.window:
             self.window.setWindowTitle(title)
             if self.index:
-                i = self.index.siblingAtColumn(3)
+                # QPersistentIndex doesn't have sibling
+                i = self.index.model().index(self.index.row(),3)
                 if i and i.model():
                     i.model().dataChanged.emit(i,i)
     def setMode(self,mode):  # mode is set in command parser
@@ -82,7 +87,7 @@ class jobItem():
             if newmode: 
                 self.mode = OutWin[mode]
                 if self.index:
-                    i = self.index.siblingAtColumn(2)
+                    i = self.index.model().index(self.index.row(),2)
                     i.model().dataChanged.emit(i,i)
             else:
                #if typedQSettings().value('DEBUG',False): print("Failed to convert winmode "+mode) # DEBUG
@@ -114,12 +119,12 @@ class jobItem():
         if self.index:
             index = self.index.model().sibling(self.index.row(),1,QModelIndex())
             self.index.model().dataChanged.emit(index,index)
-        if not self.history: # not a real job
+        if not self.history or not self.history.model(): # not a real job
             pass
         elif exitStatus!=None:
             self.history.model().setStatus(self.history, exitStatus)
         else:
-            self.history.model().setStatus(self.history,status)
+            self.history.model().setStatus(self.history, status)
 
     # public interfaces
     def command(self):
@@ -193,6 +198,7 @@ class jobTableModel(itemListModel):
         if not self.validateIndex(index): return None
         col = index.column()
         job = self.data[index.row()]
+        if role==Qt.ToolTipRole: return(str(job.index.row())) # XXX DEBUG
         if role==Qt.BackgroundRole and col==3:
             if job.mode and not job.window:
                 return QBrush(Qt.lightGray)
@@ -303,12 +309,13 @@ class History(itemListModel):
     def next(self, idx):
         if not idx or not idx.isValid(): return self.first()
         row = idx.row()+1
-        if row>=len(self.data): row=0
+        if row>=len(self.data): return None # row=0  # let it go invalid at the end
         return self.index(row,1)
     def prev(self, idx):
         h = self.prevNoWrap(idx)
         if h: return h
         else: return self.last()
+
     def prevNoWrap(self, idx):
         if not idx or not idx.isValid(): return None
         row = idx.row()-1
@@ -322,7 +329,7 @@ class History(itemListModel):
             item = self.getItem(index)
             if item.status==None:
                 item.command = command
-                i = index.siblingAtColumn(1)
+                i = index.model().index(index.row(),1)
                 self.dataChanged.emit(i,i)
                 return i
         self.limitHistorySize()
@@ -349,7 +356,7 @@ class History(itemListModel):
         if not self.validateIndex(index): return
         row = index.row()
         self.data[row].status = status
-        i = index.siblingAtColumn(0)
+        i = index.model().index(index.row(),0)
         self.dataChanged.emit(i,i)
     
     # slots used by historyView context menu
