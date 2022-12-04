@@ -18,7 +18,7 @@ from pathlib import Path
 import pathlib
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal, QBrush
-from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard
+from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard, QFont
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex,QPersistentModelIndex, QSettings, QProcessEnvironment, QProcess
 
@@ -44,6 +44,7 @@ class settingsDict():
     'DEBUG': [False, 'Enable debug prints', bool],
     # All uppercase are inherited(?) from bash
     'DefWinProfile':[True, 'Load the Default window profile at start', bool],
+    'EditorFont':   [None, 'Font used for the editor and log windows', QFont],
     'FavFrequent':  [10, 'Number of frequently used commands automatically imported into favorites', int],
     'FavRecent':    [10, 'Number of recent history commands automaticaly imported into favorites', int],
     'FileDialogFilter': ['All files (*);; Python (*.py *.ui *.qrc);; Images (*.png *.xpm *.jpg *.pbm);;Text files (*.txt *.md);;Archives (*.zip *z)',
@@ -78,7 +79,6 @@ class settings():
         self.history.read()
         self.favorites = Favorites(self)
         self.commandParser = commandParser() # XXX load settings
-        self.browserFont = None
         # don't call this before setting buttonbox, so call it in caller
         #self.favorites.loadSettings()
 
@@ -156,6 +156,7 @@ class settings():
         # most settings are retrieved dynamically, but a few are set in widgets
         self.logOutputView.applySettings()
         self.smallOutputView.applySettings()
+        self.applyEditorFont()
         # history size is reset when history is added? XX
         qs.sync()
     def acceptOrReject(self, result):
@@ -166,11 +167,31 @@ class settings():
         self.dialog = None
         self.data = None
 
+class  fontDelegate(QStyledItemDelegate):
+    def __init__(self, parent):
+        super().__init__(parent)
+ 
+    def createEditor(self,parent,option,index):
+        fd= QFontDialog(parent)
+        fd.open()
+        return fd
+    
+    def setEditorData(self, editor, index):
+        fontname =index.data()
+        if fontname: # point size?
+            editor.setCurrentFont(QFont(fontname))
+            
+    def setModelData(self, editor, model, index):
+        font = editor.selectedFont()
+        # XXX check result?
+        if font:
+            model.setData(index, font.toString(), Qt.DisplayRole)
+settingsDialog.registerType(QFont, fontDelegate)
+
 class keySequenceDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
     
-    ##### manditory virtual functions
     def createEditor(self,parent,option,index):
         # XXX do something with option? set background?
         w = QKeySequenceEdit(parent)
@@ -925,9 +946,16 @@ class noacli(QtWidgets.QMainWindow):
         # grab the font from the command window and copy
         ui = self.ui
         font = ui.commandEdit.document().defaultFont()
-        ui.smallOutputView.document().setDefaultFont(font)
-        ui.logBrowser.document().setDefaultFont(font)
-        # XXX SETTING editor font
+        QSettings().setValue('EditorFont', font.toString())
+        applyEditorFont()
+
+    def applyEditorFont(self):
+        font = typedQSettings().value('EditorFont', None)
+        if font and font.family() and font.pointSize()>0:
+            ui.commandEdit.document().setDefaultFont(font)
+            ui.smallOutputView.document().setDefaultFont(font)
+            ui.logBrowser.document().setDefaultFont(font)
+
     def doneFont(self):
         # tear it down
         self.fontdialog.setParent(None)
@@ -935,8 +963,10 @@ class noacli(QtWidgets.QMainWindow):
     
     # don't need to be so fancy to pick browser font, but make this not modal
     def pickBrowserFont(self):
-        font = self.settings.browserFont
-        if font==None: 
+        font = QSettings().value('QTailPrimaryFont', None)
+        if font and type(font)==str:
+            font = QFont(font)
+        if not font or not font.family() or font.pointSize()<1: 
             font = self.ui.commandEdit.document().defaultFont()
         if font:
             fd = QFontDialog(font, None)
@@ -945,11 +975,11 @@ class noacli(QtWidgets.QMainWindow):
         fd.setWindowTitle("Pick browser default font")
         fd.fontSelected.connect(self.saveBrowserFont)
         fd.finished.connect(self.doneBrowserFont)
-        self.browserFontDialog=fd
         fd.open()
         
     def saveBrowserFont(self, font):
-        self.settings.browserFont = font
+        QSettings().setValue('QTailPrimaryFont', font.toString())
+
     def doneBrowserFont(self):
         self.browserFontDialog.setParent(None)
         self.browserFontDialog = None

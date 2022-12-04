@@ -25,16 +25,18 @@ o  Should all the tables be respaced with resizeRowsToContents()
    when history wraps it should clear instead of immediately wrapping
 
 Things to implement soon:
- ! table should send stderr to log
+ x table should send stderr to log
  ! fix qtail buffering to chunk like log
  o font changes
  !   save font settings in settings
  *   live font selection
  n   application font
-     create styled item delegate for QFont
+ o   create styled item delegate for QFont
+ !      delegate written, setting used, but delegate not applied to setting yet
      qtail primary and secondary fonts
    fixed format fence post with slurm 1 char margins  sacct -a -X
    cd should parse ~
+   realign general settings editor to be callable from other apps
 
 Misc things to implement
  * qtail button mode

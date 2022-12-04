@@ -16,8 +16,9 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 
 import sys
 import os
+from functools import partial
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QTextCursor
+from PyQt5.QtGui import QTextCursor, QFont
 from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWidgetAction, QSpinBox, QAbstractSpinBox, QShortcut
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt5.Qt import Qt, pyqtSignal
@@ -32,6 +33,8 @@ typedQSettings().registerOptions({
     'QTailEndBytes': [ 1024*1024, 'Number of bytes qtail rewinds a file', int],
     'QTailDefaultTitle': [ 'subprocess', 'Default title for a qtail process window', str ],
     'QTailDelayResize':[ 3, 'Resize qtail to fit output again seconds after first input arrives', int],
+    'QTailPrimaryFont': [None, 'Default font for qtail', QFont],
+    'QTailSecondaryFont': [None, 'Alternate font for qtail', QFont],
    #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
    #'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
    #'QTailWrap':  [ True, 'wrap long lines', bool ]
@@ -164,6 +167,20 @@ class QtTail(QtWidgets.QMainWindow):
         self.editorShortcut = QShortcut(QtGui.QKeySequence('ctrl+f'), self)
         self.editorShortcut.activated.connect(self.ui.searchTerm.setFocus)
 
+        m = self.ui.menuView
+        primary = self.getFontSetting('QTailPrimaryFont')
+        if primary:
+            m.addAction(primary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, primary))
+        secondary = self.getFontSetting('QTailSecondaryFont')
+        if secondary:
+            m.addAction(secondary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, secondary))
+
+    def getFontSetting(self, name):
+        font = typedQSettings().value(name, None)
+        if font and font.family():
+            return font
+        else:
+            return None
 
     def setButtonMode(self):
         if type(self.file)==QProcess:
