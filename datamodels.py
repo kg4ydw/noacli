@@ -254,9 +254,15 @@ class settingsDialog(QtWidgets.QDialog):
         ui.tableView.setModel(model)
         if hasattr(model,'datatypesrow') and model.datatypesrow:
             for i in range(len(model.datatypesrow)):
-                typename = model.datatypesrow[i].__class__.__name__
+                typename = str(model.datatypesrow[i])
                 if typename in self.typedelegates:
-                    ui.tableView.setItemDelegateForColumn(i,self.typedelegates[typename](ui.tableView))
+                    ui.tableView.setItemDelegateForColumn(i,self.typedelegates[typename][1](ui.tableView))
+        # very special, only check col=1
+        if hasattr(model,'datatypes') and model.datatypes:
+            for row in range(len(model.datatypes)):
+                typename = str(model.datatypes[row][1])
+                if typename in self.typedelegates:
+                    ui.tableView.setItemDelegateForRow(row,self.typedelegates[typename][1](ui.tableView))
         self.setWindowTitle(title)
         if doc:
             ui.label.setText(doc)
@@ -276,5 +282,5 @@ class settingsDialog(QtWidgets.QDialog):
         self.ui.tableView.resizeRowToContents(logical)
 
     @classmethod
-    def registerType(cls, type, delegate):
-        cls.typedelegates[type.__class__.__name__] = delegate
+    def registerType(cls, typec, delegate):
+        cls.typedelegates[str(typec)] = [typec, delegate]

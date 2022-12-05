@@ -5,6 +5,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # Add a few features to QDockWidget to
 # * make activity in log windows obvious.
 # * resize to use available space
+# * work around a dock close bug in Qt
 
 from PyQt5 import QtCore
 from PyQt5.Qt import Qt, pyqtSignal
@@ -61,4 +62,12 @@ class myDock(QDockWidget):
             super().setWindowTitle(self.basetitle)
         else:
             super().setWindowTitle("{} ({})".format(self.basetitle, self.newlines))
-            
+
+    # bug workaround for QTBUG-74606 Oct 2021, fixed in Qt 6.11+? buggy in 5.15.3
+    def closeEvent(self, event):
+        if self.isFloating():
+            self.setFloating(False)
+            self.hide()
+            event.ignore()
+        else:
+            super().closeEvent(event)

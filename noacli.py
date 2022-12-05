@@ -145,7 +145,7 @@ class settings():
         # XXX more qtail settings not implemented yet
         
     def acceptchanges(self):
-        if typedQSettings().value('DEBUG',False):print('accept') # DEBUG
+        #if typedQSettings().value('DEBUG',False):print('accept') # DEBUG
         qs = typedQSettings()
         for d in self.data:
             if d[1]!=None:
@@ -156,7 +156,9 @@ class settings():
         # most settings are retrieved dynamically, but a few are set in widgets
         self.logOutputView.applySettings()
         self.smallOutputView.applySettings()
-        self.applyEditorFont()
+        # print('emit settings') # DEBUG
+        self.apply_settings.emit()
+        # noacli.applyEditorFont() # XXXXX can't do this here
         # history size is reset when history is added? XX
         qs.sync()
     def acceptOrReject(self, result):
@@ -170,23 +172,48 @@ class settings():
 class  fontDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
- 
+        self.rejected = False
+        self.startfont = None
+        
     def createEditor(self,parent,option,index):
         fd= QFontDialog(parent)
+        fd.rejected.connect(self.doreject)
         fd.open()
         return fd
+    def doreject(self):
+        #print('reject') # DEBUG
+        # XXXX it's actually too late to do anything by now, race condition?
+        self.rejected = True
+        self.editor.setCurrentFont(self.startfont)
     
     def setEditorData(self, editor, index):
-        fontname =index.data()
-        if fontname: # point size?
+        fontname =index.model().data(index,Qt.EditRole)
+        #print('set: {}={} =  {}'.format(type(fontname), fontname.toString(), fontname)) # DEBUG
+        self.startfont = fontname
+        self.rejected = False
+        self.editor = editor
+        if type(fontname)==str:
             editor.setCurrentFont(QFont(fontname))
-            
+        elif fontname and fontname.family() and fontname.pointSize()>0:
+            editor.setCurrentFont(fontname)
+        elif not fontname:
+            print("empty font") # EXCEPT
+        else:
+            print("bad font: family={} pointsize={}".format(fontname.family(), fontname.pointSize())) # EXCEPT
+
     def setModelData(self, editor, model, index):
         font = editor.selectedFont()
+        # print("setModelData: "+font.toString()) # DEBUG
+        self.editor = None
         # XXX check result?
+        if self.rejected: print('got reject start='+self.startfont.toString()) # DEBUG
+        if self.rejected and self.startfont:
+            font = self.startfont
+            print("reject to "+self.startfont.toString()) # DEBUG
         if font:
-            model.setData(index, font.toString(), Qt.DisplayRole)
+            model.setData(index, font, Qt.EditRole)
 settingsDialog.registerType(QFont, fontDelegate)
+
 
 class keySequenceDelegate(QStyledItemDelegate):
     def __init__(self, parent):
@@ -268,7 +295,7 @@ class historyView(QTableView):
         #print("resize: w={} l={} old={} parent={}".format(width, left, hh.sectionSize(1), self.parent().width())) # DEBUG
         hh.resizeSection(1, width-left)
         
-        #print('sort bottom')
+        #print('sort bottom') # DEBUG
         # self.scrollToBottom()  # this doesn't work due to a conflict
         #self.delayedScroll.emit(-1)
         if remember:
@@ -319,7 +346,7 @@ class historyView(QTableView):
         self.ui.tableView.resizeRowToContents(logical)
 
     def resetView(self, index=None):
-        #print('start {},{}'.format(index.row(),index.column()))
+        #print('start {},{}'.format(index.row(),index.column())) # DEBUG resetView
         row = None
         # XXX if index is invalid, should remember the current position instead
         # get the native row and rebuild the index later
@@ -332,7 +359,7 @@ class historyView(QTableView):
         # else scroll to bottom
         self.resetHistorySort(False)
         ## now base model and proxy model indexes are the same
-        # print('new {},{}'.format(i.row(),i.column()))
+        # print('new {},{}'.format(i.row(),i.column())) # DEBUG resetView
         if row:
             # build a fresh index
             i = self.model().index(row,0)
@@ -342,10 +369,9 @@ class historyView(QTableView):
             self.delayedScroll.emit(index)
         else:
             #self.scrollToBottom()
-            print('bototm')
+            #print('bottom') # DEBUG
             self.delayedScroll.emit(None)
        
-
     def doDelayedScroll(self, index):
         if index:
             self.scrollTo(index, 1)  # XXX does this make sense?
@@ -642,6 +668,7 @@ class menuLineEdit(QLineEdit):
             
 class noacli(QtWidgets.QMainWindow):
     want_restore_geo_delay = pyqtSignal(str)
+    apply_settings = pyqtSignal()
     def __init__(self, app):
         settingsDict()   # do this very early
         super().__init__()
@@ -656,8 +683,10 @@ class noacli(QtWidgets.QMainWindow):
         self.want_restore_geo_delay.connect(self.restore_geo, Qt.QueuedConnection) # delay this
 
         self.settings = settings()
-        self.settings.app = app
         # cheat a bit, so nearly everyone can get to these
+        self.settings.apply_settings = self.apply_settings
+        self.settings.apply_settings.connect(self.applyEditorFont)
+        self.settings.app = app
         self.settings.smallOutputView = self.ui.smallOutputView
         self.settings.statusBar = self.statusBar()
 
@@ -783,6 +812,8 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.smallOutputView.buttonState.connect(self.setTerminateButton)
         # commandParser is not a Qt object, so we do it our own way
         self.settings.commandParser.new_default_wrapper = self.setTitleFromWrap
+
+        self.applyEditorFont()  # do this again after everything is set up
 
         ##### install signal handlers
         #try:  # in case anything here is unportable
@@ -936,6 +967,7 @@ class noacli(QtWidgets.QMainWindow):
         fd.accepted.connect(self.acceptedFont)
         fd.finished.connect(self.doneFont)
         fd.setWindowTitle("Select editor font")
+        fd.setCurrentFont(startfont)
         self.fontdialog = fd
         fd.open()
      
@@ -947,20 +979,22 @@ class noacli(QtWidgets.QMainWindow):
         ui = self.ui
         font = ui.commandEdit.document().defaultFont()
         QSettings().setValue('EditorFont', font.toString())
-        applyEditorFont()
+        self.applyEditorFont()
 
     def applyEditorFont(self):
+        # print('set font') # DEBUG
         font = typedQSettings().value('EditorFont', None)
         if font and font.family() and font.pointSize()>0:
-            ui.commandEdit.document().setDefaultFont(font)
-            ui.smallOutputView.document().setDefaultFont(font)
-            ui.logBrowser.document().setDefaultFont(font)
+            self.ui.commandEdit.document().setDefaultFont(font)
+            self.ui.smallOutputView.document().setDefaultFont(font)
+            self.ui.logBrowser.document().setDefaultFont(font)
 
     def doneFont(self):
         # tear it down
         self.fontdialog.setParent(None)
         self.fontdialog = None
-    
+
+    # XXX browser font picker is currently not used
     # don't need to be so fancy to pick browser font, but make this not modal
     def pickBrowserFont(self):
         font = QSettings().value('QTailPrimaryFont', None)
@@ -1345,6 +1379,8 @@ class commandEditor(QPlainTextEdit):
         text = self.toPlainText()
         if text:
             h = self.history.saveItem(text, self.histindex, None)
+            if type(h)!=QPersistentModelIndex:
+                h=QPersistentModelIndex(h)
             self.command_to_run.emit(text, h)
 
             super().clear()  # bypass internal clear
@@ -1384,7 +1420,8 @@ class commandEditor(QPlainTextEdit):
     #is this right? @QtCore.pyqtSlot(QModelIndex)
     def acceptHistory(self, idx):
         self.clear()
-        if type(idx)!=QPersistentModelIndex: idx=QPersistentModelIndex(idx)
+        if idx:
+            if type(idx)!=QPersistentModelIndex: idx=QPersistentModelIndex(idx)
         self.histindex = idx;
         if not idx: return  # None when wrapping, leave editor blank.
         # unwrap QPeristentIndex and QSortProxy

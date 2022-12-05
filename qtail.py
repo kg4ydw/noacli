@@ -171,6 +171,8 @@ class QtTail(QtWidgets.QMainWindow):
         primary = self.getFontSetting('QTailPrimaryFont')
         if primary:
             m.addAction(primary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, primary))
+            # and actually use it now
+            self.ui.textBrowser.document().setDefaultFont(primary)
         secondary = self.getFontSetting('QTailSecondaryFont')
         if secondary:
             m.addAction(secondary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, secondary))
@@ -241,7 +243,7 @@ class QtTail(QtWidgets.QMainWindow):
                 es.format.setBackground(QtGui.QBrush(Qt.yellow)) # SETTING
                 es.cursor = start
                 ess.append(es)
-            self.textbody.setExtraSelections(ess)
+                self.textbody.setExtraSelections(ess)
         success = self.textbody.find(text)
         if success:
             self.findcount += 1

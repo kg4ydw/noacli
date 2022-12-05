@@ -88,7 +88,6 @@
     <addaction name="actionEnvironment_Variables"/>
     <addaction name="separator"/>
     <addaction name="actionEditor_font"/>
-    <addaction name="actionBrowser_font"/>
     <addaction name="actionSync_settings"/>
     <addaction name="separator"/>
     <addaction name="actionGeoSave"/>
@@ -187,7 +186,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="buttons">
+  <widget class="myDock" name="buttons">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
@@ -561,8 +560,9 @@
    <extends>QPlainTextEdit</extends>
    <header>noacli</header>
    <slots>
-    <signal>command_to_run(QString,QPersistentModelIndex)</signal>
+    <signal>command_to_run(QString,QModelIndex)</signal>
     <signal>newFavorite(QString)</signal>
+    <signal>command_to_run(QString,QPersistentModelIndex)</signal>
     <slot>acceptHistory(QModelIndex)</slot>
    </slots>
   </customwidget>
