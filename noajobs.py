@@ -16,6 +16,7 @@ import re   # use python re instead of Qt
 import os
 
 
+
 class jobItem():
     def __init__(self, history):
         self.index = None
@@ -47,6 +48,16 @@ class jobItem():
         #   window state change
         #   window title change
 
+    def cleanup(self):
+        #print("cleanup "+self.title())  # DEBUG
+        self.index = None
+        self.history = None
+        if self.window: self.window.setParent(None)
+        self.window = None
+        if hasattr(self, 'process') and self.process:
+            self.process.setParent(None)
+        self.process=None
+        
     def getpid(self):
         if self.pid: return self.pid
         if self.process:
@@ -64,7 +75,7 @@ class jobItem():
         elif self.window:
             title = self.windowTitle = self.window.windowTitle()
         else:
-            # XXX or get title from somewhere else?
+            # XX or get title from somewhere else?
             # maybe build it from command?
             title = ''
         return title
@@ -116,7 +127,7 @@ class jobItem():
 
     def setStatus(self, status,exitStatus=None):
         self.fullstatus = status
-        if self.index:
+        if self.index and self.index.model():
             index = self.index.model().sibling(self.index.row(),1,QModelIndex())
             self.index.model().dataChanged.emit(index,index)
         if not self.history or not self.history.model(): # not a real job
@@ -167,8 +178,6 @@ class jobItem():
             #print("start small") # DEBUG
             settings.smallOutputView.openProcess(self.process, self, settings)
         #print('start command: '+self.command())  # DEBUG
-        # XXX split QSettings.value('SHELL')
-        #XXX old # self.process.start('bash', [ '-c', self.command() ], QIODevice.ReadOnly|QIODevice.Text)
         
         self.process.start(self.args[0], self.args[1:], QIODevice.ReadOnly|QIODevice.Text)
 
@@ -182,11 +191,11 @@ class jobItem():
     def windowClosed(self):
         self.windowOpen = False
         if self.index:
-            index = self.index.model().sibling(self.index.row(),2,QModelIndex())
+            index = self.index.model().index(self.index.row(),2)
             self.index.model().dataChanged.emit(index,index)
         # XXX trigger cleanup?  maybe on a timer
         # self.index.model().cleanupJob(self.index)
-                   
+            
 class jobTableModel(itemListModel):
     def __init__(self):
         itemListModel.__init__(self, [ 'pid', 'state','mode', 'window', 'command'] )
@@ -198,7 +207,7 @@ class jobTableModel(itemListModel):
         if not self.validateIndex(index): return None
         col = index.column()
         job = self.data[index.row()]
-        if role==Qt.ToolTipRole: return(str(job.index.row())) # XXX DEBUG
+        #if role==Qt.ToolTipRole: return(str(job.index.row())) # XXX DEBUG
         if role==Qt.BackgroundRole and col==3:
             if job.mode and not job.window:
                 return QBrush(Qt.lightGray)
@@ -236,7 +245,7 @@ class jobTableModel(itemListModel):
         #XX refactor?
         self.beginRemoveRows(QModelIndex(),row,row)
         d = self.data.pop(row)
-        # XXX clean up item internals?
+        d.cleanup()
         self.endRemoveRows()
         
     def cleanupJob(self, index):

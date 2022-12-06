@@ -28,6 +28,7 @@ from math import ceil, floor
 import csv
 import re
 from statistics import stdev, mean, median
+from betterio import betterQProcess, betterTextIOWrapper
 
 from tableviewer_ui import Ui_TableViewer
 
@@ -64,49 +65,6 @@ typedQSettings().registerOptions({
 # Try to cover this up with two classes that merge features.
 
 # Monkeypatching both QProcess and BufferedReader because neither class
-# provided a good way to subclass and init with an existing object.
-
-# monkey patch functor into old only if it isn't already there.
-# Don't step on the real one if they actually implement it later.
-import types
-
-# can't monkeypatch QProcess, so wrapping it instead
-class betterQProcess():
-    '''This pretends a QIODevice is a BufferedReader by implementing the
-        bare minimum needed here.  Note that both types include all
-        the same functionality, but with different function names and
-        return types.
-    '''
-    def __init__(self, qio):
-        self.qio = qio
-    def strpeek(self, size):
-        return str(self.qio.peek(size),'utf-8')
-    def __iter__(self):
-        return self
-    def __next__(self):
-        return str(self.qio.readLine(), 'utf-8')
-    ## try to dynamicaly patch in anything else
-    def __getattr__(self, name):
-        f=getattr(self.qio,name) # next time get it direct
-        setattr(self,name,f)
-        return f
-
-        
-## missing stuff from TextIOWrapper
-class betterTextIOWrapper():
-    def __init__(self, tiow):
-        self.tiow = tiow
-    def strpeek(self, size):  # XX not gonna fake size default
-        return self.tiow.buffer.peek(size).decode('utf-8')
-    def canReadLine(self):
-        return '\n' in self.strpeek(1024)
-    
-    def __iter__(self): return self.tiow.__iter__()
-    def __next__(self): return self.tiow.__next__()
-    def __getattr__(self, name):
-        f=getattr(self.tiow, name) # next time get it direct
-        setattr(self, name, f)
-        return f
 
 ## and csv could have done this...
 class FixedWidthParser():
@@ -121,6 +79,9 @@ class FixedWidthParser():
 
         peek = f.strpeek(1024)
         lines = peek.splitlines()  # XXX should use this better
+        # Alternate algorithms: XXXX
+        # * after picking boundaries, scan down the column to verify
+        # * set a bitmap of columns only containing spaces and scan that
         if lines[1][0] in '=-': # second line looks better
             s=lines[1]
             gapthresh = 1  # OPTION SETTING
@@ -300,7 +261,7 @@ class TableViewer(QtWidgets.QMainWindow):
         col = self.ui.tableView.columnAt(event.pos().x())
         if col>=0:
             m.addAction('Hide column',partial(self.hideColumn, col))
-        # XXX more tableviewer context items??
+        # XX more tableviewer context items??
         action = m.exec_(event.globalPos())
 
     # context menu triggered

@@ -35,7 +35,7 @@ from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 import signal
 
-__version__ = '0.9.9.1'
+__version__ = '0.9.9.2'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -142,7 +142,7 @@ class settings():
         self.qtail.maxLines = int(qs.value('QTailMaxLines', self.qtail.maxLines))
         self.qtail.tailFrag = int(qs.value('QTailEndBytes', self.qtail.tailFrag))
         # QTailDefaultTitle: default title is set somewhere else XX
-        # XXX more qtail settings not implemented yet
+        # XX more qtail settings not implemented yet
         
     def acceptchanges(self):
         #if typedQSettings().value('DEBUG',False):print('accept') # DEBUG
@@ -154,11 +154,10 @@ class settings():
         self.copy2qtail()
         # copy settings that have immediate effect to their widgets
         # most settings are retrieved dynamically, but a few are set in widgets
+        # could convert the rest of these to connections
         self.logOutputView.applySettings()
         self.smallOutputView.applySettings()
-        # print('emit settings') # DEBUG
         self.apply_settings.emit()
-        # noacli.applyEditorFont() # XXXXX can't do this here
         # history size is reset when history is added? XX
         qs.sync()
     def acceptOrReject(self, result):
@@ -374,7 +373,7 @@ class historyView(QTableView):
        
     def doDelayedScroll(self, index):
         if index:
-            self.scrollTo(index, 1)  # XXX does this make sense?
+            self.scrollTo(index, 1)
         else:
             self.scrollToBottom()
 
@@ -490,7 +489,6 @@ class Favorites():
         if buttonName:
             self.addButton(command, c)
         if c.shortcut:
-            # XXX use button box for parent
             c.shortcuto = QShortcut(QKeySequence(c.shortcut), self.buttonbox)
             #print('bind {} to {}'.format(c.shortcut.toString(), command)) # DEBUG
             if c.immediate:
@@ -625,7 +623,7 @@ class Favorites():
         if index.column()==0: return True # also prevents recursion
         # if anything else is edited and not blanked, check keep
         if val and val!=self.data[index.row()][index.column()]:
-            index.model().setData(index.siblingAtColumn(0),True, Qt.EditRole)
+            index.model().setData(index.siblingAtColumn(0),True, Qt.EditRole) # XXXX sibling
         return True
 
     def saveSettings(self):
@@ -704,7 +702,7 @@ class noacli(QtWidgets.QMainWindow):
 
         self.tabifyAll()
         self.hideAllDocks()
-        ## XXX show buttons by default?
+        ## XXX show button dock by default?
 
         ui.actionTabifyDocks.triggered.connect(self.tabifyAll)
 
@@ -793,15 +791,15 @@ class noacli(QtWidgets.QMainWindow):
         #print('Profiles: '+str(g)) # DEBUG
         gm = QActionGroup(m)
         self.ui.profileMenuGroup = gm
-        # XXX sort these, put default first and select it?
+        # XXXX sort these, put default first and select it?
         for p in g:
             mm = gm.addAction(p)
             mm.setData(p)
             mm.setObjectName(p)
             #redundant and wrong# mm.triggered.connect(lambda: self.myRestoreGeometry(p))
             mm.setCheckable(True)
+            if p=='default': mm.setChecked(True)
             m.addAction(mm)
-            # XXX also add context menu: delete rename load ??
         gm.triggered.connect(self.actionRestoreGeomAct)
         qs.endGroup()
 
@@ -994,7 +992,7 @@ class noacli(QtWidgets.QMainWindow):
         self.fontdialog.setParent(None)
         self.fontdialog = None
 
-    # XXX browser font picker is currently not used
+    # XXX browser font picker is currently not used -- delete this?
     # don't need to be so fancy to pick browser font, but make this not modal
     def pickBrowserFont(self):
         font = QSettings().value('QTailPrimaryFont', None)
@@ -1023,6 +1021,7 @@ class noacli(QtWidgets.QMainWindow):
         qs = QSettings()
         qs.sync() # XX is this necessary?
         # XXX maybe this should call various apply settings?
+        # emit apply settings?
         self.settings.commandParser.applySettings()
 
     # in: whoever  out: favorites
@@ -1040,7 +1039,7 @@ class noacli(QtWidgets.QMainWindow):
             self.app.clipboard().setText(text)
             self.app.clipboard().setText(text, QClipboard.Selection)
         elif col==1: index.model().cleanupJob(index)  # job status
-        #elif col==2: #XXX mode
+        #elif col==2: #XX mode -- what should double click on mode do?
         elif col==3: self.windowShowRaise(index)
         elif col==4: self.ui.commandEdit.acceptCommand(index.model().getItem(index).command())
 
@@ -1171,7 +1170,7 @@ class noacli(QtWidgets.QMainWindow):
         if self.settings.jobs.isEmpty():
             jm.addAction('No jobs left')
             return
-        # XXX threshold for too many jobs in this menu
+        # XX threshold for too many jobs in this menu
         # XX if there's too many, how do we filter?
         # XX active jobs or all jobs?
         jobs = self.settings.jobs
@@ -1300,11 +1299,10 @@ class noacli(QtWidgets.QMainWindow):
             if job.window: 
                 m.addAction("Find window", partial(self.windowShowRaise,index))
                 m.addAction("Close window",job.window.close)
-        # XXX jobcontext: convert to log / qtail window
-        # XXX jobcontext: job info
-        #return m
-            # note: don't bother opening menu if there's nothing in it?
-            action = m.exec_(jobView.mapToGlobal(point))
+        # XX jobcontext: convert to log / qtail window
+        # XX jobcontext: job info
+        m.addAction("Resize rows vertically", jobView.resizeRowsToContents)
+        action = m.exec_(jobView.mapToGlobal(point))
         # all actions have their own handler, nothing to do here
 
     def resizeJobHheader(self, logical):
@@ -1396,7 +1394,7 @@ class commandEditor(QPlainTextEdit):
         super().clear()
 
     def acceptCommand(self, str, title=None):
-        # XXX do something with title
+        # XX do something with title
         # get current selected text before clearing it
         cursor = self.textCursor()
         if cursor.hasSelection():
@@ -1404,8 +1402,8 @@ class commandEditor(QPlainTextEdit):
         else:
             oldsel = None
         self.clear()
-        if title: # save it, maybe some day we parse the title XXX
-            # XXX try to put oldstr in title too? maybe not safe?
+        if title: # save it, maybe some day we parse the title XX
+            # XX try to put oldstr in title too? maybe not safe?
             str = '# '+title + '\n' + str
         self.setFocus()
         self.histindex = None

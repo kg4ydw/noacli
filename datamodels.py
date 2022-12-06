@@ -206,7 +206,7 @@ class itemListModel(QAbstractTableModel):
         self.beginRemoveRows(QModelIndex(),start, start+count-1)
         for i in range(count):
             d = self.data.pop(start)
-            # XXX clean up item internals?
+            d.cleanup()
         self.endRemoveRows()
         return True
 
@@ -270,7 +270,7 @@ class settingsDialog(QtWidgets.QDialog):
             ui.label.setText(title)
         ui.tableView.resizeColumnsToContents()
         self.apply = self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Apply).clicked
-        #XXX not without reset function ### self.ui.tableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
+        #XX not without reset function ### self.ui.tableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
         self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
 
         # XX resize top window too?

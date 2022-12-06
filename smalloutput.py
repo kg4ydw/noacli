@@ -56,6 +56,7 @@ class smallOutput(QTextBrowser):
         self.jobitem = None
         # self.rawtext = None  # keep raw text for later use
         self.process = None
+        self.jobitem = None
         self.procStartLine = 0
         px = QPixmap(301,2)
         if not px.loadFromData(b'P1\n301 2\n'+(b'1 0 '*302)):
@@ -125,7 +126,7 @@ class smallOutput(QTextBrowser):
         text = c.selectedText()+more
         c.removeSelectedText()
 
-        # XXX if self.keepState leave a placeholder
+        # XXX if self.keepState leave a placeholder?
         self.disconnectProcess()
 
         if not self.jobitem: # internal command!
@@ -147,9 +148,8 @@ class smallOutput(QTextBrowser):
             else:
                 title = 'dead' # XXX pull default? SETTING
         qt = QtTail(self.settings.qtail)
-
-        self.jobitem.setWindow(qt)
-        qt.openPretext(self.process, self.textstream, pretext=text, title=title)
+        qt.openPretext(self.jobitem, self.textstream, pretext=text, title=title)
+        self.jobitem = None
         self.clearproc()
 
     @QtCore.pyqtSlot()
@@ -176,6 +176,7 @@ class smallOutput(QTextBrowser):
         self.jobitem.textstream = self.textstream
         self.sendToLog.emit(self.jobitem) # XXX pretext?
         self.clearproc()
+        self.jobitem = None
 
     @QtCore.pyqtSlot(bool)
     def smallKeepToggle(self, checked):
@@ -256,9 +257,6 @@ class smallOutput(QTextBrowser):
         self.process.readyRead.connect(self.readLines)
         self.process.finished.connect(self.procFinished)
         self.buttonState.emit(True)
-
-        qs = typedQSettings()
-        # XXX start oneshot timer
     
     def internalOutput(self, settings, msg):
         ## Accept output from internal commands
@@ -312,12 +310,12 @@ class smallOutput(QTextBrowser):
         #print('small proc finished ') # DEBUG
         if not self.gettingFull(2):
             c = self.getProcCursor()
-            # XXX get time left / measured on timer
+            # XX get time left / measured on timer
             if exitcode or self.document().isEmpty():
                 c.insertHtml('<b>Exit {}</b><br/>'.format(exitcode))
             c.insertImage(self.lineImage)  # since <hr> is broken in QTextBrowser
             c.insertText("\n")
-        # XXX emit exit status if we didn't just send a line
+        # XX emit exit status if we didn't just send a line
         # emit anyway but keep it short (to append)
         if exitcode:
             self.oneLine.emit('E({})'.format(exitcode))

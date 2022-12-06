@@ -191,6 +191,7 @@ class logOutput(QTextBrowser):
                 c = self.endCursor()
                 c.insertHtml('{}: <b>Exit {}</b> <br/>'.format(jobitem.pid, jobitem.process.exitCode()))
                 c.insertText("\n")
+                jobitem.cleanup() # XX is this dangerous?
                 self.joblist.discard(jobitem)  # XXX clean anything first?
             
 

@@ -16,42 +16,50 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
+     <widget class="QFrame" name="toolBar_2">
+      <property name="lineWidth">
+       <number>0</number>
       </property>
-      <item>
-       <widget class="QCheckBox" name="followCheck">
-        <property name="text">
-         <string>Follow</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="reloadButton">
-        <property name="text">
-         <string>Reload</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>Search:</string>
-        </property>
-        <property name="buddy">
-         <cstring>searchTerm</cstring>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="searchTerm">
-        <property name="clearButtonEnabled">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
+      <layout class="QHBoxLayout" name="toolBar" stretch="0,0,0,0">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QCheckBox" name="followCheck">
+         <property name="text">
+          <string>Follow</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="reloadButton">
+         <property name="text">
+          <string>Reload</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Search:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="searchTerm">
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </item>
     <item>
      <widget class="myBrowser" name="textBrowser">
@@ -93,10 +101,13 @@
     <property name="title">
      <string>View</string>
     </property>
+    <addaction name="actionShowToolbar"/>
+    <addaction name="separator"/>
     <addaction name="actionAdjust"/>
     <addaction name="actionCount_lines"/>
-    <addaction name="actionClearFinds"/>
     <addaction name="actionWrap_lines"/>
+    <addaction name="separator"/>
+    <addaction name="actionClearFinds"/>
     <addaction name="actionFont"/>
    </widget>
    <widget class="QMenu" name="menuMode">
@@ -112,7 +123,7 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionAdjust">
    <property name="text">
-    <string>Adjust</string>
+    <string>Adjust size</string>
    </property>
    <property name="toolTip">
     <string>Adjust size</string>
@@ -175,6 +186,17 @@
     <string>Clear finds</string>
    </property>
   </action>
+  <action name="actionShowToolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show toolbar</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -190,54 +212,6 @@
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>searchTerm</sender>
-   <signal>textChanged(QString)</signal>
-   <receiver>QtTail</receiver>
-   <slot>simpleFindNew(QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>330</x>
-     <y>36</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>299</x>
-     <y>19</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>reloadButton</sender>
-   <signal>clicked()</signal>
-   <receiver>QtTail</receiver>
-   <slot>reload()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>99</x>
-     <y>33</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>139</x>
-     <y>17</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>searchTerm</sender>
-   <signal>returnPressed()</signal>
-   <receiver>QtTail</receiver>
-   <slot>simpleFind2()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>399</x>
-     <y>33</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>426</x>
-     <y>21</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>actionAdjust</sender>
    <signal>triggered()</signal>
@@ -303,22 +277,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>followCheck</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>textBrowser</receiver>
-   <slot>jumpToEndMaybe(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>19</x>
-     <y>34</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>26</x>
-     <y>65</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionFont</sender>
    <signal>triggered()</signal>
    <receiver>textBrowser</receiver>
@@ -379,6 +337,86 @@
     <hint type="destinationlabel">
      <x>359</x>
      <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionShowToolbar</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>toolBar_2</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>36</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionShowToolbar</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>statusbar</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>495</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchTerm</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>QtTail</receiver>
+   <slot>simpleFindNew(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>228</x>
+     <y>33</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>231</x>
+     <y>22</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>searchTerm</sender>
+   <signal>returnPressed()</signal>
+   <receiver>QtTail</receiver>
+   <slot>simpleFind2()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>386</x>
+     <y>28</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>397</x>
+     <y>17</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>followCheck</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>textBrowser</receiver>
+   <slot>jumpToEndMaybe(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>36</x>
+     <y>35</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>43</x>
+     <y>57</y>
     </hint>
    </hints>
   </connection>

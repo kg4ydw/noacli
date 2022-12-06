@@ -19,23 +19,27 @@ class Ui_QtTail(object):
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.followCheck = QtWidgets.QCheckBox(self.centralwidget)
+        self.toolBar_2 = QtWidgets.QFrame(self.centralwidget)
+        self.toolBar_2.setLineWidth(0)
+        self.toolBar_2.setObjectName("toolBar_2")
+        self.toolBar = QtWidgets.QHBoxLayout(self.toolBar_2)
+        self.toolBar.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
+        self.toolBar.setContentsMargins(-1, 0, -1, 0)
+        self.toolBar.setObjectName("toolBar")
+        self.followCheck = QtWidgets.QCheckBox(self.toolBar_2)
         self.followCheck.setObjectName("followCheck")
-        self.horizontalLayout.addWidget(self.followCheck)
-        self.reloadButton = QtWidgets.QPushButton(self.centralwidget)
+        self.toolBar.addWidget(self.followCheck)
+        self.reloadButton = QtWidgets.QPushButton(self.toolBar_2)
         self.reloadButton.setObjectName("reloadButton")
-        self.horizontalLayout.addWidget(self.reloadButton)
-        self.label = QtWidgets.QLabel(self.centralwidget)
+        self.toolBar.addWidget(self.reloadButton)
+        self.label = QtWidgets.QLabel(self.toolBar_2)
         self.label.setObjectName("label")
-        self.horizontalLayout.addWidget(self.label)
-        self.searchTerm = QtWidgets.QLineEdit(self.centralwidget)
+        self.toolBar.addWidget(self.label)
+        self.searchTerm = QtWidgets.QLineEdit(self.toolBar_2)
         self.searchTerm.setClearButtonEnabled(True)
         self.searchTerm.setObjectName("searchTerm")
-        self.horizontalLayout.addWidget(self.searchTerm)
-        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.toolBar.addWidget(self.searchTerm)
+        self.verticalLayout.addWidget(self.toolBar_2)
         self.textBrowser = myBrowser(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(1)
@@ -83,30 +87,37 @@ class Ui_QtTail(object):
         self.actionClear_selections.setObjectName("actionClear_selections")
         self.actionClearFinds = QtWidgets.QAction(QtTail)
         self.actionClearFinds.setObjectName("actionClearFinds")
+        self.actionShowToolbar = QtWidgets.QAction(QtTail)
+        self.actionShowToolbar.setCheckable(True)
+        self.actionShowToolbar.setChecked(True)
+        self.actionShowToolbar.setObjectName("actionShowToolbar")
+        self.menuView.addAction(self.actionShowToolbar)
+        self.menuView.addSeparator()
         self.menuView.addAction(self.actionAdjust)
         self.menuView.addAction(self.actionCount_lines)
-        self.menuView.addAction(self.actionClearFinds)
         self.menuView.addAction(self.actionWrap_lines)
+        self.menuView.addSeparator()
+        self.menuView.addAction(self.actionClearFinds)
         self.menuView.addAction(self.actionFont)
         self.menuMode.addAction(self.actionWatch)
         self.menuMode.addAction(self.actionAutorefresh)
         self.menubar.addAction(self.menuView.menuAction())
         self.menubar.addAction(self.menuMode.menuAction())
-        self.label.setBuddy(self.searchTerm)
 
         self.retranslateUi(QtTail)
-        self.searchTerm.textChanged['QString'].connect(QtTail.simpleFindNew) # type: ignore
-        self.reloadButton.clicked.connect(QtTail.reload) # type: ignore
-        self.searchTerm.returnPressed.connect(QtTail.simpleFind2) # type: ignore
         self.actionAdjust.triggered.connect(QtTail.actionAdjust) # type: ignore
         self.actionCount_lines.triggered.connect(QtTail.showsize) # type: ignore
         self.actionCount_lines.triggered.connect(QtTail.showsize) # type: ignore
         self.actionWrap_lines.triggered['bool'].connect(QtTail.wrapChanged) # type: ignore
-        self.followCheck.toggled['bool'].connect(self.textBrowser.jumpToEndMaybe) # type: ignore
         self.actionFont.triggered.connect(self.textBrowser.pickFont) # type: ignore
         self.actionAutorefresh.triggered.connect(QtTail.actionAutoRefresh) # type: ignore
         self.actionWatch.triggered.connect(QtTail.setButtonMode) # type: ignore
         self.actionClearFinds.triggered.connect(QtTail.clearFinds) # type: ignore
+        self.actionShowToolbar.toggled['bool'].connect(self.toolBar_2.setVisible) # type: ignore
+        self.actionShowToolbar.triggered['bool'].connect(self.statusbar.setVisible) # type: ignore
+        self.searchTerm.textChanged['QString'].connect(QtTail.simpleFindNew) # type: ignore
+        self.searchTerm.returnPressed.connect(QtTail.simpleFind2) # type: ignore
+        self.followCheck.toggled['bool'].connect(self.textBrowser.jumpToEndMaybe) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
@@ -117,7 +128,7 @@ class Ui_QtTail(object):
         self.label.setText(_translate("QtTail", "Search:"))
         self.menuView.setTitle(_translate("QtTail", "View"))
         self.menuMode.setTitle(_translate("QtTail", "Mode"))
-        self.actionAdjust.setText(_translate("QtTail", "Adjust"))
+        self.actionAdjust.setText(_translate("QtTail", "Adjust size"))
         self.actionAdjust.setToolTip(_translate("QtTail", "Adjust size"))
         self.actionCount_lines.setText(_translate("QtTail", "Count lines"))
         self.actionWrap_lines.setText(_translate("QtTail", "Wrap lines"))
@@ -128,4 +139,5 @@ class Ui_QtTail(object):
         self.actionFontMono_2.setText(_translate("QtTail", "Pick monospaced font"))
         self.actionClear_selections.setText(_translate("QtTail", "Clear finds"))
         self.actionClearFinds.setText(_translate("QtTail", "Clear finds"))
+        self.actionShowToolbar.setText(_translate("QtTail", "Show toolbar"))
 from qtailbrowser import myBrowser

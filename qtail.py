@@ -117,6 +117,7 @@ class QtTail(QtWidgets.QMainWindow):
     want_resize = pyqtSignal()
     def __init__(self, options=None, parent=None):
         super().__init__()
+        self.buttonCon = None
         dir = os.path.dirname(os.path.realpath(__file__))
         icon = QtGui.QIcon(os.path.join(dir,'qtail.png'))
         if icon.isNull() or len(icon.availableSizes())<1: # try again
@@ -141,7 +142,6 @@ class QtTail(QtWidgets.QMainWindow):
 
         ## build the Mode menu because QtDesigner can't do it
         m = self.ui.menuMode
-        # XXX put a label on interval box
 
         line = QSpinBox(m)  # or double?
         line.setMaximum(86400)
@@ -151,7 +151,7 @@ class QtTail(QtWidgets.QMainWindow):
         line.setValue(typedQSettings().value('QTailWatchInterval',30))
         line.setToolTip('Refresh interval')
         line.editingFinished.connect(self.setWatchInterval)
-        line.setSuffix(' seconds') # XXX
+        line.setSuffix(' seconds')
         self.ui.intervalLine = line
         wa = QWidgetAction(m)
         wa.setDefaultWidget(line)
@@ -210,11 +210,17 @@ class QtTail(QtWidgets.QMainWindow):
             
     def reloadOrRerun(self):
         if type(self.file)==QProcess:
+            #print("proc state="+str(self.file.state())) # DEBUG
             if self.file.state()==QProcess.Running:  # it's taking a long time
                 return
             else:
                 self.ui.textBrowser.clear()
-                self.file.start()  # XXX does this work?
+                if typedQSettings().value('DEBUG',False): print('rerun '+(" ".join(self.file.arguments()))) # DEBUG
+                if self.textstream:
+                    self.textstream.resetStatus()
+                else:
+                    self.textstream = QtCore.QTextStream(self.file)
+                self.file.start()  # XXX does this work? reactivate data stream?
         else:
             self.reload()
             
@@ -372,12 +378,16 @@ class QtTail(QtWidgets.QMainWindow):
         self.rebutton('Kill', self.terminateProcess)
         self.file.finished.connect(self.procFinished)
 
-    def openPretext(self, process, textstream, pretext='', title=None):
+    def openPretext(self, jobitem, textstream, pretext='', title=None):
         self.textbody.setPlainText(pretext)
         # someone else already initialized stuff, just handing it over
         # pretend like we did it
-        self.file = process
+        self.jobitem = jobitem # take ownership
+        jobitem.setWindow(self)
+        self.file = jobitem.process
         # get a window title from somewhere
+        if not title and jobitem:
+            title = jobitem.title
         if not title and process:
             try:
                 #c = process.program() # XX get args too?
@@ -397,14 +407,12 @@ class QtTail(QtWidgets.QMainWindow):
         self.opt.file = False
         if self.file:
             self.file.readyRead.connect(self.readtext)
-            self.rebutton('Kill', self.terminateProcess)
             self.file.finished.connect(self.procFinished)
+            self.setButtonMode()
         # these are likely too soon
         #self.actionAdjust()
         #self.showsize()
-        # can I emit my own signal?
-        # s= pyqtSignal()
-        if pretext:
+        if pretext and len(pretext)>200: # SETTING
             self.want_resize.emit()
         #else: wait for data
 
@@ -419,18 +427,21 @@ class QtTail(QtWidgets.QMainWindow):
     def terminateProcess(self, checked):
         self.file.terminate()
         self.rebutton('Kill harder', self.killProcess)
-        # XXX or rerun?
 
     def killProcess(self, checked):
         self.file.kill()
         self.rebutton('Close', self.close) # reassign when it dies
-        # XXX or rerun?
 
     def rebutton(self, label, slot):
+        title = 'unknown'
+        if hasattr(self,'jobitem'): title=self.jobitem.title()
+        # print("rebutton {} = {}".format(title, label)) # DEBUG
         button = self.ui.reloadButton
+        if self.buttonCon:
+            # print("  unbutton {}".format(button.text())) # DEBUG
+            self.disconnect(self.buttonCon)
         button.setText(label)
-        button.clicked.disconnect()
-        button.clicked.connect(slot)
+        self.buttonCon = button.clicked.connect(slot)
 
     def sizeHint(self):
         return QSize(100,100)

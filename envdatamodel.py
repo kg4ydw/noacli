@@ -147,13 +147,13 @@ class envSettings(QProcessEnvironment):
             if type(old)==str: old=envModes[old]
             if value==old: return True
             if value==envModes.Inherit:
-                index.model().setData(index.siblingAtColumn(2), self.origenv.value(key,''), Qt.EditRole)
+                index.model().setData(index.siblingAtColumn(2), self.origenv.value(key,''), Qt.EditRole) # XXXX sibling
         elif col==2:
             if old==value: return True
             mode = self.envdata[row][1]
             if type(mode)==str: mode=envModes[mode]
             if mode in [envModes.Deleted, envModes.Inherit]:
-                index.model().setData(index.siblingAtColumn(1), envModes.Session, Qt.EditRole)
+                index.model().setData(index.siblingAtColumn(1), envModes.Session, Qt.EditRole) # XXXX sibling
             elif mode==envModes.Mask:
                 index.model().setData(index.siblingAtColumn(1), envModes.Save, Qt.EditRole)
         return True
@@ -193,6 +193,7 @@ class envSettings(QProcessEnvironment):
         # XXX special env context menu things here later maybe
         m = QMenu()
         m.addAction("Add new variable", self.addnewvar)
+        #XXXXX if index.isValid(): m.addAction("Reset to default", ...)
         action = m.exec_(self.envDia.mapToGlobal(point))
 
     def addnewvar(self):
