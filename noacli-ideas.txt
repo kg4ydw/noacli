@@ -25,22 +25,26 @@ o  Should all the tables be respaced with resizeRowsToContents()
    when history wraps it should clear instead of immediately wrapping
 
 Things to implement soon:
-   qtail checkbox to hide toolbar
- o fix qtail buffering to chunk like log
+   create font with fromString() instead of QFont?
+   fix qtail buffering to chunk like log
  !   works in noa but broken on stdin and files
+     needs rewrite --> use readLineTo returns false
  o font changes
  o   save font settings in settings
  *   live font selection
  n   application font
  o   create styled item delegate for QFont
+        doesn't cancel correctly
+	displayed fontname is ugly
  *   qtail primary and secondary fonts
    cd should parse ~
    realign general settings editor to be callable from other apps
  x table should send stderr to log
 
 high priority bugs
-   smalloutput Dup doesn't disconnect enough stuff to prevent deletion
+   smalloutput Dup passes qtail a non-functioning QProcess if it finishes
       command after smalldup doesn't send any output to qtail
+      reset TextStream ??
    fixed format fence post with slurm 1 char margins  sacct -a -X
  ! log prefix is being eaten twice by parser "tail tail" doesn't work
    Font selectors
@@ -675,6 +679,7 @@ D* tooltips on buttons --> command
  *   immediate buttons are bold
  *   template buttons are italic
  * job manager should resize rows vertically in context menu
+ * qtail checkbox to hide toolbar
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry

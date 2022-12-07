@@ -206,7 +206,7 @@ class itemListModel(QAbstractTableModel):
         self.beginRemoveRows(QModelIndex(),start, start+count-1)
         for i in range(count):
             d = self.data.pop(start)
-            d.cleanup()
+            # clean up?  only some datatypes
         self.endRemoveRows()
         return True
 
