@@ -35,7 +35,7 @@ from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 import signal
 
-__version__ = '0.9.9.2a'
+__version__ = '0.9.9.2b'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -173,44 +173,45 @@ class  fontDelegate(QStyledItemDelegate):
         super().__init__(parent)
         self.rejected = False
         self.startfont = None
+
+    def convertsetting(self, val):
+        if type(val)==str:
+            font = QFont()
+            if font.fromString(val):
+                return font
+            else:
+                #print("old convert") # DEBUG
+                return QFont(val)
+        elif val and val.family() and val.pointSize()>0:
+            return val
+        else:
+            return None
         
     def createEditor(self,parent,option,index):
-        fd= QFontDialog(parent)
-        fd.rejected.connect(self.doreject)
+        font = self.convertsetting(index.model().data(index,Qt.EditRole))
+        #print('create editor '+font.toString()) # DEBUG
+        if font:
+            fd= QFontDialog(font, parent)
+        else:
+            #print('created with no font') # DEBUG
+            fd= QFontDialog(parent)
         fd.open()
         return fd
-    def doreject(self):
-        #print('reject') # DEBUG
-        # XXXX it's actually too late to do anything by now, race condition?
-        self.rejected = True
-        self.editor.setCurrentFont(self.startfont)
-    
-    def setEditorData(self, editor, index):
-        fontname =index.model().data(index,Qt.EditRole)
-        #print('set: {}={} =  {}'.format(type(fontname), fontname.toString(), fontname)) # DEBUG
-        self.startfont = fontname
-        self.rejected = False
-        self.editor = editor
-        if type(fontname)==str:
-            editor.setCurrentFont(QFont(fontname))
-        elif fontname and fontname.family() and fontname.pointSize()>0:
-            editor.setCurrentFont(fontname)
-        elif not fontname:
-            print("empty font") # EXCEPT
-        else:
-            print("bad font: family={} pointsize={}".format(fontname.family(), fontname.pointSize())) # EXCEPT
+
+    ## redundant
+    #def setEditorData(self, editor, index):
+    #    font =self.convertsetting(index.model().data(index,Qt.EditRole))
+    #    #print(' set editor: '+font.toString()) # DEBUG
+    #    if font:
+    #        editor.setCurrentFont(QFont(font))
 
     def setModelData(self, editor, model, index):
         font = editor.selectedFont()
-        # print("setModelData: "+font.toString()) # DEBUG
-        self.editor = None
-        # XXX check result?
-        if self.rejected: print('got reject start='+self.startfont.toString()) # DEBUG
-        if self.rejected and self.startfont:
-            font = self.startfont
-            print("reject to "+self.startfont.toString()) # DEBUG
+        #print("setModelData: "+font.toString()) # DEBUG
+        # XXX check result? This doesn't restore original font on cancel!
         if font:
             model.setData(index, font, Qt.EditRole)
+# and register the result for later use
 settingsDialog.registerType(QFont, fontDelegate)
 
 
@@ -839,7 +840,7 @@ class noacli(QtWidgets.QMainWindow):
     def terminateButton(self):
         self.ui.smallOutputView.smallTerminate()
         self.rebuttonKill('Kill harder',self.ui.smallOutputView.smallKill)
-                      
+    
     def setTerminateButton(self,enab):
         self.rebuttonKill('Kill',self.terminateButton,enab)
 
@@ -997,7 +998,7 @@ class noacli(QtWidgets.QMainWindow):
     def pickBrowserFont(self):
         font = QSettings().value('QTailPrimaryFont', None)
         if font and type(font)==str:
-            font = QFont(font)
+            font = QFont().fromString(font)
         if not font or not font.family() or font.pointSize()<1: 
             font = self.ui.commandEdit.document().defaultFont()
         if font:
@@ -1010,7 +1011,7 @@ class noacli(QtWidgets.QMainWindow):
         fd.open()
         
     def saveBrowserFont(self, font):
-        QSettings().setValue('QTailPrimaryFont', font.toString())
+        QSettings().setValue('QTailPrimaryFont', font)
 
     def doneBrowserFont(self):
         self.browserFontDialog.setParent(None)

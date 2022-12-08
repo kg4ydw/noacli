@@ -209,6 +209,8 @@ class QtTail(QtWidgets.QMainWindow):
             self.timer.stop()
             
     def reloadOrRerun(self):
+        self.firstRead = False  # don't trigger resize if button pushed
+        # XXX on reload maybe cancel resize timer too?
         if type(self.file)==QProcess:
             #print("proc state="+str(self.file.state())) # DEBUG
             if self.file.state()==QProcess.Running:  # it's taking a long time
@@ -225,8 +227,14 @@ class QtTail(QtWidgets.QMainWindow):
             self.reload()
             
     def closeEvent(self,event):
+        self.timer.stop()  # restart this on reopen?
         self.window_close_signal.emit()
         super().closeEvent(event)
+
+    def show(self): # restart timer
+        super().show()
+        # restart timer if it is active
+        self.actionAutoRefresh()
 
     @QtCore.pyqtSlot()
     def clearFinds(self):

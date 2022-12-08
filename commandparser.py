@@ -7,7 +7,8 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 import os
 from enum import Enum
 from PyQt5.Qt import pyqtSignal
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import QSettings, QT_VERSION_STR, PYQT_VERSION_STR
+
 
 # This is a very primitive command parser, but it should be sufficent for the
 # kinds of things this shell needs.
@@ -244,7 +245,7 @@ class commandParser:
     def cmd_version(self, title, outwin, rest):
         '''What version is am I?'''
         from noacli import __version__
-        return 'Version '+__version__
+        return 'Versions: noacli '+__version__ +', Qt '+ QT_VERSION_STR + ', PyQt '+ PYQT_VERSION_STR
 
     @builtin('type')
     def cmd_type(self, title, outwin, rest):
