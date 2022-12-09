@@ -79,6 +79,7 @@
     <addaction name="actionShow_headings"/>
     <addaction name="actionUse_numerical_headings"/>
     <addaction name="actionShow_line_numbers"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menuView"/>
   </widget>

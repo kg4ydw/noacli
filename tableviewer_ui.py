@@ -118,6 +118,7 @@ class Ui_TableViewer(object):
         self.menuView.addAction(self.actionShow_headings)
         self.menuView.addAction(self.actionUse_numerical_headings)
         self.menuView.addAction(self.actionShow_line_numbers)
+        self.menuView.addSeparator()
         self.menubar.addAction(self.menuView.menuAction())
 
         self.retranslateUi(TableViewer)

@@ -35,7 +35,7 @@ from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 import signal
 
-__version__ = '0.9.9.2b'
+__version__ = '0.9.9.3'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -792,7 +792,6 @@ class noacli(QtWidgets.QMainWindow):
         #print('Profiles: '+str(g)) # DEBUG
         gm = QActionGroup(m)
         self.ui.profileMenuGroup = gm
-        # XXXX sort these, put default first and select it?
         for p in g:
             mm = gm.addAction(p)
             mm.setData(p)

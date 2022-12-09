@@ -82,7 +82,7 @@ class FixedWidthParser():
         # Alternate algorithms: XXXX
         # * after picking boundaries, scan down the column to verify
         # * set a bitmap of columns only containing spaces and scan that
-        if lines[1][0] in '=-': # second line looks better
+        if len(lines)>1 and lines[1][0] in '=-': # second line looks better
             s=lines[1]
             gapthresh = 1  # OPTION SETTING
             # XXX if this works we should eat the two header lines
@@ -315,7 +315,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.notifier = QSocketNotifier(sys.stdin.fileno(),QSocketNotifier.Read, self)
         # set up notifier for incoming data
         self.notifier.activated.connect(partial(self.readmore,'socket'))
-        self.openfd(sys.stdin)
+        self.openfd(self.csvfile)
         self.setWindowTitle('table stdin')
 
     def openfd(self, csvfile):
@@ -360,6 +360,7 @@ class TableViewer(QtWidgets.QMainWindow):
                 lines -= 1
         if lines<0 and self.csvfile.canReadLine():
             self.want_readmore.emit('initial') # get more without waiting
+        #else: print("end: {}, {}".format(lines, self.csvfile.canReadLine())) # DEBUG
         headers = self.data[0].copy() # XXX copy or steal first row as headers
         # fix blank headers
         for i in range(len(headers)):

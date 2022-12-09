@@ -91,6 +91,8 @@ class Ui_QtTail(object):
         self.actionShowToolbar.setCheckable(True)
         self.actionShowToolbar.setChecked(True)
         self.actionShowToolbar.setObjectName("actionShowToolbar")
+        self.actionReload = QtWidgets.QAction(QtTail)
+        self.actionReload.setObjectName("actionReload")
         self.menuView.addAction(self.actionShowToolbar)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionAdjust)
@@ -98,9 +100,11 @@ class Ui_QtTail(object):
         self.menuView.addAction(self.actionWrap_lines)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionClearFinds)
+        self.menuView.addSeparator()
         self.menuView.addAction(self.actionFont)
         self.menuMode.addAction(self.actionWatch)
         self.menuMode.addAction(self.actionAutorefresh)
+        self.menuMode.addAction(self.actionReload)
         self.menubar.addAction(self.menuView.menuAction())
         self.menubar.addAction(self.menuMode.menuAction())
 
@@ -118,6 +122,7 @@ class Ui_QtTail(object):
         self.searchTerm.textChanged['QString'].connect(QtTail.simpleFindNew) # type: ignore
         self.searchTerm.returnPressed.connect(QtTail.simpleFind2) # type: ignore
         self.followCheck.toggled['bool'].connect(self.textBrowser.jumpToEndMaybe) # type: ignore
+        self.actionReload.triggered.connect(QtTail.reloadOrRerun) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
@@ -127,7 +132,7 @@ class Ui_QtTail(object):
         self.reloadButton.setText(_translate("QtTail", "Reload"))
         self.label.setText(_translate("QtTail", "Search:"))
         self.menuView.setTitle(_translate("QtTail", "View"))
-        self.menuMode.setTitle(_translate("QtTail", "Mode"))
+        self.menuMode.setTitle(_translate("QtTail", "Watch"))
         self.actionAdjust.setText(_translate("QtTail", "Adjust size"))
         self.actionAdjust.setToolTip(_translate("QtTail", "Adjust size"))
         self.actionCount_lines.setText(_translate("QtTail", "Count lines"))
@@ -140,4 +145,5 @@ class Ui_QtTail(object):
         self.actionClear_selections.setText(_translate("QtTail", "Clear finds"))
         self.actionClearFinds.setText(_translate("QtTail", "Clear finds"))
         self.actionShowToolbar.setText(_translate("QtTail", "Show toolbar"))
+        self.actionReload.setText(_translate("QtTail", "Refresh now"))
 from qtailbrowser import myBrowser

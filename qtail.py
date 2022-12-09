@@ -30,6 +30,7 @@ from typedqsettings import typedQSettings
 
 typedQSettings().registerOptions({
     'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
+    'QTailReadBlock':[8192, 'Maximum block size to read at once (higher for more performance but lower responsiveness)', int],
     'QTailEndBytes': [ 1024*1024, 'Number of bytes qtail rewinds a file', int],
     'QTailDefaultTitle': [ 'subprocess', 'Default title for a qtail process window', str ],
     'QTailDelayResize':[ 3, 'Resize qtail to fit output again seconds after first input arrives', int],
@@ -115,8 +116,10 @@ class myOptions():
 class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
+    want_read_more = pyqtSignal(str)
     def __init__(self, options=None, parent=None):
         super().__init__()
+        self.eof = 0 # hack
         self.buttonCon = None
         dir = os.path.dirname(os.path.realpath(__file__))
         icon = QtGui.QIcon(os.path.join(dir,'qtail.png'))
@@ -126,6 +129,7 @@ class QtTail(QtWidgets.QMainWindow):
 
         # connect to my own event so I can send myself a delayed signal
         self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection) # delay this
+        self.want_read_more.connect(self.readtext, Qt.QueuedConnection) # read more after everything else is updated
 
         if options==None:
             options=myOptions()
@@ -218,10 +222,6 @@ class QtTail(QtWidgets.QMainWindow):
             else:
                 self.ui.textBrowser.clear()
                 if typedQSettings().value('DEBUG',False): print('rerun '+(" ".join(self.file.arguments()))) # DEBUG
-                if self.textstream:
-                    self.textstream.resetStatus()
-                else:
-                    self.textstream = QtCore.QTextStream(self.file)
                 self.file.start()  # XXX does this work? reactivate data stream?
         else:
             self.reload()
@@ -295,41 +295,54 @@ class QtTail(QtWidgets.QMainWindow):
         self.simpleFind(self.ui.searchTerm.text())
 
     @QtCore.pyqtSlot()
-    def readtext(self):
-        if not self.textstream:
-            self.rebutton('Close', self.close)
-            return  # trigger: press reload on a pipe
-        t = self.textstream.readAll()
-        if t:
+    def readtext(self, fromwhere='unk'):
+        blocksize = typedQSettings().value('QTailReadBlock',1024)
+        b = self.file.read(blocksize)
+        # b = None?  b=0? b<blocksize?  b==blocksize?
+        #print(type(b),len(b), self.file.atEnd()) # DEBUG
+        e = self.textbody.textCursor()
+        e.movePosition(QtGui.QTextCursor.End)
+        #print('read {}: {}'.format(fromwhere,len(b))) # DEBUG
+        if len(b)==0:  # EOF hack, probably has race conditions
+           self.eof += 1
+           if self.eof > 2 and hasattr(self,'notifier'):
+              # this gets false positives for QProcess (which dones't set notifier
+              # but seems to be OK with file and stdin
+              self.notifier.setEnabled(False) #
+              self.rebutton('Close', self.close)
+        if len(b)>0:
+            self.eof = 0
+            t = b.decode('utf-8')
             # self.textbody.append(t)  # append adds an extra paragraph separator
             #self.endcursor.insertText(t)
-            e = self.textbody.textCursor()
-            e.movePosition(QtGui.QTextCursor.End)
             if self.opt.format=='h':  e.insertHtml(t)
             #WTF# elif self.opt.format=='m': e.insertMarkdown(t)
             else: e.insertText(t)
             if self.ui.followCheck.isChecked():
                 self.textbody.setTextCursor(e)
-            if self.firstRead:
-                self.firstRead=False
-                self.actionAdjust()
-                rdelay = 0
-                try:  
-                    rdelay = typedQSettings().value('QTailDelayResize',3)
-                except:
-                    pass
-                if rdelay:
-                    #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
-                    QTimer.singleShot(int(rdelay)*1000, Qt.VeryCoarseTimer, self.actionAdjust)
+        if len(b)==blocksize and not self.file.atEnd(): # more data to read
+            self.want_read_more.emit('more')
+        if self.firstRead and e.position()>200: # XXX SETTING threshold
+            self.firstRead=False
+            self.actionAdjust()
+            rdelay = 0
+            try:  
+                rdelay = typedQSettings().value('QTailDelayResize',3)
+            except:
+                pass
+            if rdelay:
+                #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
+                QTimer.singleShot(int(rdelay)*1000, Qt.VeryCoarseTimer, self.actionAdjust)
             self.showsize()
 
     # @QtCore.pyqtSlot(str)
     def filechanged(self, path):
-        self.readtext()
+        self.readtext('changed')
     # @QtCore.pyqtSlot(QSocketDescriptor, QsocketNotifier.Type)
     def socketActivated(self,socket):  # ,type):
-        self.readtext()
-
+        # XXX detect eof here???
+        self.readtext('socket')
+        
     def start(self):
         doc = self.textbody.document()
         doc.setMaximumBlockCount(self.opt.maxLines)
@@ -342,7 +355,6 @@ class QtTail(QtWidgets.QMainWindow):
         f = QtCore.QFile(filename)
         self.file = f
         f.open(QtCore.QFile.ReadOnly);
-        self.textstream = QtCore.QTextStream(f)
         self.opt.file = True
         if not self.opt.title:
             self.setWindowTitle(filename) # XXX qtail prefix? strip path?
@@ -361,16 +373,16 @@ class QtTail(QtWidgets.QMainWindow):
         # QFile doesn't work with readyRead, use QSocketNotifier instead for pipes
         f = QtCore.QFile()
         self.file = f
-        f.open(0, QtCore.QFile.ReadOnly);
-        os.set_blocking(0, False)  # XX not portable?
-        self.textstream = QtCore.QTextStream(f)
+        f.open(sys.stdin.fileno(), QtCore.QFile.ReadOnly);
+        os.set_blocking(sys.stdin.fileno(), False)  # XX not portable?
         #broken on File # self.file.readyRead.connect(self.readtext)
 
         # Attempt a socket notifier instead of readyread
         # seems to work equally well (in linux) on pipes and files
-        n = QSocketNotifier(0, QSocketNotifier.Read, self)
+        n = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Read, self)
         self.notifier = n
-        n.activated.connect(self.socketActivated)
+        self.socketconnection = n.activated.connect(self.socketActivated)
+        self.errnotifier = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Exception, self)
 
         self.opt.file = False  #XXX sometimes this might be a file
         #if typedQSettings().value('DEBUG',False):print("stdin") # DEBUG
@@ -380,13 +392,13 @@ class QtTail(QtWidgets.QMainWindow):
         self.file = process
         if not self.opt.title:
             self.setWindowTitle(title)
-        self.textstream = QtCore.QTextStream(process)
         self.opt.file = False
-        self.file.readyRead.connect(self.readtext)
+        self.file.readyRead.connect(partial(self.readtext,'ready proc'))
         self.rebutton('Kill', self.terminateProcess)
         self.file.finished.connect(self.procFinished)
 
     def openPretext(self, jobitem, textstream, pretext='', title=None):
+        # textstream seems broken for non-blocking I/O
         self.textbody.setPlainText(pretext)
         # someone else already initialized stuff, just handing it over
         # pretend like we did it
@@ -411,10 +423,9 @@ class QtTail(QtWidgets.QMainWindow):
         if not title:  # try again
             title='qtail: reopen'  # XXXX SETTING?
         self.setWindowTitle(title)
-        self.textstream = textstream
         self.opt.file = False
         if self.file:
-            self.file.readyRead.connect(self.readtext)
+            self.file.readyRead.connect(partial(self.readtext,'ready pre'))
             self.file.finished.connect(self.procFinished)
             self.setButtonMode()
         # these are likely too soon
@@ -470,7 +481,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.textbody.clear()
         else: # not a file, can't seek
             self.showsize()
-        self.readtext()
+        self.readtext('reload')
 
     # this can take either QAction or QCheckBox
     # checkbox was removed from UI main panel and moved into a menu

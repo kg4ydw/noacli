@@ -25,18 +25,12 @@ o  Should all the tables be respaced with resizeRowsToContents()
    when history wraps it should clear instead of immediately wrapping
 
 Things to implement soon:
-   fix qtail buffering to chunk like log
- !   works in noa but broken on stdin and files
-     needs rewrite --> use readLineTo returns false
    cd should parse ~
    realign general settings editor to be callable from other apps
  x table should send stderr to log
    table column picker needs an undo select columns
 
 high priority bugs
-   smalloutput Dup passes qtail a non-functioning QProcess if it finishes
-      command after smalldup doesn't send any output to qtail
-      reset TextStream ??
    fixed format fence post with slurm 1 char margins  sacct -a -X
      trim results?
  ! log prefix is being eaten twice by parser "tail tail" doesn't work
@@ -47,11 +41,8 @@ high priority bugs
       need to build menu before it can be checked (check during build?)
  ! settings apply button is delayed until ok pressed
       fix this or delete the button
- ? qtail doesn't detect eof on stdin or pipe
- ! qtail follow broken for pipe? and file --> check socket
-   qtail is slow reading large files
- *   read in smaller chunks
- *   use cursor.beginEditBlock / endEditBlock
+   tableviewer triggers race condition in betterIO.peek
+      maybe write a custom buffer class that handles async I/O and readLine properly
 
 Misc things to implement
    table search
@@ -61,7 +52,7 @@ Misc things to implement
  *    rerun vs. close
  *    automatic reload checkbox
 d*    rerun interval
-      file doesn't need autorefresh??
+      file doesn't need autorefresh?? or should it clear(); seek(0)
  ? built in commands should get marked done in history
    close stdin
    add small buttons in dock widget headers
@@ -535,7 +526,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
      context menu items to use match dictionary
        set title (or set automatically)
        regex menu items that only show if dependencies met
-       
+
      can a command template auto trigger on output match?
         run or just insert into edit buffer?
 	small output window only?
@@ -715,3 +706,9 @@ D*   if it ends in / select dirs only??
  *    dock: resize? on topLevelChanged (float/nofloat)
  * default geometry profile used but not checked at start (use setChecked)
  * make sure autorefresh timer is canceled when window is closed
+ * fix qtail buffering (fixed for large blocks and stdin)
+ * qtail doesn't detect eof on stdin or pipe
+ * qtail follow broken for pipe? and file --> check socket
+ * qtail is slow reading large files
+ *   read in smaller chunks
+ n   use cursor.beginEditBlock / endEditBlock (read single block instead)

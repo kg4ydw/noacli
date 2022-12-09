@@ -108,14 +108,16 @@
     <addaction name="actionWrap_lines"/>
     <addaction name="separator"/>
     <addaction name="actionClearFinds"/>
+    <addaction name="separator"/>
     <addaction name="actionFont"/>
    </widget>
    <widget class="QMenu" name="menuMode">
     <property name="title">
-     <string>Mode</string>
+     <string>Watch</string>
     </property>
     <addaction name="actionWatch"/>
     <addaction name="actionAutorefresh"/>
+    <addaction name="actionReload"/>
    </widget>
    <addaction name="menuView"/>
    <addaction name="menuMode"/>
@@ -195,6 +197,11 @@
    </property>
    <property name="text">
     <string>Show toolbar</string>
+   </property>
+  </action>
+  <action name="actionReload">
+   <property name="text">
+    <string>Refresh now</string>
    </property>
   </action>
  </widget>
@@ -420,6 +427,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionReload</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>reloadOrRerun()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>simpleFind(QString)</slot>
@@ -434,5 +457,6 @@
   <slot>setButtonMode()</slot>
   <slot>actionAutoRefresh()</slot>
   <slot>clearFinds()</slot>
+  <slot>reloadOrRerun()</slot>
  </slots>
 </ui>
