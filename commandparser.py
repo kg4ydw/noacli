@@ -252,7 +252,7 @@ class commandParser:
         '''Find what things match the given command'''
         t=''
         words=rest.split()
-        # XXXXX this should get the path from the propagated environment
+        # XXX this should get the path from the propagated environment
         # but only the real one is available here, hope the user didn't change it
         pathdirs = os.get_exec_path()
         for cmd in words:

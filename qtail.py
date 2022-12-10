@@ -305,18 +305,17 @@ class QtTail(QtWidgets.QMainWindow):
         e.movePosition(QtGui.QTextCursor.End)
         #print('read {}: {}'.format(fromwhere,len(b))) # DEBUG
         if b==None: # already got EOF (probably?)
-            if typedQSettings().value('DEBUG',False):print("EOF from "+fromwhere)
-            return # XXX do more?
-        if len(b)==0:  # EOF hack, probably has race conditions
+            #if typedQSettings().value('DEBUG',False):print("EOF from "+fromwhere)
+            self.eof = 6
+        if b==None or len(b)==0:  # EOF hack, probably has race conditions
            if self.eof > 2 and hasattr(self,'notifier'):
-              # this gets false positives for QProcess (which dones't set notifier
+              # this gets false positives for QProcess (which doesn't set notifier
               # but seems to be OK with file and stdin
-              self.notifier.setEnabled(False) #
+              self.notifier.setEnabled(False)  # stop looking for more
               self.rebutton('Close', self.close)
-        if len(b)>0:
+        if b and len(b)>0:
             self.eof = 0
-            t = b.decode('utf-8') # XXX gets unicode errors, needs try
-            # XXX UnicodeDecodeError
+            t = b.decode('utf-8', errors='backslashreplace') # XXX gets unicode errors, needs try
             # self.textbody.append(t)  # append adds an extra paragraph separator
             #self.endcursor.insertText(t)
             if self.opt.format=='h':  e.insertHtml(t)
@@ -324,15 +323,16 @@ class QtTail(QtWidgets.QMainWindow):
             else: e.insertText(t)
             if self.ui.followCheck.isChecked():
                 self.textbody.setTextCursor(e)
-        if len(b)==blocksize and not self.file.atEnd():
+        if b and len(b)==blocksize and not self.file.atEnd():
             self.want_read_more.emit('more')
-        if self.firstRead and (e.position()>200 or self.textbody.document().blockCount()>10): # XXX SETTING threshold
+        if self.firstRead and (self.eof>2 or e.position()>200 or self.textbody.document().blockCount()>10): # XXX SETTING threshold
+            # if never resized, resize at eof or 200 bytes or 10 lines
             # XXX but maybe not if there's more to read immediately??
             self.firstRead=False
             self.actionAdjust()
             rdelay = 0
             rdelay = typedQSettings().value('QTailDelayResize',3)
-            if rdelay:
+            if b and rdelay:
                 #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
                 QTimer.singleShot(int(rdelay)*1000, Qt.VeryCoarseTimer, self.actionAdjust)
             self.showsize()
@@ -440,6 +440,7 @@ class QtTail(QtWidgets.QMainWindow):
     def procFinished(self, exitcode, estatus):
         # XXX if exitcode: rebutton("Rerun", self.rerun)
         # self.rebutton('Close', self.close)
+        if self.firstRead: self.actionAdjust()
         self.setButtonMode()
         if self.ui.textBrowser.document().isEmpty():
             # XXX should this be conditional?

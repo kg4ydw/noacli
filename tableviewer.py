@@ -53,62 +53,67 @@ typedQSettings().registerOptions({
 # * make sure there is always data available before __next__ is called
 # * instead of throwing away lines as we parse, maybe keep them all and reparse and rebuild the table when we've got more
 class lineBuffer():
-    lineEnds = '\n\r\x1d\x1e\x85\v\f\u2028\u2029'  # XX update this?
+    lineEnds = '\n\r\x1d\x1e\x85\v\f\u2028\u2029'  # XX update this? from splitlines
     def __init__(self, file):
         self.file = file
         self.lines = []
         self.eof = 0
-        # XXX enable non-blocking I/O here?
+        #  enable non-blocking I/O here?
         ## really only appropriate for stdin, and maybe file, so no
         # os.set_blocking(sys.stdin.fileno(),False)
         
     ## replace strpeek with peeklines as often as possible
     def strpeek(self, size):  # XX not gonna fake size default
-        # XX ignoring size
-        self.canReadLine(True) # just force a read anyway
         # horribly inefficent but meh, only call this once hopefully
-        return "".join(self.lines)
+        s =  "".join(self.lines)
+        if len(s)<size:
+            self.canReadLine(True) # get some more
+            return "".join(self.lines)
+        else:
+            return s
 
     def handleEOF(self):
         # got an eof, clean up any buffer left over
         if len(self.lines)==1 and self.lines[0][-1] not in self.lineEnds:
-            print('terminate at eof')
+            #print('terminate at eof') # DEBUG
             self.lines[0]+='\n'
         return len(self.lines)>0 # use up what is left
     def canReadLine(self, readmore=False):
         if not readmore: # force buffer growth for extended peeking
             if len(self.lines)>1: return True
             if len(self.lines)>0 and self.lines[0][-1] in self.lineEnds: return True
-        # ok, try to read more
-        buffer = self.file.read(1024) # XXX SETTING?
-        if type(buffer)==str: b=buffer[-10:]
-        else: b=buffer[-10:].decode('utf-8')
-        print('read end: "'+b+'"')
-        if buffer==None:  # EOF!
-            self.eof = 6
-            return self.handleEOF()
-        if len(buffer)==0:
-            self.eof +=1
-            if self.eof>2: return self.handleEOF() # failed 3x, maybe done?
-            return False # no more data just yet
-        self.eof = 0  # we got some data
-        if type(buffer)==str:
-            lines = buffer.splitlines(keepends=True)
-        else:
-            # XXX what to do about bad UTF?
-            lines = buffer.decode('utf-8').splitlines(keepends=True)
-        print('  endchar={}'.format(ord(lines[-1][-1])))
-        # XXX splitlines supports multiple line endings, need to handle that
-        if len(self.lines)>0 and self.lines[-1][-1] not in self.lineEnds:
+        # read until we get a whole line or run out
+        # XX should this abort for insanely long lines? how long is that?
+        lines=[]
+        buf = ''
+        while len(lines)<1 or len(lines[0])<1 or lines[0][-1] not in self.lineEnds:
+            buffer = self.file.read(1024)
+            if buffer==None or len(buffer)==0: break
+            if type(buffer)==str:
+                buf += buffer
+            else:
+                buf += buffer.decode('utf-8', errors='backslashreplace')
+            lines = buf.splitlines(keepends=True)
+        if len(buf)>0:
+            self.eof = 0  # we got some data
+        # save what we read before doing something about EOF
+        if len(lines)>0 and len(self.lines)>0 and self.lines[-1][-1] not in self.lineEnds:
             # append to end of previous line
-            print('append')
             self.lines[-1] += lines.pop(0)
-        elif len(self.lines)>0:
-            print(' no append endchar={}'.format(ord(self.lines[-1][-1])))
+        # save any remaining whole lines
         if len(lines)>0:
             self.lines += lines
+        # deal with EOF, including using last partial line
+        if buffer==None:
+            self.eof = 6
+            return self.handleEOF()
+        elif len(buffer)==0:
+            self.eof +=1
+            if self.eof>2:
+                return self.handleEOF() # failed 3x, maybe done?
+        # if not eof, did we get a whole line
         if len(self.lines)==0: return False
-        if len(self.lines)>1 or lines[0][-1] in self.lineEnds:
+        if len(self.lines)>1 or (len(self.lines[0])>0 and self.lines[0][-1] in self.lineEnds):
                 return True
         return False
 
@@ -121,7 +126,8 @@ class lineBuffer():
     def __next__(self):
         # XXX should this make sure the next line is whole
         # or assume the calling code already called canReadLine
-        if len(self.lines)==0: raise StopIteration
+        if len(self.lines)==0:
+            raise StopIteration
         return self.lines.pop(0)
 
             
@@ -142,9 +148,8 @@ class FixedWidthParser():
         # optimistically do this without peek for now
         # XX this doesn't handle right justified or centered columns
         # which might be fixable with peek
-        # self.file = f # XXXXX
         lines = f.peekLines(2)  # this will try to get 2 lines, but no promises
-        # Alternate algorithms: XXXX
+        # Alternate algorithms: XXX
         # * after picking boundaries, scan down the column to verify
         # * set a bitmap of columns only containing spaces and scan that
         if len(lines)>1 and lines[1][0] in '=-': # second line looks better
@@ -336,7 +341,7 @@ class TableViewer(QtWidgets.QMainWindow):
     # context menu triggered
     def collapseSelectedCells(self):
         sm = self.ui.tableView.selectionModel()
-        slist = sorted(sm.selectedIndexes())
+        slist = sorted(sm.selectedIndexes(), reverse=True) #XXX test
         # and clear the selection now that we've got the cell list.
         # This gives feedback in case the user tried to do something wierd.
         sm.clear() # XXX only clear ones we've fixed?
@@ -345,20 +350,19 @@ class TableViewer(QtWidgets.QMainWindow):
             # find consecutive items in the same row
             row = slist[0].row()
             i = 0;
-            while i+1<len(slist) and slist[i+1].row()==row and slist[i].column()+1==slist[i+1].column():
+            while i+1<len(slist) and slist[i+1].row()==row and slist[i].column()-1==slist[i+1].column():
                 i+=1
             if i>0:
-                self.model.mergeCells(slist[0], i)
-            # skip remaining cells in same row because indexes out of sync XX
-            while i<len(slist) and slist[i].row()==row:
-                i+=1
-            del slist[0:i]
+                #print('merge {}: {} + {}'.format(slist[i].row(), slist[i].column(),i)) # DEBUG
+                self.model.mergeCells(slist[i], i)
+            del slist[0:i+1]
+            #if i==0: user only selected one sequental item -- reselect it?
         
     ################ table parsing stuff
 
     def openfile(self,filename):
         self.setWindowTitle(filename)
-        self.csvfile = lineBuffer(open(filename))  # XXX need better exception handling
+        self.csvfile = lineBuffer(open(filename, errors='backslashreplace'))
         self.openfd(self.csvfile)
         self.want_readmore.emit('initial') # extra just in case
 
@@ -391,9 +395,10 @@ class TableViewer(QtWidgets.QMainWindow):
         maxx=0
         if not csvfile.canReadLine():  # try again later
             return
-        peek = csvfile.strpeek(1024)
-        if not peek:  # must be on a pipe, try again later
+        peeklines = csvfile.peekLines(1)
+        if not peeklines or not peeklines[0]:  # try again later
             return 
+        peek = peeklines[0] # just one line for now otherwise csv gets too clever
         # self.firstread = False  # got something, initialize! but in case anything goes wrong, set this later
         if '\t ' in peek or ' \t' in peek:  # maybe 3 spaces too?
             if DEBUG: print("Found tabs and spaces, trying fixed width parser") # DEBUG
@@ -402,7 +407,7 @@ class TableViewer(QtWidgets.QMainWindow):
         else:
             # give csv a try and then we try again
             try:
-                dialect = csv.Sniffer().sniff(peek, delimiters='\t,|:')
+                dialect = csv.Sniffer().sniff(peek, delimiters='|\t,:')
                 self.csvreader = csv.reader(csvfile, dialect)
                 if DEBUG: print('got csv') # DEBUG
             except csv.Error:

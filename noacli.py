@@ -600,7 +600,7 @@ class Favorites():
         for row in self.data:
             (keep, name, shortcut, immediate, count, command) = row
             if command in gotcmd:
-                print("Warning: ignoring duplicate cmd: "+command) # DEBUG
+                print("Warning: ignoring duplicate cmd: "+command) # EXCEPT
             elif keep:
                 if command not in self.cmds:
                     gotcmd.add(command)
@@ -711,7 +711,7 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.favorites.setButtonBox(self.ui.buttonBox, [ self.runSimpleCommand, self.ui.commandEdit.acceptCommand])
         self.settings.favorites.loadSettings()
 
-        self.settings.logOutputView = self.ui.logBrowser # XX
+        self.settings.logOutputView = self.ui.logBrowser
 
         # populate the view menu for DOCK (is there a more automatic way?)
         ui.menuViews.addAction(ui.history.toggleViewAction())
@@ -1322,7 +1322,7 @@ class commandEditor(QPlainTextEdit):
         self.ui = parent.parent().ui
         self.histindex = None
         self.history = None
-        # XXX put all these key bindings in an array?
+        # XXX put all these key bindings in an array for a settings editor?
         self.histUp = QShortcut(QKeySequence('ctrl+up'),self)
         self.histUp.activated.connect(self.historyUp)
         self.histUp2 = QShortcut(QKeySequence('ctrl+p'),self)

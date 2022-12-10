@@ -19,6 +19,7 @@ class myDock(QDockWidget):
         self.topLevelChanged.connect(self.resizeOnFloat)
 
     # resize the dock when it floats to get rid of horizontal scrollbar
+    # but try to not grow every time we are floated
     def resizeOnFloat(self, float):
         if not float: return
         o = self.findChild(QAbstractScrollArea)

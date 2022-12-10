@@ -10,14 +10,14 @@ D  documented feature (in Readme.md)
 d  documented internally (doc settings doc)
 t  documented internally with tool tip
 
-User interface questions: (please send feedback!!!)
+User interface questions: (please send feedback!!)
 o  Should all the tables be respaced with resizeRowsToContents()
    Is column selection between tableviewer and column picker awkward
    is the documentation unclear or too wordy
    is a keybindings viewer / editor needed
    are the options named well
 o  should the window auto-resize theshold be a setting
-   is it annoing that history scrolls to bottom and resets sort order
+   is it annoying that history scrolls to bottom and resets sort order
      when a command is run
      when history items are copied from the docs
 *  when history wraps it should clear instead of immediately wrapping
@@ -28,22 +28,26 @@ Things to implement soon:
  x table should send stderr to log
    table column picker needs an undo select columns
    tableview: use column for vertical headers
+   fix command parser to use built environment setting (XXXX marked)
+   hide toolbar if window is too small (>1/3 ?)
+     log viewer
+     history
+     on resize
+     on top level change
 
 high priority bugs
- * fixed format fence post with slurm 1 char margins  sacct -a -X
- *   trim results?
  ! log prefix is being eaten twice by parser "tail tail" doesn't work
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac (wrong geom?)
    flowlayout overlapping buttons (rare? one time glitch?)
- * need to build menu before it can be checked (check during build?)
  ! settings apply button is delayed until ok pressed
       fix this or delete the button
- * tableviewer triggers race condition in betterIO.peek
- *    maybe write a custom buffer class that handles async I/O and readLine properly
+   qtail should resize on smalldup of dead proc
+   fileDialog doesn't always trim prefix correctly
 
 Misc things to implement
+   SETTING auto pause qtail on maxlines threshold
    table search
  ? table manual partitioning (when auto goes wrong)
  * qtail button mode
@@ -86,10 +90,14 @@ d* SETTING: delay after first data before initial window resize
  * if output windows are not visible, add extra status to main window?
 
 User visible bugs:
+   on large data, qtail freezes on first resize in qt adust()
+     skip or postpone while busy?
+     resize early when buffer is small rather than later
    command buttons can be broken by setwrap (more testing needed)
    duplicate key bindings don't get background paint until dialog is reopened
  * empty dock bug
  *   qt bug -- work around applied and commented
+     test in U20
  * favorites editor bugs
 DE    should warn on duplicate names? (color?)
 x! block tostop signal : try os.setsid ?
@@ -97,11 +105,11 @@ x! block tostop signal : try os.setsid ?
      kill child proc?
      move to terminal window automatically?
      preconnect pty for this purpose?
- * gets middle of file on /usr/dict/words without --whole
    qtail gives useless errors on file not found
    bind hitory context menu to history headers too
 
 Bugs:
+   test sibling markers
  o font changes
  o   save font settings in settings
  *   live font selection
@@ -122,6 +130,12 @@ Bugs:
    Poor data flow between jobItem and smallOutput (refactor)
    'set max' too often -- use histiresis of mul+1 ?
    file dialog cwd filter breaks in python 3.8 (work around in place)
+   realign splitlines chars with our endline chars
+     replace in text at decode?
+     replace splitlines with re.compile / split(re)
+     replace lineEnds with _PyUnicode_IsLinebreak
+      https://hg.python.org/cpython/file/94f7cdab9f71/Objects/unicodetype_db.h#l3316
+      https://stackoverflow.com/questions/24453713/python-string-splitlines-removes-certain-unicode-control-characters
 
 D* small output window
 D*   transfer last command output to qtail if:
@@ -168,7 +182,7 @@ D*   max retention
  * history manager / historyView
  * job manager / jobTableVew / noacli
    button editor / settingsDialog>tableView / settingsDialog
-   general settings editor / settingsDialog>tableView / settingsDialog
+ * general settings editor / settingsDialog>tableView / settingsDialog
  * command window / plainTextEdit / commandEditor
    qtail search / searchTerm / QtTail?
  * log dock
@@ -269,7 +283,7 @@ D*   delete dead jobs? (life cycle)
 D* settings
  *   table: name default tooltip currentval
 D*   show default in table ? or unmark when set to default?
- !   context menu: reset selected to default
+ n   context menu: reset selected to default
  *   merge qtail options
      items
 d*     historysize
@@ -711,3 +725,10 @@ D*   if it ends in / select dirs only??
  * qtail is slow reading large files
  *   read in smaller chunks
  n   use cursor.beginEditBlock / endEditBlock (read single block instead)
+ * fixed format fence post with slurm 1 char margins  sacct -a -X
+ *   trim results?
+ * tableviewer triggers race condition in betterIO.peek
+ *    maybe write a custom buffer class that handles async I/O and readLine properly
+ * all input processors choke on bad unicode? (, errors='backslashreplace')
+ * gets middle of file on /usr/dict/words without --whole
+

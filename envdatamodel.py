@@ -19,10 +19,10 @@ class envModes(Enum):
     Save = 2
     Deleted = 3
     Mask = 4
-envModes.Inherit.__doc__ = "Inherit from external environment, delete local changse"
-envModes.Session.__doc__ = "Changed for this session only" 
+envModes.Inherit.__doc__ = "Inherit from external environment, reset local changes"
+envModes.Session.__doc__ = "Changes used for this session only" 
 envModes.Save.__doc__ = "Save changes for future sessions"
-envModes.Deleted.__doc__ = "Not used for subprocesses in this session"
+envModes.Deleted.__doc__ = "Will not be used for subprocesses in this session"
 envModes.Mask.__doc__ = "Masked from use in this and future sessions"
 
 class envModeModel(QAbstractListModel):
@@ -51,7 +51,6 @@ class envModesDelegate(QStyledItemDelegate):
 
     def createEditor(self,parent,option,index):
         # XXX do something with option? set background?
-
         w = QComboBox(parent)
         w.setModel(envModeModel(parent))
         #data = index.model().data(index, Qt.EditRole)
@@ -149,13 +148,13 @@ class envSettings(QProcessEnvironment):
             if type(old)==str: old=envModes[old]
             if value==old: return True
             if value==envModes.Inherit:
-                index.model().setData(index.siblingAtColumn(2), self.origenv.value(key,''), Qt.EditRole) # XXXX sibling
+                index.model().setData(index.siblingAtColumn(2), self.origenv.value(key,''), Qt.EditRole) # XX sibling
         elif col==2:
             if old==value: return True
             mode = self.envdata[row][1]
             if type(mode)==str: mode=envModes[mode]
             if mode in [envModes.Deleted, envModes.Inherit]:
-                index.model().setData(index.siblingAtColumn(1), envModes.Session, Qt.EditRole) # XXXX sibling
+                index.model().setData(index.siblingAtColumn(1), envModes.Session, Qt.EditRole) # XX sibling
             elif mode==envModes.Mask:
                 index.model().setData(index.siblingAtColumn(1), envModes.Save, Qt.EditRole)
         return True
@@ -195,7 +194,7 @@ class envSettings(QProcessEnvironment):
         # XXX special env context menu things here later maybe
         m = QMenu()
         m.addAction("Add new variable", self.addnewvar)
-        #XXXXX if index.isValid(): m.addAction("Reset to default", ...)
+        # reset to default by changing mode to inherited, which has immediate effect
         action = m.exec_(self.envDia.mapToGlobal(point))
 
     def addnewvar(self):

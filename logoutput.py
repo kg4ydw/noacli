@@ -50,6 +50,7 @@ class logOutput(QTextBrowser):
         self.findcount = 0
         self.followCheck = True
         self.searchtext = None
+        self.settings = None
         self.applySettings()
         # if a fixed number is set, use it, otherwise delay this
         self.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere) # SETTING
@@ -192,10 +193,11 @@ class logOutput(QTextBrowser):
                 c.insertHtml('{}: <b>Exit {}</b> <br/>'.format(jobitem.pid, jobitem.process.exitCode()))
                 c.insertText("\n")
                 jobitem.cleanup() # XX is this dangerous?
-                self.joblist.discard(jobitem)  # XXX clean anything first?
+                self.joblist.discard(jobitem)
             
 
     ######## GUI stuff
+
     @QtCore.pyqtSlot(int)
     def setFollowCheck(self, checked):
         self.followCheck = checked
@@ -210,7 +212,8 @@ class logOutput(QTextBrowser):
         success = self.find(text)
         if success:
             self.findcount += 1
-            #XX self.statusBar().showMessage('Found '+str(self.findcount))
+            if self.settings and self.settings.statusBar: # use if available
+                self.settings.statusBar.showMessage('Found '+str(self.findcount))
         else:
             # try again
             cursor = self.textCursor()
@@ -218,16 +221,17 @@ class logOutput(QTextBrowser):
             self.setTextCursor(cursor)
             success = self.find(text)
             if success:
-                # XXX need a status bar
-                #if self.findcount:
-                #    m = 'Wrapped after '+str(self.findcount)
-                #else:
-                #    m = 'Wrapped'
-                #self.statusBar().showMessage(m)
+                if self.findcount:
+                    m = 'Wrapped after '+str(self.findcount)
+                else:
+                    m = 'Wrapped'
+                if self.settings and self.settings.statusBar:
+                    self.settings.statusBar.showMessage(m)
                 self.findcount = 1;
             else:
                 self.setTextCursor(start)
-                #XX self.statusBar().showMessage('Not found')
+                if self.settings and self.settings.statusBar:
+                    self.settings.statusBar.showMessage('Not found')
     
     @QtCore.pyqtSlot(str)
     def simpleFindNew(self, text):

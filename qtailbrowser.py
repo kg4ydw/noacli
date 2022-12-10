@@ -34,6 +34,8 @@ class myBrowser(QTextBrowser):
     def autoTable(self, text):
         # XXX guess for fixed format spaced columns too
         # guess what kind of table this is based on the first line
+        # This is (intentionally?) primitive, tableviewer does it better
+        # XXX export selection to tableviewer instead?
         ds = {}
         for i in re.findall('[\t,|]', text):
             if i in ds: ds[i]+=1
