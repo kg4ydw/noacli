@@ -17,12 +17,13 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 import sys
 import os
 from functools import partial
+from math import ceil
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor, QFont
 from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWidgetAction, QSpinBox, QAbstractSpinBox, QShortcut
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt5.Qt import Qt, pyqtSignal
-from math import ceil
 
 from qtail_ui import Ui_QtTail
 
@@ -303,8 +304,10 @@ class QtTail(QtWidgets.QMainWindow):
         e = self.textbody.textCursor()
         e.movePosition(QtGui.QTextCursor.End)
         #print('read {}: {}'.format(fromwhere,len(b))) # DEBUG
+        if b==None: # already got EOF (probably?)
+            if typedQSettings().value('DEBUG',False):print("EOF from "+fromwhere)
+            return # XXX do more?
         if len(b)==0:  # EOF hack, probably has race conditions
-           self.eof += 1
            if self.eof > 2 and hasattr(self,'notifier'):
               # this gets false positives for QProcess (which dones't set notifier
               # but seems to be OK with file and stdin
@@ -312,7 +315,8 @@ class QtTail(QtWidgets.QMainWindow):
               self.rebutton('Close', self.close)
         if len(b)>0:
             self.eof = 0
-            t = b.decode('utf-8')
+            t = b.decode('utf-8') # XXX gets unicode errors, needs try
+            # XXX UnicodeDecodeError
             # self.textbody.append(t)  # append adds an extra paragraph separator
             #self.endcursor.insertText(t)
             if self.opt.format=='h':  e.insertHtml(t)
@@ -320,16 +324,14 @@ class QtTail(QtWidgets.QMainWindow):
             else: e.insertText(t)
             if self.ui.followCheck.isChecked():
                 self.textbody.setTextCursor(e)
-        if len(b)==blocksize and not self.file.atEnd(): # more data to read
+        if len(b)==blocksize and not self.file.atEnd():
             self.want_read_more.emit('more')
-        if self.firstRead and e.position()>200: # XXX SETTING threshold
+        if self.firstRead and (e.position()>200 or self.textbody.document().blockCount()>10): # XXX SETTING threshold
+            # XXX but maybe not if there's more to read immediately??
             self.firstRead=False
             self.actionAdjust()
             rdelay = 0
-            try:  
-                rdelay = typedQSettings().value('QTailDelayResize',3)
-            except:
-                pass
+            rdelay = typedQSettings().value('QTailDelayResize',3)
             if rdelay:
                 #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
                 QTimer.singleShot(int(rdelay)*1000, Qt.VeryCoarseTimer, self.actionAdjust)
@@ -339,7 +341,7 @@ class QtTail(QtWidgets.QMainWindow):
     def filechanged(self, path):
         self.readtext('changed')
     # @QtCore.pyqtSlot(QSocketDescriptor, QsocketNotifier.Type)
-    def socketActivated(self,socket):  # ,type):
+    def socketActivated(self, socket):
         # XXX detect eof here???
         self.readtext('socket')
         
@@ -522,7 +524,7 @@ class QtTail(QtWidgets.QMainWindow):
         framedx = rect.width() - docrect.width()
         framedy = rect.height() - docrect.height()
         #print("ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
-        doc.adjustSize()
+        doc.adjustSize()  # XX this can be slow, avoid it when interacting?
         #print(" ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
         newsize = doc.size()
         #print(' docsize='+str(newsize)) # DEBUG

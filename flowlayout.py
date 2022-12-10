@@ -9,6 +9,7 @@
 """PySide6 port of the widgets/layouts/flowlayout example from Qt v6.x"""
 
 import sys
+
 from PyQt5.QtCore import Qt, QMargins, QPoint, QRect, QSize
 from PyQt5.QtWidgets import QApplication, QLayout, QPushButton, QSizePolicy, QWidget
 

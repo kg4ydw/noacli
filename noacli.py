@@ -16,13 +16,14 @@ import os
 import sys
 from pathlib import Path
 import pathlib
+from functools import partial
+import signal
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal, QBrush
 from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard, QFont
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex,QPersistentModelIndex, QSettings, QProcessEnvironment, QProcess
-
-from functools import partial
 
 from noacli_ui import Ui_noacli
 from typedqsettings import typedQSettings
@@ -33,7 +34,6 @@ from smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
 from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
-import signal
 
 __version__ = '0.9.9.3'
 

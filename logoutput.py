@@ -8,6 +8,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 import os
 import sys
 import re
+from functools import partial
 
 from PyQt5 import QtCore
 from PyQt5.Qt import Qt, pyqtSignal
@@ -18,7 +19,6 @@ from PyQt5.QtWidgets import QTextBrowser
 from typedqsettings import typedQSettings
 from noajobs import jobItem
 from qtail import QtTail
-from functools import partial
 
 # features: (possible and implemented)
 #  collect logs from multiple processes
@@ -175,7 +175,7 @@ class logOutput(QTextBrowser):
         # make sure there's no more data
         if jobitem.hasmore and jobitem.process.atEnd():
             self.readLines(jobitem) # one more can't hurt
-        if not jobitem.hasmore and jobitem.process.atEnd():
+        if not jobitem.hasmore and (not jobitem.process or jobitem.process.atEnd()):
             self.cleanProc(jobitem)
         else:
             print("Not cleaned at exit: pid={} m={} e={}".format(jobitem.pid, jobitem.hasmore, jobitem.process.atEnd())) # EXCEPT

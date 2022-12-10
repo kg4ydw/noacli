@@ -4,11 +4,12 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 
 # viewer portion of the qtail application
 
+import re
+from functools import partial
+
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QTextBrowser, QFontDialog
 from PyQt5.QtGui import QTextCursor
-from functools import partial
-import re
 
 class myBrowser(QTextBrowser):
     def __init__(self, parent):

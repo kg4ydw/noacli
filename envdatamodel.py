@@ -4,11 +4,13 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 
 # Remember, edit, save, and manage environment variables for subprocess use.
 
+from enum import Enum
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QStyledItemDelegate, QComboBox, QMenu, QInputDialog
 from PyQt5.Qt import Qt
 from PyQt5.QtCore import QProcess, QProcessEnvironment, QSettings, QAbstractListModel, QModelIndex
-from enum import Enum
+
 from datamodels import settingsDialog, settingsDataModel, simpleTable
 
 class envModes(Enum):

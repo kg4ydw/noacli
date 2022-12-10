@@ -4,17 +4,17 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 
 # Do all the job manipulation (view and model) parts of noacli
 
+import re   # use python re instead of Qt
+import os
+
 from PyQt5.Qt import Qt, QBrush
 from PyQt5.QtCore import QIODevice, QTimer, QModelIndex, QProcess
+
 from datamodels import itemListModel
 from qtail import QtTail
 from typedqsettings import typedQSettings
 from commandparser import OutWin
 from tableviewer import TableViewer
-
-import re   # use python re instead of Qt
-import os
-
 
 
 class jobItem():

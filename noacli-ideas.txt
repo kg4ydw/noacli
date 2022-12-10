@@ -14,39 +14,38 @@ User interface questions: (please send feedback!!!)
 o  Should all the tables be respaced with resizeRowsToContents()
    Is column selection between tableviewer and column picker awkward
    is the documentation unclear or too wordy
-   is a wrapper editor and save needed
    is a keybindings viewer / editor needed
-*  is it OK to automatically resize the window to max screen size
    are the options named well
-*  should the window auto-resize theshold be a setting
+o  should the window auto-resize theshold be a setting
    is it annoing that history scrolls to bottom and resets sort order
      when a command is run
      when history items are copied from the docs
-   when history wraps it should clear instead of immediately wrapping
+*  when history wraps it should clear instead of immediately wrapping
 
 Things to implement soon:
    cd should parse ~
    realign general settings editor to be callable from other apps
  x table should send stderr to log
    table column picker needs an undo select columns
+   tableview: use column for vertical headers
 
 high priority bugs
-   fixed format fence post with slurm 1 char margins  sacct -a -X
-     trim results?
+ * fixed format fence post with slurm 1 char margins  sacct -a -X
+ *   trim results?
  ! log prefix is being eaten twice by parser "tail tail" doesn't work
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac (wrong geom?)
    flowlayout overlapping buttons (rare? one time glitch?)
-      need to build menu before it can be checked (check during build?)
+ * need to build menu before it can be checked (check during build?)
  ! settings apply button is delayed until ok pressed
       fix this or delete the button
-   tableviewer triggers race condition in betterIO.peek
-      maybe write a custom buffer class that handles async I/O and readLine properly
+ * tableviewer triggers race condition in betterIO.peek
+ *    maybe write a custom buffer class that handles async I/O and readLine properly
 
 Misc things to implement
    table search
-   table manual partitioning (when auto goes wrong)
+ ? table manual partitioning (when auto goes wrong)
  * qtail button mode
  *    watch vs. transient
  *    rerun vs. close
@@ -74,17 +73,17 @@ d* SETTING: delay after first data before initial window resize
  o SETTING: max qtail window size (in px), to allow free expansion
  x add another kill button:  stop(2) terminate kill
    context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
-   history context menu: set vert spacing: expand vs minimum
+ o history context menu: set vert spacing: expand vs minimum
      context menu -> reset to default height
-   qtail on files directly
-   history view row height
+   qtail on files directly in shell
+ o history view row height
      autosize rows if they would be smaller
      reset to default on corner button?
    menu item
      close all windows
      kill all subprocesses
      disown all subprocesses (default on exit?)
-   if output windows are not visible, add extra status to main window?
+ * if output windows are not visible, add extra status to main window?
 
 User visible bugs:
    command buttons can be broken by setwrap (more testing needed)
