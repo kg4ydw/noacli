@@ -144,7 +144,7 @@ class lineBuffer():
 
 # this relies on features from lineBuffer to correctly pace I/O
 class FixedWidthParser():
-    def __init__(self, f):
+    def __init__(self, f, options={}):
         # optimistically do this without peek for now
         # XX this doesn't handle right justified or centered columns
         # which might be fixable with peek
@@ -159,19 +159,26 @@ class FixedWidthParser():
         else:
             gapthresh=2
             s = lines[0].expandtabs() # hopefully this is left justified headers
-        col = [0]
-        i=0
-        while i>=0:
-            i=s.find(' '*gapthresh,i)
-            if i>=0: # find end of column
-                i+=gapthresh
-                while i<len(s) and s[i]==' ':
-                    i+=1
-                if i<len(s):
-                    col.append(i-(gapthresh-1)) # back up one, put border in the column
+        if 'gap' in options: # override guess
+            gapthresh = options['gap']
+        if 'columns' in options: # don't need to guess
+            col = options['columns']
+            if col[0]!=0: col.insert(0,0)
+        else:
+            col = [0]
+            i=0
+            while i>=0:
+                i=s.find(' '*gapthresh,i)
+                if i>=0: # find end of column
+                    i+=gapthresh
+                    while i<len(s) and s[i]==' ':
+                        i+=1
+                    if i<len(s):
+                        col.append(i-(gapthresh-1)) # back up one, put border in the column
         self.col = col
         self.lines = iter(f)
-        print("col = "+(" ".join([str(i) for i in col]))) # DEBUG
+        # XXX maybe the column seps should go into small output too
+        print("col = "+(",".join([str(i) for i in col]))) # DEBUG
     
     def __len__(self):
         return len(self.col)
@@ -194,12 +201,19 @@ class TableViewer(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
     want_readmore = pyqtSignal(str)
+    have_error = pyqtSignal(str)
     def __init__(self, options=None, parent=None):
         super().__init__()
         self.data = []
         self.hasmore = True
         self.firstread = True
         self.useheader = True
+        # command line options
+        self.skiplines = 0
+        self.delimiters = '|\t,:' # defaults
+        self.fixedoptions = {}
+        self.headers = None
+        self.forcefixed=False
         # XXX icon
         # connect to my own event so I can send myself a delayed signal
         self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection)
@@ -215,6 +229,46 @@ class TableViewer(QtWidgets.QMainWindow):
         self.want_readmore.connect(self.readmore, Qt.QueuedConnection)  # for delayed reads
         
         # set model after opening file
+
+
+    def simpleargs(self, args):
+        # Process simple "command line" arguments from noacli internal parsing
+        # only single word options supported, so --option=value must be used
+        # XXXXX implement and document command line options
+        # ignore --file and --files (processed by caller)
+        # --skip N lines
+        # --csv --delimiter(s)
+        # --regex (delimiter or split pattern? depends on if groups?)
+        # --fixed --gap=2 --columns=n[,n]*
+        # --header=word[,word]*
+        # --noheader
+        for arg in args:
+            if arg.startswith('--skip='):
+                try:
+                    self.skiplines = int(arg[7:])
+                except:
+                    pass # XX arg parse error
+            elif arg.startswith('--delimiters='):
+                self.delimiters = arg[13:]
+            elif arg.startswith('--delimiter='):
+                self.delimiters = arg[12:]
+            elif arg.startswith('--gap='):
+                try:
+                    self.fixedoptions['gap'] = int(arg[6:])
+                except:
+                    pass # XX arg parse error
+            elif arg.startswith('--columns='):
+                try:
+                    self.fixedoptions['columns'] = [ int(x) for x in arg[10:].split(',') ]
+                except:
+                    pass # XX arg parse error
+            elif arg.startswith('--headers='):
+                self.headers = arg[10:].split(',')
+            elif arg.startswith('--noheader'):
+                self.useheader = False
+            elif arg.startswith('--fixed'):
+                self.forcefixed = True
+            #else: ignore anything else without error XXX
 
     def start(self):
         # probably should do more here and less in open 
@@ -362,11 +416,21 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def openfile(self,filename):
         self.setWindowTitle(filename)
-        self.csvfile = lineBuffer(open(filename, errors='backslashreplace'))
+        try:
+            self.csvfile = lineBuffer(open(filename, errors='backslashreplace'))
+        except OSError as e:
+            self.error = e.strerror
+            err = 'Open failed on {}: {}'.format(filename,e.strerror)
+            print(err) # EXCEPT
+            # XXX send error somewhere
+            self.have_error.emit(err)
+            # clean up
+            self.setWindowTitle(err)
+            self.close()
+            self.setParent(None)  # delete later?
+            return err
         self.openfd(self.csvfile)
         self.want_readmore.emit('initial') # extra just in case
-
-
 
     def openProcess(self, title, process):
         self.process = process
@@ -393,6 +457,12 @@ class TableViewer(QtWidgets.QMainWindow):
     def openfd(self, csvfile):
         DEBUG = typedQSettings().value('DEBUG',False)
         maxx=0
+        while self.skiplines>0:
+            if csvfile.canReadLine():
+                next(csvfile)
+                self.skiplines -= 1
+            else:
+                return # need to skip more
         if not csvfile.canReadLine():  # try again later
             return
         peeklines = csvfile.peekLines(1)
@@ -400,18 +470,18 @@ class TableViewer(QtWidgets.QMainWindow):
             return 
         peek = peeklines[0] # just one line for now otherwise csv gets too clever
         # self.firstread = False  # got something, initialize! but in case anything goes wrong, set this later
-        if '\t ' in peek or ' \t' in peek:  # maybe 3 spaces too?
+        if self.forcefixed or '\t ' in peek or ' \t' in peek:  # maybe 3 spaces too?
             if DEBUG: print("Found tabs and spaces, trying fixed width parser") # DEBUG
-            self.parser = FixedWidthParser(csvfile)
+            self.parser = FixedWidthParser(csvfile, self.fixedoptions)
             self.csvreader = iter(self.parser)
         else:
             # give csv a try and then we try again
             try:
-                dialect = csv.Sniffer().sniff(peek, delimiters='|\t,:')
+                dialect = csv.Sniffer().sniff(peek, delimiters=self.delimiters)
                 self.csvreader = csv.reader(csvfile, dialect)
                 if DEBUG: print('got csv') # DEBUG
             except csv.Error:
-                self.parser = FixedWidthParser(csvfile)
+                self.parser = FixedWidthParser(csvfile, self.fixedoptions)
                 # XX so what if it's a one column table?  better than raising.
                 #if len(self.parser)<2:
                 #    print('No delimiter found, I give up!'+str(len(self.parser))) # EXCEPT
@@ -432,7 +502,14 @@ class TableViewer(QtWidgets.QMainWindow):
         if lines<0 and self.csvfile.canReadLine():
             self.want_readmore.emit('initial') # get more without waiting
         #else: print("end: {}, {}".format(lines, self.csvfile.canReadLine())) # DEBUG
-        headers = self.data[0].copy() # XXX copy or steal first row as headers
+        if self.headers:
+            headers = self.headers
+        elif self.useheader:
+            headers = self.data[0].copy() # XXX copy or steal first row as headers
+        else:
+            headers=[]
+            # XXX disable header view?
+    
         # fix blank headers
         for i in range(len(headers)):
             if headers[i].strip()=='':

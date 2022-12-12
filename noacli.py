@@ -35,7 +35,7 @@ from qtail import myOptions as qtailSettings
 from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 
-__version__ = '0.9.9.3'
+__version__ = '0.9.9.4'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -247,7 +247,7 @@ class keySequenceDelegate(QStyledItemDelegate):
 
 class historyView(QTableView):
     newFavorite = pyqtSignal(str)
-    delayedScroll = pyqtSignal(QModelIndex)
+    delayedScroll = pyqtSignal(QModelIndex) # XXXX or QPersistentModelIndex
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -873,6 +873,7 @@ class noacli(QtWidgets.QMainWindow):
     def pickFile(self):
         pattern = typedQSettings().value('FileDialogFilter',None)
         editor = self.ui.commandEdit
+        quote = None
 
         cursor = editor.textCursor()
         if cursor.hasSelection():
@@ -902,11 +903,25 @@ class noacli(QtWidgets.QMainWindow):
         # XXX possibly non-portable path construction
         cwd = os.getcwd()+'/'
         startdir = c.selectedText()
+        if len(startdir)>0 and startdir[0] in '\'"': # quote all the filenames
+            quote = startdir[0]
+            startdir=startdir[1:]
+            #print('new start: '+startdir) # DEBUG
         #print("dir="+startdir) # DEBUG
         if startdir=='*':
             startdir = None  # cancel!
             cwd = ''
             c.removeSelectedText()
+        if not cursor.hasSelection() and not os.path.isdir(startdir):
+            # maybe user didn't highlight trailing pattern?
+            (dir,tail) = os.path.split(startdir)
+            if os.path.isdir(dir):
+                c.removeSelectedText()
+                c.insertText(dir)
+                startdir=dir
+                if '*' not in tail:  # XX maybe this was suppose to be a prefix?
+                    tail+='*' 
+                pattern=tail + ';;' + pattern
         if startdir:
             # XX if startdir doesn't exist or has junk at the end, it may be partially ignored and then the prefix removal code below is funky
             fd.setDirectory(startdir)
@@ -936,15 +951,28 @@ class noacli(QtWidgets.QMainWindow):
         #print(str(fs)) # DEBUG
         #print(cwd) # DEBUG
         if fs:  # do nothing if nothing selected
-            try:
+            if hasattr(fs,'removeprefix'):
                 # python 3.9 feature
                 fs = [x.removeprefix(cwd) or x for x in fs]
                 # remove startdir from first entry only
                 if startdir:
                     fs[0] = fs[0].removeprefix(startdir)
-            except Exception as e:
-                #print(e) # EXCEPT DEBUG
-                pass
+            else:
+                ## python 3.8 and earlier XX delete this some day
+                fsn = []
+                for i in fs:
+                    if i.startswith(cwd):
+                        fsn.append(i[len(cwd):])
+                    else:
+                        fsn.append(i)
+                if fsn[0].startswith(startdir):
+                    fsn[0] = fsn[0][len(startdir):]
+                fs=fsn
+            if quote: # quote all the filenames
+                fs = [ quote + f + quote for f in fs]
+                # except the first one
+                fs[0] = fs[0][1:]
+
             ## and return the results to the editor
             f = ' '.join(fs)+' '  # leave a trailing space after filename
             editor.insertPlainText(f)
@@ -1107,7 +1135,7 @@ class noacli(QtWidgets.QMainWindow):
             # make a new history entry!
             hist = self.settings.history.saveItem(command, None, None)
         if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
-            hist=hist.model().mapToSource(hist)
+            hist=hist.model().mapToSource(hist) # XXXX fragile?
         self.ui.historyView.resetHistorySort(False)  # XXX this might be annoying
         cmdargs = self.settings.commandParser.parseCommand(hist.model().getCommand(hist))
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
@@ -1115,19 +1143,40 @@ class noacli(QtWidgets.QMainWindow):
         if type(cmdargs)==str:
             self.ui.smallOutputView.internalOutput(self.settings,cmdargs+"\n")
             return
-        # ok, we have an external command to run 
+        outwinArgs = None
+        #print(repr(cmdargs)) # DEBUG
+        if len(cmdargs)==4:
+            outwinArgs = cmdargs.pop(2)
+        # ok, we have a window to open, could be internal or external
         (title,outwin,args) = cmdargs
-        j = jobItem(hist)  # XX construct new job
-        j.args = args
-        j.setMode(outwin)
-        # print("parse mode: "+str(outwin)) #DEBUG
-        if title and len(title)>0:
-            j.setTitle(title)
-        self.settings.jobs.newjob(j)
-        j.start(self.settings)
-        # XX try to fix job table size every time?
-        self.ui.jobTableView.resizeColumnsToContents()
-        self.ui.historyView.resetView(hist)
+        if outwinArgs and ('--files' in outwinArgs or '--file' in outwinArgs):
+            # handle internal qtail and tableview
+            if not title: title=''
+            if type(args)==str: args=[args]  # --file
+            for f in args:
+                j = jobItem(None)
+                j.setTitle(title+' '+f)
+                j.setMode(outwin)
+                j.outwinArgs = outwinArgs
+                self.settings.jobs.newjob(j)
+                j.startOutwin(f, self.settings)
+                #if hasattr(j,'window') and j.window and hasattr(j.window, 'have_error'):
+                j.window.have_error.connect(self.showMessage) # XXX# connect better
+                # it isn't really finished, but mark it for del on window close
+                j.finished = True
+        else: # external command
+            j = jobItem(hist)  # XX construct new job
+            j.setMode(outwin)
+            j.outwinArgs = outwinArgs
+            j.args = args
+            # print("parse mode: "+str(outwin)) #DEBUG
+            if title and len(title)>0:
+                j.setTitle(title)
+            self.settings.jobs.newjob(j)
+            j.start(self.settings)
+            # XX try to fix job table size every time?
+            self.ui.jobTableView.resizeColumnsToContents()
+            self.ui.historyView.resetView(hist)
 
     # in: history menu->save
     def actionSaveHistory(self):

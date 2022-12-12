@@ -9,7 +9,6 @@ from enum import Enum
 from PyQt5.Qt import pyqtSignal
 from PyQt5.QtCore import QSettings, QT_VERSION_STR, PYQT_VERSION_STR
 
-
 # This is a very primitive command parser, but it should be sufficent for the
 # kinds of things this shell needs.
 
@@ -102,13 +101,17 @@ class commandParser:
     def parseCommand(self, cmd):
         # returns one of
         #  [title, outwin, args] 
+        #  [title, outwin, [outwinargs], args] 
+        #  [title, outwin, ['--files' or '--file', outwinargs], [filenames] ] 
         #  None if the command was handled internally
         #  string: command was handled internally and generated output
         # if command can't be parsed, just use the default wrapper
         # exception: something went wrong
         cmd = cmd.strip()
         outwin = OutWin.Default
+        gotoutwin = False
         title = None
+        outwinArgs = None
         if cmd[0]=='#':  # strip out the first line but keep for title
             (title, sep, rest) = cmd[1:].strip().partition('\n')
             cmd = rest
@@ -119,14 +122,33 @@ class commandParser:
                 rest=sa[1]
             else:
                 rest=''
-            if word in builtinCommands:
+            # handle built in commands, but not two OutWin in a row
+            if word in builtinCommands and not (gotoutwin and type(builtinCommands[word])==OutWin):
                 func = builtinCommands[word]
                 if type(func) is OutWin:
                     #print('window type word={} rest=({})'.format(word,rest)) # DEBUG
                     outwin = func
                     cmd = rest
+                    gotoutwin = True
+                    # table and tail can take parameters
+                    if outwin in [OutWin.QTail, OutWin.Table] and cmd[0]=='-':
+                        outwinArgs=[]
+                        while len(cmd)>0 and cmd[0]=='-':
+                            # dumb arg parser, all args must be -something or -something=something
+                            sa = cmd.split(None,1)
+                            outwinArgs.append(sa[0])
+                            if len(sa)>1:
+                                cmd=sa[1]
+                            else:
+                                cmd=''
+                        if '--file' in outwinArgs:
+                            return [title, outwin, outwinArgs, cmd]
+                        elif '--files' in outwinArgs:
+                            return [title, outwin, outwinArgs, cmd.split()]
                     continue
-                return func(self, title, outwin, rest)  # most of these return None
+                #print('func='+str(func)) # DEBUG
+                return func(self, title, outwin, rest)
+            # must be an external command
             if self.defaultWrapper not in self.wrappers:
                 self.defaultWrapper='bash'
                 if self.defaultWrapper not in self.wrappers:
@@ -137,13 +159,16 @@ class commandParser:
                 word = self.defaultWrapper
                 rest = cmd
                 # fall through as if default wrapper was specified
-            # print('word={} rest=({})'.format(word,rest)) # DEBUG
-            if word in self.wrappers:
+            #print('word={} rest=({})'.format(word,rest)) # DEBUG
+            if word in self.wrappers: # should always be true
                 if not title:
                     title = rest[:30].strip() # SETTING
                 if outwin==OutWin.Default:
                     outwin = self.wrappers[word][0]
-                return [title, outwin, self.wrappers[word][1:] + [rest]]
+                if outwinArgs:
+                    return [title, outwin, outwinArgs, self.wrappers[word][1:] + [rest]]
+                else:
+                    return [title, outwin, self.wrappers[word][1:] + [rest]]
             print('iloop: This cant happen') # EXCEPT
             # can't get here
         print('oloop This cant happen') # EXCEPT

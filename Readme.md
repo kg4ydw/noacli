@@ -103,6 +103,33 @@ performance and memory, but can be adjusted in settings.  Setting
 either of these numbers to 0 allows infinite data kept.  (Use at your
 own risk!)
 
+Within the shell, the table command takes the --file and --files options
+to indicate the following are filenames rather than a command.
+
+# table viewer #
+
+The table viewer takes the output from a command and tries to parse it
+as a table, using several heuristics to try to guess where the columns are.
+If the heuristic doesn't guess right, you can give it hints with the
+following options:
+ --skip=
+    skip lines preceeding the table (default=0)
+ --delimiters=  or --delimiter=
+    specify single characters that could be delimiters.  Default is comma, pipe, tab colon ('|\t,:')
+ --gap=
+    Minimum number of spaces between columns if it is space delimited;
+    defaults to 2 or if headers are underlined (with = or -) then 1
+ --columns=
+    if the fixed width parser can't guess column bounaries, you can specify them (comma separated)
+ --headers=
+    comma separated headers to use instead of the first line
+ --noheader
+    use numbered headers instead of the first line
+ --fixed
+    force fixed width parsing instead of csv parsing
+
+Like qtail, table also accepts the --file and --files options.
+
 # small output #
 The small output dock window will collect output from commands that
 output a small amount of text or no text and then exit quickly.  But
@@ -195,12 +222,14 @@ If, for some reason, you need a list of files in a command, you can
 press Ctrl-F to get a normal file browser window.  You can select
 multiple files there and when "opened" the filenames will be inserted
 into the command.  If you open the file browser with text immediately
-before the cursor, it will treat that as a starting directory.  The
-file browser is preconfigured with a number of default file groups.
-The default list is editable in settings, or you can type a filter in
-the command window, select it (with keyboard or mouse), and then press
-Ctrl-F to override the default this once.  If you need to select a
-directory instead of a file, highlight a single `/`
+before the cursor, it will treat that as a starting directory.  If
+there is a quote before the cursor, all the filenames chosen will be
+quoted individually. The file browser is preconfigured with a number
+of default file groups.  The default list is editable in settings, or
+you can type a filter in the command window, select it (with keyboard
+or mouse), and then press Ctrl-F to override the default this once.
+If you need to select a directory instead of a file, highlight a
+single `/`
 
 If you want full pathnames instead of relative pathnames, tye a * by
 itself before the cursor (not selected) before activating Ctrl-F.
@@ -408,4 +437,41 @@ history so it isn't lost.)
 
 Many items have a context menu (right click) with additional actions.
 
+Using ssh as a wrapper
+----------------------
+To use noacli with ssh to remote hosts, it needs to work without asking for
+a password.  There are two ways to do this:
+
+Permanent authoriztion
+1) create a local ssh key (e.g, ssh-keygen -t rsa )
+2) copy the public key to the remote host in the file authoized_keys
+   (the permissions have to be exactly right for it to work, must not be
+   group or world writable)
+   The easiest way to do this is with ssh-copy-id
+3) (optional) authorize this key with ssh-agent
+
+Temporary authorization
+On the local machine, edit ~/.ssh/config and add the following lines
+  ControlMaster auto
+  ControlPath ~/.ssh/socket.%h.%p.%r
+As above, neither the config file nor the .ssh directory can be group or
+world writable, or ssh will ignore the files.
+
+Then when you are ready to connect, authorize to the host once with
+  ssh -fnN -O 'ControlPersist 2h' user@hostname
+  (adjust time to your preference)
+  This command makes a nice template button if you replace hostname with {}
+check the authorization with
+  ssh -O check hostname
+cancel it with one of
+  ssh -O stop hostname
+  ssh -O exit hostname  (kills all existing connections too)
+
+
+Note that the first command works well in an xterm wrapper to take
+your password.
+
+Once you have the above working, you can then add wrappers for each host with
+something like
+   addwrap somehost ssh user@somehost.fqdn
 

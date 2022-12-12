@@ -21,7 +21,10 @@ o  should the window auto-resize theshold be a setting
      when a command is run
      when history items are copied from the docs
 *  when history wraps it should clear instead of immediately wrapping
-
+   favorites changes
+     separate button(checkbox) and name
+     autocheck button if name is filled in, uncheck if blanked
+     
 Things to implement soon:
    cd should parse ~
    realign general settings editor to be callable from other apps
@@ -29,23 +32,27 @@ Things to implement soon:
    table column picker needs an undo select columns
    tableview: use column for vertical headers
    fix command parser to use built environment setting (XXXX marked)
-   hide toolbar if window is too small (>1/3 ?)
-     log viewer
-     history
-     on resize
-     on top level change
+   context menu in history headers (h and v)
+   settingsDialog needs doubleclick resize
 
 high priority bugs
- ! log prefix is being eaten twice by parser "tail tail" doesn't work
+ ! table: use command line parser on real command line
+ ! qtail: ? accept real command line options in shell from simpleargs
+ * log prefix is being eaten twice by parser "tail tail" doesn't work
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac (wrong geom?)
-   flowlayout overlapping buttons (rare? one time glitch?)
  ! settings apply button is delayed until ok pressed
       fix this or delete the button
    qtail should resize on smalldup of dead proc
-   fileDialog doesn't always trim prefix correctly
-
+ ? fileDialog doesn't always trim prefix correctly
+   (test) does anything special need to be done to close/kill Table/qtail file?
+   check all except: to not overcapture
+   fix error message passing from tableviewer and qtail to be more visible
+      status bar message?
+      smalloutput message
+      dialog box
+      
 Misc things to implement
    SETTING auto pause qtail on maxlines threshold
    table search
@@ -100,15 +107,17 @@ User visible bugs:
      test in U20
  * favorites editor bugs
 DE    should warn on duplicate names? (color?)
-x! block tostop signal : try os.setsid ?
+x!so  block tostop signal : try os.setsid ?
      detect child proc trying to read stdin/stderr
      kill child proc?
      move to terminal window automatically?
      preconnect pty for this purpose?
    qtail gives useless errors on file not found
    bind hitory context menu to history headers too
+   flowlayout overlapping buttons (rare? one time glitch?)
 
 Bugs:
+   have_error not propagating (free after emit? try delete later?)
    test sibling markers
  o font changes
  o   save font settings in settings
@@ -118,7 +127,6 @@ Bugs:
         doesn't cancel correctly
 	displayed fontname is ugly
    fonts are handed as objects to QSettings, save as font name later?
-   file dialog doesn't strip paths correctly for python <= 3.8 (3.6?)
  ? 'type' builtin fails on old python (fix untested)
    tableviewer doesn't work on files or stdin
    reload button should change for pipes
@@ -189,7 +197,7 @@ D*   max retention
 
  Main features:
  * main window is a dynamic one line editor
- !   pwd in message window when nothing else
+     pwd in message window when nothing else
      directory stack
 D*   complex commands are sent to bash
        detect complex commands
@@ -213,8 +221,8 @@ D*      *? job manager
 D*      *@ favorites editor (buttons and frequent)
 D*	o% environment var editor
 D*      *% settings editor
- !	 % wrapper editor
- !	!% command default mode editor
+  	 % wrapper editor
+  	 % command default mode editor
  	     table: command mode
  	     mode: qtail log terminal null local graph (default: pulldown)
   	 @ ssh manager
@@ -236,7 +244,7 @@ D*   search box --> filter
  *   context menu
  n remember 10 most frequent commands in pull down menu
 D* button editor ("favorites")
- !   right click context menu
+     right click context menu
  ?      edit in larger window (or just stretch the cell)
  	ui.tableView.resizerowsToContents
      add Settings save menu item somewhere
@@ -298,7 +306,7 @@ d*     history menu size
 d*     frequent menu size
 d*     frequents size
  n     frequents threshold
-d!     SHELL external shell
+d*     SHELL external shell
 d      graphical terminal
  n     QTailFormat
 d      QTailFollow
@@ -322,11 +330,10 @@ d      QTailCaseInsensitive
 
 Do wrapper table
  o   name : [ save, OutWin, args... ]
- !   load from file
- !   save to file
+     load from file
+     save to file
 
  * short output commands -- display last line in editor/launcher
-
 
  o terminal (find one in python?)
 D* qtail window
@@ -422,11 +429,10 @@ D*   for commands that output a small amount and exit in a short time
  *     select fields in list -- list view?
  *     export selected column names --> space or comma sep
  o   context menu
- o!    merge selected cells in this row
+ *     merge selected cells in this row
        (split cell here)
-     extend header to max columns
      command line options
- !     --skip N lines
+       --skip N lines
        --file
        --csv --delimiter
        --regex (delimiter or split pattern? depends on if groups?)
@@ -479,7 +485,7 @@ Do   (feature) name completion
        export
 
    commands to implement as graphical functionality
-     disown --> disconnect job (context menu?)
+ x   disown --> disconnect job (context menu?)
      times or other process stats (context menu, infobox, graph)
      ulimit umask (settings dialog)
      key bindings for builtin functions
@@ -512,6 +518,12 @@ D*   help
        select all/none
        remove duplicates
        sort
+
+   hide toolbar if window is too small (>1/3 ?)
+     log viewer
+     history
+     on resize
+     on top level change
 
  * command parser implementation
  *   strip matching first word
@@ -692,6 +704,8 @@ D* tooltips on buttons --> command
  * job manager should resize rows vertically in context menu
  * qtail checkbox to hide toolbar
  * qtail primary and secondary fonts
+ * small output context --> clear
+D* filedialog prefix '" causes all filenames to be quoted
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -731,4 +745,8 @@ D*   if it ends in / select dirs only??
  *    maybe write a custom buffer class that handles async I/O and readLine properly
  * all input processors choke on bad unicode? (, errors='backslashreplace')
  * gets middle of file on /usr/dict/words without --whole
+ * file dialog doesn't strip paths correctly for python <= 3.8 (3.6?)
+ * qtail doesn't detect file not found and keeps trying
+ * table: IsADirectoryError: [Errno 21] Is a directory: 'junk' 418/openfile
+ * table: FileNotFoundError: 418/openfile
 

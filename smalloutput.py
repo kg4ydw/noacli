@@ -58,6 +58,7 @@ class smallOutput(QTextBrowser):
         self.process = None
         self.jobitem = None
         self.procStartLine = 0
+        self.outwinArgs = None
         px = QPixmap(301,2)
         if not px.loadFromData(b'P1\n301 2\n'+(b'1 0 '*302)):
             print('image fail') # EXCEPT
@@ -100,6 +101,11 @@ class smallOutput(QTextBrowser):
             self.document().setMaximumBlockCount( mul)
         else:
             self.document().setMaximumBlockCount(0)  # no limit
+
+    def contextMenuEvent(self, event):
+        m=super().createStandardContextMenu(event.pos())
+        m.addAction("Clear",self.clear)
+        action = m.exec_(event.globalPos())
 
     ##### external signals
 

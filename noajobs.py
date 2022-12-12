@@ -146,8 +146,23 @@ class jobItem():
         if self.status: return self.status
         # make something up
         return str(self.process.state())
-    
+
+    def startOutwin(self, file, settings):
+        # XXXXX call outwin.openfile(file)
+        outwin = self.mode
+        if outwin==OutWin.QTail:
+            self.setWindow(QtTail(settings.qtail))
+        elif outwin==OutWin.Table:
+            self.setWindow(TableViewer())
+            self.window.app = settings.app
+        else:
+            # ??? can't get here, do nothing anyway
+            return
+        if self.outwinArgs: self.window.simpleargs(self.outwinArgs)
+        self.window.openfile(file)
+        
     def start(self, settings):
+        # XXXXX use outwinArgs
         self.process.setProcessEnvironment(settings.environment)
         # XXX connect output to something
         # for now, just merge stdout,stderr and send to qtail
@@ -161,6 +176,7 @@ class jobItem():
             title = self.title()
             if not title or len(title)==0:
                 title = typedQSettings().value('QTailDefaultTitle','subprocess')
+            if self.outwinArgs: self.window.simpleargs(self.outwinArgs)
             self.window.openProcess(title , self.process)
         elif outwin==OutWin.Log:
             #print("start log") # DEBUG
@@ -172,6 +188,7 @@ class jobItem():
             if not title or len(title)==0:
                 # does tableviewer get its own default title SETTING?
                 title = typedQSettings().value('QTailDefaultTitle','subprocess')
+            if self.outwinArgs: self.window.simpleargs(self.outwinArgs)
             self.window.openProcess(title , self.process)
         else:
             self.setMode('Small')

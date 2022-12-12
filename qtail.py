@@ -118,6 +118,7 @@ class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
     want_read_more = pyqtSignal(str)
+    have_error = pyqtSignal(str)
     def __init__(self, options=None, parent=None):
         super().__init__()
         self.eof = 0 # hack
@@ -352,12 +353,39 @@ class QtTail(QtWidgets.QMainWindow):
     def showsize(self):
         self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",-1)
 
+    def simpleargs(self, args):
+        # Process simple "command line" arguments from noacli internal parsing
+        # only single word options supported, so --option=value must be used
+        # XXXXX
+        # ignore --file and --files (processed by caller)
+        # --maxlines=
+        return
+
     def openfile(self,filename):
         # XXX assume tail mode
-        f = QtCore.QFile(filename)
-        self.file = f
-        f.open(QtCore.QFile.ReadOnly);
-        self.opt.file = True
+        try:
+            f = QtCore.QFile(filename)
+            self.file = f
+            f.open(QtCore.QFile.ReadOnly);
+            self.opt.file = True
+        except OSError as e:
+            self.error = e.strerror
+            err = 'Open failed on {}: {}'.format(filename,e.strerror)
+            print(err) # EXCEPT
+            # XXX send error somewhere
+            self.have_error.emit(err)
+            # clean up
+            self.close()
+            self.setParent(None)
+            return err
+        except Exception as e: # XXX what does Qt send?
+            err = 'Error opening {}: {}'.format(filename, e)
+            print(err)
+            self.have_error.emit(err)
+            self.close()
+            self.setParent(None)
+            return err
+
         if not self.opt.title:
             self.setWindowTitle(filename) # XXX qtail prefix? strip path?
         self.reload();
