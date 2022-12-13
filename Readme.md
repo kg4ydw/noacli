@@ -8,6 +8,9 @@ including common trivial data visualization stuff.
 
 ![A busy screenshot](noacli-big-screenshot.png)
 
+This readme is not comprehensive, but it hits the major points.
+There's more stuff discoverable in the shell.
+
 Dependencies
 ------------
 This uses Python and Qt, which are decencies.  To install these:
@@ -106,7 +109,7 @@ performance and memory, but can be adjusted in settings.  Setting
 either of these numbers to 0 allows infinite data kept.  (Use at your
 own risk!)
 
-Within the shell, the table command takes the --file and --files options
+Within the shell, the table command takes the `--file` and `--files` options
 to indicate the following are filenames rather than a command.
 
 # table viewer #
@@ -115,20 +118,27 @@ The table viewer takes the output from a command and tries to parse it
 as a table, using several heuristics to try to guess where the columns are.
 If the heuristic doesn't guess right, you can give it hints with the
 following options:
- --skip=
+
+ `--skip=`
     skip lines preceding the table (default=0)
- --delimiters=  or --delimiter=
+
+ `--delimiters=`  or `--delimiter=`
     specify single characters that could be delimiters.  Default is comma, pipe, tab colon ('|\t,:')
- --gap=
+    
+ `--gap=`
     Minimum number of spaces between columns if it is space delimited;
     defaults to 2 or if headers are underlined (with = or -) then 1
- --columns=
+    
+ `--columns=`
     if the fixed width parser can't guess column boundaries, you can specify them (comma separated)
- --headers=
+    
+ `--headers=`
     comma separated headers to use instead of the first line
- --noheader
+    
+ `--noheader`
     use numbered headers instead of the first line
- --fixed
+    
+ `--fixed`
     force fixed width parsing instead of csv parsing
 
 Like qtail, table also accepts the --file and --files options.
@@ -289,9 +299,11 @@ A wrapper can also specify the default destination for its output,
 although the user can override this on a per command basis.
 
 The following sample wrappers are included by default:
-bash : (small) [ 'bash' , '-c' ]
-xterm : (log)  [ 'xterm' , '-e' ]
-gterm : (log)  [ 'gnome-terminal', '--', 'bash', '-c']
+
+    bash : (small) [ 'bash' , '-c' ]
+    xterm : (log)  [ 'xterm' , '-e' ]
+    gterm : (log)  [ 'gnome-terminal', '--', 'bash', '-c']
+
 
 If your $SHELL is not one of these, a wrapper will be created,
 This assumes  your shell accepts '-c' to run commands on the command line.
