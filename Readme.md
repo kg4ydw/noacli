@@ -1,20 +1,23 @@
+![noacli](noacli.png "icon")
 noacli: the No Ampersand CLI shell
 
 This shell does most things regular CLI shells do (except full parsing
-and turing complete programming), but in a graphical interface.
+and Turing complete programming), but in a graphical interface.
 Noacli takes full advantage of having a GUI as much as possible,
 including common trivial data visualization stuff.
 
+![A busy screenshot](noacli-big-screenshot.png)
+
 Dependencies
 ------------
-This uses Python and Qt, which are depencies.  To install these:
+This uses Python and Qt, which are decencies.  To install these:
 
 Mac: (pick one)
-  sudo pip3 install PyQt5
-  pip3 install --user PyQt5
+* sudo pip3 install PyQt5
+* pip3 install --user PyQt5
 
 Ubuntu:
-  sudo apt install python3-pyqt5
+* sudo apt install python3-pyqt5
 
 Philosophy
 ----------
@@ -25,9 +28,9 @@ Gnome shell even has a text interface (looking glass) that is nice, but
 not very convenient for every day use.
 
 This is a hybrid shell, with both cli and graphical features.
-It is not a full turing complete parsed language, but it fully
+It is not a full Turing complete parsed language, but it fully
 supports using one underneath if you want that.  It doesn't even think
-about being a full gui shell with integrated window manager either, it
+about being a full GUI shell with integrated window manager either, it
 expects you to have one, although it can help find or close lost
 windows.
 
@@ -65,7 +68,7 @@ The graphical interface includes the following items as described below:
 * Pull down menus
 * Command edit window
 * status message bar
-* "qtail" independant large scrolling output window
+* "qtail" independent large scrolling output window
 * Table viewer (makes up for proportional fonts and removes the need for 80 column fixed text)
 
 The following dock windows can be rearranged, resized, and pulled off
@@ -113,14 +116,14 @@ as a table, using several heuristics to try to guess where the columns are.
 If the heuristic doesn't guess right, you can give it hints with the
 following options:
  --skip=
-    skip lines preceeding the table (default=0)
+    skip lines preceding the table (default=0)
  --delimiters=  or --delimiter=
     specify single characters that could be delimiters.  Default is comma, pipe, tab colon ('|\t,:')
  --gap=
     Minimum number of spaces between columns if it is space delimited;
     defaults to 2 or if headers are underlined (with = or -) then 1
  --columns=
-    if the fixed width parser can't guess column bounaries, you can specify them (comma separated)
+    if the fixed width parser can't guess column boundaries, you can specify them (comma separated)
  --headers=
     comma separated headers to use instead of the first line
  --noheader
@@ -134,7 +137,7 @@ Like qtail, table also accepts the --file and --files options.
 The small output dock window will collect output from commands that
 output a small amount of text or no text and then exit quickly.  But
 if a command outputs more, or you run another command before it
-finishes, it gets transfered to the large scolling qtail window. 
+finishes, it gets transferred to the large scrolling qtail window. 
 
 If a command finishes and you run another command, normally the output
 from the first is cleared, but you can check the 'keep' box if you
@@ -156,7 +159,7 @@ that is scrollable, sortable, and can be easily filtered.
 
 Additionally, the history keeps track if commands you typed exited
 successfully, got an error, or were never run at all.  The context
-menu for the history window also lets you collapse dupcliate history
+menu for the history window also lets you collapse duplicate history
 entries or trim the list to just unique command lines.  When duplicate
 history lines are pruned, the history window keeps track of their use
 frequency.  You can also right click on a history entry and choose to
@@ -182,16 +185,16 @@ the unrun command will let you continue editing it.
 
 # settings editor dialog #
 All shell settings can be adjusted in a graphical settings edit window
-that includes tooltips with default values and documentation for each
+that includes tool tips with default values and documentation for each
 setting.  Numbers mentioned in this document are all settings and can
 be changed.  An attempt has been made to make every major parameter
-including timeouts and otherwise hardcoded values editable settings.
+including timeouts and otherwise hard coded values editable settings.
 Settings with default values will have a grey background and will turn
 to a white background when they are edited.
 
 # favorites and button dock #
 
-The favorites editor, when opened, shows your previuosly saved
+The favorites editor, when opened, shows your previously saved
 favorites, your 10 most frequently run commands, and your 10 most
 recent commands not already listed.  (These numbers are settings that
 can be changed of course.)  You can check or uncheck the any entry if
@@ -231,7 +234,7 @@ or mouse), and then press Ctrl-F to override the default this once.
 If you need to select a directory instead of a file, highlight a
 single `/`
 
-If you want full pathnames instead of relative pathnames, tye a * by
+If you want full pathnames instead of relative pathnames, type a * by
 itself before the cursor (not selected) before activating Ctrl-F.
 
 # Log dock window #
@@ -271,8 +274,8 @@ can be done now using mechanisms available in the wrapper shell.
 
 # Wrappers #
 
-This shell does not have the programmability of typical command line
-shells and only does etremely limited parsing.  Instead, it leans on
+This shell does not have the programmable of typical command line
+shells and only does extremely limited parsing.  Instead, it leans on
 those older shells for that functionality.
 
 So most command lines are wrapped in a command that does the actual
@@ -310,7 +313,7 @@ Noacli does not have many built in commands, as such commands are
 usually needed to support scripting (0/19) which noacli doesn't
 support.  Other commands are used to adjust shell settings
 (4/9). manipulate jobs (3/8) and history (2/2), and environment
-settings (6/13), which noacli does mostly with a graphial interface.
+settings (6/13), which noacli does mostly with a graphical interface.
 
 Having said that, there are a few things that need commands or work best
 when embedded in the command line even if there is a graphical way to do it.
@@ -442,9 +445,9 @@ Using ssh as a wrapper
 To use noacli with ssh to remote hosts, it needs to work without asking for
 a password.  There are two ways to do this:
 
-Permanent authoriztion
+Permanent authorization
 1) create a local ssh key (e.g, ssh-keygen -t rsa )
-2) copy the public key to the remote host in the file authoized_keys
+2) copy the public key to the remote host in the file authorized_keys
    (the permissions have to be exactly right for it to work, must not be
    group or world writable)
    The easiest way to do this is with ssh-copy-id

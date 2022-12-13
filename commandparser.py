@@ -5,6 +5,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # Command parser and implementation for internal commands
 
 import os
+import sys
 from enum import Enum
 from PyQt5.Qt import pyqtSignal
 from PyQt5.QtCore import QSettings, QT_VERSION_STR, PYQT_VERSION_STR
@@ -270,7 +271,7 @@ class commandParser:
     def cmd_version(self, title, outwin, rest):
         '''What version is am I?'''
         from noacli import __version__
-        return 'Versions: noacli '+__version__ +', Qt '+ QT_VERSION_STR + ', PyQt '+ PYQT_VERSION_STR
+        return 'Versions: noacli '+__version__ +', Qt '+ QT_VERSION_STR + ', PyQt '+ PYQT_VERSION_STR+ ', Python '+sys.version
 
     @builtin('type')
     def cmd_type(self, title, outwin, rest):
