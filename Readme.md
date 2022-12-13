@@ -334,33 +334,38 @@ The following are the built in commands noacli has (so far).
 These commands must be run by themselves, not combined with other commands.
 
 help
-  list all of these and their description
+    list all of these and their description
+
 version
- show version
+    show version
+
 cd chdir
-  change directories
+    change directories
+
 direct
-  run without a wrapper using trivial parsing (space splitting only)
+    run without a wrapper using trivial parsing (space splitting only)
+
 addwrap
-  add a new named wrapper
+    add a new named wrapper
+
 setwrap
-  set the default command wrapper
+    set the default command wrapper
 type
-  Find what things match the given command; shows both internal and
-  external matches
+    Find what things match the given command; shows both internal and
+    external matches
 
 The following builtins must be the first word of a regular command
 and change the default output destination:
   
 small (default if none specified)
-  Send output to the small output dock window
+    Send output to the small output dock window
 qtail tail (small output overflow or by button)
-  View possibly growing output in a scrollable browser
+    View possibly growing output in a scrollable browser
 log (small output button)
-  Merge output from this and other commands into the merged log dock window
+    Merge output from this and other commands into the merged log dock window
 table
-  Attempt to parse the output as a table; designed to handle delimited
-  text, fixed width tables, and large numbers of columns.
+    Attempt to parse the output as a table; designed to handle delimited
+    text, fixed width tables, and large numbers of columns.
 
 Additionally, wrappers are activated by keyword somewhat like builtin
 commands and can be placed after the above output direction commands.
@@ -466,6 +471,7 @@ Permanent authorization
 3) (optional) authorize this key with ssh-agent
 
 Temporary authorization
+
 On the local machine, edit ~/.ssh/config and add the following lines
   ControlMaster auto
   ControlPath ~/.ssh/socket.%h.%p.%r
@@ -473,20 +479,26 @@ As above, neither the config file nor the .ssh directory can be group or
 world writable, or ssh will ignore the files.
 
 Then when you are ready to connect, authorize to the host once with
+~~~
   ssh -fnN -O 'ControlPersist 2h' user@hostname
+~~~
   (adjust time to your preference)
   This command makes a nice template button if you replace hostname with {}
 check the authorization with
+~~~
   ssh -O check hostname
+~~~  
 cancel it with one of
+~~~
   ssh -O stop hostname
   ssh -O exit hostname  (kills all existing connections too)
-
+~~~
 
 Note that the first command works well in an xterm wrapper to take
 your password.
 
 Once you have the above working, you can then add wrappers for each host with
 something like
+   ~~~   
    addwrap somehost ssh user@somehost.fqdn
-
+~~~
