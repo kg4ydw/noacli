@@ -333,37 +333,37 @@ when embedded in the command line even if there is a graphical way to do it.
 The following are the built in commands noacli has (so far).
 These commands must be run by themselves, not combined with other commands.
 
-help
+`help`
     list all of these and their description
 
-version
+`version`
     show version
 
-cd chdir
+`cd chdir`
     change directories
 
-direct
+`direct`
     run without a wrapper using trivial parsing (space splitting only)
 
-addwrap
+`addwrap`
     add a new named wrapper
 
-setwrap
+`setwrap`
     set the default command wrapper
-type
+`type`
     Find what things match the given command; shows both internal and
     external matches
 
 The following builtins must be the first word of a regular command
 and change the default output destination:
   
-small (default if none specified)
+`small` (default if none specified)
     Send output to the small output dock window
-qtail tail (small output overflow or by button)
+`qtail` `tail` (small output overflow or by button)
     View possibly growing output in a scrollable browser
-log (small output button)
+`log` (small output button)
     Merge output from this and other commands into the merged log dock window
-table
+`table`
     Attempt to parse the output as a table; designed to handle delimited
     text, fixed width tables, and large numbers of columns.
 
@@ -420,14 +420,16 @@ In addition to the editor key bindings used by Qt, the following keys are used:
 While binding keys for favorites, binding a shortcut to Backspace will cancel it.
 (This works around a bug / missing feature in Qt.)
 
-Ctrl-Up     history up (doesn't work on mac)
-Ctrl-P      history up
-Ctrl-Down   history down (doesn't work on mac)
-Ctrl-N 	    history down
-Ctrl-Enter  run command in the command editor
-Ctrl-Return run command in the command editor
-Ctrl-F	    Invoke the file browser and insert the results into the editor
-Alt-C	    Move keyboard focus to command editor
+|key|function|
+|---|---|
+|Ctrl-Up     |history up (doesn't work on mac)
+|Ctrl-P      |history up
+|Ctrl-Down   |history down (doesn't work on mac)
+|Ctrl-N      |history down
+|Ctrl-Enter  |run command in the command editor
+|Ctrl-Return |run command in the command editor
+|Ctrl-F	     |Invoke the file browser and insert the results into the editor
+|Alt-C	     |Move keyboard focus to command editor
 
 The history keys treat history as a ring, and the position is reset when
 a command is run.
