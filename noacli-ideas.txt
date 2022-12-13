@@ -26,14 +26,18 @@ o  should the window auto-resize theshold be a setting
      autocheck button if name is filled in, uncheck if blanked
      
 Things to implement soon:
+ * tableview sort
+ *    proxy model
+ *    reset in corner
+      filter
+   settingsDialog needs doubleclick resize
+   context menu in history headers (h and v)
    cd should parse ~
    realign general settings editor to be callable from other apps
  x table should send stderr to log
    table column picker needs an undo select columns
    tableview: use column for vertical headers
    fix command parser to use built environment setting (XXXX marked)
-   context menu in history headers (h and v)
-   settingsDialog needs doubleclick resize
 
 high priority bugs
  ! table: use command line parser on real command line

@@ -28,7 +28,7 @@ class Ui_TableViewer(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 674, 542))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 643, 542))
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -38,7 +38,9 @@ class Ui_TableViewer(object):
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.tableView = QtWidgets.QTableView(self.scrollAreaWidgetContents)
+        self.tableView.setAutoScroll(True)
         self.tableView.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.tableView.setSortingEnabled(False)
         self.tableView.setObjectName("tableView")
         self.tableView.verticalHeader().setVisible(False)
         self.verticalLayout_3.addWidget(self.tableView)
@@ -65,6 +67,18 @@ class Ui_TableViewer(object):
         self.dockWidgetContents.setObjectName("dockWidgetContents")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents)
         self.verticalLayout.setObjectName("verticalLayout")
+        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
+        self.filterEdit = QtWidgets.QLineEdit(self.dockWidgetContents)
+        self.filterEdit.setClearButtonEnabled(True)
+        self.filterEdit.setObjectName("filterEdit")
+        self.horizontalLayout_2.addWidget(self.filterEdit)
+        self.sortOrSelect = QtWidgets.QCheckBox(self.dockWidgetContents)
+        self.sortOrSelect.setText("")
+        self.sortOrSelect.setChecked(True)
+        self.sortOrSelect.setObjectName("sortOrSelect")
+        self.horizontalLayout_2.addWidget(self.sortOrSelect)
+        self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.hideButton = QtWidgets.QToolButton(self.dockWidgetContents)
@@ -110,10 +124,17 @@ class Ui_TableViewer(object):
         self.actionUse_numerical_headings = QtWidgets.QAction(TableViewer)
         self.actionUse_numerical_headings.setCheckable(True)
         self.actionUse_numerical_headings.setObjectName("actionUse_numerical_headings")
+        self.actionResetSort = QtWidgets.QAction(TableViewer)
+        self.actionResetSort.setObjectName("actionResetSort")
+        self.actionToggle_column_sort_or_select = QtWidgets.QAction(TableViewer)
+        self.actionToggle_column_sort_or_select.setObjectName("actionToggle_column_sort_or_select")
         self.menuView.addAction(self.actionAdjust_size)
         self.menuView.addAction(self.actionResize_window)
         self.menuView.addAction(self.actionResize_rows)
         self.menuView.addAction(self.actionSqueeze_columns)
+        self.menuView.addSeparator()
+        self.menuView.addAction(self.actionResetSort)
+        self.menuView.addAction(self.actionToggle_column_sort_or_select)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionShow_headings)
         self.menuView.addAction(self.actionUse_numerical_headings)
@@ -133,13 +154,21 @@ class Ui_TableViewer(object):
         self.actionUse_numerical_headings.toggled['bool'].connect(TableViewer.numberHeadings) # type: ignore
         self.tableView.clicked['QModelIndex'].connect(TableViewer.copyClip1) # type: ignore
         self.tableView.doubleClicked['QModelIndex'].connect(TableViewer.copyClip2) # type: ignore
+        self.actionResetSort.triggered.connect(TableViewer.resetTableSort) # type: ignore
+        self.filterEdit.textEdited['QString'].connect(TableViewer.setFilterText) # type: ignore
+        self.filterEdit.returnPressed.connect(TableViewer.setFilterColumn) # type: ignore
+        self.sortOrSelect.toggled['bool'].connect(TableViewer.sortOrSelect) # type: ignore
+        self.actionToggle_column_sort_or_select.triggered.connect(self.sortOrSelect.toggle) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(TableViewer)
 
     def retranslateUi(self, TableViewer):
         _translate = QtCore.QCoreApplication.translate
         TableViewer.setWindowTitle(_translate("TableViewer", "MainWindow"))
+        self.tableView.setToolTip(_translate("TableViewer", "Check to select columns, uncheck to sort columns"))
         self.menuView.setTitle(_translate("TableViewer", "View"))
         self.colPickerDock.setWindowTitle(_translate("TableViewer", "Column Picker"))
+        self.filterEdit.setToolTip(_translate("TableViewer", "Select one column to filter or no column to search all.  Return sets column."))
+        self.filterEdit.setPlaceholderText(_translate("TableViewer", "filter column(s)"))
         self.hideButton.setText(_translate("TableViewer", "hide"))
         self.showButton.setText(_translate("TableViewer", "show"))
         self.actionAdjust_size.setText(_translate("TableViewer", "Adjust size"))
@@ -150,3 +179,5 @@ class Ui_TableViewer(object):
         self.actionResize_window.setText(_translate("TableViewer", "Resize window"))
         self.actionSqueeze_columns.setText(_translate("TableViewer", "Squeeze columns"))
         self.actionUse_numerical_headings.setText(_translate("TableViewer", "Use numerical headings"))
+        self.actionResetSort.setText(_translate("TableViewer", "Reset sort"))
+        self.actionToggle_column_sort_or_select.setText(_translate("TableViewer", "Toggle column sort or select"))

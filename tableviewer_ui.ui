@@ -31,7 +31,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>674</width>
+         <width>643</width>
          <height>542</height>
         </rect>
        </property>
@@ -44,8 +44,17 @@
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QTableView" name="tableView">
+          <property name="toolTip">
+           <string>Check to select columns, uncheck to sort columns</string>
+          </property>
+          <property name="autoScroll">
+           <bool>true</bool>
+          </property>
           <property name="editTriggers">
            <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="sortingEnabled">
+           <bool>false</bool>
           </property>
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
@@ -76,6 +85,9 @@
     <addaction name="actionResize_rows"/>
     <addaction name="actionSqueeze_columns"/>
     <addaction name="separator"/>
+    <addaction name="actionResetSort"/>
+    <addaction name="actionToggle_column_sort_or_select"/>
+    <addaction name="separator"/>
     <addaction name="actionShow_headings"/>
     <addaction name="actionUse_numerical_headings"/>
     <addaction name="actionShow_line_numbers"/>
@@ -99,6 +111,33 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLineEdit" name="filterEdit">
+         <property name="toolTip">
+          <string>Select one column to filter or no column to search all.  Return sets column.</string>
+         </property>
+         <property name="placeholderText">
+          <string>filter column(s)</string>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="sortOrSelect">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
@@ -200,6 +239,16 @@
     <string>Use numerical headings</string>
    </property>
   </action>
+  <action name="actionResetSort">
+   <property name="text">
+    <string>Reset sort</string>
+   </property>
+  </action>
+  <action name="actionToggle_column_sort_or_select">
+   <property name="text">
+    <string>Toggle column sort or select</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -226,8 +275,8 @@
    <slot>hideCols()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>42</x>
-     <y>62</y>
+     <x>45</x>
+     <y>90</y>
     </hint>
     <hint type="destinationlabel">
      <x>102</x>
@@ -242,12 +291,12 @@
    <slot>showCols()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>85</x>
-     <y>62</y>
+     <x>94</x>
+     <y>91</y>
     </hint>
     <hint type="destinationlabel">
-     <x>103</x>
-     <y>66</y>
+     <x>132</x>
+     <y>120</y>
     </hint>
    </hints>
   </connection>
@@ -370,12 +419,92 @@
    <slot>copyClip2(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>132</x>
+     <x>163</x>
      <y>157</y>
     </hint>
     <hint type="destinationlabel">
      <x>224</x>
      <y>235</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionResetSort</sender>
+   <signal>triggered()</signal>
+   <receiver>TableViewer</receiver>
+   <slot>resetTableSort()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>filterEdit</sender>
+   <signal>textEdited(QString)</signal>
+   <receiver>TableViewer</receiver>
+   <slot>setFilterText(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>69</x>
+     <y>50</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>128</x>
+     <y>73</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>filterEdit</sender>
+   <signal>returnPressed()</signal>
+   <receiver>TableViewer</receiver>
+   <slot>setFilterColumn()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>80</x>
+     <y>48</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>138</x>
+     <y>42</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sortOrSelect</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>TableViewer</receiver>
+   <slot>sortOrSelect(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>53</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>144</x>
+     <y>16</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionToggle_column_sort_or_select</sender>
+   <signal>triggered()</signal>
+   <receiver>sortOrSelect</receiver>
+   <slot>toggle()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>113</x>
+     <y>55</y>
     </hint>
    </hints>
   </connection>
@@ -391,5 +520,9 @@
   <slot>numberHeadings(bool)</slot>
   <slot>copyClip1(QModelIndex)</slot>
   <slot>copyClip2(QModelIndex)</slot>
+  <slot>resetTableSort()</slot>
+  <slot>setFilterText(QString)</slot>
+  <slot>setFilterColumn()</slot>
+  <slot>sortOrSelect(bool)</slot>
  </slots>
 </ui>

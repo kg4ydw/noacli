@@ -394,11 +394,11 @@ class TableViewer(QtWidgets.QMainWindow):
 
     # context menu triggered
     def collapseSelectedCells(self):
-        sm = self.ui.tableView.selectionModel()
-        slist = sorted(sm.selectedIndexes(), reverse=True) #XXX test
+        sm = self.proxymodel.mapSelectionToSource(self.ui.tableView.selectionModel().selection())
+        slist = sorted(sm.indexes(), reverse=True) #XXX test
         # and clear the selection now that we've got the cell list.
         # This gives feedback in case the user tried to do something wierd.
-        sm.clear() # XXX only clear ones we've fixed?
+        self.ui.tableView.selectionModel().clear() # XX only clear ones we've fixed?
         # XXX This gives no error messages if things go wrong
         while len(slist)>1:
             # find consecutive items in the same row
@@ -411,6 +411,18 @@ class TableViewer(QtWidgets.QMainWindow):
                 self.model.mergeCells(slist[i], i)
             del slist[0:i+1]
             #if i==0: user only selected one sequental item -- reselect it?
+
+    def setFilterText(self, str):
+        self.proxymodel.setFilterFixedString(str)
+    def setFilterColumn(self):
+        selcol = self.ui.colPicker.selectionModel().selectedIndexes()
+        if len(selcol)==1:
+            self.proxymodel.setFilterKeyColumn(selcol[0].row())
+        elif len(selcol)==0:
+            self.proxymodel.setFilterKeyColumn(-1)
+
+    def sortOrSelect(self, checked):
+        self.ui.tableView.setSortingEnabled(not checked)
         
     ################ table parsing stuff
 
@@ -523,13 +535,23 @@ class TableViewer(QtWidgets.QMainWindow):
         self.headers = headers  # too many copies of this? confusing.
         self.model = simpleTable(self.data, headers)
         self.model.checkExtendHeaders(maxx)
-        self.ui.tableView.setModel(self.model)
+        self.proxymodel = QtCore.QSortFilterProxyModel()
+        cb = self.ui.tableView.findChild(QtWidgets.QAbstractButton)
+        if cb:
+            cb.disconnect()
+            cb.clicked.connect(self.resetTableSort)
+        self.proxymodel.setSourceModel(self.model)
+        self.ui.tableView.setModel(self.proxymodel)
         self.headermodel = QtCore.QStringListModel(headers, self)
         self.ui.colPicker.setModel(self.headermodel)
         self.tableSelectFix()
         self.want_resize.emit()
         self.firstread = False
 
+    def resetTableSort(self, clicked=True):
+        self.proxymodel.sort(-1)
+        self.ui.tableView.horizontalHeader().setSortIndicator(-1,0)
+     
     def readmore(self,fromwhere):
         DEBUG = typedQSettings().value('DEBUG',False)
         if not self.csvfile.canReadLine():
