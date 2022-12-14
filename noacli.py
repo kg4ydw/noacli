@@ -1142,7 +1142,7 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.historyView.resetHistorySort(False)  # XXX this might be annoying
         if not hist.model():
             return # XXXXX EXCEPT
-   cmdargs = self.settings.commandParser.parseCommand(hist.model().getCommand(hist))
+        cmdargs = self.settings.commandParser.parseCommand(hist.model().getCommand(hist))
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
         if cmdargs==None: return # done
         if type(cmdargs)==str:
