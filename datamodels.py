@@ -5,7 +5,8 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # simple tables and widgets for manipulating tables
 # contaminated with app specific classes and GUI pieces
 
-from PyQt5.Qt import Qt, QAbstractTableModel, QBrush
+from PyQt5 import QtCore
+from PyQt5.Qt import Qt, QAbstractTableModel, QBrush, pyqtSignal
 from PyQt5.QtCore import QObject, QModelIndex, QPersistentModelIndex
 from PyQt5 import QtWidgets
 from settingsdialog_ui import Ui_settingsDialog
@@ -243,6 +244,7 @@ class settingsDataModel(simpleTable):
 
 class settingsDialog(QtWidgets.QDialog):
     typedelegates = {}
+    want_resize = pyqtSignal()
     def __init__(self, parent, title, model, doc=None):
         # need parent so that this isn't persistent in window close
         super().__init__(parent)
@@ -252,6 +254,7 @@ class settingsDialog(QtWidgets.QDialog):
         self.ui = ui
         ui.setupUi(self)
         ui.tableView.setModel(model)
+        self.want_resize.connect(self.adjustSize, Qt.QueuedConnection)
         if hasattr(model,'datatypesrow') and model.datatypesrow:
             for i in range(len(model.datatypesrow)):
                 typename = str(model.datatypesrow[i])
@@ -272,10 +275,35 @@ class settingsDialog(QtWidgets.QDialog):
         self.apply = self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Apply).clicked
         #XX not without reset function ### self.ui.tableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
         self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
+        # replace corner
+        cb = self.ui.tableView.findChild(QtWidgets.QAbstractButton)
+        if cb:
+            cb.disconnect()
+            cb.clicked.connect(self.adjustSize)
 
-        # XX resize top window too?
+        # resize top window too?
+        self.want_resize.emit()
         self.show()
 
+    def adjustSize(self):
+        hh = self.ui.tableView.horizontalHeader()
+        vh = self.ui.tableView.verticalHeader()
+        hw = hh.length() + vh.size().width()
+        tw = self.ui.tableView.size().width()
+
+        lastc = hh.count()-1
+        lastw = hh.sectionSize(lastc)
+
+        newtw = (hh.length()-lastw)*2 + vh.size().width()
+
+        mw = self.size().width()
+        frame = mw - tw
+        #print("hw={} tw={} ntw={} mw={}".format(hw,tw,newtw, mw)) # DEBUG
+        if newtw>tw:
+            size = QtCore.QSize(newtw+frame+30, self.size().height())
+            #print("resize {}".format(size.width())) # DEBUG
+            self.resize(size)
+  
     def resizeHheader(self, logical):
         self.ui.tableView.resizeColumnToContents(logical)
     def resizeVheader(self, logical):
