@@ -1,0 +1,15 @@
+Environment variables are inherited from
+your environment by default, but you can
+override inherited values and add new
+values from the context menu of the
+environment editor.
+
+The replaced or new value can last just
+for the current session, or be saved for
+future sessions.  You can also mark a
+value to be deleted for commands you run
+or masked to be removed for future
+sessions as well.
+
+You can restore the original inherited
+value by changing the mode back to inherited.

@@ -1,0 +1,15 @@
+You can save a command as a favorite and
+turn it into a key shortcut and/or a
+button.  The favorites editor is
+automatically populated with your
+previously saved favorites, frequently
+run commands, and recent history.
+
+There are two flavors of favorites.
+Immediate favorites run when they are
+activated.  Non-immediate ones act
+like templates and the first {} is
+replaced with what you had selected
+before activating the favorite.
+
+The previous command is saved in history.

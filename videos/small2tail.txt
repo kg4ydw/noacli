@@ -1,0 +1,11 @@
+By default, command output is sent
+to the small output dock.  When the
+output from a command exceeds the size
+of that, it is transferred to a new
+qtail window.
+
+What you run doesn't have to be a
+single command, it can be a small shell
+script snip.  This script outputs lines
+slowly, so you can see the action of
+the small output window.

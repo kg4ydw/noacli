@@ -1,0 +1,27 @@
+The table viewer looks at a file or
+output from a command and tries to find
+a table in it.  It automatically
+recognizes csv files delimited by
+commas, pipes, colons, or tabs.
+
+It tries to recognize fixed format text
+but sometimes doesn't get that right.
+
+You can give it hints or skip initial
+text if this is a problem.
+
+Once you have a table, you can use the
+column picker to supress uninteresting
+columns.  You can switch between
+selecting columns in the view or sorting
+by a column.
+
+You can filter the entire table or
+you can pick one column and hit return
+to filter by just one column.
+
+You can rearrange columns, but this is
+not saved.
+
+You can select a cell to copy it and
+paste its contents somewhere else.
