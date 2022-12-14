@@ -225,6 +225,9 @@ class jobTableModel(itemListModel):
         col = index.column()
         job = self.data[index.row()]
         #if role==Qt.ToolTipRole: return(str(job.index.row())) # XXX DEBUG
+        if role==Qt.ToolTipRole:
+            if col==0 and job.pid: return str(job.pid)
+            elif col==4: return job.command()
         if role==Qt.BackgroundRole and col==3:
             if job.mode and not job.window:
                 return QBrush(Qt.lightGray)

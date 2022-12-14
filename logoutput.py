@@ -10,7 +10,7 @@ import sys
 import re
 from functools import partial
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal
 from PyQt5.QtCore import QTimer, QSettings, QTextStream, QProcess
 from PyQt5.QtGui import QTextCursor, QImage, QTextOption
@@ -83,12 +83,13 @@ class logOutput(QTextBrowser):
         c = self.endCursor()
         p = jobitem.getpid()
         if p==0: # instead of logging start, schedule this for later
-            c.insertHtml('Early: <b>Start log</b> <br/>')
+            c.insertHtml('Early: <b>Start log</b> ')
             c.insertText("\n")
             jobitem.process.started.connect(partial(self.processStarted,jobitem))
         else:
             c.insertHtml(str(jobitem.getpid())+': <b>Start log</b> <br/>')
-            c.insertText("\n")
+            c.insertText((jobitem.title() or jobitem.command())+'\n')
+            #c.insertText("\n")
         if pretext: # pid should be set by now, so this should work
             for line in str.splitlines():
                 c.insertText(str(jobitem.getpid())+': (S) '+line+"\n")
@@ -97,7 +98,8 @@ class logOutput(QTextBrowser):
         # couldn't do this earlier
         c = self.endCursor()
         c.insertHtml(str(jobitem.getpid())+': <b>Start log</b> <br/>')
-        c.insertText("\n")
+        c.insertText((jobitem.title() or jobitem.command())+'\n')
+        #c.insertText("\n")
 
     def receiveJob(self, jobitem):
         # like openProcess but jobitem already packed up
@@ -167,7 +169,7 @@ class logOutput(QTextBrowser):
     
     def procFinished(self, jobitem, exitcode, estatus):
         c = self.endCursor()
-        c.insertHtml('{}: <b>Exit {}</b> <br/>'.format(jobitem.pid, exitcode))
+        c.insertHtml('{}: <b>Exit {}</b> {}<br/>'.format(jobitem.pid, exitcode, jobitem.title()))
         c.insertText("\n")
         if exitcode:
             self.oneLine.emit('E({})'.format(exitcode))
@@ -190,7 +192,7 @@ class logOutput(QTextBrowser):
             c=self.endCursor()
             if jobitem in self.joblist:
                 c = self.endCursor()
-                c.insertHtml('{}: <b>Exit {}</b> <br/>'.format(jobitem.pid, jobitem.process.exitCode()))
+                c.insertHtml('{}: <b>Exit {}</b> {}<br/>'.format(jobitem.pid, jobitem.process.exitCode(), jobitem.title() ))
                 c.insertText("\n")
                 jobitem.cleanup() # XX is this dangerous?
                 self.joblist.discard(jobitem)
@@ -249,7 +251,7 @@ class logOutput(QTextBrowser):
             return next(iter(jobs))
         else:
             return None
-        
+
     def contextMenuEvent(self, event):
         self.gotNewLines.emit(0) # force title update
         m=super().createStandardContextMenu(event.pos())
@@ -263,6 +265,13 @@ class logOutput(QTextBrowser):
         if pidT and pidT.isnumeric():
             pid = int(pidT)
             job = self.findPid(pid)
+        if job:
+            t = job.title()
+            if t:
+                sm = m.addMenu('info: '+t)
+                c = job.command()
+                # XXX and do what?
+                sma = sm.addAction(c)
         if job and job.process and job.process.state()==QProcess.Running:
             m.addAction("Kill pid "+pidT, partial(self.termJob,job))
             m.addAction("Kill pid {} hard".format(pidT),partial(self.killJob,job))
@@ -344,7 +353,9 @@ class logOutput(QTextBrowser):
                 elif s==2: ss='Running'
                 else: ss='Unknown'
                 t.append(ss)
+            t.append(job.title())
             if job.window: # not possible yet
                 t.append('window')
+            # emit array of items
             c.insertText(" ".join([str(job.getpid())+':']+ t)+"\n")
         c.endEditBlock()

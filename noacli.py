@@ -366,7 +366,9 @@ class historyView(QTableView):
             if i.isValid():
                 self.delayedScroll.emit(i)
         elif index and index.isValid():
-            self.delayedScroll.emit(index)
+            if type(index)==QModelIndex:
+                # XXXXXX convert from QPersistentModelIndex sometimes??
+                self.delayedScroll.emit(index)
         else:
             #self.scrollToBottom()
             #print('bottom') # DEBUG
@@ -757,6 +759,7 @@ class noacli(QtWidgets.QMainWindow):
         # jump to command editor XXX can this be made more global?
         self.editorShortcut = QShortcut(QKeySequence('alt+c'), self)
         self.editorShortcut.activated.connect(self.ui.commandEdit.setFocus)
+        self.editorShortcut.setContext(Qt.ApplicationShortcut) # XX doesn't work?
 
         self.ui.smallOutputView.oneLine.connect(self.showMessage)
         self.ui.smallOutputView.newJobStart.connect(self.statusBar().clearMessage)
@@ -1137,7 +1140,9 @@ class noacli(QtWidgets.QMainWindow):
         if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
             hist=hist.model().mapToSource(hist) # XXXX fragile?
         self.ui.historyView.resetHistorySort(False)  # XXX this might be annoying
-        cmdargs = self.settings.commandParser.parseCommand(hist.model().getCommand(hist))
+        if not hist.model():
+            return # XXXXX EXCEPT
+   cmdargs = self.settings.commandParser.parseCommand(hist.model().getCommand(hist))
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
         if cmdargs==None: return # done
         if type(cmdargs)==str:

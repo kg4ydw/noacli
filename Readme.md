@@ -13,7 +13,7 @@ There's more stuff discoverable in the shell.
 
 Dependencies
 ------------
-This uses Python and Qt, which are decencies.  To install these:
+This uses Python and Qt, which are dependencies.  To install these:
 
 Mac: (pick one)
 * sudo pip3 install PyQt5
@@ -119,27 +119,27 @@ as a table, using several heuristics to try to guess where the columns are.
 If the heuristic doesn't guess right, you can give it hints with the
 following options:
 
- `--skip=`
-    skip lines preceding the table (default=0)
+: `--skip=`
+    ::skip lines preceding the table (default=0)
 
- `--delimiters=`  or `--delimiter=`
-    specify single characters that could be delimiters.  Default is comma, pipe, tab colon ('|\t,:')
+: `--delimiters=`  or `--delimiter=`
+    ::specify single characters that could be delimiters.  Default is comma, pipe, tab colon ('|\t,:')
     
- `--gap=`
-    Minimum number of spaces between columns if it is space delimited;
+: `--gap=`
+    ::Minimum number of spaces between columns if it is space delimited;
     defaults to 2 or if headers are underlined (with = or -) then 1
     
- `--columns=`
-    if the fixed width parser can't guess column boundaries, you can specify them (comma separated)
+: `--columns=`
+    ::if the fixed width parser can't guess column boundaries, you can specify them (comma separated)
     
- `--headers=`
-    comma separated headers to use instead of the first line
+: `--headers=`
+    ::comma separated headers to use instead of the first line
     
- `--noheader`
-    use numbered headers instead of the first line
+: `--noheader`
+    ::use numbered headers instead of the first line
     
- `--fixed`
-    force fixed width parsing instead of csv parsing
+: `--fixed`
+    ::force fixed width parsing instead of csv parsing
 
 Like qtail, table also accepts the --file and --files options.
 
@@ -195,7 +195,7 @@ the unrun command will let you continue editing it.
 
 # settings editor dialog #
 All shell settings can be adjusted in a graphical settings edit window
-that includes tool tips with default values and documentation for each
+that includes tooltips with default values and documentation for each
 setting.  Numbers mentioned in this document are all settings and can
 be changed.  An attempt has been made to make every major parameter
 including timeouts and otherwise hard coded values editable settings.
@@ -284,7 +284,7 @@ can be done now using mechanisms available in the wrapper shell.
 
 # Wrappers #
 
-This shell does not have the programmable of typical command line
+This shell does not have the programmability of typical command line
 shells and only does extremely limited parsing.  Instead, it leans on
 those older shells for that functionality.
 
@@ -420,29 +420,29 @@ In addition to the editor key bindings used by Qt, the following keys are used:
 While binding keys for favorites, binding a shortcut to Backspace will cancel it.
 (This works around a bug / missing feature in Qt.)
 
-|key|function|
+|key         | function|
 |---|---|
-|Ctrl-Up     |history up (doesn't work on mac)
-|Ctrl-P      |history up
-|Ctrl-Down   |history down (doesn't work on mac)
-|Ctrl-N      |history down
-|Ctrl-Enter  |run command in the command editor
-|Ctrl-Return |run command in the command editor
-|Ctrl-F	     |Invoke the file browser and insert the results into the editor
-|Alt-C	     |Move keyboard focus to command editor
+|Ctrl-Up     | history up (doesn't work on mac)
+|Ctrl-P      | history up
+|Ctrl-Down   | history down (doesn't work on mac)
+|Ctrl-N      | history down
+|Ctrl-Enter  | run command in the command editor
+|Ctrl-Return | run command in the command editor
+|Ctrl-F	     | Invoke the file browser and insert the results into the editor
+|Alt-C	     | Move keyboard focus to command editor
 
 The history keys treat history as a ring, and the position is reset when
 a command is run.
 
 In qtail:
-Ctrl-F      Moves keybaord focus to the find box
+Ctrl-F      Moves keyboard focus to the find box
 
 Odds and ends
 -------------
 Many items are internally documented with tooltips.
 * The general settings editor shows a description of the option and
   the default value as tooltips for the two columns.
-* Favorites buttons, history, and favorites display teh full command as a tooltip
+* Favorites buttons, history, and favorites display the full command as a tooltip
 
 Built in commands are documented with the help command.
 
@@ -450,7 +450,7 @@ Tables windows will reset sort order and sizes when the top left
 corner are clicked.  Double clicking on row and column headings will
 resize the row to fit the contents if appropriate.
 
-Clicking or double clicking on values in the table viwer copy the
+Clicking or double clicking on values in the table viewer copy the
 contents to the clipboard.
 
 Double clicking on the command in the history and jobs managers copies
@@ -503,4 +503,4 @@ Once you have the above working, you can then add wrappers for each host with
 something like
    ~~~   
    addwrap somehost ssh user@somehost.fqdn
-~~~
+   ~~~

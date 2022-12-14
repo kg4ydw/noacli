@@ -16,7 +16,7 @@ o  Should all the tables be respaced with resizeRowsToContents()
    is the documentation unclear or too wordy
    is a keybindings viewer / editor needed
    are the options named well
-o  should the window auto-resize theshold be a setting
+o  should the window auto-resize threshold be a setting
    is it annoying that history scrolls to bottom and resets sort order
      when a command is run
      when history items are copied from the docs
@@ -26,10 +26,12 @@ o  should the window auto-resize theshold be a setting
      autocheck button if name is filled in, uncheck if blanked
      
 Things to implement soon:
+   pip setup.py installer
+   mac installer?
  * tableview sort
  *    proxy model
  *    reset in corner
-      filter
+ o    filter
    settingsDialog needs doubleclick resize
    context menu in history headers (h and v)
    cd should parse ~
@@ -117,7 +119,7 @@ x!so  block tostop signal : try os.setsid ?
      move to terminal window automatically?
      preconnect pty for this purpose?
    qtail gives useless errors on file not found
-   bind hitory context menu to history headers too
+   bind history context menu to history headers too
    flowlayout overlapping buttons (rare? one time glitch?)
 
 Bugs:
@@ -129,7 +131,7 @@ Bugs:
  n   application font
  o   create styled item delegate for QFont
         doesn't cancel correctly
-	displayed fontname is ugly
+	displayed font name is ugly
    fonts are handed as objects to QSettings, save as font name later?
  ? 'type' builtin fails on old python (fix untested)
    tableviewer doesn't work on files or stdin
@@ -156,7 +158,7 @@ D*     output exceeds visible lines-1
 D*     another command is run that produces output
 D*     user presses dup button (or shortcut?)
 D*   single line (or most recent?) output sent to status bar
-d*   don't remember more than visisible lines * 2 (option setting?)
+d*   don't remember more than visible lines * 2 (option setting?)
 D*   auto
  o   configured only (default qtail)
  o   forced (disable auto-qtail)
@@ -710,6 +712,8 @@ D* tooltips on buttons --> command
  * qtail primary and secondary fonts
  * small output context --> clear
 D* filedialog prefix '" causes all filenames to be quoted
+ * log gives more info about job at start, stop, context menu
+ * job manager shows tooltips for historical pid and full command
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -754,3 +758,8 @@ D*   if it ends in / select dirs only??
  * table: IsADirectoryError: [Errno 21] Is a directory: 'junk' 418/openfile
  * table: FileNotFoundError: 418/openfile
 
+## ispell put these here
+LocalWords:  settingsDialog tableview smalldup fileDialog smalloutput
+LocalWords:  splitlines Qsettings autocheck historyView jobTableVew
+LocalWords:  tableView commandEditor QtTail plainTextEdit searchTerm
+LocalWords:  QWidget
