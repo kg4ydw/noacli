@@ -119,26 +119,26 @@ as a table, using several heuristics to try to guess where the columns are.
 If the heuristic doesn't guess right, you can give it hints with the
 following options:
 
-: `--skip=`
+: `--skip=`  
     ::skip lines preceding the table (default=0)
 
-: `--delimiters=`  or `--delimiter=`
+: `--delimiters=`  or `--delimiter=`  
     ::specify single characters that could be delimiters.  Default is comma, pipe, tab colon ('|\t,:')
     
-: `--gap=`
+: `--gap=`  
     ::Minimum number of spaces between columns if it is space delimited;
     defaults to 2 or if headers are underlined (with = or -) then 1
     
-: `--columns=`
+: `--columns=`  
     ::if the fixed width parser can't guess column boundaries, you can specify them (comma separated)
     
-: `--headers=`
+: `--headers=`  
     ::comma separated headers to use instead of the first line
     
-: `--noheader`
+: `--noheader`  
     ::use numbered headers instead of the first line
     
-: `--fixed`
+: `--fixed`  
     ::force fixed width parsing instead of csv parsing
 
 Like qtail, table also accepts the --file and --files options.
@@ -317,6 +317,14 @@ would be needed.
 Wrappers can be trivially created on the fly with the addwrap command.
 (An editor for wrappers may be added later.)
 
+Note that wrappers are special in that the command buffer remnant is
+passed to them directly without parsing.  If, for instance, your
+wrapper is 'ssh', the command is passed to ssh as a single string with
+unmolested quotes, spaces, return characters, pipes, etc., in it, and
+ssh will pass that to the remote shell.  This is not the case if you
+used ssh without a wrapper, and your default wrapper will interpret
+these before running ssh, possibly locally.
+
 # Built in commands #
 
 (Numbers in () in the following are a count of bash built in commands.)
@@ -333,37 +341,37 @@ when embedded in the command line even if there is a graphical way to do it.
 The following are the built in commands noacli has (so far).
 These commands must be run by themselves, not combined with other commands.
 
-`help`
+`help`  
     list all of these and their description
 
-`version`
+`version`  
     show version
 
-`cd chdir`
+`cd chdir`  
     change directories
 
-`direct`
+`direct`  
     run without a wrapper using trivial parsing (space splitting only)
 
-`addwrap`
+`addwrap`  
     add a new named wrapper
 
-`setwrap`
+`setwrap`  
     set the default command wrapper
-`type`
+`type`  
     Find what things match the given command; shows both internal and
     external matches
 
 The following builtins must be the first word of a regular command
 and change the default output destination:
   
-`small` (default if none specified)
+`small` (default if none specified)  
     Send output to the small output dock window
-`qtail` `tail` (small output overflow or by button)
+`qtail` `tail` (small output overflow or by button)  
     View possibly growing output in a scrollable browser
-`log` (small output button)
+`log` (small output button)  
     Merge output from this and other commands into the merged log dock window
-`table`
+`table`  
     Attempt to parse the output as a table; designed to handle delimited
     text, fixed width tables, and large numbers of columns.
 
@@ -435,7 +443,8 @@ The history keys treat history as a ring, and the position is reset when
 a command is run.
 
 In qtail:
-Ctrl-F      Moves keyboard focus to the find box
+
+|Ctrl-F     | Moves keyboard focus to the find box
 
 Odds and ends
 -------------

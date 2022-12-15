@@ -6,7 +6,3 @@ Once you're happy with the arrangement,
 you can name it and save it as a
 geometry profile, and save multiple
 profiles this way.
-
-When saved, dock windows remember their
-state and both their dock position and
-their floating position.

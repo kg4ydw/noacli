@@ -542,6 +542,8 @@ class TableViewer(QtWidgets.QMainWindow):
             cb.clicked.connect(self.resetTableSort)
         self.proxymodel.setSourceModel(self.model)
         self.ui.tableView.setModel(self.proxymodel)
+        self.proxymodel.setFilterKeyColumn(-1)
+        self.resetTableSort() # default is col 1
         self.headermodel = QtCore.QStringListModel(headers, self)
         self.ui.colPicker.setModel(self.headermodel)
         self.tableSelectFix()
@@ -567,6 +569,7 @@ class TableViewer(QtWidgets.QMainWindow):
         lines = int(typedQSettings().value('TableviewerBatchLines',100))
         while lines>0 and self.csvfile.canReadLine():
             row = next(self.csvreader)
+            row = [ cell.strip() for cell in row]
             if row: rows.append(row)
             lines -= 1
         if lines<=0:

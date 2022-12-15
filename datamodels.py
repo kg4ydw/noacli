@@ -272,7 +272,7 @@ class settingsDialog(QtWidgets.QDialog):
         else:
             ui.label.setText(title)
         ui.tableView.resizeColumnsToContents()
-        self.apply = self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Apply).clicked
+        self.apply = self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Apply).clicked # XXX this doesn't work right
         #XX not without reset function ### self.ui.tableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
         self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
         # replace corner

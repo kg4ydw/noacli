@@ -35,7 +35,7 @@ from qtail import myOptions as qtailSettings
 from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 
-__version__ = '0.9.9.5a'
+__version__ = '0.9.9.5b'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -704,7 +704,7 @@ class noacli(QtWidgets.QMainWindow):
         ui=self.ui
 
         self.tabifyAll()
-        self.hideAllDocks()
+        #self.hideAllDocks()  # XXX or show all?
         ## XXX show button dock by default?
 
         ui.actionTabifyDocks.triggered.connect(self.tabifyAll)
@@ -866,8 +866,8 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.smallOutputDock.setFloating(False)
         self.tabifyDockWidget( self.ui.buttons,    self.ui.jobManager)
         self.tabifyDockWidget( self.ui.jobManager, self.ui.history)
-        self.tabifyDockWidget( self.ui.history,    self.ui.smallOutputDock)
-        self.tabifyDockWidget( self.ui.smallOutputDock, self.ui.logDock)
+        self.tabifyDockWidget( self.ui.history,   self.ui.logDock)
+        self.tabifyDockWidget( self.ui.logDock, self.ui.smallOutputDock)
 
     def start(self):
         # nothing else to initialize yet
@@ -1066,12 +1066,11 @@ class noacli(QtWidgets.QMainWindow):
         if not index.isValid(): return
         col = index.column()
         if col==0:
-            text = str(index.model().getItem(index).process.processId())
+            text = str(index.model().getItem(index).getpid())
             self.app.clipboard().setText(text)
             self.app.clipboard().setText(text, QClipboard.Selection)
         elif col==1: index.model().cleanupJob(index)  # job status
-        #elif col==2: #XX mode -- what should double click on mode do?
-        elif col==3: self.windowShowRaise(index)
+        elif col==2 or col==3: self.windowShowRaise(index)
         elif col==4: self.ui.commandEdit.acceptCommand(index.model().getItem(index).command())
 
     # in: jobView out: jobModel
