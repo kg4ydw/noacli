@@ -119,27 +119,27 @@ as a table, using several heuristics to try to guess where the columns are.
 If the heuristic doesn't guess right, you can give it hints with the
 following options:
 
-: `--skip=`  
-    ::skip lines preceding the table (default=0)
+ `--skip=`  
+    skip lines preceding the table (default=0)
 
-: `--delimiters=`  or `--delimiter=`  
-    ::specify single characters that could be delimiters.  Default is comma, pipe, tab colon ('|\t,:')
+ `--delimiters=`  or `--delimiter=`  
+    specify single characters that could be delimiters.  Default is comma, pipe, tab colon ('|\t,:')
     
-: `--gap=`  
-    ::Minimum number of spaces between columns if it is space delimited;
+ `--gap=`  
+    Minimum number of spaces between columns if it is space delimited;
     defaults to 2 or if headers are underlined (with = or -) then 1
     
-: `--columns=`  
-    ::if the fixed width parser can't guess column boundaries, you can specify them (comma separated)
+ `--columns=`  
+    if the fixed width parser can't guess column boundaries, you can specify them (comma separated)
     
-: `--headers=`  
-    ::comma separated headers to use instead of the first line
+ `--headers=`  
+    comma separated headers to use instead of the first line
     
-: `--noheader`  
-    ::use numbered headers instead of the first line
+ `--noheader`  
+    use numbered headers instead of the first line
     
-: `--fixed`  
-    ::force fixed width parsing instead of csv parsing
+;`--fixed`  
+:   force fixed width parsing instead of csv parsing
 
 Like qtail, table also accepts the --file and --files options.
 
@@ -268,10 +268,12 @@ is logging.
 When commands are run, their output is sent to an initial destination.
 The currently available output destinations are:
 
-small: output dock window
-qtail: large output browser
-log:   dock window
-table: table parser and viewer
+| keyword | destionation
+|----|-----|
+| small | output dock window
+| qtail | large output browser
+| log   |   dock window
+| table | table parser and viewer
 
 These output destinations are described above, but if the first word in a
 command is one of the keywords (small log tail qtail) then the output
@@ -358,6 +360,7 @@ These commands must be run by themselves, not combined with other commands.
 
 `setwrap`  
     set the default command wrapper
+
 `type`  
     Find what things match the given command; shows both internal and
     external matches
@@ -367,10 +370,13 @@ and change the default output destination:
   
 `small` (default if none specified)  
     Send output to the small output dock window
+
 `qtail` `tail` (small output overflow or by button)  
     View possibly growing output in a scrollable browser
+
 `log` (small output button)  
     Merge output from this and other commands into the merged log dock window
+
 `table`  
     Attempt to parse the output as a table; designed to handle delimited
     text, fixed width tables, and large numbers of columns.
@@ -444,6 +450,8 @@ a command is run.
 
 In qtail:
 
+|key         | function|
+|---|---|
 |Ctrl-F     | Moves keyboard focus to the find box
 
 Odds and ends
