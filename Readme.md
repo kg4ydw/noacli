@@ -46,7 +46,7 @@ It's not that we hate background jobs, but that they seem silly when
 you could have just opened another window.  It's not that we like a
 proliferation of windows either -- this has measures to minimize that.
 
-This shell tries to make the following concepts obsolete;
+This shell tries to make the following concepts obsolete:
 * terminal based text pagers
 * background jobs
 * waiting for jobs to complete before starting another
@@ -138,8 +138,8 @@ following options:
  `--noheader`  
     use numbered headers instead of the first line
     
-;`--fixed`  
-:   force fixed width parsing instead of csv parsing
+`--fixed`  
+    force fixed width parsing instead of csv parsing
 
 Like qtail, table also accepts the --file and --files options.
 
@@ -268,7 +268,7 @@ is logging.
 When commands are run, their output is sent to an initial destination.
 The currently available output destinations are:
 
-| keyword | destionation
+| keyword | destination
 |----|-----|
 | small | output dock window
 | qtail | large output browser
@@ -349,7 +349,7 @@ These commands must be run by themselves, not combined with other commands.
 `version`  
     show version
 
-`cd chdir`  
+`cd` or `chdir`  
     change directories
 
 `direct`  

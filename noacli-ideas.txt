@@ -31,26 +31,28 @@ o  should the window auto-resize threshold be a setting
      autocheck button if name is filled in, uncheck if blanked
 
 Things to implement soon:
+   qtail automatic pause (at 10k lines)
+      setting to extend 10k lines for this window
+   table column picker needs an undo select columns
  o change default arrangement to show all / tabify all
  * set tableview default filter col = -1
    pip setup.py installer
    mac installer?
    mac terminal window
- * tableview sort
- *    proxy model
- *    reset in corner
- o    filter
  ? settingsDialog needs doubleclick resize (fixed default ??)
    context menu in history headers (h and v)
    cd should parse ~
    realign general settings editor to be callable from other apps
  x table should send stderr to log
-   table column picker needs an undo select columns
    tableview: use column for vertical headers
    fix command parser to use built environment setting (XXXX marked)
+ * tableview sort
+ *    proxy model
+ *    reset in corner
+ o    filter
 
 videos
- *  small output -> qtail demo
+ o  small output -> qtail demo
     rearrange docks and create everything
     use environment vars
     play with tables (suggest: ls -l or sacct)
