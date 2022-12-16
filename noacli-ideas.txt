@@ -31,6 +31,11 @@ o  should the window auto-resize threshold be a setting
      autocheck button if name is filled in, uncheck if blanked
 
 Things to implement soon:
+ o table viwer options
+ *   --nopick
+ *   --filtercol
+ *   --filter
+     document short options?
    qtail automatic pause (at 10k lines)
       setting to extend 10k lines for this window
    table column picker needs an undo select columns
@@ -44,7 +49,7 @@ Things to implement soon:
    cd should parse ~
    realign general settings editor to be callable from other apps
  x table should send stderr to log
-   tableview: use column for vertical headers
+   tableview: use (context,picked) column for vertical headers
    fix command parser to use built environment setting (XXXX marked)
  * tableview sort
  *    proxy model
@@ -458,11 +463,11 @@ D*   for commands that output a small amount and exit in a short time
  *     merge selected cells in this row
        (split cell here)
      command line options
-       --skip N lines
-       --file
-       --csv --delimiter
+ *     --skip N lines
+ *     --file
+ *     --csv --delimiter
        --regex (delimiter or split pattern? depends on if groups?)
-       --fixed --gap=2
+ *     --fixed --gap=2
 
    built in special commands
 D*   terminal (--set-default)
@@ -568,7 +573,7 @@ D*	 sh/bash -> bash -c
 D*	 term -> "xterm -e" or "gnome-terminal --"
   	 $hostname -> ssh -n (-M -P 6h) $hostname
        regex match? (macro?)
- 
+
    regex matches
      output and input separately scanned for regex matches
      grouped matches are saved to match variables
@@ -577,12 +582,12 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
      context menu items to use match dictionary
        set title (or set automatically)
        regex menu items that only show if dependencies met
- 
+
      can a command template auto trigger on output match?
         run or just insert into edit buffer?
  	small output window only?
  	enable special one shot output match from command match trigger
- 
+
    button box dock ideas
      right click: dump in editor
      draggable gridview ??
@@ -608,7 +613,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
        run?
        copy to editor
        insert into editor
- 
+
    regex match stuff
      scan input and output with a list of regex
      save named groups in a dictionary
@@ -632,7 +637,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
      ssh, man -> set title
    regex on output
      sbatch -> tail
- 
+
    ssh manager
      run ssh -O check before trying a wrapper?
      even if nothing directly is implemented, document the below
@@ -643,7 +648,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
        setsid ssh
        #ControlPersist 6h (yes | 0 )
        ## close with ssh -O check (forward cancel) stop exit
- 
+
    Possible internal actions for shortcut keys
      save favorites
      sync settings
@@ -659,7 +664,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
      small dup
      small log
      small kill
- 
+
    man page viewer
      qtail base
      fixed with font?
@@ -684,7 +689,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
  	 related
  	 filter by section
         clear database
- 
+
 completed misc. features
  * table parsing in qtail
  *    fixed width white space tables

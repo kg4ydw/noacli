@@ -177,8 +177,8 @@ class FixedWidthParser():
                         col.append(i-(gapthresh-1)) # back up one, put border in the column
         self.col = col
         self.lines = iter(f)
-        # XXX maybe the column seps should go into small output too
-        print("col = "+(",".join([str(i) for i in col]))) # DEBUG
+        # column offsets are now available by clipboard in the view menu
+        #print("col = "+(",".join([str(i) for i in col]))) # DEBUG
     
     def __len__(self):
         return len(self.col)
@@ -212,6 +212,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.skiplines = 0
         self.delimiters = '|\t,:' # defaults
         self.fixedoptions = {}
+        self.argdict = {}
         self.headers = None
         self.forcefixed=False
         # XXX icon
@@ -236,39 +237,60 @@ class TableViewer(QtWidgets.QMainWindow):
         # only single word options supported, so --option=value must be used
         # XXXXX implement and document command line options
         # ignore --file and --files (processed by caller)
-        # --skip N lines
+        # -sN --skip N lines 
         # --csv --delimiter(s)
-        # --regex (delimiter or split pattern? depends on if groups?)
-        # --fixed --gap=2 --columns=n[,n]*
+        #XX --regex (delimiter or split pattern? depends on if groups?)
+        # --fixed
+        # -g --gap=2
+        # --cols --columns=n[,n]*
         # --header=word[,word]*
         # --noheader
+        # XXX unimplemented options
+        # --nopick --filtercol= --filter=
+        self.argdict = {}  # save in case anything else wants to look
+        optpattern = re.compile('^--([^=]+)=(.*)$')
+        optpattern2 = re.compile('^-(\w)(.*)$')
         for arg in args:
-            if arg.startswith('--skip='):
+            # XX refactor arg parsing to parent??
+            m = optpattern.match(arg)
+            if not m:  # try short version
+                m = optpattern2.match(arg)
+            if m:
+                key = m.group(1)
+                value=m.group(2)
+                self.argdict[key] = value
+            elif arg.startswith('--'):
+                key =  arg[2:]
+                self.argdict[key] = True
+                value = True
+                # XX handle --no
+            else:
+                key = value = None
+            if key in ('skip', 's'):
                 try:
-                    self.skiplines = int(arg[7:])
+                    self.skiplines = int(value)
                 except:
                     pass # XX arg parse error
-            elif arg.startswith('--delimiters='):
-                self.delimiters = arg[13:]
-            elif arg.startswith('--delimiter='):
-                self.delimiters = arg[12:]
-            elif arg.startswith('--gap='):
+            elif key in ('delimiters', 'delimiter'):
+                self.delimiters = value
+            elif key in ('gap','g'):
                 try:
-                    self.fixedoptions['gap'] = int(arg[6:])
+                    self.fixedoptions['gap'] = int(value)
                 except:
                     pass # XX arg parse error
-            elif arg.startswith('--columns='):
+            elif key in ('columns', 'cols'):
                 try:
-                    self.fixedoptions['columns'] = [ int(x) for x in arg[10:].split(',') ]
+                    self.fixedoptions['columns'] = [ int(x) for x in value.split(',') ]
                 except:
                     pass # XX arg parse error
             elif arg.startswith('--headers='):
                 self.headers = arg[10:].split(',')
-            elif arg.startswith('--noheader'):
+            elif key in ('noheader','nohead'):
                 self.useheader = False
             elif arg.startswith('--fixed'):
                 self.forcefixed = True
             #else: ignore anything else without error XXX
+        #print('args='+' '.join(self.argdict.keys())) # DEBUG
 
     def start(self):
         # probably should do more here and less in open 
@@ -423,7 +445,12 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def sortOrSelect(self, checked):
         self.ui.tableView.setSortingEnabled(not checked)
-        
+
+    def copyColOffsets(self):
+        text = ",".join([str(col) for col in self.parser.col])
+        self.app.clipboard().setText(text)
+        self.app.clipboard().setText(text, QtGui.QClipboard.Selection)
+
     ################ table parsing stuff
 
     def openfile(self,filename):
@@ -501,6 +528,8 @@ class TableViewer(QtWidgets.QMainWindow):
                 self.csvreader = iter(self.parser)
                 if DEBUG: print("csv failed, using FixedWidthParser")
                 self.firstread=False
+        if hasattr(self, 'parser') and hasattr(self.parser,'col'): # save it in the menu
+            self.ui.menuView.addAction("Copy column offsets to clipboard", self.copyColOffsets)
         # just read a few chunks to get us started
         lines = 3
         while self.csvfile.canReadLine() and lines>0:
@@ -528,7 +557,7 @@ class TableViewer(QtWidgets.QMainWindow):
                 headers[i] = str(i+1)
         try:
             # optionally hide column picker for small tables
-            if maxx < typedQSettings().value('TableviewerPickerCols', 10):
+            if 'nopick' in self.argdict or  maxx < typedQSettings().value('TableviewerPickerCols', 10):
                 self.ui.colPickerDock.setVisible(False)
         except:
             pass
@@ -542,7 +571,19 @@ class TableViewer(QtWidgets.QMainWindow):
             cb.clicked.connect(self.resetTableSort)
         self.proxymodel.setSourceModel(self.model)
         self.ui.tableView.setModel(self.proxymodel)
-        self.proxymodel.setFilterKeyColumn(-1)
+        try:
+            col = int(self.argdict['filtercol']) # if no exception raised, use it
+            self.proxymodel.setFilterKeyColumn(col)
+        except:
+            # search by whole table, class default is col 1
+            self.proxymodel.setFilterKeyColumn(-1)
+        try:
+            filter = self.argdict['filter']
+            if filter:
+                self.proxymodel.setFilterFixedString(filter)
+                self.ui.filterEdit.setText(filter)
+        except:
+            pass
         self.resetTableSort() # default is col 1
         self.headermodel = QtCore.QStringListModel(headers, self)
         self.ui.colPicker.setModel(self.headermodel)

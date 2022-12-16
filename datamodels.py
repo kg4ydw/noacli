@@ -298,9 +298,10 @@ class settingsDialog(QtWidgets.QDialog):
         mw = self.size().width()
         frame = mw - tw
         #print("hw={} tw={} ntw={} mw={}".format(hw,tw,newtw, mw)) # DEBUG
-        if newtw>tw:
+        if newtw>tw: # don't shrink
             size = QtCore.QSize(newtw+frame+30, self.size().height())
             #print("resize {}".format(size.width())) # DEBUG
+            # XX minimum vertical hight relative to header height?
             self.resize(size)
   
     def resizeHheader(self, logical):

@@ -134,7 +134,7 @@ class settings():
         model = settingsDataModel(self.settingsDirectory, data, typedata)
         self.dialog = settingsDialog(parent, 'Settings', model, 'noacli settings')
         self.dialog.finished.connect(self.acceptOrReject)
-        self.dialog.apply.connect(self.acceptchanges)
+        #XX# self.dialog.apply.connect(self.acceptchanges)
 
     def copy2qtail(self):
         qs = typedQSettings()
@@ -1079,8 +1079,11 @@ class noacli(QtWidgets.QMainWindow):
         if job.window:
             job.windowOpen = True
             job.window.show()
+            # also try moving the mouse to the window
+            QtGui.QCursor().setPos(job.window.pos()+QtCore.QPoint(100,100))
             job.window.raise_()
             job.window.activateWindow()
+            # XX maybe blink the mouse too?
 
 
     # in: view menu  out: all DOCKs

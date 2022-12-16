@@ -130,16 +130,25 @@ following options:
     defaults to 2 or if headers are underlined (with = or -) then 1
     
  `--columns=`  
-    if the fixed width parser can't guess column boundaries, you can specify them (comma separated)
+    If the fixed width parser can't guess column boundaries,
+    you can specify them (comma separated) If the heuristic gets it
+    almost right, use the item in the view menu to copy the offsets to
+    the clipboard, edit them, and try again with this option.
     
  `--headers=`  
     comma separated headers to use instead of the first line
     
  `--noheader`  
-    use numbered headers instead of the first line
+    There is no header in the data, use numbered headers instead of the first line
     
 `--fixed`  
     force fixed width parsing instead of csv parsing
+
+`--nopick`  
+    Don't show the colum picker at start
+
+`--filtercol=` and `--filter=`  
+    Set initial filter column and filter string (useful in favorites)
 
 Like qtail, table also accepts the --file and --files options.
 
@@ -179,13 +188,15 @@ You can also use ctrl-uparrow and ctrl-down in the command window to
 browse the history.
 
 # job manager #
-The jobs you run are also tracked in a job manager dock window that
-shows the critical job details and status, and helps you find or reopen lost 
-windows.  Finished jobs with closed windows can be manually cleared or will
-automatically clear after a timeout.
 
-If you click on the window name in the job manager, it will raise the
-window if there is one, and you can also rename the window.
+The jobs you run are also tracked in a job manager dock window that
+shows the critical job details and status, and helps you find or
+reopen or find lost windows.  Finished jobs with closed windows can be
+manually cleared or will automatically clear after a timeout.
+
+If you double click on the window name or mode in the job manager, it
+will raise the window if there is one and move the mouse to it, and
+you can also rename the window by editing its name in the window column.
 
 Commands shown in both the job window and the history window can be
 clicked on to copy them to the command edit window for further editing
