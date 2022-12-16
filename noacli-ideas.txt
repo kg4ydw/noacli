@@ -17,6 +17,7 @@ t  documented internally with tool tip
 
 User interface questions: (please send feedback!!)
 o  Should all the tables be respaced with resizeRowsToContents()
+      note: table filter resets row height every time anyway
    Is column selection between tableviewer and column picker awkward
    is the documentation unclear or too wordy
    is a keybindings viewer / editor needed
@@ -25,25 +26,19 @@ o  should the window auto-resize threshold be a setting
    is it annoying that history scrolls to bottom and resets sort order
      when a command is run
      when history items are copied from the docs
-*  when history wraps it should clear instead of immediately wrapping
-   favorites changes
-     separate button(checkbox) and name
-     autocheck button if name is filled in, uncheck if blanked
 
 Things to implement soon:
- o table viwer options
- *   --nopick
- *   --filtercol
- *   --filter
-     document short options?
+   favorites changes
+!    separate button(checkbox) and name
+     autocheck button if name is filled in, uncheck if blanked
+   pip setup.py installer
+   mac installer?
    qtail automatic pause (at 10k lines)
       setting to extend 10k lines for this window
    table column picker needs an undo select columns
- o change default arrangement to show all / tabify all
+ * change default arrangement to show all / tabify all
  * set tableview default filter col = -1
-   pip setup.py installer
-   mac installer?
-   mac terminal window
+   mac terminal window (applescript?)
  ? settingsDialog needs doubleclick resize (fixed default ??)
    context menu in history headers (h and v)
    cd should parse ~
@@ -55,6 +50,11 @@ Things to implement soon:
  *    proxy model
  *    reset in corner
  o    filter
+ o table viwer options
+D*   --nopick
+D*   --filtercol
+D*   --filter
+     document short options?
 
 videos
  o  small output -> qtail demo
@@ -66,7 +66,6 @@ videos
     running long commands with log
 
 high priority bugs
- * resize settings dialog (test)
    document environment editor a bit
       add item
       mode?
@@ -82,8 +81,7 @@ high priority bugs
      icons and app name don't work on mac (wrong geom?)
    qtail should resize on smalldup of dead proc
  ? fileDialog doesn't always trim prefix correctly
-   (test) does anything special need to be done to close/kill Table/qtail file?
-   check all except: to not overcapture
+     doesn't work consistently if no prefix directory (./ doesn't work either)
    fix error message passing from tableviewer and qtail to be more visible
       status bar message?
       smalloutput message
@@ -91,8 +89,6 @@ high priority bugs
 
 Misc things to implement
    SETTING auto pause qtail on maxlines threshold
-   table search
- ? table manual partitioning (when auto goes wrong)
  * qtail button mode
  *    watch vs. transient
  *    rerun vs. close
@@ -739,6 +735,7 @@ D* tooltips on buttons --> command
 D* filedialog prefix '" causes all filenames to be quoted
  * log gives more info about job at start, stop, context menu
  * job manager shows tooltips for historical pid and full command
+ * when history wraps it should clear instead of immediately wrapping
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -784,6 +781,7 @@ D*   if it ends in / select dirs only??
  * table: FileNotFoundError: 418/openfile
  * log prefix is being eaten twice by parser "tail tail" doesn't work
  * file dialog cwd filter breaks in python 3.8 (work around in place)
+ * settings dialog need a good dynamic default size
 
 
 ## ispell put these here

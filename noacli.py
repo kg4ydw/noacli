@@ -35,7 +35,7 @@ from qtail import myOptions as qtailSettings
 from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 
-__version__ = '0.9.9.5b'
+__version__ = '0.9.9.6'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -94,11 +94,13 @@ class settings():
         # name, default, tooltip / description
         # Note: defaults here might not match the real defaults embeeded in code
     def makeDialog(self, parent):
+        # XX makeDialog should be generalSettingsDialog or something
         # collect list of rows including settings
         # build a list of settings, each source sorted separately
         rows = sorted(self.settingsDirectory.keys())
         # add additional settings from QSettings (missing from dict)
         qs = typedQSettings()
+        qs.warnmissing = False  # don't warn on obsolete settings and mac noise
         rows += [i for i in sorted(qs.childKeys()) if i not in self.settingsDirectory]
         # get qtail defaults
         qt = {

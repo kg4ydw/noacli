@@ -33,6 +33,7 @@ class typedQSettings(QSettings):
     beginGroup = False  # not supported, use QSettings directly if you want this
     def __init__(self):
         super().__init__()
+        self.warnmissing = True
 
     def value(self, key, default):
         try:
@@ -41,12 +42,14 @@ class typedQSettings(QSettings):
         except Exception as e:
             self.setdict = {}  # only warn first time
             frame = sys.exc_info()[2].tb_frame.f_back
-            print("Warn: typedQSettings.value called before dict set: "+str(frame.f_code)+"\n"+str(e)) # EXCEPT
+            if self.warnmissing: # XX this is probably obsolete anyway
+                print("Warn: typedQSettings.value called before dict set: "+str(frame.f_code)+"\n"+str(e)) # EXCEPT
             # frame.f_code.co_name
             return super(typedQSettings,self).value(key,default)
         v = super(typedQSettings,self).value(key,default)
         if key not in self.setdict: # return what we have
-            print("Warning: setting {} missing from settings dictionary.".format(key)) # DEBUG EXCEPT
+            if self.warnmissing:
+                print("Warning: setting {} missing from settings dictionary.".format(key)) # DEBUG EXCEPT
             # add it to dict, guess at type, add caller?
             self.setdict[key] = [v,"Unknown setting", type(v)]
             return v
