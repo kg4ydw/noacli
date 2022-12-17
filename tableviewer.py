@@ -234,7 +234,6 @@ class TableViewer(QtWidgets.QMainWindow):
     def simpleargs(self, args):
         # Process simple "command line" arguments from noacli internal parsing
         # only single word options supported, so --option=value must be used
-        # XXXXX implement and document command line options
         # ignore --file and --files (processed by caller)
         # -sN --skip N lines 
         # --csv --delimiter(s)
@@ -244,8 +243,10 @@ class TableViewer(QtWidgets.QMainWindow):
         # --cols --columns=n[,n]*
         # --header=word[,word]*
         # --noheader
-        # XXX unimplemented options
+        ## options implemented elsewhere
         # --nopick --filtercol= --filter=
+        ## XX short options (intentionally?) not documented
+        # undocumented sloppy options here too
         self.argdict = {}  # save in case anything else wants to look
         optpattern = re.compile('^--([^=]+)=(.*)$')
         optpattern2 = re.compile('^-(\w)(.*)$')

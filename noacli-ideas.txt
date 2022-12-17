@@ -157,16 +157,11 @@ x!so  block tostop signal : try os.setsid ?
 Bugs:
    test Qt dock bug on Ubuntu 20
    test sibling markers
- o font changes
- *   save font settings in settings
- *   live font selection
- n   application font
- o   create styled item delegate for QFont
- E      doesn't cancel correctly
-	displayed font name is ugly
+ o QFont styled item delegate
+ E   doesn't cancel correctly
+     displayed font name is ugly
    fonts are handed as objects to QSettings, save as font name later?
  ? 'type' builtin fails on old python (fix untested)
- * tableviewer doesn't work on files or stdin
  ? reload button should change for pipes
  ? what to do with stderr? always log?
    lots of stuff packed into class noacli that could go elsewhere
@@ -742,6 +737,11 @@ D* filedialog prefix '" causes all filenames to be quoted
  * log gives more info about job at start, stop, context menu
  * job manager shows tooltips for historical pid and full command
  * when history wraps it should clear instead of immediately wrapping
+ * font changes
+ *   save font settings in settings
+ *   live font selection
+ n   application font
+ *   create styled item delegate for QFont
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -783,6 +783,7 @@ D*   if it ends in / select dirs only??
  * gets middle of file on /usr/dict/words without --whole
  * file dialog doesn't strip paths correctly for python <= 3.8 (3.6?)
  * qtail doesn't detect file not found and keeps trying
+ * tableviewer doesn't work on files or stdin
  * table: IsADirectoryError: [Errno 21] Is a directory: 'junk' 418/openfile
  * table: FileNotFoundError: 418/openfile
  * log prefix is being eaten twice by parser "tail tail" doesn't work

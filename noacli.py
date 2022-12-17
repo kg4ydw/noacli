@@ -919,10 +919,12 @@ class noacli(QtWidgets.QMainWindow):
         if not cursor.hasSelection() and not os.path.isdir(startdir):
             # maybe user didn't highlight trailing pattern?
             (dir,tail) = os.path.split(startdir)
-            if os.path.isdir(dir):
+            # XX this breaks slighlty if it doesn't have a directory prefix
+            if os.path.isdir(dir): # put back just the dirctory piece
                 c.removeSelectedText()
                 c.insertText(dir)
                 startdir=dir
+                # and use the remainder as a wildcard pattern
                 if '*' not in tail:  # XX maybe this was suppose to be a prefix?
                     tail+='*' 
                 pattern=tail + ';;' + pattern
@@ -945,7 +947,7 @@ class noacli(QtWidgets.QMainWindow):
         # DontConfirmOverwrite
         # viewmode def:Detail/List
 
-        if fd.exec_():
+        if fd.exec_():  # XXX icky modal
             fs = fd.selectedFiles()
         else:
             fs = None

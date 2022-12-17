@@ -62,7 +62,7 @@ class commandParser:
     # Output from a wrapper can default to a specific output target (above)
     # but can be directed to a different one by the user.
     # Except for the first manditory wrapper, these wrappers are examples.
-    wrappers = { # SETTING
+    wrappers = {
         # 'name' : [ target, args... ],
         'bash': [ OutWin.Small, 'bash', '-c'],
         'sh': [ OutWin.Small, 'bash', '-c'],

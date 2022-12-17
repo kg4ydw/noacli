@@ -355,7 +355,7 @@ class QtTail(QtWidgets.QMainWindow):
     def simpleargs(self, args):
         # Process simple "command line" arguments from noacli internal parsing
         # only single word options supported, so --option=value must be used
-        # XXXXX
+        # qtail args XXXXX
         # ignore --file and --files (processed by caller)
         # --maxlines=
         return
@@ -441,7 +441,7 @@ class QtTail(QtWidgets.QMainWindow):
             except Exception as e:
                 print(str(e)) # EXCEPT
         if not title:  # try again
-            title='qtail: reopen'  # XXXX SETTING?
+            title='qtail: reopen'  # SETTING?
         self.setWindowTitle(title)
         self.opt.file = False
         if self.file:

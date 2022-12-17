@@ -148,7 +148,6 @@ class jobItem():
         return str(self.process.state())
 
     def startOutwin(self, file, settings):
-        # XXXXX call outwin.openfile(file)
         outwin = self.mode
         if outwin==OutWin.QTail:
             self.setWindow(QtTail(settings.qtail))
@@ -162,7 +161,6 @@ class jobItem():
         self.window.openfile(file)
         
     def start(self, settings):
-        # XXXXX use outwinArgs
         self.process.setProcessEnvironment(settings.environment)
         # XXX connect output to something
         # for now, just merge stdout,stderr and send to qtail
