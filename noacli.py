@@ -1167,11 +1167,14 @@ class noacli(QtWidgets.QMainWindow):
                 j.setMode(outwin)
                 j.outwinArgs = outwinArgs
                 self.settings.jobs.newjob(j)
-                j.startOutwin(f, self.settings)
-                #if hasattr(j,'window') and j.window and hasattr(j.window, 'have_error'):
-                j.window.have_error.connect(self.showMessage) # XXX# connect better
-                # it isn't really finished, but mark it for del on window close
-                j.finished = True
+                try:
+                    j.startOutwin(f, self.settings)
+                except Exception as e:
+                    msg = '{}: {}'.format(f,e)
+                    self.ui.smallOutputView.internalOutput(self.settings,msg+'\n')
+                    self.showMessage(msg) # XX this should be redundant but isn't
+                    j.finished = True
+                    j.window = None
         else: # external command
             j = jobItem(hist)  # XX construct new job
             j.setMode(outwin)

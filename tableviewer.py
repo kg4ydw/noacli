@@ -201,7 +201,6 @@ class TableViewer(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
     want_readmore = pyqtSignal(str)
-    have_error = pyqtSignal(str)
     def __init__(self, options=None, parent=None):
         super().__init__()
         self.data = []
@@ -461,13 +460,10 @@ class TableViewer(QtWidgets.QMainWindow):
             self.error = e.strerror
             err = 'Open failed on {}: {}'.format(filename,e.strerror)
             print(err) # EXCEPT
-            # XXX send error somewhere
-            self.have_error.emit(err)
             # clean up
-            self.setWindowTitle(err)
             self.close()
             self.setParent(None)  # delete later?
-            return err
+            raise
         self.openfd(self.csvfile)
         self.want_readmore.emit('initial') # extra just in case
 

@@ -151,13 +151,11 @@ x!so  block tostop signal : try os.setsid ?
      kill child proc?
      move to terminal window automatically?
      preconnect pty for this purpose?
- ? qtail gives useless errors on file not found
    bind history context menu to history headers too
    flowlayout overlapping buttons (rare? one time glitch?)
 
 Bugs:
    test Qt dock bug on Ubuntu 20
- ! have_error not propagating (free after emit? try delete later?)
    test sibling markers
  o font changes
  *   save font settings in settings
@@ -793,6 +791,8 @@ D*   if it ends in / select dirs only??
  ? qtail huge pause during adjustSize
       likely caused by whole document word wrap recalculation
  *    don't resize after 100 lines or last resize was >0.5s
+ * qtail gives useless errors on file not found
+ * have_error not propagating (convert to exception and delete)
 
 
 ## ispell put these here

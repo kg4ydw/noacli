@@ -117,7 +117,6 @@ class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
     want_read_more = pyqtSignal(str)
-    have_error = pyqtSignal(str)
     def __init__(self, options=None, parent=None):
         super().__init__()
         self.disableAdjustSize = False
@@ -363,28 +362,19 @@ class QtTail(QtWidgets.QMainWindow):
 
     def openfile(self,filename):
         # XXX assume tail mode
-        try:
-            f = QtCore.QFile(filename)
-            self.file = f
-            f.open(QtCore.QFile.ReadOnly);
-            self.opt.file = True
-        except OSError as e:
-            self.error = e.strerror
-            err = 'Open failed on {}: {}'.format(filename,e.strerror)
+        f = QtCore.QFile(filename)
+        if not f.open(QtCore.QFile.ReadOnly):
+            err = 'Open failed on {}: {}'.format(filename,f.errorString())
             print(err) # EXCEPT
-            # XXX send error somewhere
-            self.have_error.emit(err)
             # clean up
             self.close()
-            self.setParent(None)
-            return err
-        except Exception as e: # XXX what does Qt send?
-            err = 'Error opening {}: {}'.format(filename, e)
-            print(err)
-            self.have_error.emit(err)
-            self.close()
-            self.setParent(None)
-            return err
+            #self.setParent(None)
+            self.deleteLater()
+            # pyqt should have done something like this
+            raise Exception(f.errorString())
+        else:
+            self.file = f
+            self.opt.file = True
 
         if not self.opt.title:
             self.setWindowTitle(filename) # XXX qtail prefix? strip path?
