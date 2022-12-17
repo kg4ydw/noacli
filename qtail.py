@@ -14,8 +14,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # Doesn't handle backscrolling beyond its internal buffers
 # Currently doesn't chunk input well which causes delays and hangups
 
-import sys
-import os
+import os, re, sys, time
 from functools import partial
 from math import ceil
 
@@ -121,6 +120,7 @@ class QtTail(QtWidgets.QMainWindow):
     have_error = pyqtSignal(str)
     def __init__(self, options=None, parent=None):
         super().__init__()
+        self.disableAdjustSize = False
         self.eof = 0 # hack
         self.buttonCon = None
         dir = os.path.dirname(os.path.realpath(__file__))
@@ -192,14 +192,14 @@ class QtTail(QtWidgets.QMainWindow):
 
     def setButtonMode(self):
         if type(self.file)==QProcess:
-            if self.file.state()==QProcess.Running:
+            if self.file.state()!=QProcess.NotRunning:
                 self.rebutton('Kill', self.terminateProcess)
             elif self.ui.actionWatch.isChecked():
                 self.rebutton('Rerun', self.reloadOrRerun)
             else:
-                self.rebutton('Close', self.close)
+                self.rebutton('Close', self.close,'modeNorun')
         else: ## XXX distinguish between stdin and a file
-            self.rebutton('Close', self.close)
+            self.rebutton('Close', self.close,'modefile')
         #else: # file
         #   self.rebuttion('Reload',self.reload)
         
@@ -313,7 +313,7 @@ class QtTail(QtWidgets.QMainWindow):
               # this gets false positives for QProcess (which doesn't set notifier
               # but seems to be OK with file and stdin
               self.notifier.setEnabled(False)  # stop looking for more
-              self.rebutton('Close', self.close)
+              self.rebutton('Close', self.close,'eof={}'.format(self.eof))
         if b and len(b)>0:
             self.eof = 0
             t = b.decode('utf-8', errors='backslashreplace') # XXX gets unicode errors, needs try
@@ -336,7 +336,7 @@ class QtTail(QtWidgets.QMainWindow):
             if b and rdelay:
                 #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
                 QTimer.singleShot(int(rdelay)*1000, Qt.VeryCoarseTimer, self.actionAdjust)
-            self.showsize()
+        self.showsize()
 
     # @QtCore.pyqtSlot(str)
     def filechanged(self, path):
@@ -480,12 +480,12 @@ class QtTail(QtWidgets.QMainWindow):
 
     def killProcess(self, checked):
         self.file.kill()
-        self.rebutton('Close', self.close) # reassign when it dies
+        self.rebutton('Close', self.close,'killed') # reassign when it dies
 
-    def rebutton(self, label, slot):
+    def rebutton(self, label, slot, why=''):
         title = 'unknown'
         if hasattr(self,'jobitem'): title=self.jobitem.title()
-        # print("rebutton {} = {}".format(title, label)) # DEBUG
+        #print("rebutton {} = {} {}".format(title, label,why)) # DEBUG
         button = self.ui.reloadButton
         if self.buttonCon:
             # print("  unbutton {}".format(button.text())) # DEBUG
@@ -553,7 +553,17 @@ class QtTail(QtWidgets.QMainWindow):
         framedx = rect.width() - docrect.width()
         framedy = rect.height() - docrect.height()
         #print("ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
-        doc.adjustSize()  # XX this can be slow, avoid it when interacting?
+        # time this expensive function and don't do it again if it's bad
+        if not self.disableAdjustSize:
+            start = time.time()
+            doc.adjustSize()
+            interval = time.time()-start
+            blocks = doc.blockCount()
+            #print('adjustSize took {}s for {} blocks'.format(interval, blocks)) # DEBUG
+            if interval > 0.5 or blocks>100:  # SETTING time and maxline threshold for resize
+                # don't need to do this again if we have enough samples
+                # or if it took too long this time
+                self.disableAdjustSize=True
         #print(" ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
         newsize = doc.size()
         #print(' docsize='+str(newsize)) # DEBUG

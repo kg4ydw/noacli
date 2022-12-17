@@ -790,6 +790,9 @@ D*   if it ends in / select dirs only??
  * log prefix is being eaten twice by parser "tail tail" doesn't work
  * file dialog cwd filter breaks in python 3.8 (work around in place)
  * settings dialog need a good dynamic default size
+ ? qtail huge pause during adjustSize
+      likely caused by whole document word wrap recalculation
+ *    don't resize after 100 lines or last resize was >0.5s
 
 
 ## ispell put these here
