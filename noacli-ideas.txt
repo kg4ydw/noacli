@@ -31,6 +31,7 @@ Things to implement soon:
    favorites changes
 !    separate button(checkbox) and name
      autocheck button if name is filled in, uncheck if blanked
+   qtail reverse find (context menu? menu checkbox?)
    pip setup.py installer
    mac installer?
    qtail automatic pause (at 10k lines)
@@ -88,7 +89,13 @@ high priority bugs
       dialog box
 
 Misc things to implement
+   process.setStandardInput?(QProcess::nullDevice())
    SETTING auto pause qtail on maxlines threshold
+   table filter case sensitivity
+   table view option to fix non-data cells / rows (post skip)
+      span columns?
+      chop?
+      delete row?
  * qtail button mode
  *    watch vs. transient
  *    rerun vs. close
@@ -149,6 +156,7 @@ x!so  block tostop signal : try os.setsid ?
    flowlayout overlapping buttons (rare? one time glitch?)
 
 Bugs:
+   test Qt dock bug on Ubuntu 20
  ! have_error not propagating (free after emit? try delete later?)
    test sibling markers
  o font changes

@@ -149,6 +149,7 @@ following options:
 
 `--filtercol=` and `--filter=`  
     Set initial filter column and filter string (useful in favorites)
+    Filtercol may be a (1 based) column index or the first match in headers
 
 Like qtail, table also accepts the --file and --files options.
 
@@ -389,8 +390,9 @@ and change the default output destination:
     Merge output from this and other commands into the merged log dock window
 
 `table`  
-    Attempt to parse the output as a table; designed to handle delimited
-    text, fixed width tables, and large numbers of columns.
+    Attempt to parse the output as a table; designed to handle
+    delimited text, fixed width tables, and large numbers of columns.
+    See options list above.
 
 Additionally, wrappers are activated by keyword somewhat like builtin
 commands and can be placed after the above output direction commands.

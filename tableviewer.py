@@ -572,7 +572,12 @@ class TableViewer(QtWidgets.QMainWindow):
         self.proxymodel.setSourceModel(self.model)
         self.ui.tableView.setModel(self.proxymodel)
         try:
-            col = int(self.argdict['filtercol']) # if no exception raised, use it
+            col = self.argdict['filtercol']
+            if col.isnumeric():
+                col = int(col)-1
+            else:
+                col = self.headers.index(col)
+            # if nothing above failed...
             self.proxymodel.setFilterKeyColumn(col)
         except:
             # search by whole table, class default is col 1
