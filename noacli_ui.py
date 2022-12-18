@@ -228,17 +228,17 @@ class Ui_noacli(object):
         self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.dockWidgetContents_2)
         self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
-        self.horizontalLayout = QtWidgets.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.dockTools = QtWidgets.QHBoxLayout()
+        self.dockTools.setObjectName("dockTools")
         self.checkBox = QtWidgets.QCheckBox(self.dockWidgetContents_2)
         self.checkBox.setChecked(True)
         self.checkBox.setObjectName("checkBox")
-        self.horizontalLayout.addWidget(self.checkBox)
+        self.dockTools.addWidget(self.checkBox)
         self.logSearch = QtWidgets.QLineEdit(self.dockWidgetContents_2)
         self.logSearch.setClearButtonEnabled(True)
         self.logSearch.setObjectName("logSearch")
-        self.horizontalLayout.addWidget(self.logSearch)
-        self.verticalLayout_6.addLayout(self.horizontalLayout)
+        self.dockTools.addWidget(self.logSearch)
+        self.verticalLayout_6.addLayout(self.dockTools)
         self.logBrowser = logOutput(self.dockWidgetContents_2)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -289,6 +289,8 @@ class Ui_noacli(object):
         self.actionEditor_font.setObjectName("actionEditor_font")
         self.actionBrowser_font = QtWidgets.QAction(noacli)
         self.actionBrowser_font.setObjectName("actionBrowser_font")
+        self.actionHelp = QtWidgets.QAction(noacli)
+        self.actionHelp.setObjectName("actionHelp")
         self.historyMenu.addAction(self.actionlastCommand)
         self.historyMenu.addAction(self.actionsave_history)
         self.historyMenu.addSeparator()
@@ -299,6 +301,7 @@ class Ui_noacli(object):
         self.menuSettings.addAction(self.actionFavorites_editor)
         self.menuSettings.addAction(self.actionGsettings)
         self.menuSettings.addAction(self.actionEnvironment_Variables)
+        self.menuSettings.addAction(self.actionHelp)
         self.menuSettings.addSeparator()
         self.menuSettings.addAction(self.actionEditor_font)
         self.menuSettings.addAction(self.actionSync_settings)
@@ -340,6 +343,7 @@ class Ui_noacli(object):
         self.smallOutputView.gotNewLines['int'].connect(self.smallOutputDock.newLines) # type: ignore
         self.actionEditor_font.triggered.connect(noacli.pickDefaultFont) # type: ignore
         self.actionBrowser_font.triggered.connect(noacli.pickBrowserFont) # type: ignore
+        self.actionHelp.triggered.connect(noacli.showReadme) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -385,6 +389,7 @@ class Ui_noacli(object):
         self.actionEnvironment_Variables.setText(_translate("noacli", "Environment Variables"))
         self.actionEditor_font.setText(_translate("noacli", "Editor font"))
         self.actionBrowser_font.setText(_translate("noacli", "Browser default font"))
+        self.actionHelp.setText(_translate("noacli", "Help"))
 from logoutput import logOutput
 from mydock import myDock
 from noacli import commandEditor, historyView

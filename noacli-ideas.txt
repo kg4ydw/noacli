@@ -28,6 +28,7 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
+   test if qtail argparse works for simpleargs
    favorites changes
 !    separate button(checkbox) and name
      autocheck button if name is filled in, uncheck if blanked

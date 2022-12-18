@@ -1135,6 +1135,19 @@ class noacli(QtWidgets.QMainWindow):
     def runSimpleCommand(self, cmd, title):
         self.runCommand(cmd,None,title)
 
+    def showReadme(self):
+        # make a fake job and use qtail to display our own readme
+        j=jobItem(None)
+        j.setTitle('Readme.md')
+        j.setMode('QTail')
+        # find our readme
+        dir = os.path.dirname(os.path.realpath(__file__))
+        p =  os.path.join(dir,'Readme.md') # XX test path?
+        j.outwinArgs = ['--url']
+        self.settings.jobs.newjob(j)
+        j.startOutwin(p,self.settings)
+        # XX clean up on fail?
+
     # in: self.runLast, commandEdit->command_to_run, QShortcuts
     # out: historyView, jobModel, jobTableView
     # slot to connect command window runCommand

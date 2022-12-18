@@ -14,7 +14,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # Doesn't handle backscrolling beyond its internal buffers
 # Currently doesn't chunk input well which causes delays and hangups
 
-import os, re, sys, time
+import os, re, sys, time, argparse
 from functools import partial
 from math import ceil
 
@@ -55,28 +55,22 @@ class myOptions():
         self.whole = False
         self.title = None
         self.format = None # p=PlainText m=Markdown h=Html
+        self.url = False
         # XX whole file mode vs tail mode?  oneshot vs. follow?
         # XX alternate format options: html markdown fixed-font
 
     def processOptions(self, app):
-        parser = QCommandLineParser()
-        parser.setApplicationDescription("View and follow the tail end of a file")
-        parser.addHelpOption()
-        # XXX parser.addVersionOption()
+        parser = argparse.ArgumentParser(prog='qtail', description='View and follow the tail of a file or pipe')
+        #XX parser.add_argument("--command",help="view output from command", action='store_true')
 
-        optCommand = QCommandLineOption("command","view output from command")
-        parser.addOption(optCommand)
         ## copy some options from tail, but not exactly
-        optTailFrag = QCommandLineOption(['c', 'bytes'], 'maximum size of tail chunk in bytes', 'bytes', str(self.tailFrag))
-        parser.addOption(optTailFrag)
-        optLines = QCommandLineOption(['n', 'lines'], 'keep the last NUM lines', 'NUM')
-        parser.addOption(optLines)
-        optWhole = QCommandLineOption(['w','whole'], 'look at the whole file, not just the tail')
-        parser.addOption(optWhole)
-        optTitle = QCommandLineOption(['t','title'], 'set window title if a filename is not supplied','title')
-        parser.addOption(optTitle)
-        optFormat = QCommandLineOption(['format'], 'Pick a format (plaintext html)', 'format') # XX markdown doesn't work
-        parser.addOption(optFormat)
+        parser.add_argument('-c', '--bytes', type=int, metavar='bytes', help='maximum size of tail chunk in bytes', dest='tailFrag', default=self.tailFrag)
+        parser.add_argument('-n', '--lines', help='keep the last NUM lines', metavar='NUM', type=int, default=10000)
+        parser.add_argument('-w','--whole', help='look at the whole file, not just the tail', action='store_true')
+        parser.add_argument('-t','--title', help='set window title if a filename is not supplied',metavar='title')
+        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown','p','h','m'], metavar='format', default='plaintext') # XX markdown doesn't work
+        parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
+        parser.add_argument('filename', nargs=argparse.REMAINDER)
         
         #XXX more options from tail
         # -f  : currently default always on
@@ -90,27 +84,21 @@ class myOptions():
         # --timeout-quit  (for pid and unchanged)
         # --timeout-countdown (starts countdown before quitting)
         # --triansient (exit immediately on pid, unchanged)
-        
-        parser.process(app)
-        ## convert parsed options into sane and useful values
-        self.isCommand = parser.isSet(optCommand)
-        try: tailFrag = int(parser.value(optTailFrag))
-        except: tailFrag = 0
-        if tailFrag > 100: self.tailFrag = tailFrag
-        try: lines = int(parser.value(optLines))
-        except: lines = 0;
-        if parser.isSet(optLines): self.maxLines = lines
-        self.whole = parser.isSet(optWhole)
-        if self.whole: self.maxLines = 0
-        if parser.isSet(optTitle):
-            self.title = parser.value(optTitle)
-        if parser.isSet(optFormat):
-            f = str(parser.value(optFormat))[0].lower()
-            if f=='m': self.format='m'
-            elif f=='h': self.format='h'
-            else: self.format = None
+        args = parser.parse_args()
 
-        self.args = parser.positionalArguments()
+        # self.isCommand = parser.command # XX
+        if args.tailFrag > 100: self.tailFrag = args.tailFrag
+        self.maxLines = args.lines
+        self.whole = args.whole
+        if self.whole: self.maxLines = 0
+        if args.title: self.title=args.title
+        if args.format:
+            if args.format=='html': self.format='h'
+            elif args.format=='markdown': self.format='m' # XX
+            else: self.format=None
+        if args.url: self.url = True
+        print(args.filename)
+        self.args = args.filename
         return self.args
                 
 class QtTail(QtWidgets.QMainWindow):
@@ -358,9 +346,18 @@ class QtTail(QtWidgets.QMainWindow):
         # qtail args XXXXX
         # ignore --file and --files (processed by caller)
         # --maxlines=
+        # --url
+        # XXX could we just feed it to argparse?
+        for arg in args:
+            if arg=='--url':
+                self.opt.url = True
         return
 
     def openfile(self,filename):
+        if self.opt.url:
+            # bypass normal file I/O and let Qt do it
+            return self.ui.textBrowser.setSource(QtCore.QUrl(filename))
+
         # XXX assume tail mode
         f = QtCore.QFile(filename)
         if not f.open(QtCore.QFile.ReadOnly):
@@ -386,7 +383,26 @@ class QtTail(QtWidgets.QMainWindow):
         self.endcursor = self.textbody.textCursor()
         self.endcursor.movePosition(QtGui.QTextCursor.End)
         self.textbody.setTextCursor(self.endcursor)
+    
+    def openMarkdownFile(self, filename):
+        # Qt textBrowser doesn't support appending to markdown so...
+        # we break all the rules for this one
+        try:
+            f = open(filename)
+            text = f.read()
+        except OSError:
+            self.close()
+            self.setParent(None)
+            raise
+        finally:
+            close(f)
+        self.setWindowTitle(filename)
+        self.ui.textBrowser.document().setMarkDown(text)
 
+    #def openUrl(self, filename):
+    #    # let Qt autodetect file format and find the file
+    #    self.ui.textBrowser.setSource(QtCore.QUrl(filename))
+        
     def openstdin(self):
         if not self.opt.title:
             self.setWindowTitle('qtail: stdin')
@@ -595,6 +611,7 @@ if __name__ == '__main__':
     options = myOptions()
     args = options.processOptions(app)
 
+    # XXX
     if options.isCommand:
         print('--Command not implemented yet')  # XXXX
         exit(1)
@@ -613,7 +630,6 @@ if __name__ == '__main__':
         # resize window with adjust() if command exits 
         pass
     elif args and args[0]!='-':
-        # XXX handle multiple files later
         mainwin.openfile(args[0])
     else:
         mainwin.openstdin()
