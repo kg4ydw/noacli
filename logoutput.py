@@ -270,8 +270,7 @@ class logOutput(QTextBrowser):
             if t:
                 sm = m.addMenu('info: '+t)
                 c = job.command()
-                # XXX and do what?
-                sma = sm.addAction(c)
+                sma = sm.addAction(c) # XX and do what? just view for now
         if job and job.process and job.process.state()==QProcess.Running:
             m.addAction("Kill pid "+pidT, partial(self.termJob,job))
             m.addAction("Kill pid {} hard".format(pidT),partial(self.killJob,job))

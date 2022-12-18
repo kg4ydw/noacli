@@ -33,6 +33,7 @@ class jobItem():
         if history:  # only for real jobs
             self.setStatus('init')
             self.process = QProcess()
+            self.process.setStandardInputFile(QProcess.nullDevice())
             self.process.started.connect(self.collectPid)
             self.process.errorOccurred.connect(self.collectError)
             self.process.finished.connect(self.collectFinish)
@@ -165,7 +166,8 @@ class jobItem():
         # XXX connect output to something
         # for now, just merge stdout,stderr and send to qtail
         self.process.setProcessChannelMode(QProcess.MergedChannels)
-        self.process.closeWriteChannel() # close stdin if we have no infile XXX
+        ## stdin already connected to /dev/null
+        #self.process.closeWriteChannel() # close stdin if we have no infile
         outwin = self.mode
         #print('start mode: '+str(outwin)) # DEBUG
         if outwin==OutWin.QTail:
@@ -222,7 +224,6 @@ class jobTableModel(itemListModel):
         if not self.validateIndex(index): return None
         col = index.column()
         job = self.data[index.row()]
-        #if role==Qt.ToolTipRole: return(str(job.index.row())) # XXX DEBUG
         if role==Qt.ToolTipRole:
             if col==0 and job.pid: return str(job.pid)
             elif col==4: return job.command()
@@ -438,7 +439,7 @@ class History(itemListModel):
         if f[0]=='/': return f
         # it's a relative path, try to construct full path
         try:
-            # XXX nonportable?
+            # XXX nonportable path construction?
             fname = os.environ.get('HOME') +'/'
         except Exception as e:
             print(str(e)) # EXCEPT

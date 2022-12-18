@@ -30,7 +30,7 @@ line100.pbm: line100-ascii.pbm
 
 tags: TAGS
 TAGS: $(SRCFILES)
-	etags datamodels.py logoutput.py noacli.py qtailbrowser.py qtail.py smalloutput.py typedqsettings.py commandparser.py envdatamodel.py noajobs.py tableviewer.py mydock.py
+	etags --regex '/.*ETAGS: \(\w+\)/\1/' datamodels.py logoutput.py noacli.py qtailbrowser.py qtail.py smalloutput.py typedqsettings.py commandparser.py envdatamodel.py noajobs.py tableviewer.py mydock.py
 
 
 

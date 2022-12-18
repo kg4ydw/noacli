@@ -32,7 +32,6 @@ class myBrowser(QTextBrowser):
         self.toTable(self.toPlainText())
 
     def autoTable(self, text):
-        # XXX guess for fixed format spaced columns too
         # guess what kind of table this is based on the first line
         # This is (intentionally?) primitive, tableviewer does it better
         # XXX export selection to tableviewer instead?
@@ -53,7 +52,7 @@ class myBrowser(QTextBrowser):
         return table
     
     def toTable(self, text):
-        # XXX this doesn't handle quoted delimiters correctly in csv
+        # this doesn't handle quoted delimiters correctly in csv, very primitive
         atable = self.autoTable(text)
         if not atable: return  # fail!
         # normalize the table

@@ -90,9 +90,27 @@ class settings():
         self.qtail = qtailSettings()
         self.copy2qtail()
 
-        ## settings dialog info
-        # name, default, tooltip / description
-        # Note: defaults here might not match the real defaults embeeded in code
+    def generalSettingsContextMenu(self, point):
+        t = self.dialog.ui.tableView
+        index = t.indexAt(point)
+        # XX and index is not default value
+        if index.isValid():
+            # XXX not if already default?
+            m = QMenu(self.dialog)
+            # XXX value? already default?
+            m.addAction("Reset to default", partial(self.resetGenSetting, index))
+            action = m.exec_(t.mapToGlobal(point))  # event.globalPos())
+
+    def resetGenSetting(self, index):
+        m = index.model()
+        if index.row()!=1:
+            index = m.index(index.row(),1)
+        m.setData(index, index.data(Qt.ToolTipRole), Qt.EditRole)
+
+    ## settings dialog info
+    # name, default, tooltip / description
+    # Note: defaults here might not match the real defaults embeeded in code
+    # ETAGS: generalSettingsDialog
     def makeDialog(self, parent):
         # XX makeDialog should be generalSettingsDialog or something
         # collect list of rows including settings
@@ -136,6 +154,10 @@ class settings():
         model = settingsDataModel(self.settingsDirectory, data, typedata)
         self.dialog = settingsDialog(parent, 'Settings', model, 'noacli settings')
         self.dialog.finished.connect(self.acceptOrReject)
+        tv =  self.dialog.ui.tableView
+        tv.setContextMenuPolicy(Qt.CustomContextMenu)
+        tv.customContextMenuRequested.connect(self.generalSettingsContextMenu)
+
         #XX# self.dialog.apply.connect(self.acceptchanges)
 
     def copy2qtail(self):
@@ -263,6 +285,9 @@ class historyView(QTableView):
         self.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
         self.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
         self.delayedScroll.connect(self.doDelayedScroll, Qt.QueuedConnection)
+        vh = self.verticalHeader()
+        vh.customContextMenuRequested.connect(self.buildContextMenu)
+        vh.setContextMenuPolicy(Qt.CustomContextMenu)
 
     def setModel(self,model):
         self.realModel = model
@@ -324,24 +349,27 @@ class historyView(QTableView):
         
 
     def addFav(self, index):
-        cmd = index.data()
+        m = index.model()
+        cmd = m.data(m.index(index.row(),1))
         self.newFavorite.emit(cmd)
     
     def contextMenuEvent(self, event):
+        self.buildContextMenu(event.pos())
+        
+    def buildContextMenu(self, point):
         m = QMenu(self)
         # XXX disable or omit inappropriate actions in this menu
-        index = self.indexAt(event.pos())
-        m.addAction("Add to favorites",partial(self.addFav, index))
+        index = self.indexAt(point)
+        m.addAction("Add to favorites",partial(self.addFav, index)) # already there?
         m.addAction("Delete",partial(self.deleteOne, index))
-        m.addAction("Delete selected rows",self.deleteSelected)
-        # make the model do these two
+        m.addAction("Delete selected rows",self.deleteSelected) # not a row?
         m.addAction("Collapse duplicates",self.realModel.collapseDups)
         m.addAction("Delete earlier duplicates",self.realModel.deletePrevDups)
         m.addAction("Resize rows vertically", self.resizeRowsToContents)
         m.addAction("Scroll to top", self.scrollToTop)
         m.addAction("Scroll to bottom", self.scrollToBottom)
 
-        action = m.exec_(event.globalPos())
+        action = m.exec_(self.mapToGlobal(point))  # event.globalPos())
         #print(action) # DEBUG
 
     def resizeVheader(self, logical):
@@ -608,7 +636,7 @@ class Favorites():
                 if command not in self.cmds:
                     gotcmd.add(command)
                     self.addFavorite(command, name, shortcut, immediate)
-        # XXXX above code won't work on a second pass
+        # XX above code won't work on a second pass (removed apply button, moot)
         ## don't destroy this in case apply is clicked a second time
         #self.data = None
 
@@ -705,8 +733,8 @@ class noacli(QtWidgets.QMainWindow):
         ui=self.ui
 
         self.tabifyAll()
-        #self.hideAllDocks()  # XXX or show all?
-        ## XXX show button dock by default?
+        # most obvious UI for new users is for all docks to be shown
+        #self.hideAllDocks()  # if you want this, save a profile
 
         ui.actionTabifyDocks.triggered.connect(self.tabifyAll)
 
@@ -767,14 +795,6 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.jobTableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.jobTableView.customContextMenuRequested.connect(self.jobcontextmenu)
         
-        # close and reopen stdin. We dont need it, and bad things happen XXX use filenull ?
-        # if subprocesses try to use it.
-        ## nonportable out of unix?
-        # XXX this didn't help
-        #os.close(0)
-        #os.open("/dev/null", os.O_RDWR)
-        # solutions: setsid or pty fork
-        
         ##### geometry profiles
         qs = typedQSettings()
         v = qs.value('DefWinProfile', True)
@@ -817,12 +837,12 @@ class noacli(QtWidgets.QMainWindow):
 
         self.applyEditorFont()  # do this again after everything is set up
 
-        ##### install signal handlers
+        ##### install signal handlers XXX
         #try:  # in case anything here is unportable
         #    signal.signal(signal.SIGINT, self.ouch)
         #    #X this is for output# signal.signal(signal.SIGTSTP, self.tstp)
-        #    signal.signal(signal.SIGTTIN, self.terminalstop) # XXX didn't work
-        #    #signal.signal(signal.SIGTTIN, signal.SIG_IGN) # XXX didn't work
+        #    signal.signal(signal.SIGTTIN, self.terminalstop) # didn't work
+        #    #signal.signal(signal.SIGTTIN, signal.SIG_IGN) # didn't work
         #except Exception as e:
         #    # XX ignore failed signal handler installs
         #    print("Not all signal handlers installed"+str(e)) # EXCEPT
@@ -1155,11 +1175,12 @@ class noacli(QtWidgets.QMainWindow):
         if not hist and command:
             # make a new history entry!
             hist = self.settings.history.saveItem(command, None, None)
-        if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
-            hist=hist.model().mapToSource(hist) # XXXX fragile?
         self.ui.historyView.resetHistorySort(False)  # XXX this might be annoying
+        if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
+            hist=hist.model().mapToSource(hist) # XXX fragile? too soon?
         if not hist.model():
-            return # XXXXX EXCEPT
+            print('bad hist, punting') # EXCEPT
+            return 
         cmdargs = self.settings.commandParser.parseCommand(hist.model().getCommand(hist))
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
         if cmdargs==None: return # done
@@ -1442,6 +1463,7 @@ class commandEditor(QPlainTextEdit):
     def historyUp(self):
         if not self.history: return
         self.acceptHistory(self.history.prev(self.histindex))
+        
     @QtCore.pyqtSlot()
     def historyDown(self):
         if not self.history: return
@@ -1512,7 +1534,7 @@ if __name__ == '__main__':
     QtCore.QCoreApplication.setOrganizationName("kg4ydw");
     QtCore.QCoreApplication.setApplicationName("noacli");
 
-    # XXX process command line args
+    # XXX process noacli command line args (do to what?)
 
     mainwin = noacli(app)
     w = mainwin.ui

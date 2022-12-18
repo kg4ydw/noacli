@@ -81,7 +81,7 @@ class myOptions():
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
         parser.add_argument('filename', nargs=argparse.REMAINDER)
         
-        #XXX more options from tail
+        #XX more options from tail
         # -f  : currently default always on
         # --retry
         # --max-unchanged-status (a timeout would be better)
@@ -219,7 +219,7 @@ class QtTail(QtWidgets.QMainWindow):
                 self.rebutton('Rerun', self.reloadOrRerun)
             else:
                 self.rebutton('Close', self.close,'modeNorun')
-        else: ## XXX distinguish between stdin and a file
+        else: ## XX distinguish between stdin and a file
             self.rebutton('Close', self.close,'modefile')
         #else: # file
         #   self.rebuttion('Reload',self.reload)
@@ -337,7 +337,7 @@ class QtTail(QtWidgets.QMainWindow):
               self.rebutton('Close', self.close,'eof={}'.format(self.eof))
         if b and len(b)>0:
             self.eof = 0
-            t = b.decode('utf-8', errors='backslashreplace') # XXX gets unicode errors, needs try
+            t = b.decode('utf-8', errors='backslashreplace')
             # self.textbody.append(t)  # append adds an extra paragraph separator
             #self.endcursor.insertText(t)
             if self.opt.format=='h':  e.insertHtml(t)
@@ -347,7 +347,7 @@ class QtTail(QtWidgets.QMainWindow):
                 self.textbody.setTextCursor(e)
         if b and len(b)==blocksize and not self.file.atEnd():
             self.want_read_more.emit('more')
-        if self.firstRead and (self.eof>2 or e.position()>200 or self.textbody.document().blockCount()>10): # XXX SETTING threshold
+        if self.firstRead and (self.eof>2 or e.position()>200 or self.textbody.document().blockCount()>10): # SETTING threshold
             # if never resized, resize at eof or 200 bytes or 10 lines
             # XXX but maybe not if there's more to read immediately??
             self.firstRead=False
@@ -377,11 +377,7 @@ class QtTail(QtWidgets.QMainWindow):
     def simpleargs(self, args):
         # Process simple "command line" arguments from noacli internal parsing
         # only single word options supported, so --option=value must be used
-        # qtail args XXXXX
         # ignore --file and --files (processed by caller)
-        # --maxlines=
-        # --url
-        # argparse mostly works
         self.opt.processOptions(None,args)
         if typedQSettings().value('DEBUG',False) and hasattr(self.opt,'rest') and len(self.opt.rest)>1:
             print('Unparsed options: '+repr(self.opt.rest)) # ifDEBUG
@@ -484,7 +480,7 @@ class QtTail(QtWidgets.QMainWindow):
             try:
                 #c = process.program() # XX get args too?
                 # as long as we always wrap in bash -c, just get the args
-                #XXX should set the title from a template in SETTINGs?
+                # should set the title from a template in SETTINGs?
                 c = " ".join(process.arguments()[1:])
                 c = c.strip()
                 c = c.partition('\n')[0]  # don't mess with multiple lines
@@ -503,7 +499,8 @@ class QtTail(QtWidgets.QMainWindow):
         # these are likely too soon
         #self.actionAdjust()
         #self.showsize()
-        if pretext and len(pretext)>200: # SETTING
+        # if there's some text and it's big enough, or no more is coming...
+        if pretext and (len(pretext)>200 or type(self.file)!=QProcess or self.file.state()==QProcess.NotRunning): # SETTING min size threshold
             self.want_resize.emit()
         #else: wait for data
 
@@ -513,7 +510,7 @@ class QtTail(QtWidgets.QMainWindow):
         if self.firstRead: self.actionAdjust()
         self.setButtonMode()
         if self.ui.textBrowser.document().isEmpty():
-            # XXX should this be conditional?
+            # XXX should close on empty be conditional?
             self.close()
 
     def terminateProcess(self, checked):

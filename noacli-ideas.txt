@@ -28,19 +28,15 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
-   general settings context menu --> use default
+   pip setup.py installer
    favorites changes
 !    separate button(checkbox) and name
      autocheck button if name is filled in, uncheck if blanked
    qtail reverse find (context menu? menu checkbox?)
-   pip setup.py installer
    mac installer?
    table column picker needs an undo select columns
- * change default arrangement to show all / tabify all
- * set tableview default filter col = -1
    mac terminal window (applescript?)
  ? settingsDialog needs doubleclick resize (fixed default ??)
-   context menu in history headers (h and v)
    cd should parse ~
    realign general settings editor to be callable from other apps
  x table should send stderr to log
@@ -73,12 +69,11 @@ high priority bugs
    reported lockup on mac when playing with menu bar menus / job manager?
    view->font might be confusing (document)
    QPersistentModelIndex contamination, trace and check types (marked)
-   runCommand history bug (marked)
+ ? runCommand history may be translating from QPersist to QModelIndex too soon
  ! table: use command line parser on real command line
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac (wrong geom?)
-   qtail should resize on smalldup of dead proc
  ? fileDialog doesn't always trim prefix correctly
      doesn't work consistently if no prefix directory (./ doesn't work either)
 
@@ -98,7 +93,8 @@ Misc things to implement
 d*    rerun interval
       file doesn't need autorefresh?? or should it clear(); seek(0)
  ? built in commands should get marked done in history
-   close stdin
+ * close stdin
+     ssh still causes tostop or something
    add small buttons in dock widget headers
      jobs: clean
      history: reset sort
@@ -737,6 +733,9 @@ D* filedialog prefix '" causes all filenames to be quoted
  n   application font
  *   create styled item delegate for QFont
  * qtail on files directly in shell
+ * change default arrangement to show all / tabify all
+ * set tableview default filter col = -1
+ * general settings context menu --> use default
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -794,6 +793,8 @@ D*   if it ends in / select dirs only??
  *    status bar message?
  *    smalloutput message
  n    dialog box
+ * context menu in history headers (h and v)
+ * qtail should resize on smalldup of dead proc
 
 
 ## ispell put these here

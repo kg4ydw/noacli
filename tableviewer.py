@@ -124,7 +124,7 @@ class lineBuffer():
     def __iter__(self):
         return self
     def __next__(self):
-        # XXX should this make sure the next line is whole
+        # should this make sure the next line is whole
         # or assume the calling code already called canReadLine
         if len(self.lines)==0:
             raise StopIteration
@@ -214,7 +214,6 @@ class TableViewer(QtWidgets.QMainWindow):
         self.argdict = {}
         self.headers = None
         self.forcefixed=False
-        # XXX icon
         # connect to my own event so I can send myself a delayed signal
         self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection)
         self.ui = Ui_TableViewer()
@@ -417,7 +416,7 @@ class TableViewer(QtWidgets.QMainWindow):
     # context menu triggered
     def collapseSelectedCells(self):
         sm = self.proxymodel.mapSelectionToSource(self.ui.tableView.selectionModel().selection())
-        slist = sorted(sm.indexes(), reverse=True) #XXX test
+        slist = sorted(sm.indexes(), reverse=True)
         # and clear the selection now that we've got the cell list.
         # This gives feedback in case the user tried to do something wierd.
         self.ui.tableView.selectionModel().clear() # XX only clear ones we've fixed?
@@ -543,10 +542,10 @@ class TableViewer(QtWidgets.QMainWindow):
         if self.headers:
             headers = self.headers
         elif self.useheader:
-            headers = self.data[0].copy() # XXX copy or steal first row as headers
+            headers = self.data[0].copy() # copy first row as headers
         else:
             headers=[]
-            # XXX disable header view?
+            # don't disable header view, need it to resize columns
     
         # fix blank headers
         for i in range(len(headers)):

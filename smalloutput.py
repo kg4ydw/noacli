@@ -152,7 +152,7 @@ class smallOutput(QTextBrowser):
                 title = self.process.command()[0] # XX
                 self.jobitem.setTitle(title)
             else:
-                title = 'dead' # XXX pull default? SETTING
+                title = 'dead' # pull default? SETTING
         qt = QtTail(self.settings.qtail)
         qt.openPretext(self.jobitem, self.textstream, pretext=text, title=title)
         self.jobitem = None
@@ -180,7 +180,7 @@ class smallOutput(QTextBrowser):
         # pack up jobitem for easy passing
         self.jobitem.process = self.process
         self.jobitem.textstream = self.textstream
-        self.sendToLog.emit(self.jobitem) # XXX pretext?
+        self.sendToLog.emit(self.jobitem) # send pretext?
         self.clearproc()
         self.jobitem = None
 
