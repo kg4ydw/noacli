@@ -14,7 +14,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # Doesn't handle backscrolling beyond its internal buffers
 # Currently doesn't chunk input well which causes delays and hangups
 
-import os, re, sys, time, argparse
+import os, re, sys, time, argparse, copy
 from functools import partial
 from math import ceil
 
@@ -44,6 +44,14 @@ typedQSettings().registerOptions({
     'QTailWatchInterval': [30, "Default automatic refresh interval for qtail in watch mode", int],
 })    
 
+class softArgumentParser(argparse.ArgumentParser):
+    exit_on_error=True
+    def exit(self, status=0, message=None):
+        if self.exit_on_error:
+            super().exit(status,message)
+        elif status:
+            print(message) # EXCEPT
+
 # options values -- set defaults
 class myOptions():
     def __init__(self):
@@ -59,13 +67,14 @@ class myOptions():
         # XX whole file mode vs tail mode?  oneshot vs. follow?
         # XX alternate format options: html markdown fixed-font
 
-    def processOptions(self, app):
-        parser = argparse.ArgumentParser(prog='qtail', description='View and follow the tail of a file or pipe')
+    def processOptions(self, app, args=None):
+        # vestiges of QCommandLineParser remain here (maybe refactor later)
+        parser = softArgumentParser(prog='qtail', description='View and follow the tail of a file or pipe')
         #XX parser.add_argument("--command",help="view output from command", action='store_true')
 
         ## copy some options from tail, but not exactly
         parser.add_argument('-c', '--bytes', type=int, metavar='bytes', help='maximum size of tail chunk in bytes', dest='tailFrag', default=self.tailFrag)
-        parser.add_argument('-n', '--lines', help='keep the last NUM lines', metavar='NUM', type=int, default=10000)
+        parser.add_argument('-n', '--lines', help='keep the last NUM lines', metavar='NUM', type=int, default=self.maxLines)
         parser.add_argument('-w','--whole', help='look at the whole file, not just the tail', action='store_true')
         parser.add_argument('-t','--title', help='set window title if a filename is not supplied',metavar='title')
         parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown','p','h','m'], metavar='format', default='plaintext') # XX markdown doesn't work
@@ -84,20 +93,42 @@ class myOptions():
         # --timeout-quit  (for pid and unchanged)
         # --timeout-countdown (starts countdown before quitting)
         # --triansient (exit immediately on pid, unchanged)
-        args = parser.parse_args()
+        if args:
+            # called from noacli
+            parser.exit_on_error = False
+            # XX future: refactor to use self namespace and do less checking
+            msg = None
+            try:  # XX some day refactor this to caller
+                (args, rest) = parser.parse_known_args(args)
+                # keep the rest just in case
+                self.argparse = args
+                self.rest = rest
+            ## broken
+            #except argparse.ArgumentError as e:
+            #    # print(repr(e)) # DEBUG
+            #    msg = format("{}: {}".format(e[0].dest, e[1]))
+            except Exception as e:
+                msg = str(e)
+            finally:
+                if msg:
+                    self.errmsg = msg # XX nobody uses this yet
+                    print(msg) # EXCEPT
+                    return
+        else:
+            args = parser.parse_args()
 
-        # self.isCommand = parser.command # XX
+        ## this might be called late, so apply settings as we go
+        # self.isCommand = parser.command # XX not implemented yet
         if args.tailFrag > 100: self.tailFrag = args.tailFrag
         self.maxLines = args.lines
         self.whole = args.whole
         if self.whole: self.maxLines = 0
-        if args.title: self.title=args.title
+        if args.title: self.title=args.title # XX late apply?
         if args.format:
             if args.format=='html': self.format='h'
             elif args.format=='markdown': self.format='m' # XX
             else: self.format=None
         if args.url: self.url = True
-        print(args.filename)
         self.args = args.filename
         return self.args
                 
@@ -122,6 +153,9 @@ class QtTail(QtWidgets.QMainWindow):
 
         if options==None:
             options=myOptions()
+        else:
+            options = copy.copy(options) # don't modify parent object
+        
         self.firstRead = True
         self.opt = options
         self.ui = Ui_QtTail()
@@ -347,13 +381,16 @@ class QtTail(QtWidgets.QMainWindow):
         # ignore --file and --files (processed by caller)
         # --maxlines=
         # --url
-        # XXX could we just feed it to argparse?
-        for arg in args:
-            if arg=='--url':
-                self.opt.url = True
+        # argparse mostly works
+        self.opt.processOptions(None,args)
+        if typedQSettings().value('DEBUG',False) and hasattr(self.opt,'rest') and len(self.opt.rest)>1:
+            print('Unparsed options: '+repr(self.opt.rest)) # ifDEBUG
+            if '--rest' in self.opt.rest: # debug the debug
+                print("parsed: "+repr(self.opt.argparse)) # ifDEBUG
         return
 
     def openfile(self,filename):
+        self.start()
         if self.opt.url:
             # bypass normal file I/O and let Qt do it
             return self.ui.textBrowser.setSource(QtCore.QUrl(filename))
@@ -399,11 +436,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.setWindowTitle(filename)
         self.ui.textBrowser.document().setMarkDown(text)
 
-    #def openUrl(self, filename):
-    #    # let Qt autodetect file format and find the file
-    #    self.ui.textBrowser.setSource(QtCore.QUrl(filename))
-        
     def openstdin(self):
+        self.start()
         if not self.opt.title:
             self.setWindowTitle('qtail: stdin')
         # QFile doesn't work with readyRead, use QSocketNotifier instead for pipes
@@ -425,6 +459,7 @@ class QtTail(QtWidgets.QMainWindow):
         #self.reload();  # socket notifier makes this redundant
         
     def openProcess(self, title, process):
+        self.start()
         self.file = process
         if not self.opt.title:
             self.setWindowTitle(title)
@@ -434,6 +469,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.file.finished.connect(self.procFinished)
 
     def openPretext(self, jobitem, textstream, pretext='', title=None):
+        self.start()
         # textstream seems broken for non-blocking I/O
         self.textbody.setPlainText(pretext)
         # someone else already initialized stuff, just handing it over
@@ -611,10 +647,9 @@ if __name__ == '__main__':
     options = myOptions()
     args = options.processOptions(app)
 
-    # XXX
-    if options.isCommand:
-        print('--Command not implemented yet')  # XXXX
-        exit(1)
+
+    #if options.isCommand: # XXX not implemented yet
+
 
     mainwin = QtTail(options)
     if options.title: mainwin.setWindowTitle(options.title)

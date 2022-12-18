@@ -28,15 +28,13 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
-   test if qtail argparse works for simpleargs
+   general settings context menu --> use default
    favorites changes
 !    separate button(checkbox) and name
      autocheck button if name is filled in, uncheck if blanked
    qtail reverse find (context menu? menu checkbox?)
    pip setup.py installer
    mac installer?
-   qtail automatic pause (at 10k lines)
-      setting to extend 10k lines for this window
    table column picker needs an undo select columns
  * change default arrangement to show all / tabify all
  * set tableview default filter col = -1
@@ -77,21 +75,17 @@ high priority bugs
    QPersistentModelIndex contamination, trace and check types (marked)
    runCommand history bug (marked)
  ! table: use command line parser on real command line
- ! qtail: ? accept real command line options in shell from simpleargs
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac (wrong geom?)
    qtail should resize on smalldup of dead proc
  ? fileDialog doesn't always trim prefix correctly
      doesn't work consistently if no prefix directory (./ doesn't work either)
-   fix error message passing from tableviewer and qtail to be more visible
-      status bar message?
-      smalloutput message
-      dialog box
 
 Misc things to implement
    process.setStandardInput?(QProcess::nullDevice())
    SETTING auto pause qtail on maxlines threshold
+      setting to extend 10k lines for this window
    table filter case sensitivity
    table view option to fix non-data cells / rows (post skip)
       span columns?
@@ -126,7 +120,6 @@ d* SETTING: delay after first data before initial window resize
    context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
  o history context menu: set vert spacing: expand vs minimum
      context menu -> reset to default height
-   qtail on files directly in shell
  o history view row height
      autosize rows if they would be smaller
      reset to default on corner button?
@@ -137,9 +130,9 @@ d* SETTING: delay after first data before initial window resize
  * if output windows are not visible, add extra status to main window?
 
 User visible bugs:
-   on large data, qtail freezes on first resize in qt adust()
+ ? on large data, qtail freezes on first resize in qt adust()
      skip or postpone while busy?
-     resize early when buffer is small rather than later
+ o   resize early when buffer is small rather than later
    command buttons can be broken by setwrap (more testing needed)
    duplicate key bindings don't get background paint until dialog is reopened
  * empty dock bug
@@ -743,6 +736,7 @@ D* filedialog prefix '" causes all filenames to be quoted
  *   live font selection
  n   application font
  *   create styled item delegate for QFont
+ * qtail on files directly in shell
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -795,6 +789,11 @@ D*   if it ends in / select dirs only??
  *    don't resize after 100 lines or last resize was >0.5s
  * qtail gives useless errors on file not found
  * have_error not propagating (convert to exception and delete)
+ * qtail: accept real command line options in shell from simpleargs
+ * fix error message passing from tableviewer and qtail to be more visible
+ *    status bar message?
+ *    smalloutput message
+ n    dialog box
 
 
 ## ispell put these here
