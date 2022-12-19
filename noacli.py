@@ -35,7 +35,7 @@ from qtail import myOptions as qtailSettings
 from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 
-__version__ = '0.9.9.6'
+__version__ = '0.9.9.7'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
