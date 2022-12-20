@@ -131,6 +131,7 @@ class simpleTable(QAbstractTableModel):
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)
         self.mydata.append(row)
         self.endInsertRows()
+        return self.index(lastrow,0)
 
     def mergeCells(self, index, count=1):
         '''merge this cell with its adjacent neighbors in the same row, shifting

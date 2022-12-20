@@ -132,6 +132,9 @@ class commandParser:
                     cmd = rest
                     gotoutwin = True
                     # table and tail can take parameters
+                    if not cmd:
+                        # XXX empty command -- print a usage or something?
+                        return None
                     if outwin in [OutWin.QTail, OutWin.Table] and cmd[0]=='-':
                         outwinArgs=[]
                         while len(cmd)>0 and cmd[0]=='-':
@@ -172,7 +175,7 @@ class commandParser:
                     return [title, outwin, self.wrappers[word][1:] + [rest]]
             print('iloop: This cant happen') # EXCEPT
             # can't get here
-        print('oloop This cant happen') # EXCEPT
+        pass # XXX only get here if OutWin with options with no command
         # can't get here
 
     @builtin('cd')

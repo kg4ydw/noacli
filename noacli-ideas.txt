@@ -29,6 +29,7 @@ o  should the window auto-resize threshold be a setting
 
 Things to implement soon:
    pip setup.py installer
+   qtail --nowrap
    favorites changes
 !    separate button(checkbox) and name
      autocheck button if name is filled in, uncheck if blanked
@@ -63,9 +64,8 @@ videos
 
 high priority bugs
    document environment editor a bit
-      add item
       mode?
-      "add" button in dialog??
+ *    "add" button in dialog
    reported lockup on mac when playing with menu bar menus / job manager?
    view->font might be confusing (document)
    QPersistentModelIndex contamination, trace and check types (marked)
@@ -78,13 +78,25 @@ high priority bugs
      doesn't work consistently if no prefix directory (./ doesn't work either)
 
 Misc things to implement
-   process.setStandardInput?(QProcess::nullDevice())
+   favorites: contextmenu: delete from history 
+      alt: history sort by frequency
+   set some keybindings on all windows?
+   make tableviewer / qtail as dock widgets
+     dock vs. mainwindow mode
+     new dockable mainwindow
+     shared toolbars?
+   should watch windows suspend activity when not visible?
+      checkbox in menu
+      cli option to set default
+      general setting?
    SETTING auto pause qtail on maxlines threshold
       setting to extend 10k lines for this window
+      ugly to implement this with current I/O model
    table filter case sensitivity
-   table view option to fix non-data cells / rows (post skip)
+ o table view option to fix non-data cells
+ *    skip during input
       span columns?
-      chop?
+      split into multiple cells?
       delete row?
  * qtail button mode
  *    watch vs. transient
@@ -145,6 +157,11 @@ x!so  block tostop signal : try os.setsid ?
    flowlayout overlapping buttons (rare? one time glitch?)
 
 Bugs:
+   inconsistant coding style as I was learning Qt as I wrote this and discovered some Qt features after having reimplemented them
+      please be gentle, but constructive criticism welcome
+   new env marked as 'inherit' but not in parent should be deleted on save
+   (marked) OutWin commands with no external command do nothing (usage msg?)
+   Trigger full usage msg for table/tail somehow
    test Qt dock bug on Ubuntu 20
    test sibling markers
  o QFont styled item delegate
@@ -154,6 +171,8 @@ Bugs:
  ? 'type' builtin fails on old python (fix untested)
  ? reload button should change for pipes
  ? what to do with stderr? always log?
+      maybe write a QProcess wrapperclass that makes stderr look like a QIODevice
+      send tableviewer stderr to log and/or smalloutput?
    lots of stuff packed into class noacli that could go elsewhere
  ? make file dialog not modal
      file dialog could temp insert icon in buffer where it will drop names
@@ -736,6 +755,7 @@ D* filedialog prefix '" causes all filenames to be quoted
  * change default arrangement to show all / tabify all
  * set tableview default filter col = -1
  * general settings context menu --> use default
+ * process.setStandardInput?(QProcess::nullDevice())
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry

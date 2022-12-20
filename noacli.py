@@ -35,7 +35,7 @@ from qtail import myOptions as qtailSettings
 from commandparser import OutWin, commandParser
 from envdatamodel import envSettings
 
-__version__ = '0.9.9.7'
+__version__ = '0.9.9.8'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -728,6 +728,7 @@ class noacli(QtWidgets.QMainWindow):
             if typedQSettings().value('DEBUG',False):print('icon {} failed trying again'.format(p)) # DEBUG
             icon = QtGui.QIcon('noacli.png')
         self.setWindowIcon(icon)
+        app.setWindowIcon(icon)  # we really want this icon!
 
         # hide all the docks by default (save a profile if you don't like it)
         ui=self.ui

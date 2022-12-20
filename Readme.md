@@ -151,6 +151,9 @@ following options:
     Set initial filter column and filter string (useful in favorites)
     Filtercol may be a (1 based) column index or the first match in headers
 
+`--nowrap`
+    Turn word wrap off intitially
+
 Like qtail, table also accepts the --file and --files options.
 
 # small output #

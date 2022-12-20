@@ -79,6 +79,7 @@ class myOptions():
         parser.add_argument('-t','--title', help='set window title if a filename is not supplied',metavar='title')
         parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown','p','h','m'], metavar='format', default='plaintext') # XX markdown doesn't work
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
+        parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true') # set in start()
         parser.add_argument('filename', nargs=argparse.REMAINDER)
         
         #XX more options from tail
@@ -129,6 +130,7 @@ class myOptions():
             elif args.format=='markdown': self.format='m' # XX
             else: self.format=None
         if args.url: self.url = True
+
         self.args = args.filename
         return self.args
                 
@@ -370,6 +372,11 @@ class QtTail(QtWidgets.QMainWindow):
     def start(self):
         doc = self.textbody.document()
         doc.setMaximumBlockCount(self.opt.maxLines)
+        # this will get run on some pass maybe
+        if hasattr(self.opt, 'argparse') and self.opt.argparse.nowrap:
+            # change it in both places
+            self.ui.actionWrap_lines.setChecked(False)
+            self.wrapChanged(False)
 
     def showsize(self):
         self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",-1)

@@ -138,6 +138,10 @@ class envSettings(QProcessEnvironment):
         self.envDia.finished.connect(self.finishEnv)
         self.envDia.setContextMenuPolicy(Qt.CustomContextMenu)
         self.envDia.customContextMenuRequested.connect(self.envContextMenu)
+        buttonbox = self.envDia.ui.buttonBox
+        newenv = buttonbox.addButton('New or Find', QtWidgets.QDialogButtonBox.ActionRole)
+        newenv.clicked.connect(self.addnewvar)
+
 
     def validator(self, index, value):
         col = index.column()
@@ -202,6 +206,14 @@ class envSettings(QProcessEnvironment):
         if not result: return
         if name and len(name):
             if name not in self.envset:
-                self.model.appendRow([name, envModes.Session, ''])
+                index = self.model.appendRow([name, envModes.Inherit, ''])
                 self.envset.add(name)
-            # else: find and select matching entry
+                # assume it's at the end, scroll there
+            else: # else: find and select matching entry
+                # cheat and search our local copy XX breaks if QSortFilterProxy
+                row = next((i for i in range(len(self.envdata))
+                            if self.envdata[i][0]==name))
+                index = self.model.index(row,0)
+            table = self.envDia.ui.tableView
+            table.scrollTo(index)
+            table.selectionModel().select(index.siblingAtColumn(2), QtCore.QItemSelectionModel.Select)
