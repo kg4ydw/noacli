@@ -109,7 +109,7 @@ d*    rerun interval
      ssh still causes tostop or something
    add small buttons in dock widget headers
      jobs: clean
-     history: reset sort
+ *   history: reset sort
 D*   alternately: document table corner button that does this
    qtail: translate terminal colors (for git diff)
    sync should load missing geom settings
@@ -153,7 +153,6 @@ x!so  block tostop signal : try os.setsid ?
      kill child proc?
      move to terminal window automatically?
      preconnect pty for this purpose?
-   bind history context menu to history headers too
    flowlayout overlapping buttons (rare? one time glitch?)
 
 Bugs:
@@ -267,7 +266,7 @@ D*	 @ fancy table viewer
  	 @ ulimits editor
  	 % internal function keybindings
 D* history with arrow keys
- n history search with ctrl-s ctrl-r and !?
+ n history search with ctrl-s ctrl-r and !? (history filter instead)
 D* history with pull down menu (last 10)
 D* history manager
 D*   table: index frequency exitval command button-name checkbox:edit/run
@@ -756,6 +755,7 @@ D* filedialog prefix '" causes all filenames to be quoted
  * set tableview default filter col = -1
  * general settings context menu --> use default
  * process.setStandardInput?(QProcess::nullDevice())
+ * bind history context menu to history headers too
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry

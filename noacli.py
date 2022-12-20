@@ -1526,9 +1526,10 @@ class commandEditor(QPlainTextEdit):
         c = self.textCursor()
         c.movePosition(QTextCursor.End)
         self.setTextCursor(c)
-        #unnecssary?# self.document().setModified( idx.siblingAtColumn(0).data(Qt.DisplayRole)==None)
-        # scroll history window to this entry XX optional?
-        self.ui.historyView.resetView(idx)
+        # scroll history window to this entry and select it
+        hv= self.ui.historyView
+        hv.resetView(idx)
+        hv.selectionModel().setCurrentIndex(idx.model().index(idx.row(),1), QtCore.QItemSelectionModel.ClearAndSelect )
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)

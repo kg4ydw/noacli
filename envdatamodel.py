@@ -216,4 +216,6 @@ class envSettings(QProcessEnvironment):
                 index = self.model.index(row,0)
             table = self.envDia.ui.tableView
             table.scrollTo(index)
-            table.selectionModel().select(index.siblingAtColumn(2), QtCore.QItemSelectionModel.Select)
+            sm = table.selectionModel()
+            sm.reset()
+            sm.select(index.siblingAtColumn(2), QtCore.QItemSelectionModel.Select)
