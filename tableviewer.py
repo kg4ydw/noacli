@@ -14,13 +14,9 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # XX Doesn't have its own icon (yet)
 # XX Doesn't parse command line options, but it should have a few.
 
-import sys
-import os
-import io
+import sys, os, io, csv, re
 from functools import partial
 from math import ceil, floor
-import csv
-import re
 from statistics import stdev, mean, median
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -453,7 +449,9 @@ class TableViewer(QtWidgets.QMainWindow):
     ################ table parsing stuff
 
     def openfile(self,filename):
-        self.setWindowTitle(filename)
+        title = filename
+        if len(title)>30: title=os.path.basename(title)
+        self.setWindowTitle(title)
         try:
             self.csvfile = lineBuffer(open(filename, errors='backslashreplace'))
         except OSError as e:

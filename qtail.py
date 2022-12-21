@@ -414,7 +414,9 @@ class QtTail(QtWidgets.QMainWindow):
             self.opt.file = True
 
         if not self.opt.title:
-            self.setWindowTitle(filename) # XXX qtail prefix? strip path?
+            title=filename
+            if len(title)>30: title=os.path.basename(title)
+            self.setWindowTitle(title)
         self.reload();
         
         # follow the tail of the file
@@ -482,7 +484,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.file = jobitem.process
         # get a window title from somewhere
         if not title and jobitem:
-            title = jobitem.title
+            title = jobitem.title()
         if not title and process:
             try:
                 #c = process.program() # XX get args too?

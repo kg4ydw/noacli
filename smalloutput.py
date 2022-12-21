@@ -194,8 +194,12 @@ class smallOutput(QTextBrowser):
     def disconnectProcess(self):
         # disconnect a process prior to moving it somewhere else
         if self.process:
-            self.process.readyRead.disconnect(self.readLines)
-            self.process.finished.disconnect(self.procFinished)
+            try:
+                self.process.readyRead.disconnect(self.readLines)
+                self.process.finished.disconnect(self.procFinished)
+            except:
+                # already disconnected, can't re-disconnect
+                pass
 
     def clearproc(self):
         # these should have been saved somewhere else

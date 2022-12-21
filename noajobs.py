@@ -40,6 +40,7 @@ class jobItem():
             self.process.stateChanged.connect(self.collectNewstate)
             self.hasmore = True
         else:  # fake jobitem for internal commands
+            self.finished = True # so it can be deleted later
             self.hasmore = False
             self.fullstatus=' '
             self.setStatus(' ')
@@ -140,8 +141,7 @@ class jobItem():
 
     # public interfaces
     def command(self):
-        if not self.history: return None
-        return self.history.model().getCommand(self.history)
+        return History.GetCommand(self.history)
     def getStatus(self):
         if self.fullstatus: return self.fullstatus
         if self.status: return self.status
@@ -154,10 +154,11 @@ class jobItem():
             self.setWindow(QtTail(settings.qtail))
         elif outwin==OutWin.Table:
             self.setWindow(TableViewer())
-            self.window.app = settings.app
+            self.window.app = settings.app # XXX redundant?
         else:
             # ??? can't get here, do nothing anyway
             return
+        # XXX need to send title to window??
         if self.outwinArgs: self.window.simpleargs(self.outwinArgs)
         self.window.openfile(file)
         
@@ -302,6 +303,12 @@ class History(itemListModel):
     def __init__(self):
         super().__init__(['exit', 'command'])
 
+    @classmethod
+    def GetCommand(cls,index):
+        # because persistent indexes and proxy models suck
+        if not index or not index.model(): return None
+        return index.model().index(index.row(),1).data(Qt.EditRole)
+    
     # format cells
     def data(self, index, role):
         if not self.validateIndex(index): return None
@@ -320,7 +327,7 @@ class History(itemListModel):
         elif role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole, Qt.ToolTipRole]:
             if col==0:
                 if role==Qt.ToolTipRole:
-                    return item.count
+                    return item.count # XX or make this column 2
                 else:
                     return item.status
             elif col==1: return item.command

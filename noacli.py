@@ -1176,13 +1176,13 @@ class noacli(QtWidgets.QMainWindow):
         if not hist and command:
             # make a new history entry!
             hist = self.settings.history.saveItem(command, None, None)
-        self.ui.historyView.resetHistorySort(False)  # XXX this might be annoying
-        if hist and isinstance(hist.model(),QtCore.QSortFilterProxyModel ):
-            hist=hist.model().mapToSource(hist) # XXX fragile? too soon?
-        if not hist.model():
-            print('bad hist, punting') # EXCEPT
-            return 
-        cmdargs = self.settings.commandParser.parseCommand(hist.model().getCommand(hist))
+            hist = QPersistentModelIndex(hist)
+        if hist and not command: # extract command from history
+            command = History.GetCommand(hist)
+        if not command:
+            return  # still no command!
+        #self.ui.historyView.resetHistorySort(False) # likely invalidates QModelIndex
+        cmdargs = self.settings.commandParser.parseCommand(command)
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
         if cmdargs==None: return # done
         if type(cmdargs)==str:
@@ -1200,9 +1200,17 @@ class noacli(QtWidgets.QMainWindow):
             if type(args)==str: args=[args]  # --file
             for f in args:
                 j = jobItem(None)
-                j.setTitle(title+' '+f)
+                # XXX should elide title and make a history entry or something
+                fn = f
+                if len(fn)>30:
+                    fn = os.path.basename(fn) # try shortening it
+                if (title):
+                    j.setTitle(title+' '+fn)
+                else:
+                    j.setTitle(fn)
                 j.setMode(outwin)
                 j.outwinArgs = outwinArgs
+                j.history = hist # set it late XXX use the same hist entry??
                 self.settings.jobs.newjob(j)
                 try:
                     j.startOutwin(f, self.settings)
