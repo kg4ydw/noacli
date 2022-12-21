@@ -504,7 +504,7 @@ class QtTail(QtWidgets.QMainWindow):
         if self.file:
             self.file.readyRead.connect(partial(self.readtext,'ready pre'))
             self.file.finished.connect(self.procFinished)
-            self.setButtonMode()
+        self.setButtonMode()
         # these are likely too soon
         #self.actionAdjust()
         #self.showsize()

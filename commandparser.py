@@ -101,11 +101,13 @@ class commandParser:
         
     def parseCommand(self, cmd):
         # returns one of
+        #  None if nothing was done
+        #  str  display info, command incomplete (internal)
+        #  int  pass/fail result (internal)
+        #  (str, int) message with pass/fail result (internal)
         #  [title, outwin, args] 
         #  [title, outwin, [outwinargs], args] 
         #  [title, outwin, ['--files' or '--file', outwinargs], [filenames] ] 
-        #  None if the command was handled internally
-        #  string: command was handled internally and generated output
         # if command can't be parsed, just use the default wrapper
         # exception: something went wrong
         cmd = cmd.strip()
@@ -189,8 +191,8 @@ class commandParser:
         try:
             os.chdir(rest)
         except OSError as e:
-            return e.strerror
-        return os.getcwd()
+            return (e.strerror, e.errno)
+        return (os.getcwd(),0)
 
     @builtin('setwrapper') # how do you spell this again?
     @builtin('setwrap')
@@ -203,9 +205,11 @@ class commandParser:
             self.defaultWrapper = rest
             if self.new_default_wrapper:  # fake signal
                 self.new_default_wrapper(rest)
+                return 0
         else:
-            return "Wrapper '{}' not found.".format(rest)
-        return None
+            return ("Wrapper '{}' not found.".format(rest), 1)
+        return None # incomplete?
+    
     @builtin('addwrap')
     def cmd_addwrap(self, title, outwin, rest):
         '''Add a wrapper shortcut to wrap unparsed commands'''
@@ -217,13 +221,13 @@ class commandParser:
           if w in self.wrappers:
             return ' '.join(['addwrap',w,'= (', self.wrappers[w][0].name,')']+ self.wrappers[w][1:])
           else:
-            return 'addwrap {} not found'.format(w)
+            return ('addwrap {} not found'.format(w), 1)
         self.wrappers[words[0]] = [outwin] + words[1:]
         # and save it
         qs = QSettings()
         qs.beginGroup('Wrappers')
         qs.setValue(words[0], self.wrappers[words[0]])
-        return "Added wrap "+words[0]
+        return ("Added wrap "+words[0], 0)
     
     @builtin('unwrap')
     def cmd_unwrap(self, title, outwin, rest):
@@ -231,27 +235,30 @@ class commandParser:
         # Note that built in wrappers will return on next start.
         rest = rest.strip()
         if rest=='':
-            return "No wrapper specified for deletion."
+            return ("No wrapper specified for deletion.", 1)
         if rest==self.defaultWrapper:
-            return "Can't delete default wrapper "+self.defaultWrapper
+            return ("Can't delete default wrapper "+self.defaultWrapper , 2)
         if rest not in self.wrappers:
-            return "Wrapper {} already deleted.".format(rest)
+            return "Wrapper {} already deleted.".format(rest) # ambiguous pass/fail
+        result = 0
         try:
             del self.wrappers[rest]
         except:
             # This can't happen, but if it does, whatever.
+            result = 3
             pass
         qs = QSettings()
         qs.beginGroup('Wrappers')
         qs.remove(rest)
         qs.endGroup()
-        return "Wrapper {} removed.".format(rest)
+        return ("Wrapper {} removed.".format(rest), result)
 
     @builtin('direct')
     def cmd_direct(self, title, outwin, rest):
         '''Run an executable with arguments directly instead of sending it to a wrapper for parsing and execution'''
         # very simple parsing, hope there's no quotes in this
         return [title, outwin]+ [rest.split()]
+    
     @builtin('help')
     def cmd_help(self, title, outwin, rest):
         '''Describe or list built in commands.'''
@@ -267,7 +274,7 @@ class commandParser:
                     text += "{}: no documentation\n".format(word)
             else:
                 text += "{} not found\n".format(word)
-        return text
+        return (text, 0)
 
 
     @builtin('version')
@@ -276,6 +283,26 @@ class commandParser:
         from noacli import __version__
         return 'Versions: noacli '+__version__ +', Qt '+ QT_VERSION_STR + ', PyQt '+ PYQT_VERSION_STR+ ', Python '+sys.version
 
+    def checkfile(self, f):
+        # XX doesn't check if f is a non-file
+        # XX doesn't check if f is not executable
+        if os.path.islink(f):
+            try:
+                # rf = os.path.realpath(f, strict=True) # maybe not
+                rf = os.path.realpath(f)
+                if not os.path.exists(rf):
+                    return (False, f + ' BROKEN symlink to '+rf+'\n')
+                else:
+                    return (True, f + ' ==> '+ rf +'\n')
+            except OSError:
+                return (False, f + ' BROKEN symlink\n')
+            except Exception as e:
+                print('realpath: '+str(e)) # EXCEPT
+                return (False, f + ' broken\n')
+        elif os.path.isfile(f):
+            return (True, f +'\n')
+        return False
+                    
     @builtin('type')
     def cmd_type(self, title, outwin, rest):
         '''Find what things match the given command'''
@@ -283,40 +310,49 @@ class commandParser:
         words=rest.split()
         # XXX this should get the path from the propagated environment
         # but only the real one is available here, hope the user didn't change it
+        fails = 0
         pathdirs = os.get_exec_path()
         for cmd in words:
+            prefix = '  '
+            foundit = False
+            msgit = False
             t+= cmd+':\n'
             # check internal command dictionary
             if cmd in builtinCommands:
                 t += '  built in command\n'
+                foundit = True
             # check wrappers
             if cmd in self.wrappers:
                 t += '  wrapper: '+(' '.join(['(', self.wrappers[cmd][0].name,')']+ self.wrappers[cmd][1:]))+"\n"
-            if cmd[0]=='/': continue # XX ignore full path commands for now
+                foundit = True
+            if cmd[0]=='/':
+                result = self.checkfile(cmd)
+                if result==False:
+                    t += prefix + "Not found\n"
+                else:
+                    (ok, msg) = result
+                    if msg: t+= prefix + msg
+                    if not ok: fails += 1
+                continue
             # check external paths
             for dir in pathdirs:
                 prefix='  '
                 f = os.path.join(dir,cmd)
-                if os.path.islink(f):
-                    try:
-                        # rf = os.path.realpath(f, strict=True) # maybe not
-                        rf = os.path.realpath(f)
-                        if not os.path.exists(rf):
-                            t += prefix + f + ' BROKEN symlink to '+rf+'\n'
-                        else:
-                            t += prefix + f + ' ==> '+ rf +'\n'
-                    except OSError:
-                        t += prefix + f + ' BROKEN symlink\n'
-                        continue
-                    except Exception as e:
-                        t += prefix + f + ' broken\n'
-                        print('realpath: '+str(e)) # EXCEPT
-                        continue
-                elif os.path.isfile(f):
-                    t += prefix + f +'\n'
-                # else: don't say anything if it isn't found in this dir
-
-        return t
+                result = self.checkfile(f)
+                if result==False:
+                    continue # don't say anything if it isn't found in this dir
+                (ok, msg) = result
+                if msg:
+                    t+= prefix + msg
+                    msgit = True
+                if ok:
+                    foundit = True
+                else:
+                    fails += 1 # got an error
+            if not foundit and not msgit:
+                t += prefix + "Not found\n"
+                fails += 1
+        return (t, fails)
             
     #### Other future built-in commands not implemented yet
     # 'pwd':  is this needed at all?  external pwd works fine

@@ -7,6 +7,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 import re   # use python re instead of Qt
 import os
 
+from PyQt5 import QtCore
 from PyQt5.Qt import Qt, QBrush
 from PyQt5.QtCore import QIODevice, QTimer, QModelIndex, QProcess
 
@@ -30,6 +31,7 @@ class jobItem():
         self.pid = None # QProcess deletes pid too fast
         self.window=None
         self.paused = False
+        self.jcommand = None
         if history:  # only for real jobs
             self.setStatus('init')
             self.process = QProcess()
@@ -141,7 +143,9 @@ class jobItem():
 
     # public interfaces
     def command(self):
-        return History.GetCommand(self.history)
+        if not self.jcommand:
+            self.jcommand = History.GetCommand(self.history)
+        return self.jcommand
     def getStatus(self):
         if self.fullstatus: return self.fullstatus
         if self.status: return self.status

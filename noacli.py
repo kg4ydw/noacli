@@ -312,8 +312,6 @@ class historyView(QTableView):
             #print('oldrow={}={}'.format(oldrow,row)) # DEBUG
         self.historyProxy.sort(-1)
         self.horizontalHeader().setSortIndicator(-1,0)
-        #self.historyProxy.invalidate()
-        #self.resizeColumnsToContents() # set width below instead
         self.adjustSize()
         # squeeze the last column
         hh = self.horizontalHeader()
@@ -331,6 +329,8 @@ class historyView(QTableView):
             else:
                 i=hp.index(row,0)
                 self.delayedScroll.emit(i)
+        else:
+            self.delayedScroll.emit(QModelIndex()) # XX always scroll to bottom?
 
     def deleteOne(self, index):
         index.model().removeRow(index.row(), QModelIndex())
@@ -405,7 +405,7 @@ class historyView(QTableView):
             self.delayedScroll.emit(None)
        
     def doDelayedScroll(self, index):
-        if index:
+        if index and index.isValid():
             self.scrollTo(index, 1)
         else:
             self.scrollToBottom()
@@ -1173,23 +1173,38 @@ class noacli(QtWidgets.QMainWindow):
     # out: historyView, jobModel, jobTableView
     # slot to connect command window runCommand
     def runCommand(self, command, hist, title=None):
+        histbase = hist
         if not hist and command:
             # make a new history entry!
-            hist = self.settings.history.saveItem(command, None, None)
-            hist = QPersistentModelIndex(hist)
+            histbase = self.settings.history.saveItem(command, None, None)
+            hist = QPersistentModelIndex(histbase)
+        else: # make sure we have a histbase to play with to record status
+            if type(hist)==QPersistentModelIndex:
+                histbase = QModelIndex(hist)
+            if type(histbase.model())==QtCore.QSortFilterProxyModel:
+                histbase = histbase.model().mapToSource(histbase)
         if hist and not command: # extract command from history
             command = History.GetCommand(hist)
         if not command:
-            return  # still no command!
-        #self.ui.historyView.resetHistorySort(False) # likely invalidates QModelIndex
+            return  # still no command!  Don't set status.
+        self.ui.historyView.resetHistorySort(False) # likely invalidates QModelIndex
         cmdargs = self.settings.commandParser.parseCommand(command)
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
-        if cmdargs==None: return # done
-        if type(cmdargs)==str:
-            self.ui.smallOutputView.internalOutput(self.settings,cmdargs+"\n")
+        if cmdargs==None:
+            return # nothing was done, don't set status
+        if type(cmdargs)==str or len(cmdargs)==2:
+            if len(cmdargs)==2:
+                (msg, estatus) = cmdargs
+            else:
+                msg = cmdargs
+                estatus = 'ok'  # did it pass or fail?
+            self.ui.smallOutputView.internalOutput(self.settings,msg+"\n")
+            histbase.model().setStatus(histbase, estatus)
+            return
+        elif type(cmdargs)==int: # pass/fail without message
+            histbase.model().setStatus(histbase, cmdargs)
             return
         outwinArgs = None
-        #print(repr(cmdargs)) # DEBUG
         if len(cmdargs)==4:
             outwinArgs = cmdargs.pop(2)
         # ok, we have a window to open, could be internal or external
@@ -1218,8 +1233,11 @@ class noacli(QtWidgets.QMainWindow):
                     msg = '{}: {}'.format(f,e)
                     self.ui.smallOutputView.internalOutput(self.settings,msg+'\n')
                     self.showMessage(msg) # XX this should be redundant but isn't
+                    j.setStatus('Fail',-1)
                     j.finished = True
                     j.window = None
+                else:
+                    j.setStatus('OK',0)
         else: # external command
             j = jobItem(hist)  # XX construct new job
             j.setMode(outwin)
