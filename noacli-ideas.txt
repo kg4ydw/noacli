@@ -29,7 +29,6 @@ o  should the window auto-resize threshold be a setting
 
 Things to implement soon:
    pip setup.py installer
-   qtail --nowrap
    favorites changes
 !    separate button(checkbox) and name
      autocheck button if name is filled in, uncheck if blanked
@@ -63,32 +62,33 @@ videos
     running long commands with log
 
 high priority bugs
-   document environment editor a bit
-      mode?
- *    "add" button in dialog
+ ! table: use command line parser on real command line
+   file dialog is modal and can get lost
+     set always on top?
    reported lockup on mac when playing with menu bar menus / job manager?
    view->font might be confusing (document)
-   QPersistentModelIndex contamination, trace and check types (marked)
- ? runCommand history may be translating from QPersist to QModelIndex too soon
- ! table: use command line parser on real command line
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac (wrong geom?)
  ? fileDialog doesn't always trim prefix correctly
      doesn't work consistently if no prefix directory (./ doesn't work either)
+   document environment editor a bit
+      mode?
+ *    "add" button in dialog
+   QPersistentModelIndex contamination, trace and check types (marked)
 
 Misc things to implement
-   favorites: contextmenu: delete from history 
-      alt: history sort by frequency
    set some keybindings on all windows?
    make tableviewer / qtail as dock widgets
      dock vs. mainwindow mode
      new dockable mainwindow
      shared toolbars?
    should watch windows suspend activity when not visible?
+ x?   Qt visibility event??
       checkbox in menu
       cli option to set default
       general setting?
+ *    measure runtime and set duty cycle
    SETTING auto pause qtail on maxlines threshold
       setting to extend 10k lines for this window
       ugly to implement this with current I/O model
@@ -104,7 +104,7 @@ Misc things to implement
  *    automatic reload checkbox
 d*    rerun interval
       file doesn't need autorefresh?? or should it clear(); seek(0)
- ? built in commands should get marked done in history
+ * built in commands should get marked done in history
  * close stdin
      ssh still causes tostop or something
    add small buttons in dock widget headers
@@ -167,7 +167,7 @@ Bugs:
  E   doesn't cancel correctly
      displayed font name is ugly
    fonts are handed as objects to QSettings, save as font name later?
- ? 'type' builtin fails on old python (fix untested)
+ * 'type' builtin fails on old python (fix untested)
  ? reload button should change for pipes
  ? what to do with stderr? always log?
       maybe write a QProcess wrapperclass that makes stderr look like a QIODevice
@@ -756,6 +756,7 @@ D* filedialog prefix '" causes all filenames to be quoted
  * general settings context menu --> use default
  * process.setStandardInput?(QProcess::nullDevice())
  * bind history context menu to history headers too
+ * qtail --nowrap
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -815,6 +816,7 @@ D*   if it ends in / select dirs only??
  n    dialog box
  * context menu in history headers (h and v)
  * qtail should resize on smalldup of dead proc
+ * runCommand history may be translating from QPersist to QModelIndex too soon
 
 
 ## ispell put these here

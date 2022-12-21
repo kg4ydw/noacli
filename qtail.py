@@ -14,7 +14,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # Doesn't handle backscrolling beyond its internal buffers
 # Currently doesn't chunk input well which causes delays and hangups
 
-import os, re, sys, time, argparse, copy
+import os, re, sys, time, argparse, copy, math
 from functools import partial
 from math import ceil
 
@@ -140,6 +140,9 @@ class QtTail(QtWidgets.QMainWindow):
     want_read_more = pyqtSignal(str)
     def __init__(self, options=None, parent=None):
         super().__init__()
+        self.runcount = 0
+        self.timestart = time.monotonic() # in case we miss the real start
+        self.runtime = None
         self.disableAdjustSize = False
         self.eof = 0 # hack
         self.buttonCon = None
@@ -226,14 +229,34 @@ class QtTail(QtWidgets.QMainWindow):
         #else: # file
         #   self.rebuttion('Reload',self.reload)
         
+    def tweakInterval(self):
+        if not hasattr(self, 'reinterval'): self.reinterval=30
+        if self.reinterval<1: self.reinterval=1
+        if self.runcount < 3: return
+        dutycycle = 0.5
+        if self.reinterval<10 and self.runtime<10:
+            dutycycle = 0.1 # lower duty cycle for high freq
+        mininterval = self.runtime / dutycycle
+        if self.reinterval < mininterval:
+            self.reinterval = mininterval
+            msg = "Resetting timer to {:1.3f}s (runtime={:1.3f}s)".format(self.reinterval, self.runtime)
+            if typedQSettings().value('DEBUG',False): print(msg) # reset interval
+            self.statusBar().showMessage(msg, math.floor(mininterval*10))
+            self.actionAutoRefresh()
+            self.ui.intervalLine.setValue(math.floor(mininterval+0.5))
+        # XX if duty cycle > 50% turn off timer if window is obscured
+        # is there an event when window is obscured??
+        
     def setWatchInterval(self):
         val = self.ui.intervalLine.value()
         self.reinterval = val
+        self.tweakInterval()
+        self.actionAutoRefresh() # set timer
             
     def actionAutoRefresh(self):
         checked = self.ui.actionAutorefresh.isChecked()
         if checked:
-            self.timer.start(self.reinterval*1000)
+            self.timer.start(math.floor(self.reinterval*1000+0.5))
         else:
             self.timer.stop()
             
@@ -469,8 +492,12 @@ class QtTail(QtWidgets.QMainWindow):
         if not self.opt.title:
             self.setWindowTitle(title)
         self.opt.file = False
+        self.setupProc()
+
+    def setupProc(self):
         self.file.readyRead.connect(partial(self.readtext,'ready proc'))
-        self.rebutton('Kill', self.terminateProcess)
+        self.setButtonMode()
+        self.file.started.connect(self.procStarted)
         self.file.finished.connect(self.procFinished)
 
     def openPretext(self, jobitem, textstream, pretext='', title=None):
@@ -501,10 +528,7 @@ class QtTail(QtWidgets.QMainWindow):
             title='qtail: reopen'  # SETTING?
         self.setWindowTitle(title)
         self.opt.file = False
-        if self.file:
-            self.file.readyRead.connect(partial(self.readtext,'ready pre'))
-            self.file.finished.connect(self.procFinished)
-        self.setButtonMode()
+        self.setupProc()
         # these are likely too soon
         #self.actionAdjust()
         #self.showsize()
@@ -513,11 +537,24 @@ class QtTail(QtWidgets.QMainWindow):
             self.want_resize.emit()
         #else: wait for data
 
+    def procStarted(self):
+        self.timestart = time.monotonic()
+        self.setButtonMode()
+        self.runcount += 1
+        print('start')
+
     def procFinished(self, exitcode, estatus):
         # XXX if exitcode: rebutton("Rerun", self.rerun)
         # self.rebutton('Close', self.close)
         if self.firstRead: self.actionAdjust()
         self.setButtonMode()
+        self.timestop = time.monotonic()
+        # calculate running average
+        t = self.timestop-self.timestart
+        if self.runtime==None: self.runtime=t
+        self.runtime = self.runtime * 0.6 + t*0.4
+        self.tweakInterval()
+        if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
         if self.ui.textBrowser.document().isEmpty():
             # XXX should close on empty be conditional?
             self.close()

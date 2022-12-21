@@ -5,7 +5,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # Do all the job manipulation (view and model) parts of noacli
 
 import re   # use python re instead of Qt
-import os
+import os, time, math
 
 from PyQt5 import QtCore
 from PyQt5.Qt import Qt, QBrush
@@ -32,6 +32,8 @@ class jobItem():
         self.window=None
         self.paused = False
         self.jcommand = None
+        self.timestart = time.monotonic() # in case we miss the real start
+        self.runtime = None
         if history:  # only for real jobs
             self.setStatus('init')
             self.process = QProcess()
@@ -114,7 +116,10 @@ class jobItem():
     # private slots
     def collectPid(self):
         self.pid = self.process.processId()
-        
+        if self.index and self.index.model():
+            index = self.index.model().sibling(self.index.row(),0,QModelIndex())
+            self.index.model().dataChanged.emit(index,index)
+        self.timestart = time.monotonic()
     def collectError(self, err):
         self.status += 'E'+str(err)+' '
         self.setStatus(self.status)
@@ -122,6 +127,12 @@ class jobItem():
     def collectFinish(self, exitCode, estatus):
         self.finished = True
         self.setStatus(self.status+'F'+str(exitCode)+':'+str(estatus),exitCode)
+        self.timestop = time.monotonic()
+        # calculate running average
+        t = self.timestop-self.timestart
+        if self.runtime==None: self.runtime=t
+        self.runtime = self.runtime * 0.6 + t*0.4
+        #print("runtime {} = {:1.2f}".format(self.runtime, self.runtime))
     def collectNewstate(self, state):
         if state==QProcess.Starting:
             self.setStatus(self.status+str('Starting'))
@@ -231,6 +242,9 @@ class jobTableModel(itemListModel):
         job = self.data[index.row()]
         if role==Qt.ToolTipRole:
             if col==0 and job.pid: return str(job.pid)
+            if col==1 and job.runtime:
+                return "{:2.2f}s".format(job.runtime)
+                # wish I could get process cpu time too
             elif col==4: return job.command()
         if role==Qt.BackgroundRole and col==3:
             if job.mode and not job.window:
