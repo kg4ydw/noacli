@@ -287,8 +287,6 @@ class Ui_noacli(object):
         self.actionEnvironment_Variables.setObjectName("actionEnvironment_Variables")
         self.actionEditor_font = QtWidgets.QAction(noacli)
         self.actionEditor_font.setObjectName("actionEditor_font")
-        self.actionBrowser_font = QtWidgets.QAction(noacli)
-        self.actionBrowser_font.setObjectName("actionBrowser_font")
         self.actionHelp = QtWidgets.QAction(noacli)
         self.actionHelp.setObjectName("actionHelp")
         self.historyMenu.addAction(self.actionlastCommand)
@@ -328,7 +326,6 @@ class Ui_noacli(object):
         self.historyView.newFavorite['QString'].connect(noacli.addFavorite) # type: ignore
         self.actionGeoSave.triggered.connect(noacli.actionSaveGeometry) # type: ignore
         self.actionGeoRestore.triggered.connect(noacli.actionRestoreGeometry) # type: ignore
-        self.actionDeleteProfile.triggered.connect(noacli.myDeleteProfile) # type: ignore
         self.dupOutput.clicked.connect(self.smallOutputView.smallDup) # type: ignore
         self.keepOutput.toggled['bool'].connect(self.smallOutputView.smallKeepToggle) # type: ignore
         self.actionSync_settings.triggered.connect(noacli.syncSettings) # type: ignore
@@ -342,8 +339,8 @@ class Ui_noacli(object):
         self.logBrowser.gotNewLines['int'].connect(self.logDock.newLines) # type: ignore
         self.smallOutputView.gotNewLines['int'].connect(self.smallOutputDock.newLines) # type: ignore
         self.actionEditor_font.triggered.connect(noacli.pickDefaultFont) # type: ignore
-        self.actionBrowser_font.triggered.connect(noacli.pickBrowserFont) # type: ignore
         self.actionHelp.triggered.connect(noacli.showReadme) # type: ignore
+        self.actionDeleteProfile.triggered.connect(noacli.myDeleteProfile) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -388,7 +385,6 @@ class Ui_noacli(object):
         self.actionTabifyDocks.setText(_translate("noacli", "Tabify all"))
         self.actionEnvironment_Variables.setText(_translate("noacli", "Environment Variables"))
         self.actionEditor_font.setText(_translate("noacli", "Editor font"))
-        self.actionBrowser_font.setText(_translate("noacli", "Browser default font"))
         self.actionHelp.setText(_translate("noacli", "Help"))
 from lib.logoutput import logOutput
 from lib.mydock import myDock

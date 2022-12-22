@@ -81,7 +81,7 @@ class myOptions():
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true') # set in start()
         parser.add_argument('filename', nargs=argparse.REMAINDER)
         
-        #XX more options from tail
+        #XX more options from original tail
         # -f  : currently default always on
         # --retry
         # --max-unchanged-status (a timeout would be better)
@@ -543,8 +543,6 @@ class QtTail(QtWidgets.QMainWindow):
         print('start')
 
     def procFinished(self, exitcode, estatus):
-        # XXX if exitcode: rebutton("Rerun", self.rerun)
-        # self.rebutton('Close', self.close)
         if self.firstRead: self.actionAdjust()
         self.setButtonMode()
         self.timestop = time.monotonic()

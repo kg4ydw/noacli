@@ -93,7 +93,6 @@ class settings():
         index = t.indexAt(point)
         # XX and index is not default value
         if index.isValid():
-            # XXX not if already default?
             m = QMenu(self.dialog)
             # XXX value? already default?
             m.addAction("Reset to default", partial(self.resetGenSetting, index))
@@ -155,8 +154,6 @@ class settings():
         tv =  self.dialog.ui.tableView
         tv.setContextMenuPolicy(Qt.CustomContextMenu)
         tv.customContextMenuRequested.connect(self.generalSettingsContextMenu)
-
-        #XX# self.dialog.apply.connect(self.acceptchanges)
 
     def copy2qtail(self):
         qs = typedQSettings()
@@ -233,6 +230,7 @@ class  fontDelegate(QStyledItemDelegate):
         # XXX check result? This doesn't restore original font on cancel!
         if font:
             model.setData(index, font, Qt.EditRole)
+
 # and register the result for later use
 settingsDialog.registerType(QFont, fontDelegate)
 
@@ -634,7 +632,7 @@ class Favorites():
                 if command not in self.cmds:
                     gotcmd.add(command)
                     self.addFavorite(command, name, shortcut, immediate)
-        # XX above code won't work on a second pass (removed apply button, moot)
+        # above code won't work on a second pass (removed apply button, moot)
         ## don't destroy this in case apply is clicked a second time
         #self.data = None
 
@@ -938,7 +936,7 @@ class noacli(QtWidgets.QMainWindow):
         if not cursor.hasSelection() and not os.path.isdir(startdir):
             # maybe user didn't highlight trailing pattern?
             (dir,tail) = os.path.split(startdir)
-            # XX this breaks slighlty if it doesn't have a directory prefix
+            # XXX this breaks slighlty if it doesn't have a directory prefix
             if os.path.isdir(dir): # put back just the dirctory piece
                 c.removeSelectedText()
                 c.insertText(dir)
@@ -1044,31 +1042,7 @@ class noacli(QtWidgets.QMainWindow):
         # tear it down
         self.fontdialog.setParent(None)
         self.fontdialog = None
-
-    # XXX browser font picker is currently not used -- delete this?
-    # don't need to be so fancy to pick browser font, but make this not modal
-    def pickBrowserFont(self):
-        font = QSettings().value('QTailPrimaryFont', None)
-        if font and type(font)==str:
-            font = QFont().fromString(font)
-        if not font or not font.family() or font.pointSize()<1: 
-            font = self.ui.commandEdit.document().defaultFont()
-        if font:
-            fd = QFontDialog(font, None)
-        else:
-            fd = QFontDialog.getFont()
-        fd.setWindowTitle("Pick browser default font")
-        fd.fontSelected.connect(self.saveBrowserFont)
-        fd.finished.connect(self.doneBrowserFont)
-        fd.open()
-        
-    def saveBrowserFont(self, font):
-        QSettings().setValue('QTailPrimaryFont', font)
-
-    def doneBrowserFont(self):
-        self.browserFontDialog.setParent(None)
-        self.browserFontDialog = None
-
+    
     @QtCore.pyqtSlot()
     def syncSettings(self):
         qs = QSettings()
@@ -1237,7 +1211,7 @@ class noacli(QtWidgets.QMainWindow):
                 else:
                     j.setStatus('OK',0)
         else: # external command
-            j = jobItem(hist)  # XX construct new job
+            j = jobItem(hist)  # XX construct new hist instead of reusing
             j.setMode(outwin)
             j.outwinArgs = outwinArgs
             j.args = args
@@ -1530,7 +1504,7 @@ class commandEditor(QPlainTextEdit):
         self.setFocus()
         self.histindex = None
         self.setPlainText(str)
-        # XX is there any us of acceptCommand for which this would be inconvenient?
+        # XX is there any use of acceptCommand for which this would be inconvenient?
         mark = typedQSettings().value('TemplateMark',None)
         if mark and len(mark):
             if self.find(mark) and oldsel:  # repaste selection on top of mark
@@ -1560,7 +1534,7 @@ if __name__ == '__main__':
     QtCore.QCoreApplication.setOrganizationName("kg4ydw");
     QtCore.QCoreApplication.setApplicationName("noacli");
 
-    # XXX process noacli command line args (do to what?)
+    # XX process noacli command line args (do to what?)
 
     mainwin = noacli(app)
     w = mainwin.ui

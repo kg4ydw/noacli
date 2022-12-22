@@ -549,11 +549,6 @@
     <string>Editor font</string>
    </property>
   </action>
-  <action name="actionBrowser_font">
-   <property name="text">
-    <string>Browser default font</string>
-   </property>
-  </action>
   <action name="actionHelp">
    <property name="text">
     <string>Help</string>
@@ -828,22 +823,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionDeleteProfile</sender>
-   <signal>triggered()</signal>
-   <receiver>noacli</receiver>
-   <slot>myDeleteProfile()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>214</x>
-     <y>133</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>dupOutput</sender>
    <signal>clicked()</signal>
    <receiver>smallOutputView</receiver>
@@ -1052,22 +1031,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionBrowser_font</sender>
-   <signal>triggered()</signal>
-   <receiver>noacli</receiver>
-   <slot>pickBrowserFont()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>305</x>
-     <y>148</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionHelp</sender>
    <signal>triggered()</signal>
    <receiver>noacli</receiver>
@@ -1080,6 +1043,22 @@
     <hint type="destinationlabel">
      <x>305</x>
      <y>148</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionDeleteProfile</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>myDeleteProfile()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>214</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>
