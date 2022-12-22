@@ -176,9 +176,7 @@ class commandParser:
                 else:
                     return [title, outwin, self.wrappers[word][1:] + [rest]]
             print('iloop: This cant happen') # EXCEPT
-            # can't get here
         pass # XXX only get here if OutWin with options with no command
-        # can't get here
 
     @builtin('cd')
     @builtin('chdir')

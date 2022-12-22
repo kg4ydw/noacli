@@ -280,7 +280,6 @@ class jobTableModel(itemListModel):
         return False
     def deleteJob(self,row):
         # skip validation -- done elsewhere
-        #XX refactor?
         self.beginRemoveRows(QModelIndex(),row,row)
         d = self.data.pop(row)
         d.cleanup()

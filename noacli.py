@@ -12,7 +12,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 #
 # See Readme.md for more documentation.
 
-import os, sys
+import os, sys, time
 from pathlib import Path
 from functools import partial
 import signal
@@ -1384,19 +1384,34 @@ class noacli(QtWidgets.QMainWindow):
         ## apparently QTableView doesn't have a standard context menu
         #m = jobView.createStandardContextMenu(point)
         m = QMenu()
-        if index.isValid():
-            job = index.model().getItem(index)
-            if job and job.process and job.process.state()!=QProcess.NotRunning:
-                m.addAction("Terminate "+job.title(), job.process.terminate)
-                m.addAction("Kill "+job.title(), job.process.kill)
-            else:
-                m.addAction("clean dead "+job.title(), partial(index.model().cleanupJob,index))
-            if job.window: 
-                m.addAction("Find window", partial(self.windowShowRaise,index))
-                m.addAction("Close window",job.window.close)
+        m.addAction("Resize rows vertically", jobView.resizeRowsToContents)
         # XX jobcontext: convert to log / qtail window
         # XX jobcontext: job info
-        m.addAction("Resize rows vertically", jobView.resizeRowsToContents)
+        job = None
+        if index.isValid():
+            job = index.model().getItem(index)
+        if job:
+            if job.process and job.process.state()!=QProcess.NotRunning:
+                m.addAction("Terminate "+job.title(), job.process.terminate)
+                m.addAction("Kill "+job.title(), job.process.kill)
+            elif not job.windowOpen:
+                m.addAction("clean dead: "+job.title(), partial(index.model().cleanupJob,index))
+            if job.window: 
+                m.addAction("Find window", partial(self.windowShowRaise,index))
+            if job.window and job.windowOpen:
+                m.addAction("Close window",job.window.close)
+            ## add empty status items
+            if job.process and job.process.state()!=QProcess.NotRunning:
+                currun = time.monotonic()-job.timestart
+                m.addAction("runtime: {:1.3f}s".format(currun))
+            if job.window and hasattr(job.window,'timer') and job.window.timer.isActive():
+                t = job.window.timer
+                m.addAction("rerun in {:1.3f}/{:1.3f}s".format(t.remainingTime()/1000, t.interval()/1000))
+            if job.runtime:
+                m.addAction("avg runtime: {:1.3f}s".format(job.runtime))
+            if job.window and hasattr(job.window, 'runcount'):
+                m.addAction("run count: {}".format(job.window.runcount))
+            
         action = m.exec_(jobView.mapToGlobal(point))
         # all actions have their own handler, nothing to do here
 

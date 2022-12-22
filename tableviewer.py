@@ -473,8 +473,8 @@ class TableViewer(QtWidgets.QMainWindow):
         else:
             self.setWindowTitle('tableviewer window') # SETTING
         process.readyRead.connect(partial(self.readmore,'readyread'))
-        #XX let this autotrigger ## self.openfd(self.csvfile)
-        #XX Note that QProcess might not even be open yet
+        #XX Note that QProcess might not even be started yet
+        ## qtail does the following, should these buttons be ported here?
         # self.rebutton('kill', self.terminateProcess) XXX
         # self.file.finished.connect(self.procFinished) ###
         
@@ -617,8 +617,6 @@ class TableViewer(QtWidgets.QMainWindow):
         if rows:
             #if DEBUG: print("Read {} rows".format(len(rows))) # DEBUG
             self.model.insertRowsAt(1,rows)
-            # update headers if any row is longer XXX
-
 
     def hideCols(self):
         indexes = self.ui.colPicker.selectedIndexes()
@@ -632,7 +630,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.ui.colPicker.selectionModel().clear()
 
     def tableSelect(self, selected, deselected):
-        # XXX ignore what is passed to us and reask for selection
+        # ignore what is passed to us and reask for selection
         indexes = self.ui.tableView.selectionModel().selectedColumns()
         if not indexes: return
         selection = QtCore.QItemSelection()

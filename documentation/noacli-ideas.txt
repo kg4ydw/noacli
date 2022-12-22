@@ -127,7 +127,6 @@ D*   alternately: document table corner button that does this
 d* SETTING: delay after first data before initial window resize
  o SETTING: max qtail window size (in px), to allow free expansion
  x add another kill button:  stop(2) terminate kill
-   context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
  o history context menu: set vert spacing: expand vs minimum
      context menu -> reset to default height
  o history view row height
@@ -304,14 +303,13 @@ Do job manager list
  *   window status
  *   window type
 D*   click to redisplay / raise window (qtail)
- o   job manager context menu:
- x     info? --> process status, time stats, etc
+ *   job manager context menu:
+ *     info? --> process status, time stats, etc
  *     kill
  n     edit
  n     kill or kill and restart
  *     raise or reopen
  *     close window
-       measure output
  n     clone?
  n   open status icon
  *   proc/wait info
@@ -524,7 +522,7 @@ Do   (feature) name completion
 
    commands to implement as graphical functionality
  x   disown --> disconnect job (context menu?)
-     times or other process stats (context menu, infobox, graph)
+ x   times or other process stats (context menu, infobox, graph)
      ulimit umask (settings dialog)
      key bindings for builtin functions
 
@@ -759,6 +757,7 @@ D* filedialog prefix '" causes all filenames to be quoted
  * process.setStandardInput?(QProcess::nullDevice())
  * bind history context menu to history headers too
  * qtail --nowrap
+ * context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry

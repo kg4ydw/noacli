@@ -161,6 +161,7 @@ class QtTail(QtWidgets.QMainWindow):
             options = copy.copy(options) # don't modify parent object
         
         self.firstRead = True
+        self.resizecount = 0
         self.opt = options
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
@@ -207,6 +208,13 @@ class QtTail(QtWidgets.QMainWindow):
         secondary = self.getFontSetting('QTailSecondaryFont')
         if secondary:
             m.addAction(secondary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, secondary))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.resizecount += 1
+        # don't autoresize if the user resized, ignore first resize
+        if self.resizecount>1:
+            self.firstRead = False
 
     def getFontSetting(self, name):
         font = typedQSettings().value(name, None)
@@ -260,6 +268,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.timer.stop()
             
     def reloadOrRerun(self):
+        # XX reset and restart timer if this was user triggered?
         self.firstRead = False  # don't trigger resize if button pushed
         # XXX on reload maybe cancel resize timer too?
         if type(self.file)==QProcess:

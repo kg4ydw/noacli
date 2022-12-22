@@ -195,7 +195,7 @@ class envSettings(QProcessEnvironment):
 
     #@QtCore.pyqtSlot(QtCore.QPoint)
     def envContextMenu(self, point):
-        # XXX special env context menu things here later maybe
+        # XX special env context menu things here later maybe
         m = QMenu()
         m.addAction("Add new variable", self.addnewvar)
         # reset to default by changing mode to inherited, which has immediate effect
