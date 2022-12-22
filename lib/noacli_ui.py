@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'noacli_ui.ui'
+# Form implementation generated from reading ui file 'lib/noacli_ui.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -390,8 +390,8 @@ class Ui_noacli(object):
         self.actionEditor_font.setText(_translate("noacli", "Editor font"))
         self.actionBrowser_font.setText(_translate("noacli", "Browser default font"))
         self.actionHelp.setText(_translate("noacli", "Help"))
-from logoutput import logOutput
-from mydock import myDock
+from lib.logoutput import logOutput
+from lib.mydock import myDock
+from lib.smalloutput import smallOutput
 from noacli import commandEditor, historyView
-from smalloutput import smallOutput
-from flowlayout import FlowLayout
+from lib.flowlayout import FlowLayout

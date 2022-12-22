@@ -4,6 +4,6 @@
 Version=1.0
 Type=Application
 Terminal=false
-Icon=noacli.png
+Icon=icons/noacli.png
 Exec=noacli.py
 Name=noacli

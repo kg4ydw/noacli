@@ -12,10 +12,8 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 #
 # See Readme.md for more documentation.
 
-import os
-import sys
+import os, sys
 from pathlib import Path
-import pathlib
 from functools import partial
 import signal
 
@@ -25,17 +23,17 @@ from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard, QFont
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QModelIndex,QPersistentModelIndex, QSettings, QProcessEnvironment, QProcess
 
-from noacli_ui import Ui_noacli
-from typedqsettings import typedQSettings
+from lib.noacli_ui import Ui_noacli
+from lib.typedqsettings import typedQSettings
 
-from datamodels import simpleTable, settingsDataModel, settingsDialog
-from noajobs import jobItem, jobTableModel, History
-from smalloutput import smallOutput
+from lib.datamodels import simpleTable, settingsDataModel, settingsDialog
+from lib.noajobs import jobItem, jobTableModel, History
+from lib.smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
-from commandparser import OutWin, commandParser
-from envdatamodel import envSettings
+from lib.commandparser import OutWin, commandParser
+from lib.envdatamodel import envSettings
 
-__version__ = '0.9.9.8'
+__version__ = '0.9.9.8s'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -722,7 +720,7 @@ class noacli(QtWidgets.QMainWindow):
 
         self.historypos = 1;
         dir = os.path.dirname(os.path.realpath(__file__))
-        p =  os.path.join(dir,'noacli.png')
+        p =  os.path.join(dir,'icons', 'noacli.png')
         icon = QtGui.QIcon(p)
         if icon.isNull() or len(icon.availableSizes())<1: # try again
             if typedQSettings().value('DEBUG',False):print('icon {} failed trying again'.format(p)) # DEBUG
@@ -1163,7 +1161,7 @@ class noacli(QtWidgets.QMainWindow):
         j.setMode('QTail')
         # find our readme
         dir = os.path.dirname(os.path.realpath(__file__))
-        p =  os.path.join(dir,'Readme.md') # XX test path?
+        p =  os.path.join(dir, 'documentation', 'Readme.md') # XX test path?
         j.outwinArgs = ['--url']
         self.settings.jobs.newjob(j)
         j.startOutwin(p,self.settings)

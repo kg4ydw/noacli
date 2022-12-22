@@ -583,7 +583,7 @@
   <customwidget>
    <class>smallOutput</class>
    <extends>QTextBrowser</extends>
-   <header>smalloutput</header>
+   <header>lib/smalloutput</header>
    <slots>
     <signal>sendToLog(PyQt_PyObject)</signal>
     <signal>buttonState(bool)</signal>
@@ -597,7 +597,7 @@
   <customwidget>
    <class>logOutput</class>
    <extends>QTextBrowser</extends>
-   <header>logoutput</header>
+   <header>lib/logoutput</header>
    <slots>
     <signal>gotNewLines(int)</signal>
     <slot>setFollowCheck(int)</slot>
@@ -610,7 +610,7 @@
   <customwidget>
    <class>myDock</class>
    <extends>QDockWidget</extends>
-   <header>mydock</header>
+   <header>lib/mydock</header>
    <container>1</container>
    <slots>
     <slot>newLines(int)</slot>

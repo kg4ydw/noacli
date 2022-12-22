@@ -28,6 +28,7 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
+   version 0.9.9.8s gives exception imorting wrappers from previous version
    pip setup.py installer
    favorites changes
 !    separate button(checkbox) and name
@@ -51,6 +52,7 @@ D*   --nopick
 D*   --filtercol
 D*   --filter
      document short options?
+     tableviewer needs its own icon
 
 videos
  o  small output -> qtail demo
@@ -86,7 +88,7 @@ Misc things to implement
    should watch windows suspend activity when not visible?
  x?   Qt visibility event??
       checkbox in menu
-      cli option to set default
+x      cli option to set default
       general setting?
  *    measure runtime and set duty cycle
    SETTING auto pause qtail on maxlines threshold

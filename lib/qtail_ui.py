@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'qtail_ui.ui'
+# Form implementation generated from reading ui file 'lib/qtail_ui.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -146,4 +146,4 @@ class Ui_QtTail(object):
         self.actionClearFinds.setText(_translate("QtTail", "Clear finds"))
         self.actionShowToolbar.setText(_translate("QtTail", "Show toolbar"))
         self.actionReload.setText(_translate("QtTail", "Refresh now"))
-from qtailbrowser import myBrowser
+from lib.qtailbrowser import myBrowser

@@ -11,10 +11,10 @@ from PyQt5 import QtCore
 from PyQt5.Qt import Qt, QBrush
 from PyQt5.QtCore import QIODevice, QTimer, QModelIndex, QProcess
 
-from datamodels import itemListModel
+from lib.datamodels import itemListModel
 from qtail import QtTail
-from typedqsettings import typedQSettings
-from commandparser import OutWin
+from lib.typedqsettings import typedQSettings
+from lib.commandparser import OutWin
 from tableviewer import TableViewer
 
 

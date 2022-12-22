@@ -24,9 +24,8 @@ from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWi
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt5.Qt import Qt, pyqtSignal
 
-from qtail_ui import Ui_QtTail
-
-from typedqsettings import typedQSettings
+from lib.qtail_ui import Ui_QtTail
+from lib.typedqsettings import typedQSettings
 
 typedQSettings().registerOptions({
     'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
@@ -147,7 +146,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.eof = 0 # hack
         self.buttonCon = None
         dir = os.path.dirname(os.path.realpath(__file__))
-        icon = QtGui.QIcon(os.path.join(dir,'qtail.png'))
+        icon = QtGui.QIcon(os.path.join(dir,'icons', 'qtail.png'))
         if icon.isNull() or len(icon.availableSizes())<1: # try again
             icon = QtGui.QIcon('qtail.png')
         self.setWindowIcon(icon)

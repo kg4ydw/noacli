@@ -4,9 +4,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 
 # receiver window for small amounts of output, send to qtail if it gets big
 
-import os
-import sys
-import re
+import os, sys, re
 
 from PyQt5 import QtCore
 from PyQt5.Qt import pyqtSignal
@@ -14,8 +12,8 @@ from PyQt5.QtCore import QTimer, QSettings, QTextStream
 from PyQt5.QtGui import QTextCursor, QImage, QTextOption, QPixmap
 from PyQt5.QtWidgets import QTextBrowser
 
-from typedqsettings import typedQSettings
-from noajobs import jobItem
+from lib.typedqsettings import typedQSettings
+from lib.noajobs import jobItem
 from qtail import QtTail
 
 #import smalloutputres

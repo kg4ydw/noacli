@@ -5,9 +5,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # Receiver for output from multiple processes
 # Manage the output and the processes generating it.
 
-import os
-import sys
-import re
+import os,  sys, re
 from functools import partial
 
 from PyQt5 import QtCore, QtWidgets
@@ -16,8 +14,8 @@ from PyQt5.QtCore import QTimer, QSettings, QTextStream, QProcess
 from PyQt5.QtGui import QTextCursor, QImage, QTextOption
 from PyQt5.QtWidgets import QTextBrowser
 
-from typedqsettings import typedQSettings
-from noajobs import jobItem
+from lib.typedqsettings import typedQSettings
+from lib.noajobs import jobItem
 from qtail import QtTail
 
 # features: (possible and implemented)

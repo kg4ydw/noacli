@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QStyledItemDelegate, QComboBox, QMenu, QInputDialog
 from PyQt5.Qt import Qt
 from PyQt5.QtCore import QProcess, QProcessEnvironment, QSettings, QAbstractListModel, QModelIndex
 
-from datamodels import settingsDialog, settingsDataModel, simpleTable
+from lib.datamodels import settingsDialog, settingsDataModel, simpleTable
 
 class envModes(Enum):
     Inherit = 0

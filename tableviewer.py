@@ -25,10 +25,10 @@ from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QMenu
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QModelIndex, QItemSelectionModel, QProcess
 from PyQt5.Qt import Qt, pyqtSignal
 
-from betterio import betterQProcess, betterTextIOWrapper
-from tableviewer_ui import Ui_TableViewer
-from datamodels import simpleTable
-from typedqsettings import typedQSettings
+from lib.betterio import betterQProcess, betterTextIOWrapper
+from lib.tableviewer_ui import Ui_TableViewer
+from lib.datamodels import simpleTable
+from lib.typedqsettings import typedQSettings
 
 typedQSettings().registerOptions({
     'TableviewerResizeRows': [ False, 'Resize rows automatically after data is read', bool],

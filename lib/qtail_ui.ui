@@ -209,7 +209,7 @@
   <customwidget>
    <class>myBrowser</class>
    <extends>QTextBrowser</extends>
-   <header>qtailbrowser</header>
+   <header>lib/qtailbrowser</header>
    <slots>
     <slot>jumpToEndMaybe(bool)</slot>
     <slot>pickFont()</slot>

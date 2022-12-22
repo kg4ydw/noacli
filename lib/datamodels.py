@@ -9,7 +9,7 @@ from PyQt5 import QtCore
 from PyQt5.Qt import Qt, QAbstractTableModel, QBrush, pyqtSignal
 from PyQt5.QtCore import QObject, QModelIndex, QPersistentModelIndex
 from PyQt5 import QtWidgets
-from settingsdialog_ui import Ui_settingsDialog
+from lib.settingsdialog_ui import Ui_settingsDialog
 
 class simpleTable(QAbstractTableModel):
     def __init__(self,data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):

@@ -1,5 +1,5 @@
 
-UI= qtail_ui.py noacli_ui.py settingsdialog_ui.py tableviewer_ui.py
+UI= lib/qtail_ui.py lib/noacli_ui.py lib/settingsdialog_ui.py lib/tableviewer_ui.py
 SRCFILES=$(shell git ls-files | grep -v gitignore)
 DISTFILES=$(SRCFILES) $(UI) $(RESOURCES)
 
@@ -8,29 +8,24 @@ all: $(UI)
 %.py: %.ui
 	pyuic5 -o $@ $<
 
-tar: noacli.tgz
-
 # special case, modify it to use flowlayout
-noacli_ui.py: noacli_ui.ui
-	pyuic5 -o noacli_ui.py noacli_ui.ui
-	sed -i.bak '/buttonBox/s/QtWidgets.Q.BoxLayout/FlowLayout/' noacli_ui.py
-	echo 'from flowlayout import FlowLayout' >> noacli_ui.py
+lib/noacli_ui.py: lib/noacli_ui.ui
+	pyuic5 -o lib/noacli_ui.py lib/noacli_ui.ui
+	sed -i.bak '/buttonBox/s/QtWidgets.Q.BoxLayout/FlowLayout/' lib/noacli_ui.py
+	echo 'from lib.flowlayout import FlowLayout' >> lib/noacli_ui.py
 
 noacli.tgz: $(DISTFILES)
 	rm -f noacli.tgz
 	tar czvf noacli.tgz $(DISTFILES)
 
 clean:
-	rm *~ TAGS
+	rm *~ lib/*~ TAGS
 clobber: clean
 	rm -f noacli.tgz
 
-line100.pbm: line100-ascii.pbm
-	convert line100-ascii.pbm line100.pbm
-
 tags: TAGS
 TAGS: $(SRCFILES)
-	etags --regex '/.*ETAGS: \(\w+\)/\1/' datamodels.py logoutput.py noacli.py qtailbrowser.py qtail.py smalloutput.py typedqsettings.py commandparser.py envdatamodel.py noajobs.py tableviewer.py mydock.py
+	etags --regex '/.*ETAGS: \(\w+\)/\1/' lib/datamodels.py lib/logoutput.py noacli.py lib/qtailbrowser.py qtail.py lib/smalloutput.py lib/typedqsettings.py lib/commandparser.py lib/envdatamodel.py lib/noajobs.py tableviewer.py lib/mydock.py
 
 
 
@@ -43,14 +38,14 @@ TAGS: $(SRCFILES)
 #  DEBUG debug print
 #  EXCEPT print if something unexpected went wrong
 findprint:
-	grep --color -nH -e 'print(' *.py|egrep -av 'DEBUG|EXCEPT'
+	grep --color -nH -e 'print(' *.py lib/*.py |egrep -av 'DEBUG|EXCEPT'
 findxx:
-	grep --color -nH -e XX *.py
+	grep --color -nH -e XX *.py lib/*.py 
 findxxx:
-	grep --color -nH -e XXX *.py
+	grep --color -nH -e XXX *.py lib/*.py 
 findxxxx:
-	grep --color -nH -e XXXX *.py
+	grep --color -nH -e XXXX *.py lib/*.py 
 findxxxxxx:
-	grep --color -nH -e XXXXX *.py
+	grep --color -nH -e XXXXX *.py lib/*.py 
 finddebug:
-	grep --color -nH -e '^ *[^ #].*DEBUG' *.py
+	grep --color -nH -e '^ *[^ #].*DEBUG' *.py lib/*.py 
