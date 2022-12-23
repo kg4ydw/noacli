@@ -8,12 +8,6 @@ all: $(UI)
 %.py: %.ui
 	pyuic5 -o $@ $<
 
-# special case, modify it to use flowlayout
-lib/noacli_ui.py: lib/noacli_ui.ui
-	pyuic5 -o lib/noacli_ui.py lib/noacli_ui.ui
-	sed -i.bak '/buttonBox/s/QtWidgets.Q.BoxLayout/FlowLayout/' lib/noacli_ui.py
-	echo 'from lib.flowlayout import FlowLayout' >> lib/noacli_ui.py
-
 noacli.tgz: $(DISTFILES)
 	rm -f noacli.tgz
 	tar czvf noacli.tgz $(DISTFILES)
@@ -25,7 +19,7 @@ clobber: clean
 
 tags: TAGS
 TAGS: $(SRCFILES)
-	etags --regex '/.*ETAGS: \(\w+\)/\1/' lib/datamodels.py lib/logoutput.py noacli.py lib/qtailbrowser.py qtail.py lib/smalloutput.py lib/typedqsettings.py lib/commandparser.py lib/envdatamodel.py lib/noajobs.py tableviewer.py lib/mydock.py
+	etags --regex '/.*ETAGS: \(\w+\)/\1/' lib/datamodels.py lib/logoutput.py noacli.py lib/qtailbrowser.py qtail.py lib/smalloutput.py lib/typedqsettings.py lib/commandparser.py lib/envdatamodel.py lib/noajobs.py tableviewer.py lib/mydock.py lib/buttondock.py lib/favorites.py
 
 
 

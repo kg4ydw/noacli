@@ -549,7 +549,6 @@ class QtTail(QtWidgets.QMainWindow):
         self.timestart = time.monotonic()
         self.setButtonMode()
         self.runcount += 1
-        print('start')
 
     def procFinished(self, exitcode, estatus):
         if self.firstRead: self.actionAdjust()

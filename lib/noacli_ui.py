@@ -99,47 +99,6 @@ class Ui_noacli(object):
         self.verticalLayout_2.addWidget(self.historyView)
         self.history.setWidget(self.dockWidgetContents)
         noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.history)
-        self.buttons = myDock(noacli)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.buttons.sizePolicy().hasHeightForWidth())
-        self.buttons.setSizePolicy(sizePolicy)
-        self.buttons.setMinimumSize(QtCore.QSize(98, 81))
-        self.buttons.setFloating(False)
-        self.buttons.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)
-        self.buttons.setObjectName("buttons")
-        self.buttonBox = QtWidgets.QWidget()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.buttonBox.sizePolicy().hasHeightForWidth())
-        self.buttonBox.setSizePolicy(sizePolicy)
-        self.buttonBox.setObjectName("buttonBox")
-        self.verticalLayout_5 = FlowLayout(self.buttonBox)
-        self.verticalLayout_5.setContentsMargins(0, 0, 0, 0)
-        self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.runCurrent = QtWidgets.QPushButton(self.buttonBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.runCurrent.sizePolicy().hasHeightForWidth())
-        self.runCurrent.setSizePolicy(sizePolicy)
-        self.runCurrent.setAutoDefault(False)
-        self.runCurrent.setDefault(False)
-        self.runCurrent.setFlat(False)
-        self.runCurrent.setObjectName("runCurrent")
-        self.verticalLayout_5.addWidget(self.runCurrent)
-        self.rerunLast = QtWidgets.QPushButton(self.buttonBox)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.rerunLast.sizePolicy().hasHeightForWidth())
-        self.rerunLast.setSizePolicy(sizePolicy)
-        self.rerunLast.setObjectName("rerunLast")
-        self.verticalLayout_5.addWidget(self.rerunLast)
-        self.buttons.setWidget(self.buttonBox)
-        noacli.addDockWidget(QtCore.Qt.DockWidgetArea(4), self.buttons)
         self.jobManager = myDock(noacli)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -289,6 +248,8 @@ class Ui_noacli(object):
         self.actionEditor_font.setObjectName("actionEditor_font")
         self.actionHelp = QtWidgets.QAction(noacli)
         self.actionHelp.setObjectName("actionHelp")
+        self.actionButtonDockEditor = QtWidgets.QAction(noacli)
+        self.actionButtonDockEditor.setObjectName("actionButtonDockEditor")
         self.historyMenu.addAction(self.actionlastCommand)
         self.historyMenu.addAction(self.actionsave_history)
         self.historyMenu.addSeparator()
@@ -299,6 +260,7 @@ class Ui_noacli(object):
         self.menuSettings.addAction(self.actionFavorites_editor)
         self.menuSettings.addAction(self.actionGsettings)
         self.menuSettings.addAction(self.actionEnvironment_Variables)
+        self.menuSettings.addAction(self.actionButtonDockEditor)
         self.menuSettings.addAction(self.actionHelp)
         self.menuSettings.addSeparator()
         self.menuSettings.addAction(self.actionEditor_font)
@@ -316,9 +278,7 @@ class Ui_noacli(object):
         self.actionHideDocks.triggered.connect(noacli.hideAllDocks) # type: ignore
         self.actionShowDocks.triggered.connect(noacli.showAllDocks) # type: ignore
         self.historyView.doubleClicked['QModelIndex'].connect(self.commandEdit.acceptHistory) # type: ignore
-        self.runCurrent.clicked.connect(self.commandEdit.runCommand) # type: ignore
         self.commandEdit.command_to_run['QString','QPersistentModelIndex'].connect(noacli.runCommand) # type: ignore
-        self.rerunLast.clicked.connect(noacli.runLastCommand) # type: ignore
         self.jobTableView.doubleClicked['QModelIndex'].connect(noacli.jobDoubleClicked) # type: ignore
         self.actionsave_history.triggered.connect(noacli.actionSaveHistory) # type: ignore
         self.actionlastCommand.triggered.connect(noacli.runLastCommand) # type: ignore
@@ -341,6 +301,7 @@ class Ui_noacli(object):
         self.actionEditor_font.triggered.connect(noacli.pickDefaultFont) # type: ignore
         self.actionHelp.triggered.connect(noacli.showReadme) # type: ignore
         self.actionDeleteProfile.triggered.connect(noacli.myDeleteProfile) # type: ignore
+        self.actionButtonDockEditor.triggered.connect(noacli.editButtonDocks) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(noacli)
 
     def retranslateUi(self, noacli):
@@ -353,10 +314,6 @@ class Ui_noacli(object):
         self.history.setWindowTitle(_translate("noacli", "History"))
         self.historySearch.setToolTip(_translate("noacli", "Filter history"))
         self.historySearch.setPlaceholderText(_translate("noacli", "search history"))
-        self.buttons.setWindowTitle(_translate("noacli", "Buttons"))
-        self.runCurrent.setToolTip(_translate("noacli", "Run command currently being edited"))
-        self.runCurrent.setText(_translate("noacli", "Run"))
-        self.rerunLast.setText(_translate("noacli", "Rerun last"))
         self.jobManager.setWindowTitle(_translate("noacli", "Job manager"))
         self.smallOutputDock.setWindowTitle(_translate("noacli", "Small output"))
         self.dupOutput.setToolTip(_translate("noacli", "Copy output to a new window"))
@@ -386,8 +343,8 @@ class Ui_noacli(object):
         self.actionEnvironment_Variables.setText(_translate("noacli", "Environment Variables"))
         self.actionEditor_font.setText(_translate("noacli", "Editor font"))
         self.actionHelp.setText(_translate("noacli", "Help"))
+        self.actionButtonDockEditor.setText(_translate("noacli", "Button dock editor"))
 from lib.logoutput import logOutput
 from lib.mydock import myDock
 from lib.smalloutput import smallOutput
 from noacli import commandEditor, historyView
-from lib.flowlayout import FlowLayout

@@ -7,7 +7,7 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QDialogButtonBox, QKeySequenceEdit
 from lib.typedqsettings import typedQSettings
 from lib.datamodels import simpleTable, settingsDataModel, settingsDialog
-from lib.buttonDock import commandPushButton
+from lib.buttondock import ButtonDock
 
 # data model for favorites to apply validator
 # and add tooltip for command
@@ -68,11 +68,26 @@ class favoritesModel(simpleTable):
         return super().setData(index,value,role)
      
 class favoriteItem():
-    def __init__(self, buttonName=None, shortcut=None, immediate=True):
+    functors = [None, None] # fill this in later
+    def __init__(self,  command, buttonName=None, shortcut=None, immediate=True):
         self.buttonName = buttonName
         self.shortcut = shortcut
         self.immediate = immediate
         self.button = None
+        self.command = command
+
+    @classmethod
+    def setFunctors(cls, funcs):
+        cls.functors[0] = funcs[0]
+        cls.functors[1] = funcs[1]
+
+    def runme(self):
+        name = self.buttonName
+        if not name: name=self.command # XXXX not ideal
+        if self.immediate:
+            self.functors[0](self.command, name)
+        else:
+            self.functors[1](self.command, name)
    
 class Favorites():
     # buttons, keyboard shortcuts, and other marked commands
@@ -81,30 +96,25 @@ class Favorites():
     def __init__(self, settings):
         self.cmds = {}
         self.settings = settings
-        self.buttonbox = None
         self.runfuncs = None
 
-    def setButtonBox(self, box, runfuncs):
-        self.buttonbox = box
+    def setFunctors(self, runfuncs):
         self.runfuncs=runfuncs
-        
+        favoriteItem.setFunctors(runfuncs)
+
     def addFavorite(self, command,  buttonName=None, keybinding=None, immediate=True):
+        fav = favoriteItem(command, buttonName, keybinding, immediate)
+        self.addShortcut(fav)
+        self.cmds[command] = fav
+        return fav
+        # XXX update buttons later and all at once
+        
+    def addShortcut(self, c):
         #print("add favorite {} = {}".format(buttonName,command)) # DEBUG
-        c = self.cmds[command] = favoriteItem(buttonName, keybinding, immediate)
-        if buttonName:
-            self.addButton(command, c)
         if c.shortcut:
-            c.shortcuto = QtWidgets.QShortcut(QKeySequence(c.shortcut), self.buttonbox)
-            #print('bind {} to {}'.format(c.shortcut.toString(), command)) # DEBUG
-            if c.immediate:
-                f = self.runfuncs[0]
-            else:
-                f = self.runfuncs[1]  # XXX make right click always do this
-            #c.shortcuto.activated.connect(lambda: f(command, None))
-            c.shortcuto.activated.connect(partial(self.runkey, f, command))
-    def runkey(self, f, command):
-        #print('gotkey for '+command) # DEBUG
-        f(command,'')
+            buttonbox = ButtonDock.defaultDock[0].buttonBox # XXX cheat
+            c.shortcuto = QtWidgets.QShortcut(QKeySequence(c.shortcut), buttonbox)
+            c.shortcuto.activated.connect(c.runme)
 
     def delFavorite(self, command):
         #print('del favorite '+command) # DEBUG
@@ -112,34 +122,13 @@ class Favorites():
             #print('missing button: '+command) # DEBUG
             return
         c = self.cmds.pop(command)
-        # remove button
-        layout = self.buttonbox.layout()
-        if c.button:
-            layout.removeWidget(c.button)
-            c.button = None
         # remove shortcut
         if c.shortcut:
             c.shortcuto.activated.disconnect()
             c.shortcuto.setKey(QKeySequence())
             c.shortcuto.setParent(None)
             c.shortcuto = None
-
-    def addButton(self, cmd, fav):
-        if fav.immediate:
-            f = self.runfuncs[0]
-        else:
-            f = self.runfuncs[1]  # XXX make right click always do this
-        b = commandPushButton(fav.buttonName, cmd, self.buttonbox, f)
-        if fav.immediate:
-            b.setStyleSheet("QToolButton { font-weight: bold; }")
-        else:
-            b.setStyleSheet("QToolButton { font-style: italic; }")
-
-
-        fav.button = b
-        return b
         
-    
     def editFavorites(self, parent):
         data = []
         # save this so the validator can get it
@@ -189,25 +178,41 @@ class Favorites():
     #@QtCore.pyqtSlot(bool)
     def saveFavs(self,checked):
         # repopulate favorites and buttons
-        # purge deleted and changed stuff
+        # purge deleted and changed stuff and build a dict for buttonDock
+        buttons = {}
+        changed = set()
         for i in range(len(self.oldcmds)):
             # name, shortcut, immediate
             (keep, name, shortcut, immediate, count, command) = self.data[i]
-            fav = favoriteItem(name, shortcut, immediate)
+            if name in ButtonDock.special_buttons:
+                name += '_'
+            fav = favoriteItem(command, name, shortcut, immediate)
             # delete old stuff that changed
             if self.oldcmds[i]!=command or not keep or command in self.cmds and self.cmds[command]!=fav:
                     self.delFavorite(self.oldcmds[i])
-                
+                    if keep: changed.add(name)
         # only take the first instance of each command
         gotcmd = set()
         for row in self.data:
             (keep, name, shortcut, immediate, count, command) = row
+            if name in ButtonDock.special_buttons:
+                name += '_'
+            fav = favoriteItem(command, name, shortcut, immediate)
+            if not keep: continue  # don't warn on discards
             if command in gotcmd:
                 print("Warning: ignoring duplicate cmd: "+command) # EXCEPT
-            elif keep:
+            else:
                 if command not in self.cmds:
                     gotcmd.add(command)
-                    self.addFavorite(command, name, shortcut, immediate)
+                    self.addShortcut(fav)
+                    self.cmds[command] = fav
+                    if name:
+                        if name in buttons:
+                            # XXX no warning, delete duplicate name
+                            fav.name = None
+                        else:
+                            buttons[name] = fav
+        ButtonDock.updateFavs(buttons, changed)
         # above code won't work on a second pass (removed apply button, moot)
         ## don't destroy this in case apply is clicked a second time
         #self.data = None
@@ -241,14 +246,18 @@ class Favorites():
 
     def loadSettings(self):
         qs = QSettings()
+        buttons = {}
         qs.beginGroup('Favorites')
         val = qs.value('favorites', None)
         #print('favorites: '+str(val)) # DEBUG
         if not val: return
         for v in val:
-            self.addFavorite(*v[0:4])  # super lazy
+            fav = self.addFavorite(*v[0:4])
+            if fav.buttonName:
+                buttons[fav.buttonName] = fav
         qs.endGroup()
-
+        if buttons:
+            ButtonDock.updateFavs(buttons)
 
 class keySequenceDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent):

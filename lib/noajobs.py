@@ -132,7 +132,7 @@ class jobItem():
         t = self.timestop-self.timestart
         if self.runtime==None: self.runtime=t
         self.runtime = self.runtime * 0.6 + t*0.4
-        #print("runtime {} = {:1.2f}".format(self.runtime, self.runtime))
+        #print("runtime {} = {:1.2f}".format(self.runtime, self.runtime)) # DEBUG
     def collectNewstate(self, state):
         if state==QProcess.Starting:
             self.setStatus(self.status+str('Starting'))

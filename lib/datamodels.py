@@ -17,6 +17,7 @@ class simpleTable(QAbstractTableModel):
         #super().__init__(self)  # why does this break?
         self.mydata = data
         self.headers = headers
+        self.vheaders = None
         self.datatypes = datatypes
         self.datatypesrow = datatypesrow
         self.editmask = editmask
@@ -99,6 +100,8 @@ class simpleTable(QAbstractTableModel):
             if orientation == Qt.Horizontal and col<len(self.headers):
                 return self.headers[col]
             elif orientation == Qt.Vertical and col<len(self.mydata):
+                if self.vheaders and col<len(self.vheaders):
+                    return self.vheaders[col]
                 # if you don't like veritcal headers, turn them off in designer
                 return str(col+1)
         return None
@@ -118,6 +121,20 @@ class simpleTable(QAbstractTableModel):
         maxx = max([len(row) for row in rows])
         self.endInsertRows()
         self.checkExtendHeaders(maxx)
+
+    def appendColumn(self, head, coldata):
+        col = len(self.headers)
+        r1 = self.columnCount(None)
+        self.beginInsertColumns(QModelIndex(), col,col)
+        self.headers.append(head)
+        for i in range(len(coldata)):
+            self.mydata[i].append(coldata[i])
+        # cheat a bit, dup last item
+        if self.datatypesrow:
+            self.datatypesrow.append(self.datatypesrow[-1])
+        if self.editmask:
+            self.editmask.append(self.editmask[-1])
+        self.endInsertColumns()
         
     def checkExtendHeaders(self, maxx):
         if maxx> len(self.headers):

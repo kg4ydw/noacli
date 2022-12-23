@@ -157,6 +157,10 @@ x!so  block tostop signal : try os.setsid ?
    flowlayout overlapping buttons (rare? one time glitch?)
 
 Bugs:
+   dialogs use shared variables and should not be duplicate opened
+      raise and focus old dialog instead
+   button dock editor dialog is not sized properly
+   tableviewer sort doesn't recognize nubmers as numbers
    inconsistant coding style as I was learning Qt as I wrote this and discovered some Qt features after having reimplemented them
       please be gentle, but constructive criticism welcome
    new env marked as 'inherit' but not in parent should be deleted on save
@@ -179,8 +183,6 @@ Bugs:
      insert icon=self.style().standardIcon(QStyle.SP_FileDialogStart)
    Poor data flow between jobItem and smallOutput (refactor)
    'set max' too often -- use histiresis of mul+1 ?
-  o settings apply button is delayed until ok pressed
-  *   fix this or delete the button
 
 D* small output window
 D*   transfer last command output to qtail if:

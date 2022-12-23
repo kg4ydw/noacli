@@ -32,9 +32,10 @@ from lib.smalloutput import smallOutput
 from qtail import myOptions as qtailSettings
 from lib.commandparser import OutWin, commandParser
 from lib.envdatamodel import envSettings
+from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '0.9.9.8s'
+__version__ = '0.9.9.9'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -411,10 +412,8 @@ class noacli(QtWidgets.QMainWindow):
         super().__init__()
         self.ui = Ui_noacli()
         self.ui.setupUi(self)
-
-        # try to make button box smaller
-        f = self.ui.buttonBox.layout()
-        f.setContentsMargins(3,3,3,3)
+        self.ui.buttons = ButtonDock(self, 'Buttons') # make default button dock
+        ButtonDock.run_command.connect(self.doButton)
 
         # delayed resize works better
         self.want_restore_geo_delay.connect(self.restore_geo, Qt.QueuedConnection) # delay this
@@ -446,8 +445,11 @@ class noacli(QtWidgets.QMainWindow):
 
         ui.actionTabifyDocks.triggered.connect(self.tabifyAll)
 
+        # must load button dock settings before favorites or all
+        # buttons get reinserted into default dock
+        ButtonDock.loadSettings()
         # connect buttons to favorites
-        self.settings.favorites.setButtonBox(self.ui.buttonBox, [ self.runSimpleCommand, self.ui.commandEdit.acceptCommand])
+        self.settings.favorites.setFunctors( [ self.runSimpleCommand, self.ui.commandEdit.acceptCommand])
         self.settings.favorites.loadSettings()
 
         self.settings.logOutputView = self.ui.logBrowser
@@ -557,6 +559,13 @@ class noacli(QtWidgets.QMainWindow):
         #    pass
 
     ## end __init__
+
+    def doButton(self, name):
+        if name=='Run':
+            self.ui.commandEdit.runCommand()
+        elif name=='Rerun last':
+            self.runLastCommand()
+        # XX add more simple buttons later?
 
     def setTitleFromWrap(self, title):
         self.setWindowTitle('noacli: '+title)
@@ -1131,6 +1140,8 @@ class noacli(QtWidgets.QMainWindow):
     def resizeJobVheader(self, logical):
         self.ui.jobTableView.resizeRowToContents(logical)
 
+    def editButtonDocks(self):
+        EditButtonDocks(self)
         
 ################ end noacli end
 

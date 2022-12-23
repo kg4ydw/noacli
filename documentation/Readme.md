@@ -250,6 +250,11 @@ When editing favorites, duplicate commands, buttons, and shortcuts are
 highlighted so you can fix them.  Duplicate commands are not allowed,
 and all but the first will be deleted on save.
 
+In settings, there is a button dock editor that allows creation of new
+button docks and selecting which docks get which buttons, so that task
+specific favorites can be grouped.  Newly named favorites are initially
+added to the default button dock.
+
 # main command edit #
 The command edit box allows typing of commands.
 Commands are not restricted to a single line, but can span multiple

@@ -86,6 +86,7 @@
     <addaction name="actionFavorites_editor"/>
     <addaction name="actionGsettings"/>
     <addaction name="actionEnvironment_Variables"/>
+    <addaction name="actionButtonDockEditor"/>
     <addaction name="actionHelp"/>
     <addaction name="separator"/>
     <addaction name="actionEditor_font"/>
@@ -182,80 +183,6 @@
        <attribute name="horizontalHeaderStretchLastSection">
         <bool>true</bool>
        </attribute>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="myDock" name="buttons">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>98</width>
-     <height>81</height>
-    </size>
-   </property>
-   <property name="floating">
-    <bool>false</bool>
-   </property>
-   <property name="features">
-    <set>QDockWidget::AllDockWidgetFeatures</set>
-   </property>
-   <property name="windowTitle">
-    <string>Buttons</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>4</number>
-   </attribute>
-   <widget class="QWidget" name="buttonBox">
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_5">
-     <item>
-      <widget class="QPushButton" name="runCurrent">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="toolTip">
-        <string>Run command currently being edited</string>
-       </property>
-       <property name="text">
-        <string>Run</string>
-       </property>
-       <property name="autoDefault">
-        <bool>false</bool>
-       </property>
-       <property name="default">
-        <bool>false</bool>
-       </property>
-       <property name="flat">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="rerunLast">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Rerun last</string>
-       </property>
       </widget>
      </item>
     </layout>
@@ -554,6 +481,11 @@
     <string>Help</string>
    </property>
   </action>
+  <action name="actionButtonDockEditor">
+   <property name="text">
+    <string>Button dock editor</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -663,22 +595,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>runCurrent</sender>
-   <signal>clicked()</signal>
-   <receiver>commandEdit</receiver>
-   <slot>runCommand()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>182</x>
-     <y>90</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>198</x>
-     <y>265</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>commandEdit</sender>
    <signal>command_to_run(QString,QPersistentModelIndex)</signal>
    <receiver>noacli</receiver>
@@ -695,30 +611,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>rerunLast</sender>
-   <signal>clicked()</signal>
-   <receiver>noacli</receiver>
-   <slot>runLastCommand()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>158</x>
-     <y>135</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>160</x>
-     <y>134</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>jobTableView</sender>
    <signal>doubleClicked(QModelIndex)</signal>
    <receiver>noacli</receiver>
    <slot>jobDoubleClicked(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>276</x>
-     <y>119</y>
+     <x>191</x>
+     <y>94</y>
     </hint>
     <hint type="destinationlabel">
      <x>308</x>
@@ -829,7 +729,7 @@
    <slot>smallDup()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>328</x>
+     <x>261</x>
      <y>55</y>
     </hint>
     <hint type="destinationlabel">
@@ -845,7 +745,7 @@
    <slot>smallKeepToggle(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>416</x>
+     <x>349</x>
      <y>52</y>
     </hint>
     <hint type="destinationlabel">
@@ -909,7 +809,7 @@
    <slot>setFollowCheck(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>494</x>
+     <x>462</x>
      <y>56</y>
     </hint>
     <hint type="destinationlabel">
@@ -957,7 +857,7 @@
    <slot>smallLog()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>346</x>
+     <x>279</x>
      <y>59</y>
     </hint>
     <hint type="destinationlabel">
@@ -973,7 +873,7 @@
    <slot>receiveJob(PyQt_PyObject)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>425</x>
+     <x>358</x>
      <y>135</y>
     </hint>
     <hint type="destinationlabel">
@@ -1062,6 +962,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionButtonDockEditor</sender>
+   <signal>triggered()</signal>
+   <receiver>noacli</receiver>
+   <slot>editButtonDocks()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>305</x>
+     <y>148</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAllDocks()</slot>
@@ -1082,5 +998,6 @@
   <slot>pickDefaultFont()</slot>
   <slot>pickBrowserFont()</slot>
   <slot>showReadme()</slot>
+  <slot>editButtonDocks()</slot>
  </slots>
 </ui>
