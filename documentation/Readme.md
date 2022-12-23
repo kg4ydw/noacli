@@ -87,6 +87,7 @@ The following settings dialog boxes allow editing settings:
 * General settings editor
 * Favorites editor
 * Environment variable editor
+* Button dock editor
 
 # qtail #
 The qtail window also works as a separate application from the shell,

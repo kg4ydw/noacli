@@ -23,7 +23,7 @@ This shell tries to make the following concepts obsolete:
 This does not replace the standard terminal shell, but augments it and
 hopefully reduces your need to ever open a second terminal, as
 everything not done in the first terminal window can be done in
-noacli.  You would still want a traditional terminal winedow for
+noacli.  You would still want a traditional terminal window for
 things like:
 
 * Full screen text applications like vi, nethack
@@ -52,6 +52,7 @@ The settings editor dialog boxes are:
 * General settings editor
 * Favorites editor
 * Environment variable editor
+* Button dock editor
 
 For a a longer list of features and details of the above features,
 see [documentation/Readme.md](documentation/Readme.md)
