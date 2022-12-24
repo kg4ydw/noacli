@@ -28,7 +28,7 @@ things like:
 
 * Full screen text applications like vi, nethack
 * Text based applications expecting input from the terminal
-* Other programs expeting a terminal like sudo
+* Other programs expecting a terminal like sudo
 
 ![A busy screenshot](documentation/noacli-big-screenshot.png)
 
@@ -56,3 +56,9 @@ The settings editor dialog boxes are:
 
 For a a longer list of features and details of the above features,
 see [documentation/Readme.md](documentation/Readme.md)
+
+The window is composed of docks that can be rearranged and hidden, and
+various configurations saved.
+
+![noacli](documentation/small-buttons.png "Small output and buttons")
+![noacli](documentation/tiny.png "Tiny")
