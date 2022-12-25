@@ -58,11 +58,14 @@ For a a longer list of features and details of the above features,
 see [documentation/Readme.md](documentation/Readme.md)
 
 The window is composed of docks that can be rearranged and hidden, and
-various configurations saved.
+various configurations saved.  Here's some alternate configurations.
 
-![noacli](documentation/small-buttons.png "Small output and buttons")
-![noacli](documentation/tiny.png "Tiny")
+![Small](documentation/small-buttons.png "Small output and buttons")
+![Tiny](documentation/tiny.png "Tiny")
 
 The buttons in the button dock in these screenshots are user configurable
 commands marked as favorites.
 
+
+If you want to see where this project is going or want to influence it,
+look at [Readme-feedback.md](documentation/Readme-feedback.md) and documentation/noacli-ideas.txt

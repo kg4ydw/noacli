@@ -11,8 +11,8 @@ including common trivial data visualization stuff.
 This readme is not comprehensive, but it hits the major points.
 There's more stuff discoverable in the shell.
 
-Dependencies
-------------
+# Dependencies
+
 This uses Python and Qt, which are dependencies.  To install these:
 
 Mac: (pick one)
@@ -22,8 +22,7 @@ Mac: (pick one)
 Ubuntu:
 * sudo apt install python3-pyqt5
 
-Philosophy
-----------
+# Philosophy
 
 There are lots of (old) traditional command line shells that are quite nice.
 There are a few graphical shells that are nice (like gnome-shell, KDE, etc.)
@@ -64,8 +63,7 @@ and follow the end, similar to what tail -f does.
 
 If you run another command, you get another window dedicated to it.
 
-Structure and details
----------------------
+# Structure and details
 
 The graphical interface includes the following items as described below:
 * Pull down menus
@@ -89,7 +87,7 @@ The following settings dialog boxes allow editing settings:
 * Environment variable editor
 * Button dock editor
 
-# qtail #
+## qtail
 The qtail window also works as a separate application from the shell,
 functioning in a way similar to "tail -f" and taking a few similar
 command line arguments.  As an external application, qtail will work
@@ -130,7 +128,7 @@ Qtail supports the following options:
 `--nowrap`
     Turn word wrap off intitially
 
-# table viewer #
+## table viewer
 
 The table viewer takes the output from a command and tries to parse it
 as a table, using several heuristics to try to guess where the columns are.
@@ -171,7 +169,7 @@ following options:
 
 Like qtail, table also accepts the --file and --files options.
 
-# small output #
+## small output
 The small output dock window will collect output from commands that
 output a small amount of text or no text and then exit quickly.  But
 if a command outputs more, or you run another command before it
@@ -190,7 +188,7 @@ the main window.  Also, if the small output window is not visible when
 a command sends output or exits, a notification will show in the
 status bar temporarily. (Delay is settable.)
 
-# history dock #
+## history dock
 Like traditional cli shells, this shell keeps a history of your commands.
 But unlike traditional shells, you view it in a graphical dock window
 that is scrollable, sortable, and can be easily filtered.
@@ -206,7 +204,7 @@ save it favorites to mark it for future use.
 You can also use ctrl-uparrow and ctrl-down in the command window to
 browse the history.
 
-# job manager #
+## job manager
 
 The jobs you run are also tracked in a job manager dock window that
 shows the critical job details and status, and helps you find or
@@ -223,7 +221,7 @@ or to run it again.  If you already had a partially typed command there,
 it will be saved in history as a command that was never run.  Returning to
 the unrun command will let you continue editing it.
 
-# settings editor dialog #
+## settings editor dialog
 All shell settings can be adjusted in a graphical settings edit window
 that includes tooltips with default values and documentation for each
 setting.  Numbers mentioned in this document are all settings and can
@@ -232,7 +230,7 @@ including timeouts and otherwise hard coded values editable settings.
 Settings with default values will have a grey background and will turn
 to a white background when they are edited.
 
-# favorites and button dock #
+## favorites and button dock
 
 The favorites editor, when opened, shows your previously saved
 favorites, your 10 most frequently run commands, and your 10 most
@@ -256,7 +254,7 @@ button docks and selecting which docks get which buttons, so that task
 specific favorites can be grouped.  Newly named favorites are initially
 added to the default button dock.
 
-# main command edit #
+## main command edit
 The command edit box allows typing of commands.
 Commands are not restricted to a single line, but can span multiple
 lines.  Multi-line commands are fed (by default) directly to bash -c
@@ -282,7 +280,7 @@ single `/`
 If you want full pathnames instead of relative pathnames, type a * by
 itself before the cursor (not selected) before activating Ctrl-F.
 
-# Log dock window #
+## Log dock window
 
 If you have a command that typically doesn't output anything
 interesting, or all of its output is debug output (like, for instance,
@@ -298,7 +296,7 @@ amounts of output.  Use the qtail window for that.  By default, the
 log window only remembers the last 10,000 lines from all processes it
 is logging.
 
-# Output destinations #
+## Output destinations
 
 When commands are run, their output is sent to an initial destination.
 The currently available output destinations are:
@@ -319,7 +317,7 @@ Currently stdout and stderr are both sent to the same target,
 but in the future, splitting them may be possible, although this
 can be done now using mechanisms available in the wrapper shell.
 
-# Wrappers #
+# Wrappers
 
 This shell does not have the programmability of typical command line
 shells and only does extremely limited parsing.  Instead, it leans on
@@ -362,7 +360,7 @@ ssh will pass that to the remote shell.  This is not the case if you
 used ssh without a wrapper, and your default wrapper will interpret
 these before running ssh, possibly locally.
 
-# Built in commands #
+# Built in commands
 
 (Numbers in () in the following are a count of bash built in commands.)
 
@@ -377,6 +375,7 @@ when embedded in the command line even if there is a graphical way to do it.
 
 The following are the built in commands noacli has (so far).
 These commands must be run by themselves, not combined with other commands.
+
 
 `help`  
     list all of these and their description
@@ -417,10 +416,11 @@ and change the default output destination:
     delimited text, fixed width tables, and large numbers of columns.
     See options list above.
 
+
 Additionally, wrappers are activated by keyword somewhat like builtin
 commands and can be placed after the above output direction commands.
 
-# Buffering #
+# Buffering
 
 Internally, noacli handles data in lines (which Qt calls paragraphs).
 Otherwise, very little is done to control buffering, and this is
@@ -435,8 +435,7 @@ unbuffered.  This might incur a performance penalty for large amounts
 of output.  Otherwise, adding well placed flush() commands in your
 code may help.
 
-Menus
------
+# Menus
 
 The following pull down menus are also available:
 
@@ -460,8 +459,7 @@ your needs. If you have a default window profile, it will be loaded at
 noacli start and saved at exit (unless you uncheck the DefWinProfile
 setting).
 
-Key bindings
-------------
+# Key bindings
 
 There are not many key bindings, although you can bind favorites to key bindings.
 
@@ -490,8 +488,8 @@ In qtail:
 |---|---|
 |Ctrl-F     | Moves keyboard focus to the find box
 
-Odds and ends
--------------
+# Odds and ends
+
 Many items are internally documented with tooltips.
 * The general settings editor shows a description of the option and
   the default value as tooltips for the two columns.
@@ -512,25 +510,26 @@ history so it isn't lost.)
 
 Many items have a context menu (right click) with additional actions.
 
-Using ssh as a wrapper
-----------------------
-To use noacli with ssh to remote hosts, it needs to work without asking for
-a password.  There are two ways to do this:
+## Using ssh as a wrapper
 
-Permanent authorization
+To use noacli with ssh to remote hosts, it needs to work without asking for
+a password.  There are two ways to do this.
+
+### Permanent authorization
 1) create a local ssh key (e.g, ssh-keygen -t rsa )
-2) copy the public key to the remote host in the file authorized_keys
+2) copy the public key to the remote host in the file `authorized_keys`
    (the permissions have to be exactly right for it to work, must not be
    group or world writable)
-   The easiest way to do this is with ssh-copy-id
+   The easiest way to do this is with `ssh-copy-id`
 3) (optional) authorize this key with ssh-agent
 
-Temporary authorization
+### Temporary authorization
 
 On the local machine, edit `~/.ssh/config` and add the following lines
-~~~
-  ControlMaster auto
-  ControlPath ~/.ssh/socket.%h.%p.%r
+
+    ControlMaster auto
+    ControlPath ~/.ssh/socket.%h.%p.%r
+ 
 As above, neither the config file nor the .ssh directory can be group or
 world writable, or ssh will ignore the files.
 
@@ -538,17 +537,13 @@ Then when you are ready to connect, authorize to the host once with
 ~~~
   ssh -fnN -O 'ControlPersist 2h' user@hostname
 ~~~
-  (adjust time to your preference)
-  This command makes a nice template button if you replace hostname with {}
-check the authorization with
+(Adjust time to your preference.)  This command makes a nice template button if you replace hostname with {} and you can check the link status with
 ~~~
   ssh -O check hostname
 ~~~  
 cancel it with one of
-~~~
-  ssh -O stop hostname
-  ssh -O exit hostname  (kills all existing connections too)
-~~~
+* `ssh -O stop hostname`
+* `ssh -O exit hostname`   (kills all existing connections too)
 
 Note that the first command works well in an xterm wrapper to take
 your password.
@@ -559,6 +554,27 @@ something like
    addwrap somehost ssh user@somehost.fqdn
    ~~~
 
-This project (and this file) are Copyright (C) 2002 Steven Dick
+## Fonts
+
+There are 3 fonts that can be adjusted:
+* The font shared by the command editor, small output dock, and log dock
+* The primary (default) font for qtail
+* The secondary font (in menu) for qtail
+
+There are three places to change the 3 adjustable fonts:
+* All three are in General settings
+* The main window settings menu "Editor font" lets you adjust the font of the command edit window (live) and applies that to the other two windows when you accept it (and saves it as a setting).
+* In qtail, the view menu lets you change the font live, or switch to the primary or secondary font if those are set in general settings.
+
+Note that font changes in general settings only affect new qtail windows and
+that the font picker in qtail doesn't save its settings permanently.
+
+# Postscript
+
+If you want to see where this project is going or want to influence it,
+look at [Readme-feedback.md](documentation/Readme-feedback.md) and [noacli-ideas.txt](noacli-ideas.txt)
+
+
+This project (and this file) are Copyright (C) 2022 Steven Dick
 and may be used under the terms of the GNU General Public LIcense v3
 which should have been included with this project in the file license.txt

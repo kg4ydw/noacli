@@ -30,6 +30,9 @@ Things to implement soon:
    verify qtail and tableview both argparse internal and external
    force file dialog to always be on top Qt.WindowStaysOnTopHint
 ---
+   qtail button is wrong sometimes
+     help --> qtail 227 : 'QtTail' object has no attribute 'file'
+     file reload not set correctly on watch toggle
    qtail reverse find (context menu? menu checkbox?)
    table column picker needs an undo select columns
    mac terminal window (applescript?)
@@ -142,6 +145,7 @@ d* SETTING: delay after first data before initial window resize
  * if output windows are not visible, add extra status to main window?
 
 User visible bugs:
+   reload doesn't work on markdown; does it work on regular files?
  ? on large data, qtail freezes on first resize in qt adust()
      skip or postpone while busy?
  o   resize early when buffer is small rather than later
@@ -661,19 +665,29 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
    Possible internal actions for shortcut keys
      save favorites
      sync settings
-     switch to profile ...
+     switch to geometry profile ... (one key per profile?)
+     save current geometry
+     restore current geometry
      show all / hide all /tabify all docks
-     show/hide dock X
-     run
+     show/hide dock X (one key per dock?)
+     run (hardcoded now)
      run last command
      clear command
-     history up
-     history down
-     restore current geometry
+     history up (hardcoded now)
+     history down (hardcoded now)
      small dup
      small log
      small kill
-
+   possible qtail and tableviewer actions for shortcut keys
+     adjust size (body, rows, columns, window)
+     refresh / reload (NOT CLOSE)
+     close
+     cancel autorefresh
+     restart autorefresh
+     toggle headings (view, type)
+     toggle column picker
+     toggle sort/select on tableviewer column headers
+ 
    man page viewer
      qtail base
      fixed with font?
