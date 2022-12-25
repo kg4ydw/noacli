@@ -190,10 +190,25 @@ class settings():
         self.data = None
 
 class  fontDelegate(QStyledItemDelegate):
+    # All tested versions of Qt call setModelData when they think
+    # editing is done, not when the font dialog is done.  This happens
+    # even when the editing is rejected.  Some versions of Qt (5.12.8?)
+    # call setModelData then fontSelected where later versions do the
+    # reverse.  selectedFont is not valid before fontSelected is
+    # called. So we set a flag at editor creation indicating if a
+    # font is selected.  When setModelData is called, save state
+    # variables, and set the font only if one has been selected.  When
+    # one is selected, check if the state variables were set and use
+    # them after the fact.  This fixes older qt never setting the
+    # right font, and fixes newer qt setting the font to a default
+    # system font when it was rejected.
+    # 
+    # Unclear if QStyledItemDelegate is buggy or just poorly documented,
+    # or if this is a race condition and the order is coincidental.
     def __init__(self, parent):
         super().__init__(parent)
-        self.rejected = False
-        self.startfont = None
+        self.fontselected = False
+        self.originalfont = None
 
     def convertsetting(self, val):
         if type(val)==str:
@@ -209,27 +224,39 @@ class  fontDelegate(QStyledItemDelegate):
             return None
         
     def createEditor(self,parent,option,index):
+        self.fontselected = False
         font = self.convertsetting(index.model().data(index,Qt.EditRole))
         #print('create editor '+font.toString()) # DEBUG
+        self.originalfont = None
         if font:
+            self.originalfont = font # prob don't actually need to save this
             fd= QFontDialog(font, parent)
         else:
             #print('created with no font') # DEBUG
-            fd= QFontDialog(parent)
+            fd = QFontDialog(parent)
+        fd.fontSelected.connect(self.fixfontsel)
+        self.fd = fd
         fd.open()
         return fd
 
-    ## redundant
-    #def setEditorData(self, editor, index):
-    #    font =self.convertsetting(index.model().data(index,Qt.EditRole))
-    #    #print(' set editor: '+font.toString()) # DEBUG
-    #    if font:
-    #        editor.setCurrentFont(QFont(font))
+
+    def fixfontsel(self, font):
+        self.fontselected = True
+        # this tries to cover up an error where setModelData
+        # is called before fontSelected is generated and selectedFont set,
+        # so the wrong font is used without this
+        DEBUG = typedQSettings().value('DEBUG',False)
+        if hasattr(self, 'lastmodel'):
+            if DEBUG: print('late set font')
+            self.setModelData(self.fd, self.lastmodel, self.lastindex)
 
     def setModelData(self, editor, model, index):
         font = editor.selectedFont()
-        #print("setModelData: "+font.toString()) # DEBUG
-        # XXX check result? This doesn't restore original font on cancel!
+        # save these for later, when the font is actually selected
+        self.lastmodel = model
+        self.lastindex = index
+        if not self.fontselected:
+            return # too early! set later. Or never if canceled.
         if font:
             model.setData(index, font, Qt.EditRole)
 
