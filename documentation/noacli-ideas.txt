@@ -28,6 +28,8 @@ o  should the window auto-resize threshold be a setting
 
 Things to implement soon:
    verify qtail and tableview both argparse internal and external
+   force file dialog to always be on top Qt.WindowStaysOnTopHint
+---
    qtail reverse find (context menu? menu checkbox?)
    table column picker needs an undo select columns
    mac terminal window (applescript?)
@@ -73,10 +75,12 @@ high priority bugs
      icons and app name don't work on mac (wrong geom?)
  ? fileDialog doesn't always trim prefix correctly
      doesn't work consistently if no prefix directory (./ doesn't work either)
+     leaves junk before filename if prefix doesn't match
+ x   partial directory names can't be matched
    document environment editor a bit
       mode?
  *    "add" button in dialog
-   QPersistentModelIndex contamination, trace and check types (marked)
+ ? QPersistentModelIndex contamination, trace and check types (marked)
 
 Misc things to implement
    set some keybindings on all windows?
