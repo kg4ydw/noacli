@@ -760,7 +760,7 @@ class noacli(QtWidgets.QMainWindow):
 
     def doneFont(self):
         # tear it down
-        self.fontdialog.setParent(None)
+        self.fontdialog.deleteLater()  # possibly still delivering signals
         self.fontdialog = None
     
     @QtCore.pyqtSlot()

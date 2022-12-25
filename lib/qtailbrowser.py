@@ -82,7 +82,7 @@ class myBrowser(QTextBrowser):
             self.document().setDefaultFont(font)
 
     def doneFont(self):
-        self.fontdialog.setParent(None)
+        self.fontdialog.deleteLater()
         self.fontdialog = None
 
     def pickFont(self):
