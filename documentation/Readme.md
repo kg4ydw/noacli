@@ -527,7 +527,8 @@ Permanent authorization
 
 Temporary authorization
 
-On the local machine, edit ~/.ssh/config and add the following lines
+On the local machine, edit `~/.ssh/config` and add the following lines
+~~~
   ControlMaster auto
   ControlPath ~/.ssh/socket.%h.%p.%r
 As above, neither the config file nor the .ssh directory can be group or

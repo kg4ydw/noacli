@@ -62,3 +62,7 @@ various configurations saved.
 
 ![noacli](documentation/small-buttons.png "Small output and buttons")
 ![noacli](documentation/tiny.png "Tiny")
+
+The buttons in the button dock in these screenshots are user configurable
+commands marked as favorites.
+

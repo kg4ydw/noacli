@@ -18,7 +18,6 @@ t  documented internally with tool tip
 User interface questions: (please send feedback!!)
 o  Should all the tables be respaced with resizeRowsToContents()
       note: table filter resets row height every time anyway
-   Is column selection between tableviewer and column picker awkward
    is the documentation unclear or too wordy
    is a keybindings viewer / editor needed
    are the options named well
@@ -28,13 +27,8 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
-   version 0.9.9.8s gives exception imorting wrappers from previous version
-   pip setup.py installer
-   favorites changes
-!    separate button(checkbox) and name
-     autocheck button if name is filled in, uncheck if blanked
+   verify qtail and tableview both argparse internal and external
    qtail reverse find (context menu? menu checkbox?)
-   mac installer?
    table column picker needs an undo select columns
    mac terminal window (applescript?)
  ? settingsDialog needs doubleclick resize (fixed default ??)
@@ -47,12 +41,17 @@ Things to implement soon:
  *    proxy model
  *    reset in corner
  o    filter
- o table viwer options
+      convert numbers before sorting?
+ o table viewer options
 D*   --nopick
 D*   --filtercol
 D*   --filter
      document short options?
      tableviewer needs its own icon
+   version 0.9.9.8s gives exception importing wrappers from previous version
+      convince QSettings to use enum.name for enum OutWin
+   pip setup.py installer
+   mac installer?
 
 videos
  o  small output -> qtail demo
@@ -169,7 +168,6 @@ Bugs:
    test Qt dock bug on Ubuntu 20
    test sibling markers
  o QFont styled item delegate
- E   doesn't cancel correctly
      displayed font name is ugly
    fonts are handed as objects to QSettings, save as font name later?
  * 'type' builtin fails on old python (fix untested)
@@ -820,6 +818,7 @@ D*   if it ends in / select dirs only??
  * context menu in history headers (h and v)
  * qtail should resize on smalldup of dead proc
  * runCommand history may be translating from QPersist to QModelIndex too soon
+ * QFont styled item delegate didn't cancel correctly or sometimes work at all
 
 
 ## ispell put these here
