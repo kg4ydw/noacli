@@ -98,7 +98,7 @@ class settings():
             m = QMenu(self.dialog)
             # XXX value? already default?
             m.addAction("Reset to default", partial(self.resetGenSetting, index))
-            action = m.exec_(t.mapToGlobal(point))  # event.globalPos())
+            action = m.exec(t.mapToGlobal(point))  # event.globalPos())
 
     def resetGenSetting(self, index):
         m = index.model()
@@ -364,7 +364,7 @@ class historyView(QTableView):
         m.addAction("Scroll to top", self.scrollToTop)
         m.addAction("Scroll to bottom", self.scrollToBottom)
 
-        action = m.exec_(self.mapToGlobal(point))  # event.globalPos())
+        action = m.exec(self.mapToGlobal(point))  # event.globalPos())
         #print(action) # DEBUG
 
     def resizeVheader(self, logical):
@@ -711,7 +711,7 @@ class noacli(QtWidgets.QMainWindow):
         # DontConfirmOverwrite
         # viewmode def:Detail/List
 
-        if fd.exec_():  # XXX icky modal
+        if fd.exec():  # XXX icky modal
             fs = fd.selectedFiles()
         else:
             fs = None
@@ -1159,7 +1159,7 @@ class noacli(QtWidgets.QMainWindow):
             if job.window and hasattr(job.window, 'runcount'):
                 m.addAction("run count: {}".format(job.window.runcount))
             
-        action = m.exec_(jobView.mapToGlobal(point))
+        action = m.exec(jobView.mapToGlobal(point))
         # all actions have their own handler, nothing to do here
 
     def resizeJobHheader(self, logical):
@@ -1211,7 +1211,7 @@ class commandEditor(QPlainTextEdit):
         m.addAction("Clear", super().clear)
         m.addAction("Add to favorites",self.addFav)
         #return m
-        action = m.exec_(event.globalPos())
+        action = m.exec(event.globalPos())
         # don't need to use action here
 
     def addFav(self):
@@ -1306,4 +1306,4 @@ if __name__ == '__main__':
     mainwin.show()
     mainwin.start()
 
-    app.exec_()
+    app.exec()

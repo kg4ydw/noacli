@@ -717,4 +717,4 @@ if __name__ == '__main__':
     else:
         mainwin.openstdin()
     
-    app.exec_()
+    app.exec()

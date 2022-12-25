@@ -103,7 +103,7 @@ class smallOutput(QTextBrowser):
     def contextMenuEvent(self, event):
         m=super().createStandardContextMenu(event.pos())
         m.addAction("Clear",self.clear)
-        action = m.exec_(event.globalPos())
+        action = m.exec(event.globalPos())
 
     ##### external signals
 

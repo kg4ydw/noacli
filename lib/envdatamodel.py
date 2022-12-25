@@ -199,7 +199,7 @@ class envSettings(QProcessEnvironment):
         m = QMenu()
         m.addAction("Add new variable", self.addnewvar)
         # reset to default by changing mode to inherited, which has immediate effect
-        action = m.exec_(self.envDia.mapToGlobal(point))
+        action = m.exec(self.envDia.mapToGlobal(point))
 
     def addnewvar(self):
         (name, result) = QInputDialog.getText(self.envDia, "Add new environment variable", "Variable name")

@@ -259,7 +259,7 @@ class EditButtonDocks(settingsDialog):
         # XXXX buttondock context menu
         # delete dock (confirm?)
         # set default dock
-        m.exec_(t.mapToGlobal(point))
+        m.exec(t.mapToGlobal(point))
     
     def addDock(self):
         (name, result) = QtWidgets.QInputDialog.getText(self, "Add new button dock", "Button dock name")

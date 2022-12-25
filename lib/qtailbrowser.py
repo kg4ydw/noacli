@@ -21,7 +21,7 @@ class myBrowser(QTextBrowser):
             m.addAction("Convert selection to table", self.selToTable)
         else:
             m.addAction("Convert to table",self.allToTable)
-        m.exec_(event.globalPos())
+        m.exec(event.globalPos())
 
     def selToTable(self):
         cursor = self.textCursor()

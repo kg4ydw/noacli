@@ -403,7 +403,7 @@ class TableViewer(QtWidgets.QMainWindow):
         if col>=0:
             m.addAction('Hide column',partial(self.hideColumn, col))
         # XX more tableviewer context items??
-        action = m.exec_(event.globalPos())
+        action = m.exec(event.globalPos())
 
     # context menu triggered
     def hideColumn(self, col):
@@ -649,7 +649,7 @@ class TableViewer(QtWidgets.QMainWindow):
         m.addAction("Set shown columns", self.setShown)
         m.addAction("Export selected to clipboard", partial(self.exportCol,' '))
         m.addAction("Export selected to clipboard (csv)", partial(self.exportCol,','))
-        action = m.exec_(self.ui.colPicker.mapToGlobal(point))
+        action = m.exec(self.ui.colPicker.mapToGlobal(point))
 
     def pickShown(self):
         self.pickShowCol(False)
@@ -718,4 +718,4 @@ if __name__ == '__main__':
     else:
         mainwin.openstdin()
     
-    app.exec_()
+    app.exec()

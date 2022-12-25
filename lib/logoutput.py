@@ -302,7 +302,7 @@ class logOutput(QTextBrowser):
         # search options
         # Unfortuantely as of Qt 5.15 QTextBrowser.block.setVisibility doesn't do anything useful so can't filter log
 
-        action = m.exec_(event.globalPos())
+        action = m.exec(event.globalPos())
         # non-context sensitive stuff handlers go here
 
     def termJob(self, job):
