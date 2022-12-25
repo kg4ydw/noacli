@@ -1,3 +1,7 @@
+
+__license__   = 'GPL v3'
+__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+
 from functools import partial
 
 from PyQt5 import QtCore, QtGui, QtWidgets

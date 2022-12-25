@@ -558,3 +558,7 @@ something like
    ~~~   
    addwrap somehost ssh user@somehost.fqdn
    ~~~
+
+This project (and this file) are Copyright (C) 2002 Steven Dick
+and may be used under the terms of the GNU General Public LIcense v3
+which should have been included with this project in the file license.txt
