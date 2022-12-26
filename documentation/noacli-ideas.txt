@@ -27,12 +27,7 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
-   verify qtail and tableview both argparse internal and external
-   force file dialog to always be on top Qt.WindowStaysOnTopHint
----
-   qtail button is wrong sometimes
-     help --> qtail 227 : 'QtTail' object has no attribute 'file'
-     file reload not set correctly on watch toggle
+   mess with button dock flowlayout for better arrangement control
    qtail reverse find (context menu? menu checkbox?)
    table column picker needs an undo select columns
    mac terminal window (applescript?)
@@ -42,15 +37,9 @@ Things to implement soon:
  x table should send stderr to log
    tableview: use (context,picked) column for vertical headers
    fix command parser to use built environment setting (XXXX marked)
- * tableview sort
- *    proxy model
- *    reset in corner
- o    filter
+ o tableview sort
       convert numbers before sorting?
  o table viewer options
-D*   --nopick
-D*   --filtercol
-D*   --filter
      document short options?
      tableviewer needs its own icon
    version 0.9.9.8s gives exception importing wrappers from previous version
@@ -68,17 +57,15 @@ videos
     running long commands with log
 
 high priority bugs
- ! table: use command line parser on real command line
-   file dialog is modal and can get lost
-     set always on top?
+ o file dialog is modal and can get lost
+ *   set always on top? (partial fix)
    reported lockup on mac when playing with menu bar menus / job manager?
-   view->font might be confusing (document)
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac (wrong geom?)
  ? fileDialog doesn't always trim prefix correctly
      doesn't work consistently if no prefix directory (./ doesn't work either)
-     leaves junk before filename if prefix doesn't match
+ o   leaves junk before filename if prefix doesn't match
  x   partial directory names can't be matched
    document environment editor a bit
       mode?
@@ -106,16 +93,9 @@ x      cli option to set default
       span columns?
       split into multiple cells?
       delete row?
- * qtail button mode
- *    watch vs. transient
- *    rerun vs. close
- *    automatic reload checkbox
-d*    rerun interval
-      file doesn't need autorefresh?? or should it clear(); seek(0)
- * built in commands should get marked done in history
  * close stdin
      ssh still causes tostop or something
-   add small buttons in dock widget headers
+ x add small buttons in dock widget headers
      jobs: clean
  *   history: reset sort
 D*   alternately: document table corner button that does this
@@ -129,7 +109,8 @@ D*   alternately: document table corner button that does this
      qtail?
      job manager
    shortcuts for internal actions
-   detach processes before exiting (optionally)
+ x detach processes before exiting (optionally)
+   on exit, wait for jobs to exit or kill them
 d* SETTING: delay after first data before initial window resize
  o SETTING: max qtail window size (in px), to allow free expansion
  x add another kill button:  stop(2) terminate kill
@@ -145,10 +126,9 @@ d* SETTING: delay after first data before initial window resize
  * if output windows are not visible, add extra status to main window?
 
 User visible bugs:
-   reload doesn't work on markdown; does it work on regular files?
  ? on large data, qtail freezes on first resize in qt adust()
-     skip or postpone while busy?
  o   resize early when buffer is small rather than later
+ o   avoid resizing when the buffer is too large (word wrap recalculation causes delay)
    command buttons can be broken by setwrap (more testing needed)
    duplicate key bindings don't get background paint until dialog is reopened
  * empty dock bug
@@ -164,9 +144,14 @@ x!so  block tostop signal : try os.setsid ?
    flowlayout overlapping buttons (rare? one time glitch?)
 
 Bugs:
+   simpleargs processing in noajobs.py
+     called in multiple places (refactor?)
+     return value not checked for errors
+     errors not displayed
+   refactor tableviewer simpleargs to merge with parseargs
    dialogs use shared variables and should not be duplicate opened
       raise and focus old dialog instead
-   button dock editor dialog is not sized properly
+   button dock editor dialog is not sized properly or resized on demand
    tableviewer sort doesn't recognize nubmers as numbers
    inconsistant coding style as I was learning Qt as I wrote this and discovered some Qt features after having reimplemented them
       please be gentle, but constructive criticism welcome
@@ -177,9 +162,8 @@ Bugs:
    test sibling markers
  o QFont styled item delegate
      displayed font name is ugly
-   fonts are handed as objects to QSettings, save as font name later?
+     fonts are handed as objects to QSettings, save as font name later?
  * 'type' builtin fails on old python (fix untested)
- ? reload button should change for pipes
  ? what to do with stderr? always log?
       maybe write a QProcess wrapperclass that makes stderr look like a QIODevice
       send tableviewer stderr to log and/or smalloutput?
@@ -776,6 +760,21 @@ D* filedialog prefix '" causes all filenames to be quoted
  * bind history context menu to history headers too
  * qtail --nowrap
  * context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
+ * tableview sort
+ *    proxy model
+ *    reset in corner
+ o    filter
+ o table viewer options
+D*   --nopick
+D*   --filtercol
+D*   --filter
+ * qtail button mode
+ *    watch vs. transient
+ *    rerun vs. close
+ *    automatic reload checkbox
+d*    rerun interval
+ *     file doesn't need autorefresh?? or should it clear(); seek(0)
+ * built in commands should get marked done in history
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -837,7 +836,14 @@ D*   if it ends in / select dirs only??
  * qtail should resize on smalldup of dead proc
  * runCommand history may be translating from QPersist to QModelIndex too soon
  * QFont styled item delegate didn't cancel correctly or sometimes work at all
-
+ * qtail button is wrong sometimes
+ *   help --> qtail 227 : 'QtTail' object has no attribute 'file'
+ *   file reload not set correctly on watch toggle
+ x force file dialog to always be on top Qt.WindowStaysOnTopHint
+ o   old Qt doesn't seem to do modal correctly??, set parent in 5.15.3 works
+ * reload doesn't work on markdown; does it work on regular files?
+ * reload button should change for pipes
+ * table: use command line parser on real command line
 
 ## ispell put these here
 LocalWords:  settingsDialog tableview smalldup fileDialog smalloutput

@@ -14,7 +14,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # XX Doesn't have its own icon (yet)
 # XX Doesn't parse command line options, but it should have a few.
 
-import sys, os, io, csv, re
+import sys, os, io, csv, re, argparse
 from functools import partial
 from math import ceil, floor
 from statistics import stdev, mean, median
@@ -192,7 +192,16 @@ class FixedWidthParser():
                 return
             yield [ s[self.col[i]:self.col[i+1]].strip() for i in range(len(self.col)-1) ] + [  s[self.col[-1]:].strip() ]
 
-        
+# this is so small, just copy it rather than import
+class softArgumentParser(argparse.ArgumentParser):
+    exit_on_error=True
+    def exit(self, status=0, message=None):
+        if self.exit_on_error:
+            super().exit(status,message)
+        elif status:
+            print(message) # EXCEPT
+            #raise Exception(message) # XXX need to test error handling
+   
 class TableViewer(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
@@ -226,6 +235,67 @@ class TableViewer(QtWidgets.QMainWindow):
         # set model after opening file
 
 
+    def argparse(self, args=None):
+        # duplicate functionality of simpleargs for now, merge later
+        self.argdict = {}  # save in case anything else wants to look
+
+        parser = softArgumentParser(prog='tableviewer', description='Attempts to automatically parse text as a table and display graphically')
+
+        parser.add_argument( '--skip', '-s', type=int, metavar='lines', help='skip lines preceding the table',default=0)
+        parser.add_argument('--delimiters', '-d', type=str, help='specify single characters that could be delimiters')
+        parser.add_argument('--gap','-g', type=int, help='Minimum number of spaces between columns if it is space delimited')
+        parser.add_argument('--headers', type=str, help='comma separated headers to use instead of the first line')
+        parser.add_argument('--columns', '--cols', help='comma separated list of offsets for the start of each column')
+        parser.add_argument('--noheader', '--nohead', '--nh', help='use numbered headers instead of the first line', action='store_true')
+        parser.add_argument('--fixed', help='force fixed width parsing instead of csv parsing', action='store_true')
+        parser.add_argument('--nopick', help="Don't display column picker at start", action='store_true')
+        parser.add_argument('--filter', type=str, help='set initial filter string')
+        parser.add_argument('--filtercol', type=str, help="Set initial filter column (1 based index or first matching column header)")
+        parser.add_argument('filename', nargs=argparse.REMAINDER)
+
+        if args:  # called from noacli (eventually)
+            # set up soft error handling XXX not tested yet
+            msg = None
+            try:
+                parser.exit_on_error = False
+                (args, rest) = parser.parse_known_args(args)
+                self.argparse = args
+                self.rest = rest
+                # XXX save rest in argdict?
+            except argparse.ArgumentError as e:
+                #print(repr(e)) # DEBUG
+                msg = format("--{}: {}".format(e.args[0].dest, e.args[1]))
+            except Exception as e:
+                msg = str(e)
+            finally:
+                if msg:
+                    self.errmsg = msg # XX nobody uses this yet
+                    print('except: '+msg) # EXCEPT
+                    return (msg, -1)
+   
+        else:
+            args = parser.parse_args()
+            self.argparse = args
+        ## values pulled directly from argdict:
+        for arg in (  'filtercol', 'filter'):
+            if hasattr(args,arg):
+                v =  getattr(args,arg)
+                if v!=None: self.argdict[arg] = v
+        if args.nopick: self.argdict['nopick'] = True # don't set if false
+        # copy the rest to relevant places
+        self.skiplines = args.skip
+        if args.delimiters:
+            self.delimiters = args.delimiters
+        if args.gap:
+            self.fixedoptions['gap'] = args.gap
+        if args.columns:
+            self.fixedoptions['columns'] = [ int(x) for x in args.columns.split(',') ]
+        if args.headers: self.headers = args.headers.split(',')
+        if args.noheader: self.useheader = False
+        self.forcefixed = args.fixed
+        print('filename = ',args.filename)
+        return args.filename
+        
     def simpleargs(self, args):
         # Process simple "command line" arguments from noacli internal parsing
         # only single word options supported, so --option=value must be used
@@ -280,12 +350,13 @@ class TableViewer(QtWidgets.QMainWindow):
                     pass # XX arg parse error
             elif arg.startswith('--headers='):
                 self.headers = arg[10:].split(',')
-            elif key in ('noheader','nohead'):
+            elif key in ('noheader','nohead', 'nh'):
                 self.useheader = False
             elif arg.startswith('--fixed'):
                 self.forcefixed = True
             #else: ignore anything else without error XXX
         #print('args='+' '.join(self.argdict.keys())) # DEBUG
+        return None
 
     def start(self):
         # probably should do more here and less in open 
@@ -711,10 +782,10 @@ if __name__ == '__main__':
     #else:
     #    mainwin.openstdin()
 
-    args = sys.argv
-    if args and len(args)>1 and args[1]!='-':
+    args = mainwin.argparse()
+    if args and len(args)>0 and args[0]!='-':
         # XXX handle multiple files later
-        mainwin.openfile(args[1])
+        mainwin.openfile(args[0])
     else:
         mainwin.openstdin()
     

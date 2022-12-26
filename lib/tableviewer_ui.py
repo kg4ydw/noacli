@@ -169,6 +169,7 @@ class Ui_TableViewer(object):
         self.colPickerDock.setWindowTitle(_translate("TableViewer", "Column Picker"))
         self.filterEdit.setToolTip(_translate("TableViewer", "Select one column to filter or no column to search all.  Return sets column."))
         self.filterEdit.setPlaceholderText(_translate("TableViewer", "filter column(s)"))
+        self.sortOrSelect.setToolTip(_translate("TableViewer", "Sort mode or select mode when clicking on column headers"))
         self.hideButton.setText(_translate("TableViewer", "hide"))
         self.showButton.setText(_translate("TableViewer", "show"))
         self.actionAdjust_size.setText(_translate("TableViewer", "Adjust size"))

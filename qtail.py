@@ -50,6 +50,8 @@ class softArgumentParser(argparse.ArgumentParser):
             super().exit(status,message)
         elif status:
             print(message) # EXCEPT
+            raise Exception(message) # XXX need to test error handling
+        #else: print('status={} message={}'.format(status,message)) #DEBUG
 
 # options values -- set defaults
 class myOptions():
@@ -96,28 +98,16 @@ class myOptions():
         if args:
             # called from noacli
             parser.exit_on_error = False
-            # XX future: refactor to use self namespace and do less checking
-            msg = None
-            try:  # XX some day refactor this to caller
-                (args, rest) = parser.parse_known_args(args)
-                # keep the rest just in case
-                self.argparse = args
-                self.rest = rest
-            ## broken
-            #except argparse.ArgumentError as e:
-            #    # print(repr(e)) # DEBUG
-            #    msg = format("{}: {}".format(e[0].dest, e[1]))
-            except Exception as e:
-                msg = str(e)
-            finally:
-                if msg:
-                    self.errmsg = msg # XX nobody uses this yet
-                    print(msg) # EXCEPT
-                    return
+            # let the caller catch exceptions
+            (args, rest) = parser.parse_known_args(args)
+            # keep the rest just in case
+            self.argparse = args
+            self.rest = rest
         else:
             args = parser.parse_args()
 
         ## this might be called late, so apply settings as we go
+        # XX future: refactor to use self namespace and do less checking
         # self.isCommand = parser.command # XX not implemented yet
         if args.tailFrag > 100: self.tailFrag = args.tailFrag
         self.maxLines = args.lines
@@ -231,10 +221,14 @@ class QtTail(QtWidgets.QMainWindow):
                 self.rebutton('Rerun', self.reloadOrRerun)
             else:
                 self.rebutton('Close', self.close,'modeNorun')
-        else: ## XX distinguish between stdin and a file
-            self.rebutton('Close', self.close,'modefile')
+        else: 
+            ## XX distinguish between stdin and a file eventually (seekable?)
+            # print(type(self.file), self.filename, hasattr(self, 'filename')) # DEBUG
+            if hasattr(self,'filename') and self.ui.actionWatch.isChecked():
+                self.rebutton('Reload',self.reload)
+            else:
+                self.rebutton('Close', self.close,'modefile')
         #else: # file
-        #   self.rebuttion('Reload',self.reload)
         
     def tweakInterval(self):
         if not hasattr(self, 'reinterval'): self.reinterval=30
@@ -416,7 +410,21 @@ class QtTail(QtWidgets.QMainWindow):
         # Process simple "command line" arguments from noacli internal parsing
         # only single word options supported, so --option=value must be used
         # ignore --file and --files (processed by caller)
-        self.opt.processOptions(None,args)
+        # Don't abort everything on errors, just pass the message along
+        msg = None
+        try:
+            self.opt.processOptions(None,args)
+        except argparse.ArgumentError as e:
+            #print(repr(e)) # DEBUG
+            msg = format("--{}: {}".format(e.args[0].dest, e.args[1]))
+        except Exception as e:
+            msg = str(e)
+        finally:
+            if msg:
+                self.errmsg = msg # XX nobody uses this yet
+                print('except: '+msg) # EXCEPT
+                return (msg, -1)
+
         if typedQSettings().value('DEBUG',False) and hasattr(self.opt,'rest') and len(self.opt.rest)>1:
             print('Unparsed options: '+repr(self.opt.rest)) # ifDEBUG
             if '--rest' in self.opt.rest: # debug the debug
@@ -424,11 +432,17 @@ class QtTail(QtWidgets.QMainWindow):
         return
 
     def openfile(self,filename):
+        self.filename = filename # reuse later?
         self.start()
+        if self.opt.format=='m':
+            self.openMarkdownFile(filename)
+            return
         if self.opt.url:
             # bypass normal file I/O and let Qt do it
-            return self.ui.textBrowser.setSource(QtCore.QUrl(filename))
-
+            self.file = None
+            self.ui.textBrowser.setSource(QtCore.QUrl(filename))
+            self.setButtonMode()
+            return
         # XXX assume tail mode
         f = QtCore.QFile(filename)
         if not f.open(QtCore.QFile.ReadOnly):
@@ -460,20 +474,26 @@ class QtTail(QtWidgets.QMainWindow):
     def openMarkdownFile(self, filename):
         # Qt textBrowser doesn't support appending to markdown so...
         # we break all the rules for this one
+        #self.opt.format = 'm'
+        self.filename = filename
+        self.file = None
         try:
             f = open(filename)
+            # XXX set filename and flag as markdown?
             text = f.read()
         except OSError:
             self.close()
             self.setParent(None)
             raise
         finally:
-            close(f)
+            f.close()
         self.setWindowTitle(filename)
-        self.ui.textBrowser.document().setMarkDown(text)
+        self.ui.textBrowser.document().setMarkdown(text)
+        self.setButtonMode()
 
     def openstdin(self):
         self.start()
+        self.setButtonMode()
         if not self.opt.title:
             self.setWindowTitle('qtail: stdin')
         # QFile doesn't work with readyRead, use QSocketNotifier instead for pipes
@@ -588,7 +608,11 @@ class QtTail(QtWidgets.QMainWindow):
     
     @QtCore.pyqtSlot()
     def reload(self):
-        if self.opt.file:
+        if not self.file and hasattr(self, 'filename'):
+            # try to reopen it
+            self.textbody.clear()
+            return self.openfile(self.filename)
+        if self.file and self.opt.file:
             # back up 1M if we can (default)
             tailoff = self.opt.tailFrag
             # XXX whole is slow and eats memory if the file is too big!

@@ -155,6 +155,7 @@ not worth expanding on here:
 * Table line spacing tweaks in all tables including tableviewer
 * Button dock arragement: sorting, dragging, greedy fit, etc. (replace FlowLayout)
 * More button actions (middle and right click?)
+* More options for fonts?  Save fonts in qtail?
 
 Postscript
 ==========

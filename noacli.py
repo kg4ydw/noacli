@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '0.9.9.9b'
+__version__ = '1.0'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -654,7 +654,9 @@ class noacli(QtWidgets.QMainWindow):
         # other defaults need customizing, default constructor not flexible enough
         # also make it non-modal
 
-        fd = QFileDialog(None, Qt.Dialog)
+        fd = QFileDialog(self, Qt.Dialog)
+        #fd.setWindowFlag(Qt.WindowStaysOnTopHint, True) # prevent modal from getting lost -- doesn't seem to help, prob redundant
+        #fd.setOption(QFileDialog.DontUseNativeDialog)
 
         # check if user was trying to complete a partially typed path
         c = editor.textCursor() # get a fresh cursor
@@ -726,7 +728,10 @@ class noacli(QtWidgets.QMainWindow):
                 fs = [x.removeprefix(cwd) or x for x in fs]
                 # remove startdir from first entry only
                 if startdir:
-                    fs[0] = fs[0].removeprefix(startdir)
+                    if fs[0].startswith(startdir):
+                        fs[0] = fs[0].removeprefix(startdir)
+                    else:
+                        c.insertText(' ') # if prefix doesn't match, add space
             else:
                 ## python 3.8 and earlier XX delete this some day
                 fsn = []
@@ -737,6 +742,8 @@ class noacli(QtWidgets.QMainWindow):
                         fsn.append(i)
                 if fsn[0].startswith(startdir):
                     fsn[0] = fsn[0][len(startdir):]
+                else:
+                    c.insertText(' ') # if prefix doesn't match, add space
                 fs=fsn
             if quote: # quote all the filenames
                 fs = [ quote + f + quote for f in fs]
@@ -774,7 +781,7 @@ class noacli(QtWidgets.QMainWindow):
         # grab the font from the command window and copy
         ui = self.ui
         font = ui.commandEdit.document().defaultFont()
-        QSettings().setValue('EditorFont', font.toString())
+        QSettings().setValue('EditorFont', font)  # XX .toString())
         self.applyEditorFont()
 
     def applyEditorFont(self):
