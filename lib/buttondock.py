@@ -34,6 +34,7 @@ class ButtonDock(myDock):
         if len(self.defaultDock)==0: # make the first the default
             self.defaultDock.append(self)
             self._fixup(self.run_command)
+            self.firstDock = True # never delete this
         self.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)
         self.buttonBox = QtWidgets.QWidget()
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -59,15 +60,35 @@ class ButtonDock(myDock):
     def _fixup(cls, sig):
         # overwrite unbound signal with a bound one from the default dock
         cls.run_command = sig
-        
 
-        ## special button targets
+    def contextMenuEvent(self, event):
+        child =  self.childAt(event.pos())
+        if child and not hasattr(child,'text'): child=None
+        m = QtWidgets.QMenu()
+        m.addAction("Edit buttons", partial(EditButtonDocks,self))
+        ##XXX need class instance#  m.addAction("Edit favorites", partial(Favorites.editFavorites,None))
+        m.addAction("Unconstrained order", self.mylayout.unsorted)
+        m.addAction("Alphabetize", self.mylayout.alphasort)
+        m.addAction("Greedy fit", self.mylayout.greedy)
+        #m.addAction("Update", self.mylayout.update)
+        if child:
+            # XXX copy command to commandEditor ?
+            m.addAction("Delete button "+child.text(), partial(self.delButton, child.text()))
+        if self != self.defaultDock[0]:
+            m.addAction("Set as default dock", self.setDefaultDock)
+            if not self.mybuttons and not hasattr(self, 'firstDock'):
+                m.addAction("Delete this dock", self.delDock)
+        m.exec(event.globalPos())
+
     def doButton(self, name, clicked=None):
         c = self.favoritelist[name]
-        if type(c)==str:
+        if type(c)==str: # special buttons
             self.run_command.emit(c)
         else:
             c.runme()
+
+    def setDefaultDock(self):
+        self.defaultDock[0] = self
 
     @classmethod
     def updateFavs(cls, newfav, changed=None):
@@ -118,6 +139,11 @@ class ButtonDock(myDock):
             return self.setButton(button)
         # XX if there was a button by this name, step on it
         b = QtWidgets.QToolButton(self)
+        if type(self.favoritelist[button])==str:
+            # make this sort first
+            b.setObjectName('@'+button)
+        else:
+            b.setObjectName(button)
         b.setText(button)
         self.mybuttons[button] = b
 
@@ -144,6 +170,7 @@ class ButtonDock(myDock):
                 return self.addButton(button)
             else:
                 return
+        b.setObjectName(button)
         f = self.favoritelist[button]
         b.setToolTip(f.command)
         if f.immediate:
@@ -158,9 +185,17 @@ class ButtonDock(myDock):
         else:
             return ButtonDock(ButtonDock.defaultDock[0].parent(), name)
 
-    @classmethod
-    def delDock(cls, dockname):
-        pass # XXXXX
+    def delDock(self):
+        if self.mybuttons: return # delete buttons first
+        if hasattr(self, 'firstDock'): return # can't delete first dock
+        if self.defaultDock[0]==self: return # can't delete default
+        name = self.objectName()
+        del self.docklist[name]
+        qs = QtCore.QSettings()
+        qs.beginGroup('buttondocks')
+        qs.remove(name)
+        qs.endGroup()
+        self.deleteLater()
 
     @classmethod
     def loadSettings(cls):
@@ -193,7 +228,9 @@ class ButtonDock(myDock):
             dock = cls.docklist[dockname]
             buttons = list(dock.mybuttons.keys())
             orphans -= set(buttons)
-            if not buttons: continue
+            if not buttons:
+                qs.remove(dockname)
+                continue
             qs.setValue(dockname,buttons) # XX sort order??
         if 'orphans' in cls.docklist: # SETTING
             # add back in orphans in case the user really wants this
@@ -268,7 +305,6 @@ class EditButtonDocks(settingsDialog):
             return
         if name in self.edocks: return  # XX silent error
         ButtonDock.addDock(name)
-        self.edocks.append(name)
         coldata = [True, True] + ([False]*(len(self.edata)-2))
         self.model.appendColumn(name,coldata)
         self.ui.tableView.resizeColumnToContents(len(self.edocks))

@@ -117,7 +117,7 @@ class Favorites():
         #print("add favorite {} = {}".format(buttonName,command)) # DEBUG
         if c.shortcut:
             buttonbox = ButtonDock.defaultDock[0].buttonBox # XXX cheat
-            c.shortcuto = QtWidgets.QShortcut(QKeySequence(c.shortcut), buttonbox)
+            c.shortcuto = QtWidgets.QShortcut(QKeySequence(c.shortcut), self.settings.mainwin)
             c.shortcuto.activated.connect(c.runme)
 
     def delFavorite(self, command):

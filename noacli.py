@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.0'
+__version__ = '1.1'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -449,9 +449,10 @@ class noacli(QtWidgets.QMainWindow):
         # cheat a bit, so nearly everyone can get to these
         self.settings.apply_settings = self.apply_settings
         self.settings.apply_settings.connect(self.applyEditorFont)
-        self.settings.app = app
+        self.settings.app = app # XX redundant
         self.settings.smallOutputView = self.ui.smallOutputView
         self.settings.statusBar = self.statusBar()
+        self.settings.mainwin = self
 
         self.historypos = 1;
         dir = os.path.dirname(os.path.realpath(__file__))

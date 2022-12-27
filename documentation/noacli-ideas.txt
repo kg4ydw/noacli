@@ -27,7 +27,11 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
-   mess with button dock flowlayout for better arrangement control
+   button dock: sanitize names?
+   button dock: handle favorite rename?
+   Rename button dock? --> beware renaming first dock
+   button dock: save sort mode?
+   button dock: add button dragging to set/save order
    qtail reverse find (context menu? menu checkbox?)
    table column picker needs an undo select columns
    mac terminal window (applescript?)
@@ -844,6 +848,7 @@ D*   if it ends in / select dirs only??
  * reload doesn't work on markdown; does it work on regular files?
  * reload button should change for pipes
  * table: use command line parser on real command line
+ * mess with button dock flowlayout for better arrangement control
 
 ## ispell put these here
 LocalWords:  settingsDialog tableview smalldup fileDialog smalloutput
