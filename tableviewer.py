@@ -114,9 +114,19 @@ class lineBuffer():
         return False
 
     def peekLines(self, minimum=1 ):
-        if len(self.lines)<minimum:
+        if minimum==0 or len(self.lines)<minimum:
                 self.canReadLine(True) # attempt to read more
         return self.lines  # just let 'em see them all
+    def peekAll(self):
+        # turn off nonblocking
+        try:
+            os.set_blocking(sys.stdin.fileno(),True)
+        except Exception as e:
+            pass
+        # read all the lines, return None until EOF
+        self.peekLines(False)
+        if self.eof<2: return None
+        else: return self.lines
     def __iter__(self):
         return self
     def __next__(self):
@@ -251,8 +261,8 @@ class TableViewer(QtWidgets.QMainWindow):
         parser.add_argument('--nopick', help="Don't display column picker at start", action='store_true')
         parser.add_argument('--filter', type=str, help='set initial filter string')
         parser.add_argument('--filtercol', type=str, help="Set initial filter column (1 based index or first matching column header)")
+        parser.add_argument('--mask', help='Use mask algorithm to split fix width tables, looking for columns with only whitespace (or delimiters if specified)', required=False, type=int, const=0, nargs='?', metavar='nLines')
         parser.add_argument('filename', nargs=argparse.REMAINDER)
-
         if args:  # called from noacli (eventually)
             # set up soft error handling XXX not tested yet
             msg = None
@@ -272,12 +282,12 @@ class TableViewer(QtWidgets.QMainWindow):
                     self.errmsg = msg # XX nobody uses this yet
                     print('except: '+msg) # EXCEPT
                     return (msg, -1)
-   
         else:
             args = parser.parse_args()
             self.argparse = args
+
         ## values pulled directly from argdict:
-        for arg in (  'filtercol', 'filter'):
+        for arg in ( 'filtercol', 'filter', 'mask', 'delimiters'):
             if hasattr(args,arg):
                 v =  getattr(args,arg)
                 if v!=None: self.argdict[arg] = v
@@ -293,7 +303,6 @@ class TableViewer(QtWidgets.QMainWindow):
         if args.headers: self.headers = args.headers.split(',')
         if args.noheader: self.useheader = False
         self.forcefixed = args.fixed
-        print('filename = ',args.filename)
         return args.filename
         
     def simpleargs(self, args):
@@ -354,6 +363,12 @@ class TableViewer(QtWidgets.QMainWindow):
                 self.useheader = False
             elif arg.startswith('--fixed'):
                 self.forcefixed = True
+            elif arg.startswith('--mask'):
+                try:
+                    m = int(arg[7:])
+                except:
+                    m=0
+                self.argdict['mask'] = m
             #else: ignore anything else without error XXX
         #print('args='+' '.join(self.argdict.keys())) # DEBUG
         return None
@@ -558,6 +573,41 @@ class TableViewer(QtWidgets.QMainWindow):
         self.openfd(self.csvfile)
         self.setWindowTitle('table stdin')
 
+    def domask(self, csvfile):
+        nlines = self.argdict['mask']
+        # XXX handle partial reads or read whole file at once?
+        if nlines:
+            lines = csvfile.peekLines(nlines)
+        else:
+            lines = None
+            while lines==None:
+                lines = csvfile.peekAll()
+        
+        delimiters = ' '
+        if 'delimiters' in self.argdict and self.argdict['delimiters']:
+            delimiters += self.argdict['delimiters']
+        mask = []
+        for line in lines:
+            line = line.expandtabs()
+            m = [ c in delimiters for c in line]
+            if len(mask) < len(m):
+                mask += [True]*(len(m)-len(mask))
+            mask = [ mask[i] and m[i] for i in range(len(m))] + mask[len(m):]
+        # look for runs of false
+        cols = []
+        last = True
+        for i in range(len(mask)):
+            if last and not mask[i]:
+                cols.append(i)
+            last = mask[i]
+        #print(",".join([str(x) for x in cols])) # DEBUG
+        self.fixedoptions['columns'] = cols
+        if cols:
+            self.forcefixed = True
+        else:
+            print("Mask failed")
+            print(cols)
+
     def openfd(self, csvfile):
         DEBUG = typedQSettings().value('DEBUG',False)
         maxx=0
@@ -567,6 +617,8 @@ class TableViewer(QtWidgets.QMainWindow):
                 self.skiplines -= 1
             else:
                 return # need to skip more
+        if 'mask' in self.argdict:
+            self.domask(csvfile) # read whole file
         if not csvfile.canReadLine():  # try again later
             return
         peeklines = csvfile.peekLines(1)

@@ -167,6 +167,9 @@ following options:
     Set initial filter column and filter string (useful in favorites)
     Filtercol may be a (1 based) column index or the first match in headers
 
+`--mask` or `--mask nlines`
+    Forces --fixed; Read the whole table (or just nlines) up front and use a mask algorithm to split fixed width tables, looking for columns with only whitespace (or delimiters if specified, e.g. =-+: )
+
 Like qtail, table also accepts the --file and --files options.
 
 ## small output
