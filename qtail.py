@@ -81,6 +81,8 @@ class myOptions():
         parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown','p','h','m'], metavar='format', default='plaintext') # XX markdown doesn't work
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true') # set in start()
+        parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='seconds', const=0, help='Enable autorefresh and (optionally) set refresh interval')
+
         parser.add_argument('filename', nargs=argparse.REMAINDER)
         
         #XX more options from original tail
@@ -101,10 +103,10 @@ class myOptions():
             # let the caller catch exceptions
             (args, rest) = parser.parse_known_args(args)
             # keep the rest just in case
-            self.argparse = args
             self.rest = rest
         else:
             args = parser.parse_args()
+        self.argparse = args
 
         ## this might be called late, so apply settings as we go
         # XX future: refactor to use self namespace and do less checking
@@ -214,7 +216,7 @@ class QtTail(QtWidgets.QMainWindow):
             return None
 
     def setButtonMode(self):
-        if type(self.file)==QProcess:
+        if hasattr(self,'file') and type(self.file)==QProcess:
             if self.file.state()!=QProcess.NotRunning:
                 self.rebutton('Kill', self.terminateProcess)
             elif self.ui.actionWatch.isChecked():
@@ -245,11 +247,19 @@ class QtTail(QtWidgets.QMainWindow):
             self.statusBar().showMessage(msg, math.floor(mininterval*10))
             self.actionAutoRefresh()
             self.ui.intervalLine.setValue(math.floor(mininterval+0.5))
+        if self.reinterval == 1:
+            self.ui.intervalLine.setSuffix(' second')
+        else:
+            self.ui.intervalLine.setSuffix(' seconds')
         # XX if duty cycle > 50% turn off timer if window is obscured
         # is there an event when window is obscured??
         
-    def setWatchInterval(self):
-        val = self.ui.intervalLine.value()
+    def setWatchInterval(self, value=None):
+        if value:
+            val = value
+            self.ui.intervalLine.setValue(value)
+        else:
+            val = self.ui.intervalLine.value()
         self.reinterval = val
         self.tweakInterval()
         self.actionAutoRefresh() # set timer
@@ -398,10 +408,15 @@ class QtTail(QtWidgets.QMainWindow):
         doc = self.textbody.document()
         doc.setMaximumBlockCount(self.opt.maxLines)
         # this will get run on some pass maybe
-        if hasattr(self.opt, 'argparse') and self.opt.argparse.nowrap:
-            # change it in both places
-            self.ui.actionWrap_lines.setChecked(False)
-            self.wrapChanged(False)
+        if hasattr(self.opt, 'argparse'):
+            if  self.opt.argparse.nowrap:
+                # change it in both places
+                self.ui.actionWrap_lines.setChecked(False)
+                self.wrapChanged(False)
+            if self.opt.argparse.autorefresh!=None:
+                self.ui.actionAutorefresh.setChecked(True)
+                if self.opt.argparse.autorefresh:
+                    self.setWatchInterval(self.opt.argparse.autorefresh)
 
     def showsize(self):
         self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",-1)

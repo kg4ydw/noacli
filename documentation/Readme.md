@@ -110,7 +110,7 @@ own risk!)
 
 By default, within the shell, qtail is followed by possible options
 and a command.  There is no space between the option and its
-parameter.  OPtions are either a single dash followed by a single
+parameter.  Options are either a single dash followed by a single
 letter and possibly a parameter, or a double dash followed by an
 option word and possibly and equal sign (=) and the parameter.
 
@@ -123,10 +123,14 @@ Qtail supports the following options:
     After all options will be a single filename (spaces and all)
 
 `--files`
-    After all the options will be a space seprated list of filenames, each of which will be opened in its own qtail window
+    After all the options will be a space separated list of filenames, each of which will be opened in its own qtail window
     
 `--nowrap`
-    Turn word wrap off intitially
+    Turn word wrap off initially
+
+`--autorefresh`
+`--autorefresh=seconds`
+    Enable autorefresh and (optionally) set refresh interval
 
 ## table viewer
 

@@ -300,7 +300,9 @@ class EditButtonDocks(settingsDialog):
     
     def addDock(self):
         (name, result) = QtWidgets.QInputDialog.getText(self, "Add new button dock", "Button dock name")
-        if name: name=name.strip()
+        if name:
+            name = name.replace('/', ' ') # slashes don't work well
+            name=name.strip()
         if not result or not name or len(name)<1:
             return
         if name in self.edocks: return  # XX silent error
