@@ -1145,7 +1145,7 @@ class noacli(QtWidgets.QMainWindow):
                      bcloseWin.setToolTip("Close remaining open windows now")
                      bcloseWin.clicked.disconnect() # don't close dialog
                      bcloseWin.clicked.connect(self.settings.jobs.closeAllWins)  # and delete button?
-                     bcloseWin.clicked.connect(partial(self.recheckClose, dialog, bcloseWin))
+                     bcloseWin.clicked.connect(partial(self.recheckClose, dialog, bcloseWin, None))
                 if procs:
                     bkillProc = dialog.addButton("Kill processes",QMessageBox.ActionRole)
                     bkillProc.setToolTip("Kill remaining processes now")
@@ -1180,11 +1180,12 @@ class noacli(QtWidgets.QMainWindow):
         else:
             self.settings.jobs.killAllProcs(True)
             button.hide() # possibly premature but what else to do
-        self.delaytimer = QtCore.QTimer.singleShot(500, partial(self.recheckClose, dialog, button))
+        self.delaytimer = QtCore.QTimer.singleShot(500, partial(self.recheckClose, dialog, None, button))
 
-    def recheckClose(self, dialog, button=None):
-        if button: button.hide()
+    def recheckClose(self, dialog, winbutton=None, procbutton=None):
         (wins, procs) = self.settings.jobs.hasJobsLeft() # XXX
+        if not wins and winbutton: winbutton.hide()
+        if not procs and procbutton: procbutton.hide()
         msg = 'There are still '
         if wins: msg += "{} windows open".format(wins)
         if wins and procs: msg += " and "
