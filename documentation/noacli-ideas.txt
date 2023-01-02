@@ -109,7 +109,7 @@ D*   alternately: document table corner button that does this
      job manager
    shortcuts for internal actions
  x detach processes before exiting (optionally)
-   on exit, wait for jobs to exit or kill them
+d* on exit, wait for jobs to exit or kill them
 d* SETTING: delay after first data before initial window resize
  o SETTING: max qtail window size (in px), to allow free expansion
  x add another kill button:  stop(2) terminate kill
@@ -118,10 +118,10 @@ d* SETTING: delay after first data before initial window resize
  o history view row height
      autosize rows if they would be smaller
      reset to default on corner button?
-   menu item
-     close all windows
-     kill all subprocesses
-     disown all subprocesses (default on exit?)
+   menu item (implemented, but not in menu)
+ o   close all windows
+ o   kill all subprocesses
+ o   disown all subprocesses (default on exit?)
  * if output windows are not visible, add extra status to main window?
 
 User visible bugs:
@@ -130,7 +130,7 @@ User visible bugs:
  o   avoid resizing when the buffer is too large (word wrap recalculation causes delay)
    command buttons can be broken by setwrap (more testing needed)
    duplicate key bindings don't get background paint until dialog is reopened
- * empty dock bug
+ * empty dock container bug
  *   qt bug -- work around applied and commented
      test in U20
  * favorites editor bugs
@@ -153,11 +153,11 @@ Bugs:
      return value not checked for errors
      errors not displayed
    refactor tableviewer simpleargs to merge with parseargs
-   dialogs use shared variables and should not be duplicate opened
+   settings dialogs use shared variables and should not be duplicate opened
       raise and focus old dialog instead
    button dock editor dialog is not sized properly or resized on demand
-   tableviewer sort doesn't recognize nubmers as numbers
-   inconsistant coding style as I was learning Qt as I wrote this and discovered some Qt features after having reimplemented them
+   tableviewer sort doesn't recognize numbers as numbers
+   inconsistent coding style as I was learning Qt as I wrote this and discovered some Qt features after having reimplemented them
       please be gentle, but constructive criticism welcome
    new env marked as 'inherit' but not in parent should be deleted on save
    (marked) OutWin commands with no external command do nothing (usage msg?)
@@ -176,7 +176,7 @@ Bugs:
      file dialog could temp insert icon in buffer where it will drop names
      insert icon=self.style().standardIcon(QStyle.SP_FileDialogStart)
    Poor data flow between jobItem and smallOutput (refactor)
-   'set max' too often -- use histiresis of mul+1 ?
+   'set max' too often -- use hysteresis of mul+1 ?
 
 D* small output window
 D*   transfer last command output to qtail if:
@@ -456,7 +456,7 @@ D*   for commands that output a small amount and exit in a short time
  * table viewer
  *   select lines, cells, columns, send to clipboard
  *   show / hide / rearrange columns
-     sort by column
+ o   sort by column
  *   table column selector
  *     select fields in list -- list view?
  *     export selected column names --> space or comma sep
@@ -850,9 +850,11 @@ D*   if it ends in / select dirs only??
  * table: use command line parser on real command line
  * mess with button dock flowlayout for better arrangement control
  * button dock: sanitize names: remove slash
+ * Closing main window with stuff running is now handled gracefully
 
 ## ispell put these here
 LocalWords:  settingsDialog tableview smalldup fileDialog smalloutput
 LocalWords:  splitlines Qsettings autocheck historyView jobTableVew
 LocalWords:  tableView commandEditor QtTail plainTextEdit searchTerm
-LocalWords:  QWidget
+LocalWords:  QWidget reimplemented simpleargs OutWin QSettings qtail
+LocalWords:  QIODevice jobItem smallOutput noacli

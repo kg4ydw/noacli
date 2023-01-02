@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.2'
+__version__ = '1.3'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -442,6 +442,8 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.buttons = ButtonDock(self, 'Buttons') # make default button dock
         ButtonDock.run_command.connect(self.doButton)
 
+        self.dontCloseYet = True
+        
         # delayed resize works better
         self.want_restore_geo_delay.connect(self.restore_geo, Qt.QueuedConnection) # delay this
 
@@ -587,6 +589,7 @@ class noacli(QtWidgets.QMainWindow):
         #    pass
 
     ## end __init__
+
 
     def doButton(self, name):
         if name=='Run':
@@ -1125,12 +1128,74 @@ class noacli(QtWidgets.QMainWindow):
         if (len(msg)<10): # arbitrary SETTING?
             msg = self.statusBar().currentMessage()+' | ' + msg
         self.statusBar().showMessage(msg, int(delay*1000))
+
     # in: this window closing
     def closeEvent(self, event):
+        self.settings.jobs.cleanup()  # clean up dead stuff
+        if self.dontCloseYet: # use this if not modal
+            (wins, procs) = self.settings.jobs.hasJobsLeft() # XXX
+            if wins or procs:  # Handle these before shutting down
+                dialog = QMessageBox()
+                bcan = dialog.addButton(QMessageBox.Cancel)
+                bcan.setToolTip("Don't close noacli")
+                bign = dialog.addButton(QMessageBox.Ignore)
+                bign.setToolTip("Ignore these and close anyway")
+                if wins:
+                     bcloseWin = dialog.addButton("Close windows",QMessageBox.ActionRole)
+                     bcloseWin.setToolTip("Close remaining open windows now")
+                     bcloseWin.clicked.disconnect() # don't close dialog
+                     bcloseWin.clicked.connect(self.settings.jobs.closeAllWins)  # and delete button?
+                     bcloseWin.clicked.connect(partial(self.recheckClose, dialog, bcloseWin))
+                if procs:
+                    bkillProc = dialog.addButton("Kill processes",QMessageBox.ActionRole)
+                    bkillProc.setToolTip("Kill remaining processes now")
+                    bkillProc.clicked.disconnect()
+                    self.firstKill = True
+                    bkillProc.clicked.connect(partial(self.delaycheck, dialog,bkillProc))
+                dialog.setDefaultButton(QMessageBox.Cancel)
+                self.recheckClose(dialog) # set message
+                #dialog.setInformativeText(msg)
+                #dialog.setModality(Qt.NonModal)
+                #XXX dialog.setTitle("Really quit noacli?")
+                result = dialog.exec()
+                if result == QMessageBox.Cancel:
+                    event.ignore()
+                    return
+                elif result == QMessageBox.Ignore:
+                    self.settings.jobs.ignoreJobsOnExit()
+                    # move along and close
+                    self.dontCloseYet = False
+                else:
+                    print(result)
+        # really closing this time
         self.actionSaveHistory()
         self.settings.favorites.saveSettings()
         super().closeEvent(event)
 
+    def delaycheck(self,  dialog, button):
+        if self.firstKill:
+            self.firstKill = False
+            self.settings.jobs.killAllProcs(False)
+            button.setText("Kill harder") # XX
+        else:
+            self.settings.jobs.killAllProcs(True)
+            button.hide() # possibly premature but what else to do
+        self.delaytimer = QtCore.QTimer.singleShot(500, partial(self.recheckClose, dialog, button))
+
+    def recheckClose(self, dialog, button=None):
+        if button: button.hide()
+        (wins, procs) = self.settings.jobs.hasJobsLeft() # XXX
+        msg = 'There are still '
+        if wins: msg += "{} windows open".format(wins)
+        if wins and procs: msg += " and "
+        if procs: msg += "{} processes running".format(procs)
+        dialog.setText(msg)
+        if not wins and not procs:
+            # click ignore which will do the right thing anyway
+            dialog.button(QMessageBox.Ignore).click()
+        # XX click a button?
+        return wins or procs
+                                              
     #### job manager fuctions (since it doesn't have its own class)
     @QtCore.pyqtSlot('QPoint')
     def jobcontextmenu(self, point):

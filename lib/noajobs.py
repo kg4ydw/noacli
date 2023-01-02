@@ -7,7 +7,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 import re   # use python re instead of Qt
 import os, time, math
 
-from PyQt5 import QtCore
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.Qt import Qt, QBrush
 from PyQt5.QtCore import QIODevice, QTimer, QModelIndex, QProcess
 
@@ -17,6 +17,24 @@ from lib.typedqsettings import typedQSettings
 from lib.commandparser import OutWin
 from tableviewer import TableViewer
 
+class mommie(QtCore.QObject):
+    # be the parent of stuff that wants to outlive our main window
+    # especially QProcess which otherwise would get killed and throw an exception
+    # These do eventually get reaped, Qt seems to have a long timeout
+    ## Note: one child per mommie object please!
+    # No point in implementing accounting Qt already does.
+    def __init__(self):
+        super().__init__(QtWidgets.QApplication.instance())
+        
+    def childEvent(self, event):
+        if event.added():
+            #print("Mommie!", repr(event.child()), type(event.child())) # DEBUG
+            self.eventLocker = QtCore.QEventLoopLocker()
+        elif event.removed():
+            # print ("  mommie done") # DEBUG
+            self.eventLocker = None
+            self.deleteLater()
+        #else: print("Mommie event: ",repr(event.child()), type(event.child())) # DEBUG
 
 class jobItem():
     def __init__(self, history):
@@ -236,6 +254,35 @@ class jobTableModel(itemListModel):
         self.cleanTime.timeout.connect(self.cleanup)
         # don't start it until we have data
 
+    def hasJobsLeft(self):
+        # assume cleanup was already called
+        # count up left overs
+        wins = 0
+        procs = 0
+        for d in self.data:
+            if d.windowOpen: wins += 1
+            if not d.finished: procs += 1
+        return wins, procs
+
+    def closeAllWins(self):
+        for d in self.data:
+            if d.windowOpen and d.window:
+                d.window.close()
+    def killAllProcs(self, extreme):
+        # should this be more gentle? terminate then kill?
+        for d in self.data:
+            if not d.finished and d.process:
+                if extreme:
+                    d.process.kill()
+                else:
+                    d.process.terminate()
+
+    def ignoreJobsOnExit(self):
+        # assume cleanup was already called
+        for d in self.data:
+            if not d.finished and d.process:
+                d.process.setParent(mommie())
+    
     def data(self, index, role):
         if not self.validateIndex(index): return None
         col = index.column()
