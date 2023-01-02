@@ -259,6 +259,7 @@ class TableViewer(QtWidgets.QMainWindow):
         parser.add_argument('--noheader', '--nohead', '--nh', help='use numbered headers instead of the first line', action='store_true')
         parser.add_argument('--fixed', help='force fixed width parsing instead of csv parsing', action='store_true')
         parser.add_argument('--nopick', help="Don't display column picker at start", action='store_true')
+        parser.add_argument('--pick', help="Force display of column picker at start", action='store_true')
         parser.add_argument('--filter', type=str, help='set initial filter string')
         parser.add_argument('--filtercol', type=str, help="Set initial filter column (1 based index or first matching column header)")
         parser.add_argument('--mask', help='Use mask algorithm to split fix width tables, looking for columns with only whitespace (or delimiters if specified)', required=False, type=int, const=0, nargs='?', metavar='nLines')
@@ -292,6 +293,7 @@ class TableViewer(QtWidgets.QMainWindow):
                 v =  getattr(args,arg)
                 if v!=None: self.argdict[arg] = v
         if args.nopick: self.argdict['nopick'] = True # don't set if false
+        if args.pick: self.argdict['pick'] = True
         # copy the rest to relevant places
         self.skiplines = args.skip
         if args.delimiters:
@@ -674,7 +676,8 @@ class TableViewer(QtWidgets.QMainWindow):
                 headers[i] = str(i+1)
         try:
             # optionally hide column picker for small tables
-            if 'nopick' in self.argdict or  maxx < typedQSettings().value('TableviewerPickerCols', 10):
+            if 'nopick' in self.argdict or ('pick' not in self.argdict and
+            maxx < typedQSettings().value('TableviewerPickerCols', 10)):
                 self.ui.colPickerDock.setVisible(False)
         except:
             pass

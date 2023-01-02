@@ -91,8 +91,7 @@ The following settings dialog boxes allow editing settings:
 The qtail window also works as a separate application from the shell,
 functioning in a way similar to "tail -f" and taking a few similar
 command line arguments.  As an external application, qtail will work
-on files, growing files, and pipes.  It will automatically detect if a
-file grows.
+on files, growing files, and pipes.
 
 If qtail collects no output before the process exits, it will
 automatically close.
@@ -107,6 +106,11 @@ remembers the most recent 10000 lines.  This is to preserve
 performance and memory, but can be adjusted in settings.  Setting
 either of these numbers to 0 allows infinite data kept.  (Use at your
 own risk!)
+
+If you have a file that is being rewritten from the start or a command
+you want to periodically rerun, you can use options in the watch menu
+(or the`--autorefresh` option, below) to get updates on demand or time
+interval, similar to the cli watch command.
 
 By default, within the shell, qtail is followed by possible options
 and a command.  There is no space between the option and its
@@ -128,7 +132,7 @@ Qtail supports the following options:
 `--nowrap`
     Turn word wrap off initially
 
-`--autorefresh`
+`--autorefresh`  
 `--autorefresh=seconds`
     Enable autorefresh and (optionally) set refresh interval
 
@@ -162,19 +166,20 @@ following options:
     There is no header in the data, use numbered headers instead of the first line
     
 `--fixed`  
-    force fixed width parsing instead of csv parsing
+    force fixed width parsing instead of csv parsing with delimiters
 
-`--nopick`  
-    Don't show the colum picker at start
+`--nopick`
+`--pick`  
+    Don't show (or show) the colum picker at start (default: show if more than 10 columns)
 
 `--filtercol=` and `--filter=`  
     Set initial filter column and filter string (useful in favorites)
     Filtercol may be a (1 based) column index or the first match in headers
 
-`--mask` or `--mask nlines`
-    Forces --fixed; Read the whole table (or just nlines) up front and use a mask algorithm to split fixed width tables, looking for columns with only whitespace (or delimiters if specified, e.g. =-+: )
+`--mask` or `--mask=nlines`  
+    Forces --fixed; Read the whole table (or just nlines) up front and use a mask algorithm to split fixed width tables, looking for columns with only whitespace (or delimiters if specified, e.g. --delimiters=-=+: )
 
-Like qtail, table also accepts the --file and --files options.
+Like qtail, table also accepts the --file and --files options when used inside noacli.
 
 ## small output
 The small output dock window will collect output from commands that
@@ -237,7 +242,7 @@ including timeouts and otherwise hard coded values editable settings.
 Settings with default values will have a grey background and will turn
 to a white background when they are edited.
 
-## favorites and button dock
+## favorites and button docks
 
 The favorites editor, when opened, shows your previously saved
 favorites, your 10 most frequently run commands, and your 10 most
@@ -259,7 +264,14 @@ and all but the first will be deleted on save.
 In settings, there is a button dock editor that allows creation of new
 button docks and selecting which docks get which buttons, so that task
 specific favorites can be grouped.  Newly named favorites are initially
-added to the default button dock.
+added to the default button dock (which can be set from the context menu).
+
+Named favorites not assigned to a dock will be assigned to the
+(hidden) orphan dock on next shell start.  Empty docks will be
+automatically deleted on next start.
+
+Button order can be changed from the dock context menu, but this is
+not (currently) savd.
 
 ## main command edit
 The command edit box allows typing of commands.
@@ -320,9 +332,10 @@ command is one of the keywords (small log tail qtail) then the output
 will be initially sent there, overriding any other defaults set.
 
 Other possible special output targets may be added in the future.
-Currently stdout and stderr are both sent to the same target,
-but in the future, splitting them may be possible, although this
-can be done now using mechanisms available in the wrapper shell.
+Currently stdout and stderr are both sent to the same target, but in
+the future, splitting them may be possible, although this can be done
+now using traditional mechanisms available in the underlying wrapper
+shell.
 
 # Wrappers
 
@@ -331,14 +344,16 @@ shells and only does extremely limited parsing.  Instead, it leans on
 those older shells for that functionality.
 
 So most command lines are wrapped in a command that does the actual
-parsing and execution.  This is the wrapper.  Wrappers are named,
-and there is a default wrapper.  The default wrapper is named bash,
-which wraps commands with [ 'bash', '-c' ].  The command itself is
-fed to this wrapper unquoted and unmodified as the last argument.
-Any quoting will be interpreted by the shell in the wrapper.
+parsing and execution.  This is the wrapper.  Wrappers are named, and
+there is a selectable default wrapper.  The initial default wrapper is
+named bash (unless $SHELL is something different), which wraps
+commands with [ 'bash', '-c' ].  The command itself is fed to this
+wrapper unquoted and unmodified as the last argument.  Any quoting
+will be interpreted by the shell in the wrapper.
 
 A wrapper can also specify the default destination for its output,
-although the user can override this on a per command basis.
+although the user can override this on a per command basis.  (This is
+set when the wrapper is created.)
 
 The following sample wrappers are included by default:
 
@@ -369,7 +384,7 @@ these before running ssh, possibly locally.
 
 # Built in commands
 
-(Numbers in () in the following are a count of bash built in commands.)
+(Numbers in () in the following paragraph are a count of bash built in commands.)
 
 Noacli does not have many built in commands, as such commands are
 usually needed to support scripting (0/19) which noacli doesn't
@@ -388,10 +403,10 @@ These commands must be run by themselves, not combined with other commands.
     list all of these and their description
 
 `version`  
-    show version
+    show versions
 
 `cd` or `chdir`  
-    change directories
+    change local directory
 
 `direct`  
     run without a wrapper using trivial parsing (space splitting only)
@@ -406,8 +421,7 @@ These commands must be run by themselves, not combined with other commands.
     Find what things match the given command; shows both internal and
     external matches
 
-The following builtins must be the first word of a regular command
-and change the default output destination:
+The following builtins must be the first word of a regular command or addwrap command and change the default output destination:
   
 `small` (default if none specified)  
     Send output to the small output dock window
@@ -581,6 +595,10 @@ that the font picker in qtail doesn't save its settings permanently.
 If you want to see where this project is going or want to influence it,
 look at [Readme-feedback.md](documentation/Readme-feedback.md) and [noacli-ideas.txt](noacli-ideas.txt)
 
+Until the end of 2022, new releases were daily.  As the shell matures,
+this release frequency will decrease.  If you want new features,
+please suggest them!! If you find bugs, (or documented bugs annoy
+you), let us know!
 
 This project (and this file) are Copyright (C) 2022 Steven Dick
 and may be used under the terms of the GNU General Public LIcense v3

@@ -27,6 +27,7 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
+   window title: do a better job of eliding long commands
    qtail: implement --command for external use
    button dock: handle favorite rename?
    Rename button dock? --> beware renaming first dock
@@ -675,7 +676,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
      toggle headings (view, type)
      toggle column picker
      toggle sort/select on tableviewer column headers
- 
+
    man page viewer
      qtail base
      fixed with font?
