@@ -50,6 +50,12 @@ Things to implement soon:
    pip setup.py installer
    mac installer?
 
+Things that could be implemented but are not currently being considered:  (Request if you want this)
+    URL handling
+      recognize URLs and highlight in qtail
+      open URLS (other than File:// which should already work)
+      send URLs to external app(s?) (xdg-open ?)
+
 videos
  o  small output -> qtail demo
     rearrange docks and create everything
