@@ -1,6 +1,6 @@
 If you are interested in where this project is going, I'm open to feedback!
 
-The file noacli-ideas.txt is my roadmap, brainstorm list, and known
+The file noacli-ideas.txt is my road map, brainstorm list, and known
 bug list.  You can browse that and let me know if there are
 unimplemented features you want and I'll prioritize those.
 
@@ -12,14 +12,14 @@ Here are the items I currently need feedback for the most...
 
 I'm open to code contributions also.  I'm trying to handle at least one
 item from noacli-ideas.txt a day, so check with me to make sure we don't both
-implemment something on the same day.  (!!)
+implement something on the same day.  (!!)
 
 # Documentation
 
-The documentation is probably too stream of conciousness.
+The documentation is probably too stream of consciousness.
 Suggestions for reorganizing it are welcome.  (Maybe at least a TOC?)
 
-Would people like videos of how this works?  (See documentaiton/video-scripts )
+Would people like videos of how this works?  (See documentation/video-scripts )
 
 # More docks?
 
@@ -100,7 +100,9 @@ incrementally building a tree of related pages.  I imagine that this
 "tree" would get rearranged each time you switch pages to make the
 current page the root (and it would have cycles).
 
-There are other ideas for this to encourage exploration of random man pages.
+There are other ideas for this to encourage exploration of random man
+pages, like keeping a database of visited pages, suggesting an
+unviewed page a day to read, etc.
 
 # Other output formatters and visualizers
 
@@ -117,15 +119,21 @@ make it easy to add a graph plugin and just do it in python?)
 
 It might also be nice to have a visualizer for cpu and resource use
 for running jobs.  But this is highly non-portable and Qt doesn't even
-support proper colleciton of cpu usage stats from wait4, which is
+support proper collection of cpu usage stats from wait4, which is
 mostly portable.  (Maybe time to rewrite QProcess to be more pythonic?)
+
+Even if it only works in linux and bypasses QProcess to get the info, a
+process monitor could be added if monitoring long running jobs would
+be useful.  (Maybe a process monitor would also make a good stand
+alone tool too?  Does top need to be replaced (again)?)
 
 # Remote stub
 
 Before I fully explored ssh multiplexing, I considered writing a
-remote stub to multiplex.  This would still be needed for sudo
-support.  Other things this would help are remote environment variable
-management, working directory tracking, and full remote job management.
+remote stub to multiplex over ssh.  This would still be needed for
+sudo support.  Other things this would help are remote environment
+variable management, remote working directory tracking, and full
+remote job management.
 
 # Better ssh support
 
@@ -134,15 +142,33 @@ and a wrapper set up, ssh through noacli works pretty well.
 
 However, if your connection dies (intentionally or otherwise) and you
 try ssh so that it asks for a password, the OS suspends noacli.
-This can be mitigated by preceeding ssh with the `setsid` command.
+This can be mitigated by preceding ssh with the `setsid` command.
 
-Management of multiple ssh connecitons and refreshing them would help.
-For instance, instead of using `ssh -O check` to validate a connection,
-just run the initial conneciton without `-f` and watch for it to exit
-and add hooks in the wrapper to prompt to revalidate it before running.
+Management of multiple ssh connections and refreshing them would help.
+For instance, instead of using `ssh -O check` to validate a
+connection, just run the initial connection without `-f` and noacli
+could watch for it to exit and add hooks in the wrapper to prompt to
+revalidate it before running.
 
 This would require some minimal terminal support in noacli while a
 password is entered so that noacli can manage the ssh job afterwards.
+
+# Terminal integration
+
+Currently, noacli relies on existing external terminal applications if
+you want to run quick commands like ssh validation.  (There are two
+default wrappers for external terminals.)  If an integrated terminal
+was used instead, noacli could better monitor the status of jobs run
+in the terminal and might be able to switch a job from the small
+output window to a terminal if it asked for input.  (This would
+probably require rewriting QProcess, but that could fix other issues too.)
+
+# Microsoft Windows support
+
+noacli is untested in Windows, but there's not really a reason why it couldn't work.
+There are a number of unportable things (like default wrappers) that might need
+adjustment, and windows integrated ssh is missing features (like multiplexing?).
+
 
 # Other misc.
 
@@ -153,7 +179,7 @@ not worth expanding on here:
 * Multi-line editors for commands and stuff in various tables (context menu?) 
 * Fancy environment variable editor (similar to above but domain specific)
 * Table line spacing tweaks in all tables including tableviewer
-* Button dock arragement: sorting, dragging, greedy fit, etc. (replace FlowLayout)
+* Manual Button dock arrangement (implement drag in FlowLayout)
 * More button actions (middle and right click?)
 * More options for fonts?  Save fonts in qtail?
 
@@ -161,6 +187,6 @@ Postscript
 ==========
 
 The point of this file is to explicitly ask for feedback and
-proritizing implementation, so if any of the above sounds even faintly
+prioritizing implementation, so if any of the above sounds even faintly
 interesting, let me know.  Some of the above will probably never get
 implemented if I never get any feedback on it.

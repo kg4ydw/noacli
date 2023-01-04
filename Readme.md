@@ -35,7 +35,7 @@ things like:
 noacli includes three stand-alone but integrated programs:
 * The main noacli shell window
 * The qtail file viewer
-* the tableviewer
+* The tableviewer
 
 The main shell window is a single command editor pane coupled with a
 few pull down menus, some settings editors and a number of
@@ -57,7 +57,7 @@ The settings editor dialog boxes are:
 For a a longer list of features and details of the above features,
 see [documentation/Readme.md](documentation/Readme.md)
 
-The window is composed of docks that can be rearranged and hidden, and
+The main window is composed of docks that can be rearranged and hidden, and
 various configurations saved.  Here's some alternate configurations.
 
 ![Small](documentation/small-buttons.png "Small output and buttons")

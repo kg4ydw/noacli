@@ -27,6 +27,7 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
+ ! button dock: resize to fit on pop out
    window title: do a better job of eliding long commands
    qtail: implement --command for external use
    button dock: handle favorite rename?
@@ -36,7 +37,7 @@ Things to implement soon:
    qtail reverse find (context menu? menu checkbox?)
    table column picker needs an undo select columns
    mac terminal window (applescript?)
- ? settingsDialog needs doubleclick resize (fixed default ??)
+ ? settingsDialog needs double click resize (fixed default ??)
    cd should parse ~
    realign general settings editor to be callable from other apps
  x table should send stderr to log
@@ -44,6 +45,10 @@ Things to implement soon:
    fix command parser to use built environment setting (XXXX marked)
  o tableview sort
       convert numbers before sorting?
+   tableview matplot lib integration
+      select one or two columns for line graph (label column)
+      select two columns or three for parametric graph
+      select two columns (label, data) for pie graph
  o table viewer options
      document short options?
      tableviewer needs its own icon
@@ -584,43 +589,43 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
 
    regex matches
      output and input separately scanned for regex matches
-     grouped matches are saved to match variables
-     match variabes can substitute into command templates
-     store match dictionary in jobinfo?
+     named grouped matches are saved to match variables
+     unnamed grouped matches saved to arrays (name array in rule)
+     optionally save multiple matches, one set per line,
+       history like array
+       reference with negative indexes?
+       limit max kept (option per rule)
+     match variables can substitute into command templates
+     relate match dictionary to jobinfo?
      context menu items to use match dictionary
        set title (or set automatically)
        regex menu items that only show if dependencies met
+     trigger some regex rules for specific command matches
 
      can a command template auto trigger on output match?
         run or just insert into edit buffer?
  	small output window only?
- 	enable special one shot output match from command match trigger
 
    button box dock ideas
-     right click: dump in editor
-     draggable gridview ??
- *   replace gridlayout with (custom) pilelayout or flowlayout
+ !   resize to fit on pop out
+ !   right click: dump in editor
+     make FlowLayout draggable
+ *   replace gridlayout with (custom) flowlayout
      reimplement compact button bar GUI and make its own checkbox
-     option to choose between QToolButton and QPushButton
  *   non-immediate button: marker to move cursor
-     change immediate button to pulldown in editor
-       run immediate
-       clear and edit
-       insert
-     context menu:
-       Alternate layouts:
- 	 greedy layout
- 	 alphebetize
+ o    context menu:
+ o     Alternate layouts:
+ *	 greedy layout
+ *	 alphebetize
  	 draggable / user order
- 	 include static buttons in order?
+ *	 include static buttons in order?
  o     refit / expand to fit
-       simulated anealing rearrange / fit
-     make button order editable by dragging buttons
+ n     simulated anealing rearrange / fit
      context menu for button
-       delete
+ *     delete
        run?
        copy to editor
-       insert into editor
+       insert into editor (without clearing existing text)
 
    regex match stuff
      scan input and output with a list of regex
