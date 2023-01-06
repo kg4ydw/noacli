@@ -157,6 +157,15 @@ class QtTail(QtWidgets.QMainWindow):
         self.resizecount = 0
         self.opt = options
         self.ui = Ui_QtTail()
+        try:
+            # hide functionality broken in Qt 5.12 XX (delete this later)
+            v = QtCore. QT_VERSION_STR.split('.')
+            if v[0]=='5' and int(v[1])<13:
+                print("Disabling regex, sorry.")
+                self.ui.actionUseRegEx.setChecked(False)
+                self.ui.menuSearch.hide()
+        except:
+            pass
         self.ui.setupUi(self)
         self.textbody = self.ui.textBrowser
         # XXX findflags not used (yet?)
@@ -319,7 +328,12 @@ class QtTail(QtWidgets.QMainWindow):
                 es.cursor = start
                 ess.append(es)
                 self.textbody.setExtraSelections(ess)
-        success = self.textbody.find(buildSearch(text, self.ui))
+        s = buildSearch(text, self.ui)
+        if searchterm:
+            success = self.textbody.find(searchterm)
+        else:
+            # XXX warn error
+            return
         if success:
             self.findcount += 1
             es = self.textbody.extraSelections()
@@ -329,7 +343,7 @@ class QtTail(QtWidgets.QMainWindow):
             cursor = self.textbody.textCursor()
             cursor.movePosition(QtGui.QTextCursor.Start)
             self.textbody.setTextCursor(cursor)
-            success = self.textbody.find(text)
+            success = self.textbody.find(searchterm)
             if success:
                 if self.findcount:
                     m = 'Wrapped after {}/{}'.format(self.findcount,len(self.textbody.extraSelections()))

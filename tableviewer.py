@@ -520,7 +520,9 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def setFilterText(self, str):
         if self.ui.actionUseRegEx.isChecked():
-            self.proxymodel.setFilterRegularExpression(buildSearch(str,self.ui))
+            s = buildSearch(str,self.ui)
+            if s: self.proxymodel.setFilterRegularExpression(s)
+            #else: warn error XXX
         else:
             self.proxymodel.setFilterFixedString(str)
     def setFilterColumn(self):

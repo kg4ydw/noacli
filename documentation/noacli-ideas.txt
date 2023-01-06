@@ -27,6 +27,10 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 
 Things to implement soon:
+   fix regex bugs
+     case insensitive doesn't work
+     qtail untested in qt 5.12 (should disable regex)
+     showsize is called too often, covering up other messages
  ! button dock: resize to fit on pop out
    window title: do a better job of eliding long commands
    qtail: implement --command for external use
