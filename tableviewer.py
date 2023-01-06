@@ -29,6 +29,7 @@ from lib.betterio import betterQProcess, betterTextIOWrapper
 from lib.tableviewer_ui import Ui_TableViewer
 from lib.datamodels import simpleTable
 from lib.typedqsettings import typedQSettings
+from lib.buildsearch import buildSearch
 
 typedQSettings().registerOptions({
     'TableviewerResizeRows': [ False, 'Resize rows automatically after data is read', bool],
@@ -518,7 +519,10 @@ class TableViewer(QtWidgets.QMainWindow):
             #if i==0: user only selected one sequental item -- reselect it?
 
     def setFilterText(self, str):
-        self.proxymodel.setFilterFixedString(str)
+        if self.ui.actionUseRegEx.isChecked():
+            self.proxymodel.setFilterRegularExpression(buildSearch(str,self.ui))
+        else:
+            self.proxymodel.setFilterFixedString(str)
     def setFilterColumn(self):
         selcol = self.ui.colPicker.selectionModel().selectedIndexes()
         if len(selcol)==1:

@@ -26,6 +26,7 @@ from PyQt5.Qt import Qt, pyqtSignal
 
 from lib.qtail_ui import Ui_QtTail
 from lib.typedqsettings import typedQSettings
+from lib.buildsearch import buildSearch
 
 typedQSettings().registerOptions({
     'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
@@ -318,7 +319,7 @@ class QtTail(QtWidgets.QMainWindow):
                 es.cursor = start
                 ess.append(es)
                 self.textbody.setExtraSelections(ess)
-        success = self.textbody.find(text)
+        success = self.textbody.find(buildSearch(text, self.ui))
         if success:
             self.findcount += 1
             es = self.textbody.extraSelections()
@@ -419,7 +420,8 @@ class QtTail(QtWidgets.QMainWindow):
                     self.setWatchInterval(self.opt.argparse.autorefresh)
 
     def showsize(self):
-        self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",-1)
+        pass # XXXX why is this broken
+        #self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",-1)
 
     def simpleargs(self, args):
         # Process simple "command line" arguments from noacli internal parsing

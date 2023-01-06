@@ -119,8 +119,17 @@
     <addaction name="actionAutorefresh"/>
     <addaction name="actionReload"/>
    </widget>
+   <widget class="QMenu" name="menuSearch">
+    <property name="title">
+     <string>Search</string>
+    </property>
+    <addaction name="actionUseRegEx"/>
+    <addaction name="actionCaseInsensitive"/>
+    <addaction name="actionUnicode"/>
+   </widget>
    <addaction name="menuView"/>
    <addaction name="menuMode"/>
+   <addaction name="menuSearch"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionAdjust">
@@ -202,6 +211,36 @@
   <action name="actionReload">
    <property name="text">
     <string>Refresh now</string>
+   </property>
+  </action>
+  <action name="actionUseRegEx">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use RegEx</string>
+   </property>
+  </action>
+  <action name="actionCaseInsensitive">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Case insensitive</string>
+   </property>
+  </action>
+  <action name="actionUnicode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Unicode</string>
    </property>
   </action>
  </widget>
