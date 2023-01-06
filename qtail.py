@@ -328,7 +328,7 @@ class QtTail(QtWidgets.QMainWindow):
                 es.cursor = start
                 ess.append(es)
                 self.textbody.setExtraSelections(ess)
-        s = buildSearch(text, self.ui)
+        searchterm = buildSearch(text, self.ui)
         if searchterm:
             success = self.textbody.find(searchterm)
         else:
