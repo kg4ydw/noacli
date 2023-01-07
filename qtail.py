@@ -157,20 +157,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.resizecount = 0
         self.opt = options
         self.ui = Ui_QtTail()
-        try:
-            # hide functionality broken in Qt 5.12 XX (delete this later)
-            v = QtCore. QT_VERSION_STR.split('.')
-            if v[0]=='5' and int(v[1])<13:
-                print("Disabling regex, sorry.")
-                self.ui.actionUseRegEx.setChecked(False)
-                self.ui.menuSearch.hide()
-        except:
-            pass
         self.ui.setupUi(self)
         self.textbody = self.ui.textBrowser
-        # XXX findflags not used (yet?)
-        self.findflags = 0  # QTextDocument::FindBackward FindCaseSensitively FindWholeWords
-        self.findcount = 0;
         if self.opt.maxLines>0:
             self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
 
@@ -210,6 +198,16 @@ class QtTail(QtWidgets.QMainWindow):
         secondary = self.getFontSetting('QTailSecondaryFont')
         if secondary:
             m.addAction(secondary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, secondary))
+        try:
+            # hide functionality broken in Qt 5.12 XX (delete this later)
+            v = QtCore. QT_VERSION_STR.split('.')
+            if v[0]=='5' and int(v[1])<13:
+                print("Disabling regex, sorry.")
+                self.ui.actionUseRegEx.setChecked(False)
+                self.ui.actionUseRegEx.setVisible(False)
+                self.ui.actionUnicode.setVisible(False)
+        except:
+            pass
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

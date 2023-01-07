@@ -7,5 +7,6 @@ def buildSearch(text, ui):
     if ui.actionCaseInsensitive.isChecked(): opts |= QRE.CaseInsensitiveOption
     if ui.actionUnicode.isChecked(): opts |= QRE.UseUnicodePropertiesOption
     re = QRE(text, opts)
-    if not re.isValid(): return None
-    return QRE(text, opts)
+    if not re.isValid():
+        return None
+    return re
