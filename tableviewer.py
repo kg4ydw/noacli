@@ -32,7 +32,7 @@ from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
 
 typedQSettings().registerOptions({
-    'TableviewerResizeRows': [ False, 'Resize rows automatically after data is read', bool],
+    'TableviewerResizeRows': [ False, 'Resize rows automatically to fit contents', bool],
     'TableviewerResizeRatio': [ 1.5, 'Max ratio of current size to larger size for automatic window resize if larger', float],
     'TableviewerPickerCols': [10,'Threshold of columns in table, over which the column picker is displayed by default', int],
     'TableviewerBatchLines': [100, 'How many table rows to read at once', int]
@@ -242,10 +242,18 @@ class TableViewer(QtWidgets.QMainWindow):
         hh.sectionDoubleClicked.connect(self.resizeHheader)
         self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
         self.want_readmore.connect(self.readmore, Qt.QueuedConnection)  # for delayed reads
-        
+        self.ui.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.ui.tableView.customContextMenuRequested.connect(self.tableContextMenu)
+        self.ui.actionCaseInsensitive.toggled.connect(self.setSearchCaseInsensitive)
         # set model after opening file
 
-
+    def setSearchCaseInsensitive(self, checked):
+        if checked:
+            cs = Qt.CaseInsensitive
+        else:
+            cs = Qt.CaseSensitive
+        self.proxymodel.setFilterCaseSensitivity(cs)
+        
     def argparse(self, args=None):
         # duplicate functionality of simpleargs for now, merge later
         self.argdict = {}  # save in case anything else wants to look
@@ -377,6 +385,10 @@ class TableViewer(QtWidgets.QMainWindow):
         return None
 
     def start(self):
+        # apply settings after UI is set up
+        if typedQSettings().value('TableviewerResizeRows',False):
+            self.ui.actionAutosizeRowHeights.setChecked(True)
+            self.setRowAutosize(True)
         # probably should do more here and less in open 
         pass
 
@@ -385,8 +397,10 @@ class TableViewer(QtWidgets.QMainWindow):
     def actionAdjust(self):
         view = self.ui.tableView
         view.resizeColumnsToContents()
-        if typedQSettings().value('TableviewerResizeRows',False):
-            self.ui.tableView.resizeRowsToContents()
+        ## changed the meaning of this setting, this might now be automatic anyway
+        # this also only resized the top half of the table when called initially
+        #if typedQSettings().value('TableviewerResizeRows',False):
+        #    self.ui.tableView.resizeRowsToContents()
         self.resizeWindowToTable(True) # for automatic calls
 
     def showRowNumbers(self, checked):
@@ -427,6 +441,7 @@ class TableViewer(QtWidgets.QMainWindow):
             extra = 0
         else:
             extra=floor(extra)
+        self.ui.actionResize_rows.setVisible(True) # sometimes needed after squeezing columns
         # print(" final e={} target={}".format(extra, target)) # DEBUG squeeze
         for i in range(len(widths)):
             if widths[i]> target+extra:
@@ -484,15 +499,23 @@ class TableViewer(QtWidgets.QMainWindow):
     def resizeVheader(self, logical):
         self.ui.tableView.resizeRowToContents(logical)
 
-    def contextMenuEvent(self, event):
+    def tableContextMenu(self, point):
         m=QMenu()
         # XX could count selected cells before adding to menu...
         m.addAction('Merge adjacent selected cells', self.collapseSelectedCells)
-        col = self.ui.tableView.columnAt(event.pos().x())
+        col = self.ui.tableView.columnAt(point.x())
         if col>=0:
             m.addAction('Hide column',partial(self.hideColumn, col))
         # XX more tableviewer context items??
-        action = m.exec(event.globalPos())
+        action = m.exec(self.ui.tableView.mapToGlobal(point))
+
+    def setRowAutosize(self, checked):
+        if checked:
+            self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+            self.ui.actionResize_rows.setVisible(False) # does nothing if this is active
+        else:
+            self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+            self.ui.actionResize_rows.setVisible(True)
 
     # context menu triggered
     def hideColumn(self, col):

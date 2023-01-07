@@ -106,6 +106,9 @@ class Ui_QtTail(object):
         self.actionUnicode = QtWidgets.QAction(QtTail)
         self.actionUnicode.setCheckable(True)
         self.actionUnicode.setObjectName("actionUnicode")
+        self.actionWholeWords = QtWidgets.QAction(QtTail)
+        self.actionWholeWords.setCheckable(True)
+        self.actionWholeWords.setObjectName("actionWholeWords")
         self.menuView.addAction(self.actionShowToolbar)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionAdjust)
@@ -121,6 +124,7 @@ class Ui_QtTail(object):
         self.menuSearch.addAction(self.actionUseRegEx)
         self.menuSearch.addAction(self.actionCaseInsensitive)
         self.menuSearch.addAction(self.actionUnicode)
+        self.menuSearch.addAction(self.actionWholeWords)
         self.menubar.addAction(self.menuView.menuAction())
         self.menubar.addAction(self.menuMode.menuAction())
         self.menubar.addAction(self.menuSearch.menuAction())
@@ -167,4 +171,5 @@ class Ui_QtTail(object):
         self.actionUseRegEx.setText(_translate("QtTail", "Use RegEx"))
         self.actionCaseInsensitive.setText(_translate("QtTail", "Case insensitive"))
         self.actionUnicode.setText(_translate("QtTail", "Unicode"))
+        self.actionWholeWords.setText(_translate("QtTail", "Whole words"))
 from lib.qtailbrowser import myBrowser

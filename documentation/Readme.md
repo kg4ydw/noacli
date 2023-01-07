@@ -22,6 +22,9 @@ Mac: (pick one)
 Ubuntu:
 * sudo apt install python3-pyqt5
 
+This has been tested with Python 3.8 - 3.10 and Qt 5.12 - 5.15.
+(Note: Qt before 5.13 will be missing some functionality.)
+
 # Philosophy
 
 There are lots of (old) traditional command line shells that are quite nice.
@@ -245,8 +248,8 @@ to a white background when they are edited.
 ## favorites and button docks
 
 The favorites editor, when opened, shows your previously saved
-favorites, your 10 most frequently run commands, and your 10 most
-recent commands not already listed.  (These numbers are settings that
+favorites, your 10 most recently run commands, and your 10 most
+frequently run commands not already listed.  (These numbers are settings that
 can be changed of course.)  You can check or uncheck the any entry if
 you want to keep it or not.  Named entries show up in the button dock
 for quick access.  Also, a shortcut key binding can be set for any

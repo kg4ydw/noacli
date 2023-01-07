@@ -142,20 +142,15 @@ class Favorites():
         # *keep name key *checkImmediate count command 
         # collect commands from frequent history
         (_, count) = self.settings.history.countHistory()
-        # collect commands from favorites
+
+        #### collect commands from favorites
         f = sorted(self.cmds.keys())
         data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, (c in count and count[c]) or 0 , c] for c in f]
         # only remember previously saved favorites, and in order
         self.oldcmds = [ data[x][5] for x in range(len(data))]
         cmdlist = set(f)  # don't put dup commands in
-        # add frequenty history commands
-        freq = sorted([k for k in count.keys() if k not in cmdlist], key=lambda k: count[k])
-        freq.reverse()
-        nfreq = int(qs.value('FavFrequent',10))
-        data += [ [False, None, None, True, count[k], k] for k in freq[0:nfreq]]
-        cmdlist |= set(freq[0:nfreq])
 
-        # collect commands from recent history
+        #### collect commands from recent history
         nh = int(qs.value('FavRecent',10))
         h = self.settings.history.last()
         while nh>0 and h:
@@ -165,6 +160,16 @@ class Favorites():
                 cmdlist.add(c)
                 nh -= 1
             h = h.model().prevNoWrap(h)
+
+        #### add frequent history commands
+        freq = sorted([k for k in count.keys() if k not in cmdlist], key=lambda k: count[k])
+        freq.reverse()
+        nfreq = int(qs.value('FavFrequent',10))
+        data += [ [False, None, None, True, count[k], k] for k in freq[0:nfreq]]
+        cmdlist |= set(freq[0:nfreq])
+
+        #### done collecting favorite candidates
+        
         datatypes = [bool, str, QKeySequence, bool, None, str]
         model = favoritesModel(data,
             ['keep', 'name',  'key', 'Immediate',  'count', 'command'], datatypesrow=datatypes,

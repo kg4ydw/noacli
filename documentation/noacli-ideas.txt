@@ -28,10 +28,8 @@ o  should the window auto-resize threshold be a setting
 
 Things to implement soon:
    fix regex bugs
-     case insensitive doesn't work
      qtail untested in qt 5.12 (should disable regex)
-     showsize is called too often, covering up other messages
- ! button dock: resize to fit on pop out
+ ! history could resize vertically on popout?
    window title: do a better job of eliding long commands
    qtail: implement --command for external use
    button dock: handle favorite rename?
@@ -58,6 +56,7 @@ Things to implement soon:
      tableviewer needs its own icon
    pip setup.py installer
    mac installer?
+ x bold default button dock title or something
 
 Things that could be implemented but are not currently being considered:  (Request if you want this)
     URL handling
@@ -103,7 +102,7 @@ x      cli option to set default
       setting to extend 10k lines for this window
       ugly to implement this with current I/O model
    table filter case sensitivity
- o table view option to fix non-data cells
+ o table view option to fix non-data cells (preamble)
  *    skip during input
       span columns?
       split into multiple cells?
@@ -417,8 +416,8 @@ D*   search / filter ?
 Do     find next
        find previous
        find forward / reverse
-       case sensitive SETTING
-       regex / plain SETTING
+ *     case sensitive SETTING
+ *     regex / plain SETTING
        advanced --> find dialog
      menu bar
        file
@@ -431,14 +430,14 @@ Do     find next
  o     memory saver (limit scrollback to 1M / 10000 lines by default)
        find menu
  	 advanced --> find dialog
- *       wrap?
+ *       wrap? (always)
  	 bookmarks
        find dialog
  	 buttons: next prev hilight/unhilight
- 	 regex / glob / plain ?
- o       ignore case (default only for now)
+ *	 regex / glob / plain ?
+ *       ignore case
  x       mark scrollbar with finds (set color for multiple finds?)
- x       save search & color as preset
+         save search & color as preset
  x       trigger sets of presets based on command name
  x       run command on current selection?
      text body context menu
@@ -611,7 +610,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
  	small output window only?
 
    button box dock ideas
- !   resize to fit on pop out
+ *   resize to fit on pop out
  !   right click: dump in editor
      make FlowLayout draggable
  *   replace gridlayout with (custom) flowlayout
@@ -620,11 +619,11 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
  o    context menu:
  o     Alternate layouts:
  *	 greedy layout
- *	 alphebetize
+ *	 alphabetize
  	 draggable / user order
  *	 include static buttons in order?
  o     refit / expand to fit
- n     simulated anealing rearrange / fit
+ n     simulated annealing rearrange / fit
      context menu for button
  *     delete
        run?
@@ -691,6 +690,10 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
      toggle headings (view, type)
      toggle column picker
      toggle sort/select on tableviewer column headers
+     find next
+     clear find
+     clear find highlight
+     edit find (ctrl-f ?)
 
    man page viewer
      qtail base
@@ -795,6 +798,8 @@ D*   --filter
 d*    rerun interval
  *     file doesn't need autorefresh?? or should it clear(); seek(0)
  * built in commands should get marked done in history
+ * button dock: resize to fit on pop out
+ * find: support case sensitivity, whole words
 
 fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -867,6 +872,7 @@ D*   if it ends in / select dirs only??
  * mess with button dock flowlayout for better arrangement control
  * button dock: sanitize names: remove slash
  * Closing main window with stuff running is now handled gracefully
+ * showsize is called too often, covering up other messages
 
 ## ispell put these here
 LocalWords:  settingsDialog tableview smalldup fileDialog smalloutput

@@ -18,10 +18,10 @@ class myDock(QDockWidget):
         self.visibilityChanged.connect(self.adjustTitle)
         self.topLevelChanged.connect(self.resizeOnFloat)
 
-    # resize the dock when it floats to get rid of horizontal scrollbar
-    # but try to not grow every time we are floated
     def resizeOnFloat(self, float):
         if not float: return
+        # resize the dock when it floats to get rid of horizontal scrollbar
+        # but try to not grow every time we are floated
         o = self.findChild(QAbstractScrollArea)
         if o:
             hw =  o.sizeHint().width()
@@ -34,6 +34,20 @@ class myDock(QDockWidget):
                 nw += 20
             if nw>w and hsbv:
                 self.resize(QtCore.QSize(nw, self.size().height()))
+        else:
+            # alternately, resize by height if it doesn't have a scroll bar
+            # but dock doesn't inherit widget's layout policy so calculate
+            # the size difference and then get the widget size
+            w = self.widget()
+            hs = w.sizeHint()
+            s = w.size()
+            diff = self.size()-s
+            # is best size based on hint or height for width?
+            hh = w.heightForWidth(s.width())
+            if hh<10 or hs.height() < hh:
+                hh = hs.height()
+            if s.height() < hh:
+                self.resize(QtCore.QSize(s.width(), hh)+diff)
         
     @QtCore.pyqtSlot(str)
     def setWindowTitle(self, title):

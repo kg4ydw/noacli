@@ -80,9 +80,10 @@
     <property name="title">
      <string>View</string>
     </property>
+    <addaction name="actionAutosizeRowHeights"/>
     <addaction name="actionAdjust_size"/>
-    <addaction name="actionResize_window"/>
     <addaction name="actionResize_rows"/>
+    <addaction name="actionResize_window"/>
     <addaction name="actionSqueeze_columns"/>
     <addaction name="separator"/>
     <addaction name="actionResetSort"/>
@@ -289,6 +290,14 @@
    </property>
    <property name="text">
     <string>Unicode</string>
+   </property>
+  </action>
+  <action name="actionAutosizeRowHeights">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Autosize row heights</string>
    </property>
   </action>
  </widget>
@@ -550,6 +559,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionAutosizeRowHeights</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>TableViewer</receiver>
+   <slot>setRowAutosize(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>actionAdjust()</slot>
@@ -566,5 +591,6 @@
   <slot>setFilterText(QString)</slot>
   <slot>setFilterColumn()</slot>
   <slot>sortOrSelect(bool)</slot>
+  <slot>setRowAutosize(bool)</slot>
  </slots>
 </ui>

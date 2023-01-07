@@ -141,9 +141,13 @@ class Ui_TableViewer(object):
         self.actionUnicode = QtWidgets.QAction(TableViewer)
         self.actionUnicode.setCheckable(True)
         self.actionUnicode.setObjectName("actionUnicode")
+        self.actionAutosizeRowHeights = QtWidgets.QAction(TableViewer)
+        self.actionAutosizeRowHeights.setCheckable(True)
+        self.actionAutosizeRowHeights.setObjectName("actionAutosizeRowHeights")
+        self.menuView.addAction(self.actionAutosizeRowHeights)
         self.menuView.addAction(self.actionAdjust_size)
-        self.menuView.addAction(self.actionResize_window)
         self.menuView.addAction(self.actionResize_rows)
+        self.menuView.addAction(self.actionResize_window)
         self.menuView.addAction(self.actionSqueeze_columns)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionResetSort)
@@ -176,6 +180,7 @@ class Ui_TableViewer(object):
         self.filterEdit.returnPressed.connect(TableViewer.setFilterColumn) # type: ignore
         self.sortOrSelect.toggled['bool'].connect(TableViewer.sortOrSelect) # type: ignore
         self.actionToggle_column_sort_or_select.triggered.connect(self.sortOrSelect.toggle) # type: ignore
+        self.actionAutosizeRowHeights.toggled['bool'].connect(TableViewer.setRowAutosize) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(TableViewer)
 
     def retranslateUi(self, TableViewer):
@@ -203,3 +208,4 @@ class Ui_TableViewer(object):
         self.actionUseRegEx.setText(_translate("TableViewer", "Use Regular Expressions"))
         self.actionCaseInsensitive.setText(_translate("TableViewer", "Case insensitive"))
         self.actionUnicode.setText(_translate("TableViewer", "Unicode"))
+        self.actionAutosizeRowHeights.setText(_translate("TableViewer", "Autosize row heights"))

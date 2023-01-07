@@ -126,6 +126,7 @@
     <addaction name="actionUseRegEx"/>
     <addaction name="actionCaseInsensitive"/>
     <addaction name="actionUnicode"/>
+    <addaction name="actionWholeWords"/>
    </widget>
    <addaction name="menuView"/>
    <addaction name="menuMode"/>
@@ -241,6 +242,14 @@
    </property>
    <property name="text">
     <string>Unicode</string>
+   </property>
+  </action>
+  <action name="actionWholeWords">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Whole words</string>
    </property>
   </action>
  </widget>

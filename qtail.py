@@ -19,7 +19,7 @@ from functools import partial
 from math import ceil
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QTextCursor, QFont
+from PyQt5.QtGui import QTextCursor, QFont, QTextDocument
 from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWidgetAction, QSpinBox, QAbstractSpinBox, QShortcut
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt5.Qt import Qt, pyqtSignal
@@ -329,8 +329,14 @@ class QtTail(QtWidgets.QMainWindow):
                 ess.append(es)
                 self.textbody.setExtraSelections(ess)
         searchterm = buildSearch(text, self.ui)
+        findflags = QTextDocument.FindFlags()
+        if not self.ui.actionCaseInsensitive.isChecked():
+            findflags |= QTextDocument.FindCaseSensitively
+        if self.ui.actionWholeWords.isChecked():
+            findflags |= QTextDocument.FindWholeWords
+        # XX FindBackward
         if searchterm:
-            success = self.textbody.find(searchterm)
+            success = self.textbody.find(searchterm, findflags)
         else:
             # XXX warn error
             return
@@ -343,7 +349,7 @@ class QtTail(QtWidgets.QMainWindow):
             cursor = self.textbody.textCursor()
             cursor.movePosition(QtGui.QTextCursor.Start)
             self.textbody.setTextCursor(cursor)
-            success = self.textbody.find(searchterm)
+            success = self.textbody.find(searchterm, findflags)
             if success:
                 if self.findcount:
                     m = 'Wrapped after {}/{}'.format(self.findcount,len(self.textbody.extraSelections()))
@@ -409,7 +415,7 @@ class QtTail(QtWidgets.QMainWindow):
             if b and rdelay:
                 #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
                 QTimer.singleShot(int(rdelay)*1000, Qt.VeryCoarseTimer, self.actionAdjust)
-        self.showsize()
+        self.showsize(False)
 
     # @QtCore.pyqtSlot(str)
     def filechanged(self, path):
@@ -433,9 +439,11 @@ class QtTail(QtWidgets.QMainWindow):
                 if self.opt.argparse.autorefresh:
                     self.setWatchInterval(self.opt.argparse.autorefresh)
 
-    def showsize(self):
-        pass # XXXX why is this broken
-        #self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",-1)
+    def showsize(self, replace=True):
+        m = self.statusBar().currentMessage()
+        if m and not replace and 'lines' not in m:
+            return
+        self.statusBar().showMessage(str(self.textbody.document().blockCount())+" lines",-1)
 
     def simpleargs(self, args):
         # Process simple "command line" arguments from noacli internal parsing
@@ -554,8 +562,9 @@ class QtTail(QtWidgets.QMainWindow):
         self.setupProc()
 
     def setupProc(self):
-        self.file.readyRead.connect(partial(self.readtext,'ready proc'))
         self.setButtonMode()
+        if not self.file: return
+        self.file.readyRead.connect(partial(self.readtext,'ready proc'))
         self.file.started.connect(self.procStarted)
         self.file.finished.connect(self.procFinished)
 
@@ -571,7 +580,7 @@ class QtTail(QtWidgets.QMainWindow):
         # get a window title from somewhere
         if not title and jobitem:
             title = jobitem.title()
-        if not title and process:
+        if not title and jobitem.process:
             try:
                 #c = process.program() # XX get args too?
                 # as long as we always wrap in bash -c, just get the args
@@ -590,7 +599,6 @@ class QtTail(QtWidgets.QMainWindow):
         self.setupProc()
         # these are likely too soon
         #self.actionAdjust()
-        #self.showsize()
         # if there's some text and it's big enough, or no more is coming...
         if pretext and (len(pretext)>200 or type(self.file)!=QProcess or self.file.state()==QProcess.NotRunning): # SETTING min size threshold
             self.want_resize.emit()

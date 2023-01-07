@@ -37,15 +37,12 @@ class ButtonDock(myDock):
             self.firstDock = True # never delete this
         self.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)
         self.buttonBox = QtWidgets.QWidget()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        sizePolicy.setHeightForWidth(self.buttonBox.sizePolicy().hasHeightForWidth())
-        self.buttonBox.setSizePolicy(sizePolicy)
-        self.buttonBox.setObjectName("buttonBox")
         self.mylayout = FlowLayout(self.buttonBox)
         self.mylayout.setContentsMargins(0, 0, 0, 0)
-        ### default buttons could go here
-        # button = QtWidgets.QPushButton(self) or QToolButton?
-        # self.mylayout.addWidget(button)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy.setHeightForWidth(self.mylayout.hasHeightForWidth())
+        self.buttonBox.setSizePolicy(sizePolicy)
+        self.buttonBox.setObjectName("buttonBox")
         self.setWidget(self.buttonBox)
         parent.addDockWidget(QtCore.Qt.DockWidgetArea(4), self) # XXXX
         if self.defaultDock[0]==self:
@@ -55,7 +52,7 @@ class ButtonDock(myDock):
         else:
             # add to parent's view menu if this isn't the default dock XXX
             self.defaultDock[0].parent().ui.menuViews.addAction(self.toggleViewAction())
-            
+      
     @classmethod
     def _fixup(cls, sig):
         # overwrite unbound signal with a bound one from the default dock
