@@ -29,6 +29,7 @@ from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
 
 typedQSettings().registerOptions({
+    'QTailDelaySearch':[250, 'delay (mSec) while typing before a search is triggered', int],
     'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
     'QTailReadBlock':[8192, 'Maximum block size to read at once (higher for more performance but lower responsiveness)', int],
     'QTailEndBytes': [ 1024*1024, 'Number of bytes qtail rewinds a file', int],
@@ -181,8 +182,11 @@ class QtTail(QtWidgets.QMainWindow):
         ### can't do this yet
         #if type(self.file)!=QProcess: # can't watch a non-process
         #    self.ui.actionWatch.setEnabled(False) 
-        self.timer = QTimer()
+        self.timer = QTimer(self)
         self.timer.timeout.connect(self.reloadOrRerun)
+        self.findTimer = QTimer(self)
+        self.findTimer.timeout.connect(self.simpleFindNewTimer)
+        self.findTimer.setSingleShot(True)
         # note: this intentionally doesn't refresh on settings change
         self.reinterval = typedQSettings().value('QTailWatchInterval',20)
         # find
@@ -322,7 +326,7 @@ class QtTail(QtWidgets.QMainWindow):
                 e.cursor = start  # in case selection changed
             else: # make a new one
                 es = QTextEdit.ExtraSelection()
-                es.format.setBackground(QtGui.QBrush(Qt.yellow)) # SETTING
+                es.format.setBackground(QtGui.QBrush(Qt.yellow)) # SETTING XXX
                 es.cursor = start
                 ess.append(es)
                 self.textbody.setExtraSelections(ess)
@@ -366,6 +370,17 @@ class QtTail(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(str)
     def simpleFindNew(self, text):
+        delay = typedQSettings().value('QTailDelaySearch', 200)
+        if not delay:
+            self.findcount = 0
+            self.simpleFind(text)
+        else:
+            left = self.findTimer.remainingTime()
+            #if left>0: print("key interval: {:1.3f}".format(delay-left)) # XXXX DEBUG
+            self.findTimer.start(delay)
+
+    def simpleFindNewTimer(self):
+        text = self.ui.searchTerm.text()
         self.findcount = 0
         self.simpleFind(text)
 
@@ -616,7 +631,7 @@ class QtTail(QtWidgets.QMainWindow):
         if self.runtime==None: self.runtime=t
         self.runtime = self.runtime * 0.6 + t*0.4
         self.tweakInterval()
-        if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
+        #if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
         if self.ui.textBrowser.document().isEmpty():
             # XXX should close on empty be conditional?
             self.close()

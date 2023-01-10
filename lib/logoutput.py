@@ -5,7 +5,7 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 # Receiver for output from multiple processes
 # Manage the output and the processes generating it.
 
-import os,  sys, re
+import os,  sys, re, time
 from functools import partial
 
 from PyQt5 import QtCore, QtWidgets
@@ -167,7 +167,14 @@ class logOutput(QTextBrowser):
     
     def procFinished(self, jobitem, exitcode, estatus):
         c = self.endCursor()
-        c.insertHtml('{}: <b>Exit {}</b> {}<br/>'.format(jobitem.pid, exitcode, jobitem.title()))
+        runtime = ''
+        if hasattr(jobitem, 'timestart'):
+            if hasattr(jobitem,'timestop'):
+                t = jobitem.timestop-jobitem.timestart
+            else:
+                t = time.monotonic() - jobitem.timestart
+            runtime = "runtime={:1.2f}s".format(t)
+        c.insertHtml('{}: <b>Exit {}</b> {} {}<br/>'.format(jobitem.pid, exitcode, runtime, jobitem.title()))
         c.insertText("\n")
         if exitcode:
             self.oneLine.emit('E({})'.format(exitcode))

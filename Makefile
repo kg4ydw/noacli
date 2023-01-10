@@ -22,6 +22,10 @@ TAGS: $(SRCFILES)
 	etags --regex '/.*ETAGS: \(\w+\)/\1/' lib/datamodels.py lib/logoutput.py noacli.py lib/qtailbrowser.py qtail.py lib/smalloutput.py lib/typedqsettings.py lib/commandparser.py lib/envdatamodel.py lib/noajobs.py tableviewer.py lib/mydock.py lib/buttondock.py lib/favorites.py
 
 
+# How much of brainstormed features are implemented? (this is a bit silly)
+featureprogress:
+	sed -n -e '/^----/,/^----/{ /^ *$$/d; /^.-/d; p}' documentation/noacli-ideas.txt  | cut -c 2|sort|uniq -c | awk '{p[$$2]=$$1; x+=$$1} END { for (i in p) { printf "%3d %4.1f %s\n",p[i],p[i]/x*100,i}; print x}'
+
 
 # for emacs sometimes
 # marger tags:

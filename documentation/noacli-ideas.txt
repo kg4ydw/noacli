@@ -3,7 +3,7 @@ noacli -- no ampersand asynchronous shell
 This is part todo list and part brainstorming repository.
 
 Column key:
-o  started, partial implementation
+o  partial implementation
 *  done
 !  next
 E  buggy
@@ -25,21 +25,19 @@ o  should the window auto-resize threshold be a setting
    is it annoying that history scrolls to bottom and resets sort order
      when a command is run
      when history items are copied from the docs
-
-Things to implement soon:
-   fix regex bugs
-     qtail untested in qt 5.12 (should disable regex)
+----ST
+ -Things to implement soon:
+ ! mac button spacing in flowlayout is stupid
  ! history could resize vertically on popout?
    window title: do a better job of eliding long commands
    qtail: implement --command for external use
    button dock: handle favorite rename?
-   Rename button dock? --> beware renaming first dock
    button dock: save sort mode?
    button dock: add button dragging to set/save order
    qtail reverse find (context menu? menu checkbox?)
    table column picker needs an undo select columns
    mac terminal window (applescript?)
- ? settingsDialog needs double click resize (fixed default ??)
+ o settingsDialog needs double click resize (fixed default ??)
    cd should parse ~
    realign general settings editor to be callable from other apps
  x table should send stderr to log
@@ -58,22 +56,23 @@ Things to implement soon:
    mac installer?
  x bold default button dock title or something
 
-Things that could be implemented but are not currently being considered:  (Request if you want this)
-    URL handling
-      recognize URLs and highlight in qtail
-      open URLS (other than File:// which should already work)
-      send URLs to external app(s?) (xdg-open ?)
+ -Things that could be implemented but are not currently being considered:  (Request if you want this)
+ -  URL handling
+ -    recognize URLs and highlight in qtail
+ -    open URLS (other than File:// which should already work)
+ -    send URLs to external app(s?) (xdg-open ?)
+ - Rename button dock? --> beware renaming first dock
 
-videos
+ - videos
  o  small output -> qtail demo
-    rearrange docks and create everything
-    use environment vars
-    play with tables (suggest: ls -l or sacct)
-    differences with a regular shell
-    setting up ssh
-    running long commands with log
+ -  rearrange docks and create everything
+ -  use environment vars
+ -  play with tables (suggest: ls -l or sacct)
+ -  differences with a regular shell
+ -  setting up ssh
+ -  running long commands with log
 
-high priority bugs
+ -high priority bugs
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac (wrong geom?)
@@ -86,7 +85,7 @@ high priority bugs
  *    "add" button in dialog
  ? QPersistentModelIndex contamination, trace and check types (marked)
 
-Misc things to implement
+ -Misc things to implement
    set some keybindings on all windows?
    make tableviewer / qtail as dock widgets
      dock vs. mainwindow mode
@@ -101,7 +100,7 @@ x      cli option to set default
    SETTING auto pause qtail on maxlines threshold
       setting to extend 10k lines for this window
       ugly to implement this with current I/O model
-   table filter case sensitivity
+ * table filter case sensitivity
  o table view option to fix non-data cells (preamble)
  *    skip during input
       span columns?
@@ -127,19 +126,18 @@ D*   alternately: document table corner button that does this
 d* on exit, wait for jobs to exit or kill them
 d* SETTING: delay after first data before initial window resize
  o SETTING: max qtail window size (in px), to allow free expansion
- x add another kill button:  stop(2) terminate kill
  o history context menu: set vert spacing: expand vs minimum
      context menu -> reset to default height
  o history view row height
      autosize rows if they would be smaller
      reset to default on corner button?
    menu item (implemented, but not in menu)
- o   close all windows
- o   kill all subprocesses
+ *   close all windows
+ *   kill all subprocesses
  o   disown all subprocesses (default on exit?)
  * if output windows are not visible, add extra status to main window?
 
-User visible bugs:
+ -User visible bugs:
  ? on large data, qtail freezes on first resize in qt adust()
  o   resize early when buffer is small rather than later
  o   avoid resizing when the buffer is too large (word wrap recalculation causes delay)
@@ -150,14 +148,13 @@ User visible bugs:
      test in U20
  * favorites editor bugs
 DE    should warn on duplicate names? (color?)
-x!so  block tostop signal : try os.setsid ?
+ x block tostop signal : try os.setsid ?
      detect child proc trying to read stdin/stderr
      kill child proc?
      move to terminal window automatically?
      preconnect pty for this purpose?
-   flowlayout overlapping buttons (rare? one time glitch?)
 
-Bugs:
+ -Bugs:
  o file dialog is modal and can get lost
  *   set always on top? (partial fix)
    reported lockup on mac when playing with menu bar menus / job manager?
@@ -174,9 +171,9 @@ Bugs:
    tableviewer sort doesn't recognize numbers as numbers
    inconsistent coding style as I was learning Qt as I wrote this and discovered some Qt features after having reimplemented them
       please be gentle, but constructive criticism welcome
-   new env marked as 'inherit' but not in parent should be deleted on save
+ ! new env marked as 'inherit' but not in parent should be deleted on save
    (marked) OutWin commands with no external command do nothing (usage msg?)
-   Trigger full usage msg for table/tail somehow
+ ! Trigger full usage msg for table/tail somehow
    test Qt dock bug on Ubuntu 20
    test sibling markers
  o QFont styled item delegate
@@ -191,7 +188,6 @@ Bugs:
      file dialog could temp insert icon in buffer where it will drop names
      insert icon=self.style().standardIcon(QStyle.SP_FileDialogStart)
    Poor data flow between jobItem and smallOutput (refactor)
-   'set max' too often -- use hysteresis of mul+1 ?
 
 D* small output window
 D*   transfer last command output to qtail if:
@@ -207,26 +203,19 @@ D*   auto
 
 D* merged logs window
  *   count unviewed messages and show counter in status bar and menu
- o   send some messages also to small output window
-  	if sow is visible and log is not
-  	if newly started program exits before next command
-  	if exit value is nonzero
-  	blacklist list
-  	whitelist ?
+ o   send some messages also to small output window or status bar
+        if sow is visible and log is not
+        if newly started program exits before next command
+        if exit value is nonzero
+        blacklist list
+        whitelist ?
  x   filter by pid, process name, random string
  *   purge by ^^
 D*   max retention
 
-   command parser fd redirection
-     prefix or suffix for output dest
-       stdout:stderr
-       > @qtail  2>@qtail
-       default qtail:log
-     handle |  --> tree
-     handle <
-     handle >
-     set window title based on regex filter list
-   update status bar with recent process status and errors
+
+   set window title based on regex filter list
+ * update status bar with recent process status and errors
  * short output in status window
  * single lines to status bar (and status window?)
 
@@ -234,7 +223,7 @@ D*   max retention
  *   scroll to new entry
  *   resize columns
 
- context menu / widget / class
+ -context menu / widget / class
  * history manager / historyView
  * job manager / jobTableVew / noacli
    button editor / settingsDialog>tableView / settingsDialog
@@ -243,12 +232,12 @@ D*   max retention
    qtail search / searchTerm / QtTail?
  * log dock
 
- Main features:
+ -Main features:
  * main window is a dynamic one line editor
-     pwd in message window when nothing else
-     directory stack
+ n   pwd in message window when nothing else
+ n   directory stack
 D*   complex commands are sent to bash
-       detect complex commands
+ n     detect complex commands
  *   command window context menu
  *     run
  *     save for later and clear
@@ -259,24 +248,24 @@ D*      save/restore geometry (QWidget)
 D*        save multiple profiles
  *      save/restore history?
  o      read history on command
- *	save env changes?
-     docks* and +dialogs?  (%hash @array)
-       dock: QT data structure is persistent and master
-       dialog: build a table on the fly and save changes
+ *      save env changes?
+ -   docks* and +dialogs?  (%hash @array)
+ -     dock: QT data structure is persistent and master
+ -     dialog: build a table on the fly and save changes
 D*      *@ history
 D*      *% button dock
 D*      *? job manager
 D*      *@ favorites editor (buttons and frequent)
-D*	o% environment var editor
+D*      o% environment var editor
 D*      *% settings editor
- ?	 % wrapper editor
- n?	 % command default mode editor
-  	     table: command mode
- 	     mode: qtail log terminal null local graph (default: pulldown)
- ?	 @ ssh manager
-D*	 @ fancy table viewer
- 	 @ ulimits editor
- 	 % internal function keybindings
+ ?       % wrapper editor
+ n?      % command default mode editor
+             table: command mode
+             mode: qtail log terminal null local graph (default: pulldown)
+ ?       @ ssh manager
+D*       @ fancy table viewer
+         @ ulimits editor
+         % internal function keybindings
 D* history with arrow keys
  n history search with ctrl-s ctrl-r and !? (history filter instead)
 D* history with pull down menu (last 10)
@@ -294,7 +283,7 @@ D*   search box --> filter
 D* button editor ("favorites")
      right click context menu
  ?      edit in larger window (or just stretch the cell)
- 	ui.tableView.resizerowsToContents
+        ui.tableView.resizerowsToContents
      add Settings save menu item somewhere
  *   table: *name *key count *command *checkImmediate
  *   sorted sections: buttons freq
@@ -326,21 +315,21 @@ D*   click to redisplay / raise window (qtail)
  *   proc/wait info
 D*   delete dead jobs? (life cycle)
  n   change default type
-   pipe / fd / job
-     handle stdout
+ n pipe / fd / job
+ *   handle stdout
        stderr channels separately
-       save to file
-       can a process in the middle of a pipeline be restarted?
-     handle stdin:
-       send file
-       pipe  (connect multiple commands, tree style jobs)
- ?     close when not used
+ n     save to file
+ n     can a process in the middle of a pipeline be restarted?
+ n   handle stdin:
+ n     send file
+ n     pipe  (connect multiple commands, tree style jobs)
+ *     close when not used
 D* settings
  *   table: name default tooltip currentval
 D*   show default in table ? or unmark when set to default?
  n   context menu: reset selected to default
  *   merge qtail options
-     items
+ -   items
 d*     historysize
 d*     historyfile
 d*     histfilesize
@@ -354,7 +343,7 @@ d*     frequent menu size
 d*     frequents size
  n     frequents threshold
 d*     SHELL external shell
-d      graphical terminal
+do     graphical terminal
  n     QTailFormat
 d      QTailFollow
 d?     QTailWrap
@@ -395,21 +384,21 @@ D* ephemeral -- autoclose
 Do scrolly window (qtail)
 D*   view / follow a log file
 D*   take input from a pipe
-DE   keep only last X lines? (initial input overload)
+D*   keep only last X lines?
  *   autoresize (need trigger event)
      in a file, button to backscroll to previous lines or read more forward
- 	large file handling, line number / fseek index
+        large file handling, line number / fseek index
      pause (pull down menu) disable input / change button
  *   start from top / follow tail
  o   reload button
  *     if file --> reload
  *     if process / running command -> kill
-       if done command -> rerun
- /     if open stdin -> stop (close)
- /     if closed -> close window
-     autoclose after exit on specified timeout without user interaction
-     command line options (for inside noacli)
-       --file
+ *     if done command -> rerun
+ -     if open stdin -> stop (close)
+ *     if closed -> close window
+ n   autoclose after exit on specified timeout without user interaction
+ *   command line options (for inside noacli)
+ *     --file
        --maxlines ?Z
 D*   search / filter ?
      search context menu
@@ -418,23 +407,23 @@ Do     find next
        find forward / reverse
  *     case sensitive SETTING
  *     regex / plain SETTING
-       advanced --> find dialog
-     menu bar
-       file
- 	 open: new / command / reopen/refresh / rerun / reopen file in other app
- 	 save as
- 	 buffering: tail [size] / all
- 	 format/view
- **x       plain text html markdown
- o 	   alternate fonts
+ n     advanced --> find dialog
+ o   menu bar
+ n     file
+ n       open: new / command / reopen/refresh / rerun / reopen file in other app
+ n       save as
+         buffering: tail [size] / all
+ n       format/view
+ ***       plain text html markdown
+ o         alternate fonts
  o     memory saver (limit scrollback to 1M / 10000 lines by default)
-       find menu
- 	 advanced --> find dialog
+ o     find menu
+ n       advanced --> find dialog
  *       wrap? (always)
- 	 bookmarks
-       find dialog
- 	 buttons: next prev hilight/unhilight
- *	 regex / glob / plain ?
+         bookmarks
+ n     find dialog
+ o       buttons: next prev hilight/unhilight
+ *       regex / glob / plain ?
  *       ignore case
  x       mark scrollbar with finds (set color for multiple finds?)
          save search & color as preset
@@ -460,13 +449,13 @@ Do     find next
         fold filtered entries
 
 
-   status icon? from logged job?
+ n status icon? from logged job?
 
 D* simple output window
 D*   for commands that output a small amount and exit in a short time
  *   rerun / close / clone / save
-     pulldown: run this command with mode <> next time
-     pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
+ n   pulldown: run this command with mode <> next time
+ o   pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
 
  * table viewer
  *   select lines, cells, columns, send to clipboard
@@ -478,14 +467,14 @@ D*   for commands that output a small amount and exit in a short time
  o   context menu
  *     merge selected cells in this row
        (split cell here)
-     command line options
+ o   command line options
  *     --skip N lines
  *     --file
  *     --csv --delimiter
        --regex (delimiter or split pattern? depends on if groups?)
  *     --fixed --gap=2
 
-   built in special commands
+ - built in special commands
 D*   terminal (--set-default)
 D*   scrolly / qtail / tail
 D*   log
@@ -494,30 +483,30 @@ D*   table
      parse and display graphically (chart, table, pie? matplotlib?)
 Do   (feature) name completion
  *   host (setwrap) (similar to cd) --> send commands to ssh
- 	use remote stub?
-  	pty password mode for sudo?
+        use remote stub?
+        pty password mode for sudo?
  o   button --> adds a button for the following command
      pushd dir --> creates button fur current directory and cd
      pushd * --> creates buttons for all listed directories
 
-   bash built in commands by category
-   shared with noacli marked with *=command !=grpahical or ?=future
-   misc (1/1)
-     command*
-   environment settings (6/13)
-     cd* dirs export! hash logout exit popd pushd pwd times? type*
-     ulimit? umask?
-   shell settings (4.5/9)
-     source alias bind!? builtin* readonly set! shopt! unalias unset
-   user interface settings
-     compgen complete compopt
-   job control (3/8)
-     bg disown? exec fg jobs! kill! suspend wait
-   history (2/2)
-     fc! history!
-   scripting (0/19)
-     break caller continue declare typeset echo enable eval getopts
-     let local mapfile printf read readarray return shift test trap
+ - bash built in commands by category
+ - shared with noacli marked with *=command !=grpahical or ?=future
+ - misc (1/1)
+ -   command*
+ - environment settings (6/13)
+ -   cd* dirs export! hash logout exit popd pushd pwd times? type*
+ -   ulimit? umask?
+ - shell settings (4.5/9)
+ -   source alias bind!? builtin* readonly set! shopt! unalias unset
+ - user interface settings
+ -   compgen complete compopt
+ - job control (3/8)
+ -   bg disown? exec fg jobs! kill! suspend wait
+ - history (2/2)
+ -   fc! history!
+ - scripting (0/19)
+ -   break caller continue declare typeset echo enable eval getopts
+ -   let local mapfile printf read readarray return shift test trap
 
 
    folded sections
@@ -541,21 +530,21 @@ Do   (feature) name completion
  *   set / shopt / unset
  n   hash / type --> performance needed??
  *   jobs history --> pop up window?
-     pushd popd dirs / dirstack --> use buttons instead?
-     alias / unalias
+ n   pushd popd dirs / dirstack --> use buttons instead?
+ n   alias / unalias
  *   kill
  n   exit
      ulimit
      umask
      bind (key)
 D*   help
-     times
+ !   times
 
-   handle .desktop files, prepopulate graphical applications from those
-     ignore everything not Type=Application
-     look for ^Exec=
-     look for Terminal=true
-     ignore everything NoDisplay=true
+ n handle .desktop files, prepopulate graphical applications from those
+ -   ignore everything not Type=Application
+ -   look for ^Exec=
+ -   look for Terminal=true
+ -   ignore everything NoDisplay=true
 
    fancy environment variable editor
      split on delimiter, default :
@@ -576,18 +565,18 @@ D*   help
  *   strip matching first word
  *     output mode
 D*       log
-D*	 qtail/tail
-D*	 small
- o	 table (qtail with options?)
+D*       qtail/tail
+D*       small
+ o       table (qtail with options?)
  *     built in commands -> parse rest in subfunction
 D*       cd
- 	 pwd?
- 	 pushd popd
+ n       pwd?
+ n       pushd popd
 D*     wrapper aliases
 D*       direct  -> word split and run without wrapper
-D*	 sh/bash -> bash -c
-D*	 term -> "xterm -e" or "gnome-terminal --"
-  	 $hostname -> ssh -n (-M -P 6h) $hostname
+D*       sh/bash -> bash -c
+D*       term -> "xterm -e" or "gnome-terminal --"
+ o       $hostname -> ssh -n (-M -P 6h) $hostname
        regex match? (macro?)
 
    regex matches
@@ -607,7 +596,7 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
 
      can a command template auto trigger on output match?
         run or just insert into edit buffer?
- 	small output window only?
+        small output window only?
 
    button box dock ideas
  *   resize to fit on pop out
@@ -618,10 +607,10 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
  *   non-immediate button: marker to move cursor
  o    context menu:
  o     Alternate layouts:
- *	 greedy layout
- *	 alphabetize
- 	 draggable / user order
- *	 include static buttons in order?
+ *       greedy layout
+ *       alphabetize
+         draggable / user order
+ *       include static buttons in order?
  o     refit / expand to fit
  n     simulated annealing rearrange / fit
      context menu for button
@@ -639,10 +628,10 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
        (de)activate other regex
        internal slots
          set title
-       	 special: ssh setsid?
- 	 change view dest options
- 	 GUI indicator change?? dialog message?
- 	 open / bring to top output window
+         special: ssh setsid?
+         change view dest options
+         GUI indicator change?? dialog message?
+         open / bring to top output window
      dictionary value dock
        edit values
        delete values
@@ -708,16 +697,16 @@ D*	 term -> "xterm -e" or "gnome-terminal --"
        pages by families?
        side bar / dock of (recent, related) man pages
        sort list by
- 	 time
- 	 relation depth
- 	 alphabetically
- 	 section, then alpha
- 	 num similar letters
+         time
+         relation depth
+         alphabetically
+         section, then alpha
+         num similar letters
        search by
          apropos
- 	 read (on,before,after) date
- 	 related
- 	 filter by section
+         read (on,before,after) date
+         related
+         filter by section
         clear database
 
 completed misc. features
@@ -801,7 +790,7 @@ d*    rerun interval
  * button dock: resize to fit on pop out
  * find: support case sensitivity, whole words
 
-fixed bugs
+ -fixed bugs
  * retore geometry doesn't grab the current selected geometry
  * history save bug with newline prefix
 d* log window needs a threshold LogBatchLines = 5?
@@ -815,7 +804,7 @@ D*   if it ends in / select dirs only??
  * small output size not set at start if not visible
  * job manager column view width issues
  *   fix with corner reset button
- ?   use header double click to resize
+ o   use header double click to resize
  * tableviewer: number blank cols too
  * resize history to fit window at start (scroll bar bug, only when tiny)
  *   make sure tableview is resized to fit
@@ -873,7 +862,10 @@ D*   if it ends in / select dirs only??
  * button dock: sanitize names: remove slash
  * Closing main window with stuff running is now handled gracefully
  * showsize is called too often, covering up other messages
+ * fix regex bugs
+ *   qtail untested in qt 5.12 (should disable regex)
 
+----E
 ## ispell put these here
 LocalWords:  settingsDialog tableview smalldup fileDialog smalloutput
 LocalWords:  splitlines Qsettings autocheck historyView jobTableVew
