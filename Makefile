@@ -23,6 +23,7 @@ TAGS: $(SRCFILES)
 
 
 # How much of brainstormed features are implemented? (this is a bit silly)
+# key is in the top of documentation/nocli-ideas.txt
 featureprogress:
 	sed -n -e '/^----/,/^----/{ /^ *$$/d; /^.-/d; p}' documentation/noacli-ideas.txt  | cut -c 2|sort|uniq -c | awk '{p[$$2]=$$1; x+=$$1} END { for (i in p) { printf "%3d %4.1f %s\n",p[i],p[i]/x*100,i}; print x}'
 

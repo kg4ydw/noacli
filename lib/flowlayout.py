@@ -120,10 +120,10 @@ class FlowLayout(QLayout):
         while items:
             style = item.widget().style()
             layout_spacing_x = style.layoutSpacing(
-                QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Horizontal
+                QSizePolicy.ToolButton, QSizePolicy.ToolButton, Qt.Horizontal
             )
             layout_spacing_y = style.layoutSpacing(
-                QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Vertical
+                QSizePolicy.ToolButton, QSizePolicy.ToolButton, Qt.Vertical
             )
             space_x = spacing + layout_spacing_x
             space_y = spacing + layout_spacing_y
@@ -174,10 +174,10 @@ class FlowLayout(QLayout):
         for item in self._item_list:
             style = item.widget().style()
             layout_spacing_x = style.layoutSpacing(
-                QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Horizontal
+                QSizePolicy.ToolButton, QSizePolicy.ToolButton, Qt.Horizontal
             )
             layout_spacing_y = style.layoutSpacing(
-                QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Vertical
+                QSizePolicy.ToolButton, QSizePolicy.ToolButton, Qt.Vertical
             )
             space_x = spacing + layout_spacing_x
             space_y = spacing + layout_spacing_y
