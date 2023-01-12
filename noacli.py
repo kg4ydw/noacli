@@ -1165,8 +1165,7 @@ class noacli(QtWidgets.QMainWindow):
                     self.settings.jobs.ignoreJobsOnExit()
                     # move along and close
                     self.dontCloseYet = False
-                else:
-                    print(result)
+                #else: print(result)
         # really closing this time
         self.actionSaveHistory()
         self.settings.favorites.saveSettings()

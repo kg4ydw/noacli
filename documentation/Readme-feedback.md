@@ -50,22 +50,17 @@ extended key binding editor for internal functions as well?
 
 # QTail search
 
-I've added simple search and filtering to qtail and the table
-viewer. Should I extend this to a full traditional fancy search/find
-dialog? This was on my original todo list, but I haven't felt a need
-for it.  Adding reverse search at least might be good.
-
-Also, it would be easy to add a side dock listing all the found occurrences
+It would be easy to add a side dock listing all the found occurrences
 so far.  I already keep a list of them.  I'd just need to flesh out a full
 QAbstractViewModel and add gui pieces.
 
-Currently, search is incremental only.  Traditional search functions
-seem to search the whole document up front for you.  If I did that,
-I'd at least want to put it on a timer and reset the timer if you're
-still typing your full search term.
+Reverse search is currently not implemented.  How much is this missed, or
+is it enough to be able to scroll back and see the highlight?  Would the
+list of finds (above) also replace reverse search?
 
-Similarly, the tableviewer filter function could use options, like
-literal vs. regex filtering, and case sensitivity.
+Currently, search is incremental only.  Traditional search functions
+seem to search the whole document up front for you.  This could be added
+on a timer.
 
 # Installer?  Pypi?
 
@@ -79,9 +74,11 @@ have a dock of variables and regex rules, and when a regex rule matched
 an output (or a typed command??), it would fill in a variable value.
 
 Then you could include in your commands (especially ones from favorites)
-things like {varname} or {{varname}} or something.  This would allow
-capturing of things like slurm job numbers, process ID's, hostnames, etc.,
-and using them in future commands without needing to do copy/paste.
+things like {varname} or {{varname}} or {varname[0]} or {varname[-1]}
+or {tablename[col][row]} or {tablename[col].avg} or{tablename[col].rand}
+or something.  This would allow capturing of things like slurm job
+numbers, process ID's, hostnames, etc., and using them in future
+commands without needing to do copy/paste.
 
 Or you could just use copy/paste and the existing single parameter
 template fill-in.
@@ -178,7 +175,7 @@ not worth expanding on here:
 * Sort tableview by number instead of string (convert type, add sort proxy)
 * Multi-line editors for commands and stuff in various tables (context menu?) 
 * Fancy environment variable editor (similar to above but domain specific)
-* Table line spacing tweaks in all tables including tableviewer
+* Table line spacing tweaks in all tables including tables in docks
 * Manual Button dock arrangement (implement drag in FlowLayout)
 * More button actions (middle and right click?)
 * More options for fonts?  Save fonts in qtail?

@@ -317,72 +317,19 @@ class TableViewer(QtWidgets.QMainWindow):
         return args.filename
         
     def simpleargs(self, args):
-        # Process simple "command line" arguments from noacli internal parsing
-        # only single word options supported, so --option=value must be used
-        # ignore --file and --files (processed by caller)
-        # -sN --skip N lines 
-        # --csv --delimiter(s)
-        #XX --regex (delimiter or split pattern? depends on if groups?)
-        # --fixed
-        # -g --gap=2
-        # --cols --columns=n[,n]*
-        # --header=word[,word]*
-        # --noheader
-        ## options implemented elsewhere
-        # --nopick --filtercol= --filter=
-        ## XX short options (intentionally?) not documented
-        # undocumented sloppy options here too
-        self.argdict = {}  # save in case anything else wants to look
-        optpattern = re.compile('^--([^=]+)=(.*)$')
-        optpattern2 = re.compile('^-(\w)(.*)$')
-        for arg in args:
-            # XX refactor arg parsing to parent??
-            m = optpattern.match(arg)
-            if not m:  # try short version
-                m = optpattern2.match(arg)
-            if m:
-                key = m.group(1)
-                value=m.group(2)
-                self.argdict[key] = value
-            elif arg.startswith('--'):
-                key =  arg[2:]
-                self.argdict[key] = True
-                value = True
-                # XX handle --no
-            else:
-                key = value = None
-            if key in ('skip', 's'):
-                try:
-                    self.skiplines = int(value)
-                except:
-                    pass # XX arg parse error
-            elif key in ('delimiters', 'delimiter'):
-                self.delimiters = value
-            elif key in ('gap','g'):
-                try:
-                    self.fixedoptions['gap'] = int(value)
-                except:
-                    pass # XX arg parse error
-            elif key in ('columns', 'cols'):
-                try:
-                    self.fixedoptions['columns'] = [ int(x) for x in value.split(',') ]
-                except:
-                    pass # XX arg parse error
-            elif arg.startswith('--headers='):
-                self.headers = arg[10:].split(',')
-            elif key in ('noheader','nohead', 'nh'):
-                self.useheader = False
-            elif arg.startswith('--fixed'):
-                self.forcefixed = True
-            elif arg.startswith('--mask'):
-                try:
-                    m = int(arg[7:])
-                except:
-                    m=0
-                self.argdict['mask'] = m
-            #else: ignore anything else without error XXX
-        #print('args='+' '.join(self.argdict.keys())) # DEBUG
-        return None
+        msg = None
+        try:
+            self.argparse(args)
+        except argparse.ArgumentError as e:
+            #print(repr(e)) # DEBUG
+            msg = format("--{}: {}".format(e.args[0].dest, e.args[1]))
+        except Exception as e:
+            msg = str(e)
+        finally:
+            if msg:
+                self.errmsg = msg # XX nobody uses this yet
+                print('except: '+msg) # EXCEPT
+                return (msg, -1)
 
     def start(self):
         # apply settings after UI is set up
@@ -632,7 +579,14 @@ class TableViewer(QtWidgets.QMainWindow):
                 cols.append(i)
             last = mask[i]
         #print(",".join([str(x) for x in cols])) # DEBUG
-        self.fixedoptions['columns'] = cols
+        if cols and 'columns' in self.fixedoptions and len(self.fixedoptions['columns'])>0:
+            # merge
+            cols = set(cols) | set(self.fixedoptions['columns'])
+            # remove negative cols
+            rm =[j for i in cols  if i<0 for j in (-i,i)]
+            self.fixedoptions['columns'] = sorted(cols-set(rm))
+        elif cols:
+            self.fixedoptions['columns'] = cols
         if cols:
             self.forcefixed = True
         else:

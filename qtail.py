@@ -206,7 +206,7 @@ class QtTail(QtWidgets.QMainWindow):
             # hide functionality broken in Qt 5.12 XX (delete this later)
             v = QtCore. QT_VERSION_STR.split('.')
             if v[0]=='5' and int(v[1])<13:
-                print("Disabling regex, sorry.")
+                print("Disabling regex, sorry.")  # EXCEPT
                 self.ui.actionUseRegEx.setChecked(False)
                 self.ui.actionUseRegEx.setVisible(False)
                 self.ui.actionUnicode.setVisible(False)

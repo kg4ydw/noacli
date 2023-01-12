@@ -7,7 +7,7 @@ o  partial implementation
 *  done
 !  next
 E  buggy
-x  not supported in Qt (might still be possible)
+x  not supported in Qt (or I haven't figured it out) (might still be possible)
 n  decided to not implement this
 D  documented feature (in Readme.md)
 d  documented internally (doc settings doc)
@@ -27,7 +27,6 @@ o  should the window auto-resize threshold be a setting
      when history items are copied from the docs
 ----ST
  -Things to implement soon:
- ! mac button spacing in flowlayout is stupid
  ! history could resize vertically on popout?
    window title: do a better job of eliding long commands
    qtail: implement --command for external use
@@ -86,7 +85,7 @@ o  should the window auto-resize threshold be a setting
  ? QPersistentModelIndex contamination, trace and check types (marked)
 
  -Misc things to implement
-   set some keybindings on all windows?
+ x set some keybindings on all windows?
    make tableviewer / qtail as dock widgets
      dock vs. mainwindow mode
      new dockable mainwindow
@@ -864,6 +863,10 @@ D*   if it ends in / select dirs only??
  * showsize is called too often, covering up other messages
  * fix regex bugs
  *   qtail untested in qt 5.12 (should disable regex)
+ * mac button spacing in flowlayout was stupid (used PushButton spacing instead of ToolButton)
+ * tableviewer
+ *   --mask and --cols didn't mix: merge and sort
+ *   finish refactoring tableviewer option parser
 
 ----E
 ## ispell put these here
