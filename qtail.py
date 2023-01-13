@@ -134,6 +134,7 @@ class QtTail(QtWidgets.QMainWindow):
     def __init__(self, options=None, parent=None):
         super().__init__()
         self.runcount = 0
+        self.findcount = 0
         self.timestart = time.monotonic() # in case we miss the real start
         self.runtime = None
         self.disableAdjustSize = False
@@ -371,8 +372,8 @@ class QtTail(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(str)
     def simpleFindNew(self, text):
         delay = typedQSettings().value('QTailDelaySearch', 200)
+        self.findcount = 0
         if not delay:
-            self.findcount = 0
             self.simpleFind(text)
         else:
             left = self.findTimer.remainingTime()
@@ -381,7 +382,6 @@ class QtTail(QtWidgets.QMainWindow):
 
     def simpleFindNewTimer(self):
         text = self.ui.searchTerm.text()
-        self.findcount = 0
         self.simpleFind(text)
 
     @QtCore.pyqtSlot()
