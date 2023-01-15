@@ -1,3 +1,7 @@
+
+__license__   = 'GPL v3'
+__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+
 from PyQt5.QtCore import QRegularExpression as QRE
 
 def buildSearch(text, ui):

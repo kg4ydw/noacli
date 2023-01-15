@@ -590,8 +590,8 @@ class TableViewer(QtWidgets.QMainWindow):
         if cols:
             self.forcefixed = True
         else:
-            print("Mask failed")
-            print(cols)
+            print("Mask failed") # EXCEPT
+            print(cols) # EXCEPT
 
     def openfd(self, csvfile):
         DEBUG = typedQSettings().value('DEBUG',False)

@@ -425,7 +425,7 @@ Do     find next
  *       regex / glob / plain ?
  *       ignore case
  x       mark scrollbar with finds (set color for multiple finds?)
-         save search & color as preset
+ *       save search & color as preset
  x       trigger sets of presets based on command name
  x       run command on current selection?
      text body context menu

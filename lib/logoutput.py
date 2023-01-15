@@ -1,6 +1,6 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
 
 # Receiver for output from multiple processes
 # Manage the output and the processes generating it.

@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.5'
+__version__ = '1.6'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -1165,7 +1165,7 @@ class noacli(QtWidgets.QMainWindow):
                     self.settings.jobs.ignoreJobsOnExit()
                     # move along and close
                     self.dontCloseYet = False
-                #else: print(result)
+                #else: print(result) # EXCEPT DEBUG
         # really closing this time
         self.actionSaveHistory()
         self.settings.favorites.saveSettings()
