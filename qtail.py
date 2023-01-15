@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
 
 # qtail: think of this as a graphical version of less
 #
@@ -27,6 +27,7 @@ from PyQt5.Qt import Qt, pyqtSignal
 from lib.qtail_ui import Ui_QtTail
 from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
+from lib.searchdock import searchDock
 
 typedQSettings().registerOptions({
     'QTailDelaySearch':[250, 'delay (mSec) while typing before a search is triggered', int],
@@ -140,6 +141,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.disableAdjustSize = False
         self.eof = 0 # hack
         self.buttonCon = None
+        self.highlightDock = None
         dir = os.path.dirname(os.path.realpath(__file__))
         icon = QtGui.QIcon(os.path.join(dir,'icons', 'qtail.png'))
         if icon.isNull() or len(icon.availableSizes())<1: # try again
@@ -313,10 +315,8 @@ class QtTail(QtWidgets.QMainWindow):
     def clearFinds(self):
         self.textbody.setExtraSelections([])
         
-    @QtCore.pyqtSlot(str)
-    def simpleFind(self, text):
+    def saveHighlight(self, user=True):
         start = self.textbody.textCursor()
-        # remember previous find
         if start.hasSelection():
             ess = self.textbody.extraSelections()
             e=None
@@ -331,6 +331,14 @@ class QtTail(QtWidgets.QMainWindow):
                 es.cursor = start
                 ess.append(es)
                 self.textbody.setExtraSelections(ess)
+            if user and self.highlightDock:
+                self.highlightDock.addSel(start)
+        
+    @QtCore.pyqtSlot(str)
+    def simpleFind(self, text):
+        start = self.textbody.textCursor()
+        # remember previous find
+        self.saveHighlight(False)
         searchterm = buildSearch(text, self.ui)
         findflags = QTextDocument.FindFlags()
         if not self.ui.actionCaseInsensitive.isChecked():
@@ -368,6 +376,7 @@ class QtTail(QtWidgets.QMainWindow):
             else:
                 self.textbody.setTextCursor(start)
                 self.statusBar().showMessage('Not found')
+
 
     @QtCore.pyqtSlot(str)
     def simpleFindNew(self, text):
@@ -760,6 +769,82 @@ class QtTail(QtWidgets.QMainWindow):
         #print(' newsize='+str(width)+','+str(height)) # DEBUG
         self.resize(ceil(width), ceil(height))
 
+    def mergeSelections(self, selections):
+        es = sorted(self.textbody.extraSelections(), key=lambda x: x.cursor.position())
+        sel = sorted(selections, key=lambda x: x.cursor.position())
+        newsel = []
+        while es and sel:
+            ep = es[0].cursor.position()
+            sp = sel[0].cursor.position()
+            if ep<sp:
+                newsel.append(es.pop(0))
+            else:
+                newsel.append(sel.pop(0))
+            if ep==sp: # discard identical
+                es.pop(0)
+        if es:
+            newsel += es
+        if sel:
+            newsel += sel
+        self.textbody.setExtraSelections(newsel)
+            
+    def removeSelections(self, selections):
+        es = self.textbody.extraSelections()
+        for s in selections:
+            try:
+                i = next(i for i,v in enumerate(es) if v.cursor==s.cursor)
+                es.pop(i)
+            except StopIteration:
+                pass
+        self.textbody.setExtraSelections(es)
+            
+
+    def searchDock(self, title, selections):
+        if not selections: return # don't make empty dock
+        dock = searchDock(self)
+        dock.setWindowTitle(title)
+        dock.setSel(selections)
+        ## dock.showSel.connect(self.textbody.setExtraSelections) # XXX merge instead?
+        dock.showSel.connect(self.mergeSelections)
+        dock.hideSel.connect(self.removeSelections)
+        dock.gotoSel.connect(self.textbody.setTextCursor) # XX maek visible instead?
+        self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), title), -1)
+        return dock
+        
+    def extraSelectionsToDock(self):
+        if not self.highlightDock:
+            self.highlightDock = self.searchDock("Highlights", self.textbody.extraSelections())
+        else:
+            self.highlightDock.show()
+            selections =self.textbody.extraSelections()
+            self.highlightDock.setSel(selections)
+            self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), 'Highlights'), -1)
+        
+    def findAll(self):
+        # XXX call Qt queue processing if this takes too long?
+        text = self.ui.searchTerm.text()
+        if not text: return
+        searchterm = buildSearch(text, self.ui)
+        if not searchterm: return
+        findflags = QTextDocument.FindFlags()
+        if not self.ui.actionCaseInsensitive.isChecked():
+            findflags |= QTextDocument.FindCaseSensitively
+        if self.ui.actionWholeWords.isChecked():
+            findflags |= QTextDocument.FindWholeWords
+
+        finds = []
+        c = self.textbody.textCursor()
+        c.movePosition(QtGui.QTextCursor.Start)
+        doc = self.textbody.document() # use this instead of QTextEdit.find()
+        c = doc.find(searchterm, c, findflags)
+        while c and c.position()>=0:
+            es = QTextEdit.ExtraSelection()
+            es.cursor = c
+            finds.append(es)
+            c = doc.find(searchterm, c, findflags)
+        if finds:
+            self.searchDock(text, finds)
+ 
 ##### end QtTail end
         
 if __name__ == '__main__':

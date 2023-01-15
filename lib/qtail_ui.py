@@ -109,13 +109,20 @@ class Ui_QtTail(object):
         self.actionWholeWords = QtWidgets.QAction(QtTail)
         self.actionWholeWords.setCheckable(True)
         self.actionWholeWords.setObjectName("actionWholeWords")
+        self.actionSaveExtra = QtWidgets.QAction(QtTail)
+        self.actionSaveExtra.setObjectName("actionSaveExtra")
+        self.actionSetExtra = QtWidgets.QAction(QtTail)
+        self.actionSetExtra.setObjectName("actionSetExtra")
+        self.actionListHighlights = QtWidgets.QAction(QtTail)
+        self.actionListHighlights.setObjectName("actionListHighlights")
+        self.actionFind_all = QtWidgets.QAction(QtTail)
+        self.actionFind_all.setObjectName("actionFind_all")
         self.menuView.addAction(self.actionShowToolbar)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionAdjust)
         self.menuView.addAction(self.actionCount_lines)
         self.menuView.addAction(self.actionWrap_lines)
         self.menuView.addSeparator()
-        self.menuView.addAction(self.actionClearFinds)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionFont)
         self.menuMode.addAction(self.actionWatch)
@@ -125,6 +132,9 @@ class Ui_QtTail(object):
         self.menuSearch.addAction(self.actionCaseInsensitive)
         self.menuSearch.addAction(self.actionUnicode)
         self.menuSearch.addAction(self.actionWholeWords)
+        self.menuSearch.addAction(self.actionClearFinds)
+        self.menuSearch.addAction(self.actionListHighlights)
+        self.menuSearch.addAction(self.actionFind_all)
         self.menubar.addAction(self.menuView.menuAction())
         self.menubar.addAction(self.menuMode.menuAction())
         self.menubar.addAction(self.menuSearch.menuAction())
@@ -132,18 +142,20 @@ class Ui_QtTail(object):
         self.retranslateUi(QtTail)
         self.actionAdjust.triggered.connect(QtTail.actionAdjust) # type: ignore
         self.actionCount_lines.triggered.connect(QtTail.showsize) # type: ignore
-        self.actionCount_lines.triggered.connect(QtTail.showsize) # type: ignore
         self.actionWrap_lines.triggered['bool'].connect(QtTail.wrapChanged) # type: ignore
         self.actionFont.triggered.connect(self.textBrowser.pickFont) # type: ignore
         self.actionAutorefresh.triggered.connect(QtTail.actionAutoRefresh) # type: ignore
         self.actionWatch.triggered.connect(QtTail.setButtonMode) # type: ignore
         self.actionClearFinds.triggered.connect(QtTail.clearFinds) # type: ignore
-        self.actionShowToolbar.toggled['bool'].connect(self.toolBar_2.setVisible) # type: ignore
         self.actionShowToolbar.triggered['bool'].connect(self.statusbar.setVisible) # type: ignore
         self.searchTerm.textChanged['QString'].connect(QtTail.simpleFindNew) # type: ignore
         self.searchTerm.returnPressed.connect(QtTail.simpleFind2) # type: ignore
         self.followCheck.toggled['bool'].connect(self.textBrowser.jumpToEndMaybe) # type: ignore
         self.actionReload.triggered.connect(QtTail.reloadOrRerun) # type: ignore
+        self.actionListHighlights.triggered.connect(QtTail.extraSelectionsToDock) # type: ignore
+        self.actionFind_all.triggered.connect(QtTail.findAll) # type: ignore
+        self.textBrowser.saveHighlight.connect(QtTail.saveHighlight) # type: ignore
+        self.textBrowser.clearHighlights.connect(QtTail.clearFinds) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
@@ -165,11 +177,15 @@ class Ui_QtTail(object):
         self.actionFontMono.setText(_translate("QtTail", "Pick monospace font"))
         self.actionFontMono_2.setText(_translate("QtTail", "Pick monospaced font"))
         self.actionClear_selections.setText(_translate("QtTail", "Clear finds"))
-        self.actionClearFinds.setText(_translate("QtTail", "Clear finds"))
+        self.actionClearFinds.setText(_translate("QtTail", "Clear highlights"))
         self.actionShowToolbar.setText(_translate("QtTail", "Show toolbar"))
         self.actionReload.setText(_translate("QtTail", "Refresh now"))
         self.actionUseRegEx.setText(_translate("QtTail", "Use RegEx"))
         self.actionCaseInsensitive.setText(_translate("QtTail", "Case insensitive"))
         self.actionUnicode.setText(_translate("QtTail", "Unicode"))
         self.actionWholeWords.setText(_translate("QtTail", "Whole words"))
+        self.actionSaveExtra.setText(_translate("QtTail", "SaveExtra"))
+        self.actionSetExtra.setText(_translate("QtTail", "List current highlights"))
+        self.actionListHighlights.setText(_translate("QtTail", "List current highlights"))
+        self.actionFind_all.setText(_translate("QtTail", "Find all"))
 from lib.qtailbrowser import myBrowser

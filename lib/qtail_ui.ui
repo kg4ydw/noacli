@@ -107,7 +107,6 @@
     <addaction name="actionCount_lines"/>
     <addaction name="actionWrap_lines"/>
     <addaction name="separator"/>
-    <addaction name="actionClearFinds"/>
     <addaction name="separator"/>
     <addaction name="actionFont"/>
    </widget>
@@ -127,6 +126,9 @@
     <addaction name="actionCaseInsensitive"/>
     <addaction name="actionUnicode"/>
     <addaction name="actionWholeWords"/>
+    <addaction name="actionClearFinds"/>
+    <addaction name="actionListHighlights"/>
+    <addaction name="actionFind_all"/>
    </widget>
    <addaction name="menuView"/>
    <addaction name="menuMode"/>
@@ -195,7 +197,7 @@
   </action>
   <action name="actionClearFinds">
    <property name="text">
-    <string>Clear finds</string>
+    <string>Clear highlights</string>
    </property>
   </action>
   <action name="actionShowToolbar">
@@ -252,6 +254,26 @@
     <string>Whole words</string>
    </property>
   </action>
+  <action name="actionSaveExtra">
+   <property name="text">
+    <string>SaveExtra</string>
+   </property>
+  </action>
+  <action name="actionSetExtra">
+   <property name="text">
+    <string>List current highlights</string>
+   </property>
+  </action>
+  <action name="actionListHighlights">
+   <property name="text">
+    <string>List current highlights</string>
+   </property>
+  </action>
+  <action name="actionFind_all">
+   <property name="text">
+    <string>Find all</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -259,6 +281,8 @@
    <extends>QTextBrowser</extends>
    <header>lib/qtailbrowser</header>
    <slots>
+    <signal>saveHighlight()</signal>
+    <signal>clearHighlights()</signal>
     <slot>jumpToEndMaybe(bool)</slot>
     <slot>pickFont()</slot>
     <slot>pickFontMono()</slot>
@@ -272,22 +296,6 @@
    <signal>triggered()</signal>
    <receiver>QtTail</receiver>
    <slot>actionAdjust()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>359</x>
-     <y>253</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionCount_lines</sender>
-   <signal>triggered()</signal>
-   <receiver>QtTail</receiver>
-   <slot>showsize()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
@@ -397,22 +405,6 @@
   </connection>
   <connection>
    <sender>actionShowToolbar</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>toolBar_2</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>359</x>
-     <y>36</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionShowToolbar</sender>
    <signal>triggered(bool)</signal>
    <receiver>statusbar</receiver>
    <slot>setVisible(bool)</slot>
@@ -491,6 +483,70 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionListHighlights</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>extraSelectionsToDock()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionFind_all</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>findAll()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>textBrowser</sender>
+   <signal>saveHighlight()</signal>
+   <receiver>QtTail</receiver>
+   <slot>saveHighlight()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>78</x>
+     <y>147</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>3</x>
+     <y>127</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>textBrowser</sender>
+   <signal>clearHighlights()</signal>
+   <receiver>QtTail</receiver>
+   <slot>clearFinds()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>51</x>
+     <y>189</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>4</x>
+     <y>189</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>simpleFind(QString)</slot>
@@ -506,5 +562,8 @@
   <slot>actionAutoRefresh()</slot>
   <slot>clearFinds()</slot>
   <slot>reloadOrRerun()</slot>
+  <slot>extraSelectionsToDock()</slot>
+  <slot>findAll()</slot>
+  <slot>saveHighlight()</slot>
  </slots>
 </ui>

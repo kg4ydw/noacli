@@ -507,6 +507,32 @@ Do   (feature) name completion
  -   break caller continue declare typeset echo enable eval getopts
  -   let local mapfile printf read readarray return shift test trap
 
+ o bookmarks and highlights
+ ?   replace table with styled delegate to merge line
+ *   select text and hit return to highlight something
+ *   also context menu entry to highlight
+ *   all following actions from context menu or search menu?
+ *     save highlights as bookmarks --> create bookmark dock
+ *     find all --> create search dock
+     set context size (words? chars?)
+     collect docks: tabify all and move to left
+ *   colors
+ *     QBrush(QColor(name))
+ *     colorNames()
+       too many colors: short list specific to light/dark mode
+ *   Actions:
+ *     save bookmark
+ *     find all
+ *     list current highlights
+ *       add current selection to current highlights dock
+     dock actions
+       delete all bookmarks
+ *     show all
+ *     hide all
+ *     close search (delete)
+       (debug) check if valid
+ *     set color
+
 
    folded sections
      fold selected region

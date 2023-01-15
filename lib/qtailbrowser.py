@@ -7,11 +7,16 @@ __copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
 import re
 from functools import partial
 
+from PyQt5.Qt import pyqtSignal
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QTextBrowser, QFontDialog
 from PyQt5.QtGui import QTextCursor
 
 class myBrowser(QTextBrowser):
+    # context menu actions
+    saveHighlight = pyqtSignal()
+    clearHighlights = pyqtSignal()
+    
     def __init__(self, parent):
         super().__init__(parent)
     
@@ -19,8 +24,10 @@ class myBrowser(QTextBrowser):
         m=super().createStandardContextMenu(event.pos())
         if self.textCursor().hasSelection():
             m.addAction("Convert selection to table", self.selToTable)
+            m.addAction("Save selection as highlight", self.saveHighlight.emit)
         else:
             m.addAction("Convert to table",self.allToTable)
+        m.addAction("Clear highlights", self.clearHighlights.emit)
         m.exec(event.globalPos())
 
     def selToTable(self):
