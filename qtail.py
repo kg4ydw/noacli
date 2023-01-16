@@ -206,7 +206,7 @@ class QtTail(QtWidgets.QMainWindow):
         if secondary:
             m.addAction(secondary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, secondary))
         try:
-            # hide functionality broken in Qt 5.12 XX (delete this later)
+            # XXRemove hide functionality broken in Qt 5.12 (delete this later)
             v = QtCore. QT_VERSION_STR.split('.')
             if v[0]=='5' and int(v[1])<13:
                 print("Disabling regex, sorry.")  # EXCEPT

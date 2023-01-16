@@ -11,7 +11,7 @@ including common trivial data visualization stuff.
 This readme is not comprehensive, but it hits the major points.
 There's more stuff discoverable in the shell.
 
-# Dependencies
+## Dependencies
 
 This uses Python and Qt, which are dependencies.  To install these:
 
@@ -533,6 +533,12 @@ it to the command edit window. (A partially edited command is saved to
 history so it isn't lost.)
 
 Many items have a context menu (right click) with additional actions.
+
+If you close the main window, noacli will offer to also close other
+windows opened in the session and kill any processes that were
+started.  You can choose to ignore these left overs, but then noacli
+can't exit until all of them exit on their own and will hang around
+(without its own window) until then.
 
 ## Using ssh as a wrapper
 

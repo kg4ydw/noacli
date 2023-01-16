@@ -8,10 +8,11 @@ the upgrade and only the imports will need to be adjusted.  The following
 is a list of changes to make this true.
 
 
-== Done ==
+# Done
+
 Deprecated exec_ --> exec
 
-== Not done ==
+# Not done
 
 Note that for class moves, most places in the code will just need the
 import adjusted, but designer is notorious for fully qualifying every
@@ -21,8 +22,12 @@ QtWidgets.QAction -> QtGui.Qaction
 
 (hmm, that list was shorter than expected.)
 
-== Code to remove ==
-The following code was added for compatibility with Python 3.8 (Ubuntu 20.04)
-and can be deleted some time in the future:
+# Code to remove
 
-noacli.pickfile code for lack of removeprefix (search for python 3.8)
+look for tag XXRemove
+
+Python 3.8 (Ubuntu 20.04)
+* noacli.pickfile code for lack of removeprefix
+
+Qt 5.12 compatibility: 
+* qtail.py QtTail.__init__ disable regex missing from QTextEdit

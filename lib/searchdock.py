@@ -58,7 +58,8 @@ class selList(itemListModel):
     def setSel(self, extraSelections):
         self.removeRows(0, len(self.data),None) # XX always purge?
         for sel in extraSelections:
-            self.appendItem(selItem(sel.cursor))
+            if sel.cursor.hasSelection(): # skip stale highlights
+                self.appendItem(selItem(sel.cursor))
 
     def headerData(self, col, orientation, role):
         if role==Qt.DisplayRole and orientation==Qt.Vertical and col<len(self.data):

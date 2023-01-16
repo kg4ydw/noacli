@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
 
 # The No Ampersand CLI shell
 #
@@ -737,7 +737,7 @@ class noacli(QtWidgets.QMainWindow):
                     else:
                         c.insertText(' ') # if prefix doesn't match, add space
             else:
-                ## python 3.8 and earlier XX delete this some day
+                ## python 3.8 and earlier XXRemove this some day
                 fsn = []
                 for i in fs:
                     if i.startswith(cwd):

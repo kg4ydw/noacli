@@ -50,17 +50,9 @@ extended key binding editor for internal functions as well?
 
 # QTail search
 
-It would be easy to add a side dock listing all the found occurrences
-so far.  I already keep a list of them.  I'd just need to flesh out a full
-QAbstractViewModel and add gui pieces.
-
 Reverse search is currently not implemented.  How much is this missed, or
-is it enough to be able to scroll back and see the highlight?  Would the
-list of finds (above) also replace reverse search?
-
-Currently, search is incremental only.  Traditional search functions
-seem to search the whole document up front for you.  This could be added
-on a timer.
+is it enough to be able to scroll back and see the highlight?  Does the
+'find all' functionality replace reverse search?
 
 # Installer?  Pypi?
 
@@ -101,6 +93,20 @@ There are other ideas for this to encourage exploration of random man
 pages, like keeping a database of visited pages, suggesting an
 unviewed page a day to read, etc.
 
+# Resource limits, Process monitor, System monitor
+
+The original design included some of the following...
+
+A dialog box to edit ulimits...
+
+Implementation of the 'times' command from shells; supported by python.
+
+Grapical widgets to monitor process progress and/or resource consumption...
+This turns out to not be supported by Qt or python, so the code to do
+this would be highly unportable.  Also, if we add this, we could start
+adding system monitors too, and eventually reimplement {,h,b,a}top in Qt
+which is a project that is probably overdue to happen anyway...
+
 # Other output formatters and visualizers
 
 I had originally envisioned adding more formatters / viewers like
@@ -118,11 +124,6 @@ It might also be nice to have a visualizer for cpu and resource use
 for running jobs.  But this is highly non-portable and Qt doesn't even
 support proper collection of cpu usage stats from wait4, which is
 mostly portable.  (Maybe time to rewrite QProcess to be more pythonic?)
-
-Even if it only works in linux and bypasses QProcess to get the info, a
-process monitor could be added if monitoring long running jobs would
-be useful.  (Maybe a process monitor would also make a good stand
-alone tool too?  Does top need to be replaced (again)?)
 
 # Remote stub
 
@@ -165,7 +166,6 @@ probably require rewriting QProcess, but that could fix other issues too.)
 noacli is untested in Windows, but there's not really a reason why it couldn't work.
 There are a number of unportable things (like default wrappers) that might need
 adjustment, and windows integrated ssh is missing features (like multiplexing?).
-
 
 # Other misc.
 

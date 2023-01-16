@@ -72,9 +72,10 @@ o  should the window auto-resize threshold be a setting
  -  running long commands with log
 
  -high priority bugs
+   --filter= doesn't support regex
    mac bugs
      history arrows don't work on mac
-     icons and app name don't work on mac (wrong geom?)
+     icons and app name don't work on mac
  ? fileDialog doesn't always trim prefix correctly
      doesn't work consistently if no prefix directory (./ doesn't work either)
  o   leaves junk before filename if prefix doesn't match
@@ -93,7 +94,7 @@ o  should the window auto-resize threshold be a setting
    should watch windows suspend activity when not visible?
  x?   Qt visibility event??
       checkbox in menu
-x      cli option to set default
+      cli option to set default
       general setting?
  *    measure runtime and set duty cycle
    SETTING auto pause qtail on maxlines threshold
@@ -154,6 +155,7 @@ DE    should warn on duplicate names? (color?)
      preconnect pty for this purpose?
 
  -Bugs:
+ ! refactor flowlayout to separate Qt code and noacli code (inherit)
  o file dialog is modal and can get lost
  *   set always on top? (partial fix)
    reported lockup on mac when playing with menu bar menus / job manager?
@@ -532,6 +534,8 @@ Do   (feature) name completion
  *     close search (delete)
        (debug) check if valid
  *     set color
+       add color indicator to dock somewhere
+       add refresh button to search dock?
 
 
    folded sections
@@ -604,25 +608,6 @@ D*       term -> "xterm -e" or "gnome-terminal --"
  o       $hostname -> ssh -n (-M -P 6h) $hostname
        regex match? (macro?)
 
-   regex matches
-     output and input separately scanned for regex matches
-     named grouped matches are saved to match variables
-     unnamed grouped matches saved to arrays (name array in rule)
-     optionally save multiple matches, one set per line,
-       history like array
-       reference with negative indexes?
-       limit max kept (option per rule)
-     match variables can substitute into command templates
-     relate match dictionary to jobinfo?
-     context menu items to use match dictionary
-       set title (or set automatically)
-       regex menu items that only show if dependencies met
-     trigger some regex rules for specific command matches
-
-     can a command template auto trigger on output match?
-        run or just insert into edit buffer?
-        small output window only?
-
    button box dock ideas
  *   resize to fit on pop out
  !   right click: dump in editor
@@ -647,6 +632,7 @@ D*       term -> "xterm -e" or "gnome-terminal --"
    regex match stuff
      scan input and output with a list of regex
      save named groups in a dictionary
+     unnamed grouped matches saved to arrays (name array in rule)
      use dictionary format() style for command templates
      possibly trigger rules
      rule actions:
@@ -893,6 +879,7 @@ D*   if it ends in / select dirs only??
  * tableviewer
  *   --mask and --cols didn't mix: merge and sort
  *   finish refactoring tableviewer option parser
+ * searchdock / saved highlights: delete or mark highlights that have scrolled off
 
 ----E
 ## ispell put these here

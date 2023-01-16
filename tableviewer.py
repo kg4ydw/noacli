@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
 
 # This could be a stand alone application but integreates into noacli
 # Think of this as a graphical version of less, but for tables.
@@ -272,7 +272,10 @@ class TableViewer(QtWidgets.QMainWindow):
         parser.add_argument('--filter', type=str, help='set initial filter string')
         parser.add_argument('--filtercol', type=str, help="Set initial filter column (1 based index or first matching column header)")
         parser.add_argument('--mask', help='Use mask algorithm to split fix width tables, looking for columns with only whitespace (or delimiters if specified)', required=False, type=int, const=0, nargs='?', metavar='nLines')
+        parser.add_argument('--debug', help="Print extra info to help mask column boundaries", action='store_true') 
         parser.add_argument('filename', nargs=argparse.REMAINDER)
+
+
         if args:  # called from noacli (eventually)
             # set up soft error handling XXX not tested yet
             msg = None
@@ -592,6 +595,19 @@ class TableViewer(QtWidgets.QMainWindow):
         else:
             print("Mask failed") # EXCEPT
             print(cols) # EXCEPT
+        if self.argparse.debug:
+            m10 = ceil(max(len(mask),len(line[0]))/10)
+            cols = self.fixedoptions['columns']
+            print("".join(str(x%10)+' '*9 for x in range(m10)))
+            print('0123456789'*min(m10,8))
+            print(lines[0])
+            print("".join( str(x)[0] for x in mask))
+            s = [' ']*(cols[-1]+1)
+            for x in cols:
+                s[x]='x'
+            print("".join(s))
+            print(','.join([str(x) for x in cols]))
+                  
 
     def openfd(self, csvfile):
         DEBUG = typedQSettings().value('DEBUG',False)
