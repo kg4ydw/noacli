@@ -8,28 +8,18 @@ The following features are displayed in noacli-big-screenshot.png:
   * automatic fixed width parsing of ls -C
 * qtail
   * search
+  * search: find all
+  * fancy hilights
+  * search docks
+  * ls with --nh ?
 * noacli
   * history with exit values
   * commands that generated all windows shown
   * potential cluster command
   * complex bash programming in editor
   * buttons
-
-The following features need to be added
-
-* tableviewer
-  * fixed width mask parsing with hints (for ss)
-  * filter by column contents
-* qtail
-  * search: find all
-  * fancy hilights
-  * search docks
-  * watch menu??
-  * ls with --nh ?
-  * syslog display?
-* noacli
   * extra button docks
-  * reconfigurable docks (images saved, not linked)
+  * reconfigurable docks
 
 Staged commands
 ```
@@ -42,3 +32,12 @@ cluster sacct -a -X -P
 table --file coax.csv
 table --mask -d:  --cols=73,-61 ss -l4p
 ```
+
+The following features didn't fit, maybe additional images?
+
+* tableviewer
+  * fixed width mask parsing with hints (for ss)
+  * filter by column contents
+* qtail
+  * watch menu??
+  * syslog display?

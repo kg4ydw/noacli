@@ -61,7 +61,9 @@ The main window is composed of docks that can be rearranged and hidden, and
 various configurations saved.  Here's some alternate configurations.
 
 ![Small](documentation/small-buttons.png "Small output and buttons")
-![Tiny](documentation/tiny.png "Tiny")
+
+[See more screenshots](documentation/screenshots.md)
+
 
 The buttons in the button dock in these screenshots are user configurable
 commands marked as favorites.

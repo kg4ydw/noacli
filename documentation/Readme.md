@@ -6,10 +6,10 @@ and Turing complete programming), but in a graphical interface.
 Noacli takes full advantage of having a GUI as much as possible,
 including common trivial data visualization stuff.
 
-![A busy screenshot](noacli-big-screenshot.png)
-
 This readme is not comprehensive, but it hits the major points.
 There's more stuff discoverable in the shell.
+
+[See screenshots](documentation/screenshots.md)
 
 ## Dependencies
 
@@ -183,6 +183,11 @@ following options:
     Forces --fixed; Read the whole table (or just nlines) up front and use a mask algorithm to split fixed width tables, looking for columns with only whitespace (or delimiters if specified, e.g. --delimiters=-=+: ) and merge in any extra columns with --columns= (negative values to remove column seperations)
 
 Like qtail, table also accepts the --file and --files options when used inside noacli.
+
+By default the search box in the column picker searches the entire
+table, but if you select a single column name from the list and press
+return in the search box, searches will be restricted to that column.
+Unselect all columns and press return to search the entire table again.
 
 ## small output
 The small output dock window will collect output from commands that
