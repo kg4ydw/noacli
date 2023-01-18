@@ -13,7 +13,11 @@ from PyQt5.QtWidgets import QDockWidget, QTextEdit, QMenu
 
 from lib.searchdock_ui import Ui_searchDock
 from lib.datamodels import itemListModel
-        
+
+from lib.colorpicker import ColorPicker
+
+colorpicker = ColorPicker()
+
 class selItem():
     def __init__(self, cursor, context=True):
         # save in case it goes out of context
@@ -54,6 +58,7 @@ class selItem():
 class selList(itemListModel):
     def __init__(self):
         super().__init__(['pre','item','post'])
+        self.color = None
 
     def setSel(self, extraSelections):
         self.removeRows(0, len(self.data),None) # XX always purge?
@@ -62,10 +67,16 @@ class selList(itemListModel):
                 self.appendItem(selItem(sel.cursor))
 
     def headerData(self, col, orientation, role):
+        if orientation==Qt.Horizontal and col==1 and role==Qt.BackgroundRole and self.color:
+            return self.color
         if role==Qt.DisplayRole and orientation==Qt.Vertical and col<len(self.data):
             return str(self.data[col].line+1)
         else:
             return super().headerData(col, orientation, role)
+
+    def setColor(self, c):
+        self.color = c
+        self.headerDataChanged.emit(Qt.Horizontal, 1, 1)
 
     def data(self, index, role):
         if role==Qt.TextAlignmentRole: # too bad can't set elide style too
@@ -86,7 +97,7 @@ class searchDock(QDockWidget):
     hideSel = pyqtSignal(list)
     gotoSel = pyqtSignal(QTextCursor)
     
-    def __init__(self, parent):
+    def __init__(self, parent, title=None, selections=None):
         super().__init__(parent)
         self.ui = Ui_searchDock()
         self.ui.setupUi(self)
@@ -94,10 +105,16 @@ class searchDock(QDockWidget):
 
         # XX (later) check parent for existing docks, and add this as a tab
         parent.addDockWidget(Qt.LeftDockWidgetArea, self)
-        
-        self.color = QtGui.QBrush(Qt.cyan) # XXX
+        global colorpicker
+        color = colorpicker.nextColor()
+        # self.color = QtGui.QBrush(Qt.cyan) # XXX
+        self.color = QtGui.QBrush(QColor(color))
         self.model = selList()
         self.ui.tableView.setModel(self.model)
+        if title:
+            self.setWindowTitle(title)
+        if selections: self.setSel(selections)
+        self.model.setColor(self.color)
 
         self.ui.showButton.clicked.connect(partial(self.emitExtraSelections, self.showSel))
         self.ui.hideButton.clicked.connect(partial(self.emitExtraSelections, self.hideSel))
@@ -127,15 +144,11 @@ class searchDock(QDockWidget):
 
     def setColor(self, color):
         self.color = QtGui.QBrush(QColor(color))
+        self.model.setColor(self.color)
         self.emitExtraSelections(self.showSel)
         
     def contextMenuEvent(self, event):
-        m = QMenu()
-        # XX make this a submenu instead?
-        # XX colorNames gives too many colors.
-        # Filter by dark/light mode? with a more option??
-        for c in QtGui.QColor.colorNames():
-            m.addAction(c, partial(self.setColor, c))
-        m.exec(event.globalPos())
-        
-    
+        global colorpicker
+        color = colorpicker.execColorMenu(event)
+        #print(color) # DEBUG 
+        if color: self.setColor(color)

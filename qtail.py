@@ -44,6 +44,7 @@ typedQSettings().registerOptions({
    #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
    #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
     'QTailWatchInterval': [30, "Default automatic refresh interval for qtail in watch mode", int],
+    'colorlist': [None, "Default list of colors to use for highlighting", str],
 })    
 
 class softArgumentParser(argparse.ArgumentParser):
@@ -801,10 +802,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def searchDock(self, title, selections):
         if not selections: return # don't make empty dock
-        dock = searchDock(self)
-        dock.setWindowTitle(title)
-        dock.setSel(selections)
-        ## dock.showSel.connect(self.textbody.setExtraSelections) # XXX merge instead?
+        dock = searchDock(self, title, selections)
         dock.showSel.connect(self.mergeSelections)
         dock.hideSel.connect(self.removeSelections)
         dock.gotoSel.connect(self.textbody.setTextCursor) # XX maek visible instead?

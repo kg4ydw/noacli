@@ -12,6 +12,7 @@ Features to note:
   the context for two of them, and the third is the live incremental
   search.  The dock colors are selected from the dock context menu.
 * There are two custom button docks.
+* The log output window has one line of new output that hasn't been seen yet.
 
 The main noacli window is reconfigurable, and the configurations can be
 named and saved:
