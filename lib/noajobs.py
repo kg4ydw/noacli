@@ -9,7 +9,7 @@ import os, time, math
 
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.Qt import Qt, QBrush
-from PyQt5.QtCore import QIODevice, QTimer, QModelIndex, QProcess
+from PyQt5.QtCore import QIODevice, QTimer, QModelIndex, QProcess, QPersistentModelIndex
 
 from lib.datamodels import itemListModel
 from qtail import QtTail
@@ -160,15 +160,20 @@ class jobItem():
 
     def setStatus(self, status,exitStatus=None):
         self.fullstatus = status
-        if self.index and self.index.model():
-            index = self.index.model().sibling(self.index.row(),1,QModelIndex())
-            self.index.model().dataChanged.emit(index,index)
-        if not self.history or not self.history.model(): # not a real job
-            pass
-        elif exitStatus!=None:
-            self.history.model().setStatus(self.history, exitStatus)
-        else:
-            self.history.model().setStatus(self.history, status)
+        # XXXXX PersistentModelIndex and QSortFilterProxyModel contamination
+        try:
+            if self.index and self.index.model():
+                index = self.index.model().sibling(self.index.row(),1,QModelIndex())
+                self.index.model().dataChanged.emit(index,index)
+            if not self.history or not self.history.model(): # not a real job
+                pass
+            elif exitStatus!=None:
+                self.history.model().setStatus(self.history, exitStatus)
+            else:
+                self.history.model().setStatus(self.history, status)
+        except:
+            pass # XXX broken 
+    
 
     # public interfaces
     def command(self):

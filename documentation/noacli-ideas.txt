@@ -28,6 +28,7 @@ o  should the window auto-resize threshold be a setting
 ----ST
  -Things to implement soon:
  ! history could resize vertically on popout?
+   all windows are sized poorly on low res screens
    window title: do a better job of eliding long commands
    qtail: implement --command for external use
    button dock: handle favorite rename?
@@ -83,7 +84,8 @@ o  should the window auto-resize threshold be a setting
    document environment editor a bit
       mode?
  *    "add" button in dialog
- ? QPersistentModelIndex contamination, trace and check types (marked)
+ ! QPersistentModelIndex contamination, trace and check types (marked)
+     also in noajobs.py
 
  -Misc things to implement
  x set some keybindings on all windows?
