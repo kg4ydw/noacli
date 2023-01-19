@@ -9,11 +9,11 @@ from functools import partial
 from PyQt5.Qt import Qt
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QDockWidget, QTextEdit, QMenu, QListWidgetItem, QDialog
-from PyQt5.QtGui import QPixmap, QIcon
-from PyQt5.QtCore import QSettings
+from PyQt5.QtWidgets import QDockWidget, QTextEdit, QMenu, QListWidgetItem, QDialog, QLabel
+from PyQt5.QtGui import QPixmap, QIcon, QPalette
+from PyQt5.QtCore import QSettings, QItemSelectionModel
 
-#from lib.colorlisteditor_ui import Ui_colorListEditor
+from lib.colorlisteditor_ui import Ui_colorListEditor
 
 class ColorPicker():
     lastcolor = 0
@@ -50,18 +50,22 @@ class ColorPicker():
             m = QMenu()
         self.initColors()
         for c in self.colorlist:
-            a = m.addAction(c)
+            a = m.addAction(self.colorIcon(c), c)
             a.setData(c)
         cm = m.addMenu("more...")
         self.allColorMenu(cm)
-        #m.addAction("Edit colors",self.editColors)
+        m.addAction("Edit colors",self.editColors)
         return m
 
-    #def editColors(self):
-    #    self.ecDialog = colorListEditor(self)
-    #    # XXX connect and destroy when done
-    #    self.ecDialog.exec() # XXX 
+    def editColors(self):
+        self.ecDialog = colorListEditor(self)
+        # XXX connect and destroy when done
+        self.ecDialog.finished.connect(self.doneEditColors)
+        self.ecDialog.show() # XXX
 
+    def doneEditColors(self):
+        self.ecDialog = None
+        
     def allColorMenu(self, m):
         # delete colors already used?
         used = set(self.colorlist)
@@ -69,7 +73,15 @@ class ColorPicker():
             m = QMenu("more...")
         for c in QtGui.QColor.colorNames():
             if c not in used:
-                a = m.addAction(c)
+                # this didn't work and also had bad spacing
+                #x# l = QLabel(c, m)
+                #x# p = l.palette()
+                #x# p.setColor(l.backgroundRole(), QColor(c))
+                #x# l.setPalette(p)
+                #x# a = QtWidgets.QWidgetAction(m)
+                #x# a.setDefaultWidget(l)
+                #x# m.addAction(a)
+                a = m.addAction(self.colorIcon(c), c)
                 a.setData(c)
         return m
 
@@ -96,3 +108,61 @@ class ColorPicker():
  
     def saveColors(self):
         QSettings().setValue('colorlist', ' '.join(self.colorlist))
+
+    @staticmethod
+    def colorIcon(color):
+        #pixmap = QPixmap()
+        #mask = pixmap.createMaskFromColor(QColor('black'), Qt.MaskOutColor)
+        #pixmap.fill((QColor(color)))
+        #pixmap.setMask(mask)
+        #return QIcon(pixmap)
+        pixmap = QPixmap(50,50) # XXX
+        pixmap.fill(QColor(color))
+        return QIcon(pixmap)
+
+class colorListEditor(QDialog):
+    def __init__(self, colorpicker):
+        super().__init__()
+        self.colorpicker = colorpicker
+        self.ui = Ui_colorListEditor()
+        self.ui.setupUi(self)
+        buttonbox = self.ui.buttonBox
+        buttonDefault = buttonbox.addButton("Reset Defaults",QtWidgets.QDialogButtonBox.ActionRole)
+        buttonDefault.clicked.connect(partial(self.selectColorSet,self.colorpicker.defcolorlist))
+        self.accepted.connect(self.saveColors)
+        self.finished.connect(self.done)
+        self.buildlist()
+
+    def saveColors(self):
+        newlist = []
+        indexes = self.ui.listWidget.selectionModel().selectedIndexes()
+        for i in indexes:
+            newlist.append(i.data())
+        #print(newlist) # DEBUG
+        self.colorpicker.colorlist = newlist
+        self.colorpicker.saveColors()
+
+    def done(self, result):
+        if result: self.saveColors()
+        self.deleteLater()
+        
+    def buildlist(self):
+        self.colorpicker.initColors() # XX or pull from QSettings unconditionally?
+        wl = self.ui.listWidget
+        wl.clear()
+        for color in QtGui.QColor.colorNames():
+            i = QListWidgetItem(ColorPicker.colorIcon(color), color)
+            wl.addItem(i)
+        self.selectColorSet(self.colorpicker.colorlist)
+
+    def selectColorSet(self, colors):
+        colorset = set(colors)
+        wl = self.ui.listWidget
+        m = wl.model()
+        sm = QItemSelectionModel(m)
+        for row in range(m.rowCount()):
+            i = m.index(row,0)
+            if i.data() in colorset:
+                sm.select(i, QItemSelectionModel.Select)
+        wl.setSelectionModel(sm)
+
