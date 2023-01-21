@@ -29,7 +29,6 @@ o  should the window auto-resize threshold be a setting
  -Things to implement soon:
    (bug) button docks are not in show/hide/tabify all docks
    qtail: (colored) indicator showing job status (when relevant)
-   job manager: indicate how many jobs exist (no clear?)
    qtail: enable dock nesting and other properties?
  ! history could resize vertically on popout?
    all windows are sized poorly on low res screens
@@ -807,6 +806,7 @@ d*    rerun interval
  * built in commands should get marked done in history
  * button dock: resize to fit on pop out
  * find: support case sensitivity, whole words
+ * job manager: indicate how many jobs exist (no clear?)
 
  -fixed bugs
  * retore geometry doesn't grab the current selected geometry

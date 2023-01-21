@@ -503,6 +503,9 @@ class noacli(QtWidgets.QMainWindow):
         ui.commandEdit.setHistory(self.settings.history)
 
         ui.jobTableView.setModel(self.settings.jobs)
+        ui.jobManager.keeplines = True
+        self.settings.jobs.rowsInserted.connect(self.jobsChanged)
+        self.settings.jobs.rowsRemoved.connect(self.jobsChanged)
 
         # mess with job manager corner button (is this even visible?)
         cb = ui.jobTableView.findChild(QtWidgets.QAbstractButton)
@@ -591,6 +594,10 @@ class noacli(QtWidgets.QMainWindow):
     ## end __init__
 
 
+    def jobsChanged(self, idx, first, last):
+        # receive jobs(model).rows{Inserted,Removed}
+        self.ui.jobManager.resetLines(self.settings.jobs.rowCount(None))
+
     def doButton(self, name):
         if name=='Run':
             self.ui.commandEdit.runCommand()
@@ -637,6 +644,7 @@ class noacli(QtWidgets.QMainWindow):
         self.tabifyDockWidget( self.ui.jobManager, self.ui.history)
         self.tabifyDockWidget( self.ui.history,   self.ui.logDock)
         self.tabifyDockWidget( self.ui.logDock, self.ui.smallOutputDock)
+        # XXX and the button docks
 
     def start(self):
         # nothing else to initialize yet
@@ -857,6 +865,7 @@ class noacli(QtWidgets.QMainWindow):
         ui.jobManager.show()
         ui.smallOutputDock.show()
         ui.logDock.show()
+        # XXX what about the rest of the button docks?
 
     @QtCore.pyqtSlot()
     def hideAllDocks(self):
@@ -866,6 +875,7 @@ class noacli(QtWidgets.QMainWindow):
         ui.jobManager.setVisible(False)
         ui.smallOutputDock.setVisible(False)
         ui.logDock.setVisible(False)
+        # XXX what about the rest of the button docks?
 
     # in: commandEditor runCurrent(button)
     # push button signal

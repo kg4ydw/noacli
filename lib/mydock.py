@@ -14,6 +14,8 @@ from PyQt5.QtWidgets import QDockWidget, QAbstractScrollArea, QWidget
 class myDock(QDockWidget):
     def __init__(self, parent):
         super().__init__(parent)
+        self.keeplines = False
+        self.newlines = 0
         self.basetitle = 'dock'
         self.visibilityChanged.connect(self.adjustTitle)
         self.topLevelChanged.connect(self.resizeOnFloat)
@@ -64,17 +66,19 @@ class myDock(QDockWidget):
             self.newlines += num
         self.adjustTitle()
 
-    def resetLines(self):
-        self.newlines = 0
+    def resetLines(self, val=0):
+        self.newlines = val
         self.adjustTitle()
 
     def  adjustTitle(self):
         visible =  not self.visibleRegion().isEmpty() # XX not perfect
-        if visible:
+        if visible and not self.keeplines:
             self.newlines=0
         # do we need to throttle changing title when it doesn't need changed?
         if self.newlines==0:
             super().setWindowTitle(self.basetitle)
+        elif self.keeplines: # display kept count differently
+            super().setWindowTitle("{} [{}]".format(self.basetitle, self.newlines))
         else:
             super().setWindowTitle("{} ({})".format(self.basetitle, self.newlines))
 
