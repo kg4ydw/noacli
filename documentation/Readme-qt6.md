@@ -31,3 +31,8 @@ Python 3.8 (Ubuntu 20.04)
 
 Qt 5.12 compatibility: 
 * qtail.py QtTail.__init__ disable regex missing from QTextEdit
+
+Qt bug workaround, fixed in Qt 6.11+
+  Docks prevent floating docks from being deleted by catching closeEvent
+  * mydock.py
+  * searchdock.py

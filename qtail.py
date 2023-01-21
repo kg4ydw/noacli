@@ -217,6 +217,37 @@ class QtTail(QtWidgets.QMainWindow):
         except:
             pass
 
+    def deleteClosedSearches(self):
+        skip = 0
+        docks = self.findChildren(QtWidgets.QDockWidget)
+        for dock in docks:
+            if dock.isVisible():
+                #print("skip visible {}".format(dock.windowTitle())) # DEBUG
+                skip += 1
+            else:
+                #print("delete {}".format(dock.windowTitle())) # DEBUG
+                dock.setParent(None)
+                dock.deleteLater()
+        # once they're all deleted, these are unnecsesary
+        self.ui.actionDeleteClosedSearches.setVisible(False)
+        if not skip:
+            self.ui.actionShowClosedSearches.setVisible(False)
+        
+    def showClosedSearches(self):
+        # both show and tabify them all
+        prev = None
+        docks = self.findChildren(QtWidgets.QDockWidget)
+        # XX does this break if they're already tabified?
+        for dock in sorted(docks, key=lambda d: d.windowTitle()):
+            dock.show()
+            if dock.isFloating():
+                dock.setFloating(False)
+            if prev:
+                self.tabifyDockWidget(prev, dock)
+            prev = dock
+        # disable since there's nothing hidden anymore...
+        self.ui.actionDeleteClosedSearches.setVisible(False)
+        
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.resizecount += 1
@@ -803,6 +834,8 @@ class QtTail(QtWidgets.QMainWindow):
     def searchDock(self, title, selections):
         if not selections: return # don't make empty dock
         dock = searchDock(self, title, selections)
+        self.ui.actionShowClosedSearches.setVisible(True)
+        self.ui.actionShowClosedSearches.setEnabled(True)
         dock.showSel.connect(self.mergeSelections)
         dock.hideSel.connect(self.removeSelections)
         dock.gotoSel.connect(self.textbody.setTextCursor) # XX maek visible instead?

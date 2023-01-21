@@ -117,6 +117,13 @@ class Ui_QtTail(object):
         self.actionListHighlights.setObjectName("actionListHighlights")
         self.actionFind_all = QtWidgets.QAction(QtTail)
         self.actionFind_all.setObjectName("actionFind_all")
+        self.actionDeleteClosedSearches = QtWidgets.QAction(QtTail)
+        self.actionDeleteClosedSearches.setEnabled(False)
+        self.actionDeleteClosedSearches.setVisible(False)
+        self.actionDeleteClosedSearches.setObjectName("actionDeleteClosedSearches")
+        self.actionShowClosedSearches = QtWidgets.QAction(QtTail)
+        self.actionShowClosedSearches.setVisible(False)
+        self.actionShowClosedSearches.setObjectName("actionShowClosedSearches")
         self.menuView.addAction(self.actionShowToolbar)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionAdjust)
@@ -135,6 +142,8 @@ class Ui_QtTail(object):
         self.menuSearch.addAction(self.actionClearFinds)
         self.menuSearch.addAction(self.actionListHighlights)
         self.menuSearch.addAction(self.actionFind_all)
+        self.menuSearch.addAction(self.actionDeleteClosedSearches)
+        self.menuSearch.addAction(self.actionShowClosedSearches)
         self.menubar.addAction(self.menuView.menuAction())
         self.menubar.addAction(self.menuMode.menuAction())
         self.menubar.addAction(self.menuSearch.menuAction())
@@ -157,6 +166,8 @@ class Ui_QtTail(object):
         self.textBrowser.saveHighlight.connect(QtTail.saveHighlight) # type: ignore
         self.textBrowser.clearHighlights.connect(QtTail.clearFinds) # type: ignore
         self.actionShowToolbar.triggered['bool'].connect(self.toolBar_2.setVisible) # type: ignore
+        self.actionDeleteClosedSearches.triggered.connect(QtTail.deleteClosedSearches) # type: ignore
+        self.actionShowClosedSearches.triggered.connect(QtTail.showClosedSearches) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
@@ -189,4 +200,6 @@ class Ui_QtTail(object):
         self.actionSetExtra.setText(_translate("QtTail", "List current highlights"))
         self.actionListHighlights.setText(_translate("QtTail", "List current highlights"))
         self.actionFind_all.setText(_translate("QtTail", "Find all"))
+        self.actionDeleteClosedSearches.setText(_translate("QtTail", "Delete closed searches"))
+        self.actionShowClosedSearches.setText(_translate("QtTail", "Show and tabify all searches"))
 from lib.qtailbrowser import myBrowser

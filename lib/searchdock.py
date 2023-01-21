@@ -152,3 +152,18 @@ class searchDock(QDockWidget):
         color = colorpicker.execColorMenu(event)
         #print(color) # DEBUG 
         if color: self.setColor(color)
+
+    def closeEvent(self, event):
+        # if a search dock is closed, make visible the menu entry to delete them
+        p = self.parent()
+        if p:
+            p.ui.actionDeleteClosedSearches.setVisible(True)
+            p.ui.actionDeleteClosedSearches.setEnabled(True)
+
+        # bug workaround for QTBUG-74606 Oct 2021, fixed in Qt 6.11+? buggy in 5.15.3
+        if self.isFloating():
+            self.setFloating(False)
+            self.hide()
+            event.ignore()
+        else:
+            super().closeEvent(event)

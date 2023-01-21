@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_searchDock(object):
     def setupUi(self, searchDock):
         searchDock.setObjectName("searchDock")
-        searchDock.resize(252, 549)
+        searchDock.resize(299, 549)
         self.dockWidgetContents = QtWidgets.QWidget()
         self.dockWidgetContents.setObjectName("dockWidgetContents")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.dockWidgetContents)

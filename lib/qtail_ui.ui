@@ -129,6 +129,8 @@
     <addaction name="actionClearFinds"/>
     <addaction name="actionListHighlights"/>
     <addaction name="actionFind_all"/>
+    <addaction name="actionDeleteClosedSearches"/>
+    <addaction name="actionShowClosedSearches"/>
    </widget>
    <addaction name="menuView"/>
    <addaction name="menuMode"/>
@@ -272,6 +274,25 @@
   <action name="actionFind_all">
    <property name="text">
     <string>Find all</string>
+   </property>
+  </action>
+  <action name="actionDeleteClosedSearches">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Delete closed searches</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="actionShowClosedSearches">
+   <property name="text">
+    <string>Show and tabify all searches</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
  </widget>
@@ -563,6 +584,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionDeleteClosedSearches</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>deleteClosedSearches()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionShowClosedSearches</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>showClosedSearches()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>simpleFind(QString)</slot>
@@ -581,5 +634,7 @@
   <slot>extraSelectionsToDock()</slot>
   <slot>findAll()</slot>
   <slot>saveHighlight()</slot>
+  <slot>deleteClosedSearches()</slot>
+  <slot>showClosedSearches()</slot>
  </slots>
 </ui>
