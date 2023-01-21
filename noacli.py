@@ -640,10 +640,11 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.jobManager.setFloating(False)
         self.ui.history.setFloating(False)
         self.ui.smallOutputDock.setFloating(False)
-        self.tabifyDockWidget( self.ui.buttons,    self.ui.jobManager)
         self.tabifyDockWidget( self.ui.jobManager, self.ui.history)
         self.tabifyDockWidget( self.ui.history,   self.ui.logDock)
         self.tabifyDockWidget( self.ui.logDock, self.ui.smallOutputDock)
+        self.tabifyDockWidget( self.ui.smallOutputDock, self.ui.buttons)
+        ButtonDock.tabifyAll(self, self.ui.buttons)
         # XXX and the button docks
 
     def start(self):
@@ -865,7 +866,7 @@ class noacli(QtWidgets.QMainWindow):
         ui.jobManager.show()
         ui.smallOutputDock.show()
         ui.logDock.show()
-        # XXX what about the rest of the button docks?
+        ButtonDock.setAllVisibility(True)
 
     @QtCore.pyqtSlot()
     def hideAllDocks(self):
@@ -875,7 +876,8 @@ class noacli(QtWidgets.QMainWindow):
         ui.jobManager.setVisible(False)
         ui.smallOutputDock.setVisible(False)
         ui.logDock.setVisible(False)
-        # XXX what about the rest of the button docks?
+        ButtonDock.setAllVisibility(False)
+
 
     # in: commandEditor runCurrent(button)
     # push button signal

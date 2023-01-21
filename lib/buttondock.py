@@ -52,6 +52,20 @@ class ButtonDock(myDock):
         else:
             # add to parent's view menu if this isn't the default dock XXX
             self.defaultDock[0].parent().ui.menuViews.addAction(self.toggleViewAction())
+
+    @classmethod
+    def setAllVisibility(cls, vis):
+        for i in cls.docklist:
+            cls.docklist[i].setVisible(vis)
+
+    @classmethod
+    def tabifyAll(cls, main, prev):
+        for i in sorted(cls.docklist):
+            if cls.docklist[i]!=prev:
+                main.tabifyDockWidget(prev, cls.docklist[i])
+                prev = cls.docklist[i]
+            else:
+                print('skip '+i)
       
     @classmethod
     def _fixup(cls, sig):

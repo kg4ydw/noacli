@@ -16,30 +16,22 @@ v  documented in a future video
 t  documented internally with tool tip
 
 User interface questions: (please send feedback!!)
-o  Should all the tables be respaced with resizeRowsToContents()
+ o Should all the tables be respaced with resizeRowsToContents()
       note: table filter resets row height every time anyway
    is the documentation unclear or too wordy
    is a keybindings viewer / editor needed
    are the options named well
-o  should the window auto-resize threshold be a setting
+ o should the window auto-resize threshold be a setting
    is it annoying that history scrolls to bottom and resets sort order
      when a command is run
      when history items are copied from the docs
 ----ST
+
  -Things to implement soon:
-   (bug) button docks are not in show/hide/tabify all docks
-   qtail: (colored) indicator showing job status (when relevant)
-   qtail: enable dock nesting and other properties?
  ! history could resize vertically on popout?
    all windows are sized poorly on low res screens
    window title: do a better job of eliding long commands
-   qtail: implement --command for external use
-   button dock: handle favorite rename?
-   button dock: save sort mode?
-   button dock: add button dragging to set/save order
-   qtail reverse find (context menu? menu checkbox?)
    table column picker needs an undo select columns
-   mac terminal window (applescript?)
  o settingsDialog needs double click resize (fixed default ??)
    cd should parse ~
    realign general settings editor to be callable from other apps
@@ -55,11 +47,20 @@ o  should the window auto-resize threshold be a setting
  o table viewer options
      document short options?
      tableviewer needs its own icon
-   pip setup.py installer
    mac installer?
  x bold default button dock title or something
 
+ -Maybe implement these
+   qtail: enable dock nesting and other properties?
+   button dock: handle favorite rename?
+
  -Things that could be implemented but are not currently being considered:  (Request if you want this)
+ - pip setup.py installer
+ - qtail: implement --command for external use (useful with watch)
+ - button dock: save sort mode?
+ - button dock: add button dragging to set/save order
+ - qtail reverse find (context menu? menu checkbox?)
+ - mac terminal window wrapper (applescript?)
  -  URL handling
  -    recognize URLs and highlight in qtail
  -    open URLS (other than File:// which should already work)
@@ -143,6 +144,7 @@ d* SETTING: delay after first data before initial window resize
  * if output windows are not visible, add extra status to main window?
 
  -User visible bugs:
+ ? qtail closes if proc has no output even if watch is enabled
  ? on large data, qtail freezes on first resize in qt adust()
  o   resize early when buffer is small rather than later
  o   avoid resizing when the buffer is too large (word wrap recalculation causes delay)
@@ -150,7 +152,6 @@ d* SETTING: delay after first data before initial window resize
    duplicate key bindings don't get background paint until dialog is reopened
  * empty dock container bug
  *   qt bug -- work around applied and commented
-     test in U20
  * favorites editor bugs
 DE    should warn on duplicate names? (color?)
  x block tostop signal : try os.setsid ?
@@ -807,6 +808,7 @@ d*    rerun interval
  * button dock: resize to fit on pop out
  * find: support case sensitivity, whole words
  * job manager: indicate how many jobs exist (no clear?)
+ * qtail: (colored) indicator showing job status (when relevant)
 
  -fixed bugs
  * retore geometry doesn't grab the current selected geometry
@@ -887,6 +889,7 @@ D*   if it ends in / select dirs only??
  *   --mask and --cols didn't mix: merge and sort
  *   finish refactoring tableviewer option parser
  * searchdock / saved highlights: delete or mark highlights that have scrolled off
+ * button docks were not in show/hide/tabify all docks
 
 ----E
 ## ispell put these here
