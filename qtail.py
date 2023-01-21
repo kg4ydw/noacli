@@ -20,7 +20,7 @@ from math import ceil
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QTextCursor, QFont, QTextDocument
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWidgetAction, QSpinBox, QAbstractSpinBox, QShortcut
+from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWidgetAction, QSpinBox, QAbstractSpinBox, QShortcut, QLabel, QStyle
 from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt5.Qt import Qt, pyqtSignal
 
@@ -317,6 +317,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.timer.start(math.floor(self.reinterval*1000+0.5))
         else:
             self.timer.stop()
+        self.updateStatusIcon()
             
     def reloadOrRerun(self):
         # XX reset and restart timer if this was user triggered?
@@ -621,6 +622,34 @@ class QtTail(QtWidgets.QMainWindow):
         self.file.readyRead.connect(partial(self.readtext,'ready proc'))
         self.file.started.connect(self.procStarted)
         self.file.finished.connect(self.procFinished)
+        self.statusIconLabel = QLabel("",self)
+        self.statusBar().addPermanentWidget(self.statusIconLabel)
+        self.updateStatusIcon()
+
+    def updateStatusIcon(self):
+        if not hasattr(self,'statusIconLabel'): return
+        running = self.file.state()!=QProcess.NotRunning
+        tooltip = ''
+        icon = QStyle.SP_MediaStop
+        if running:
+            icon = QStyle.SP_MediaPlay
+            tooltip = 'running'
+        elif self.timer.isActive():
+            tooltip = 'waiting'
+            icon = QStyle.SP_MediaPause
+        elif hasattr(self, 'exitcode') and not self.exitcode:
+            icon = QStyle.SP_DialogYesButton
+        if not running and hasattr(self, 'exitcode') and self.exitcode:
+            tooltip = " exit {}".format(self.exitcode)
+            icon = QStyle.SP_MessageBoxWarning
+        if hasattr(self,'runtime') and self.runtime:
+            if tooltip: tooltip += ', '
+            tooltip += 'runtime={:1.2f}'.format(self.runtime)
+        h = self.statusBar().height()
+        # pixmap will be no larger than h*2,h
+        pixmap = self.style().standardIcon(icon).pixmap(h, int(h/2))
+        self.statusIconLabel.setPixmap(pixmap)
+        self.statusIconLabel.setToolTip(tooltip)
 
     def openPretext(self, jobitem, textstream, pretext='', title=None):
         self.start()
@@ -662,8 +691,10 @@ class QtTail(QtWidgets.QMainWindow):
         self.timestart = time.monotonic()
         self.setButtonMode()
         self.runcount += 1
+        self.updateStatusIcon()
 
     def procFinished(self, exitcode, estatus):
+        self.exitcode = exitcode
         if self.firstRead: self.actionAdjust()
         self.setButtonMode()
         self.timestop = time.monotonic()
@@ -673,6 +704,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.runtime = self.runtime * 0.6 + t*0.4
         self.tweakInterval()
         #if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
+        self.updateStatusIcon()
         if self.ui.textBrowser.document().isEmpty():
             # XXX should close on empty be conditional?
             self.close()
