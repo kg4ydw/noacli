@@ -160,6 +160,7 @@ DE    should warn on duplicate names? (color?)
  ! refactor flowlayout to separate Qt code and noacli code (inherit)
  o file dialog is modal and can get lost
  *   set always on top? (partial fix)
+   qtail search docs are not deleted on close (possible memory leak or feature?)
    reported lockup on mac when playing with menu bar menus / job manager?
    version 0.9.9.8s gives exception importing wrappers from previous version
       convince QSettings to use enum.name for enum OutWin

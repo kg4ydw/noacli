@@ -547,6 +547,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionShowToolbar</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>toolBar_2</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>35</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>simpleFind(QString)</slot>

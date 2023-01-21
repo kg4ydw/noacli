@@ -156,6 +156,7 @@ class Ui_QtTail(object):
         self.actionFind_all.triggered.connect(QtTail.findAll) # type: ignore
         self.textBrowser.saveHighlight.connect(QtTail.saveHighlight) # type: ignore
         self.textBrowser.clearHighlights.connect(QtTail.clearFinds) # type: ignore
+        self.actionShowToolbar.triggered['bool'].connect(self.toolBar_2.setVisible) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
