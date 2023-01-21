@@ -64,8 +64,6 @@ class ButtonDock(myDock):
             if cls.docklist[i]!=prev:
                 main.tabifyDockWidget(prev, cls.docklist[i])
                 prev = cls.docklist[i]
-            else:
-                print('skip '+i)
       
     @classmethod
     def _fixup(cls, sig):

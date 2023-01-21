@@ -80,12 +80,13 @@ class myOptions():
         ## copy some options from tail, but not exactly
         parser.add_argument('-c', '--bytes', type=int, metavar='bytes', help='maximum size of tail chunk in bytes', dest='tailFrag', default=self.tailFrag)
         parser.add_argument('-n', '--lines', help='keep the last NUM lines', metavar='NUM', type=int, default=self.maxLines)
-        parser.add_argument('-w','--whole', help='look at the whole file, not just the tail', action='store_true')
+        parser.add_argument('--whole', '-w', help='look at the whole file, not just the tail', action='store_true')
         parser.add_argument('-t','--title', help='set window title if a filename is not supplied',metavar='title')
         parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown','p','h','m'], metavar='format', default='plaintext') # XX markdown doesn't work
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true') # set in start()
         parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='seconds', const=0, help='Enable autorefresh and (optionally) set refresh interval')
+        parser.add_argument('--watch', action='store_true', help='Enable watch')
 
         parser.add_argument('filename', nargs=argparse.REMAINDER)
         
@@ -122,7 +123,7 @@ class myOptions():
         if args.title: self.title=args.title # XX late apply?
         if args.format:
             if args.format=='html': self.format='h'
-            elif args.format=='markdown': self.format='m' # XX
+            elif args.format in ('markdown', 'md', 'm'): self.format='m' # XX
             else: self.format=None
         if args.url: self.url = True
 
@@ -419,7 +420,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.simpleFind(text)
         else:
             left = self.findTimer.remainingTime()
-            #if left>0: print("key interval: {:1.3f}".format(delay-left)) # XXXX DEBUG
+            #if left>0: print("key interval: {:1.3f}".format(delay-left)) # DEBUG
             self.findTimer.start(delay)
 
     def simpleFindNewTimer(self):
@@ -493,6 +494,8 @@ class QtTail(QtWidgets.QMainWindow):
                 self.ui.actionAutorefresh.setChecked(True)
                 if self.opt.argparse.autorefresh:
                     self.setWatchInterval(self.opt.argparse.autorefresh)
+            if self.opt.argparse.watch:
+                self.ui.actionWatch.setChecked(True)
 
     def showsize(self, replace=True):
         m = self.statusBar().currentMessage()
