@@ -331,7 +331,7 @@ class QtTail(QtWidgets.QMainWindow):
             else:
                 self.ui.textBrowser.clear()
                 if typedQSettings().value('DEBUG',False): print('rerun '+(" ".join(self.file.arguments()))) # DEBUG
-                self.file.start()  # XXX does this work? reactivate data stream?
+                self.file.start()
         else:
             self.reload()
             
@@ -400,9 +400,6 @@ class QtTail(QtWidgets.QMainWindow):
                     m = 'Wrapped after {}/{}'.format(self.findcount,len(self.textbody.extraSelections()))
                     es = self.textbody.extraSelections()
                     cs = sorted([e.cursor for e in es])
-                    ## XXX would a list of findings be useful to show?
-                    #for e in cs:
-                    #    print("{}: {}".format(e.position(), e.selectedText())) # DEBUG
                 else:
                     m = 'Wrapped'
                 self.statusBar().showMessage(m)
@@ -922,9 +919,7 @@ if __name__ == '__main__':
     options = myOptions()
     args = options.processOptions(app)
 
-
     #if options.isCommand: # XXX not implemented yet
-
 
     mainwin = QtTail(options)
     if options.title: mainwin.setWindowTitle(options.title)

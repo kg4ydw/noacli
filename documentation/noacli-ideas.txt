@@ -55,6 +55,8 @@ User interface questions: (please send feedback!!)
    button dock: handle favorite rename?
 
  -Things that could be implemented but are not currently being considered:  (Request if you want this)
+ - qtail: should the interactive search highlight color (yellow) be configurable?
+ - qtail: should the color editor be available in the menu bar instead of just the context menu?
  - pip setup.py installer
  - qtail: implement --command for external use (useful with watch)
  - button dock: save sort mode?

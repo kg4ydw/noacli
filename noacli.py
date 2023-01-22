@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.7'
+__version__ = '1.8'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -645,7 +645,6 @@ class noacli(QtWidgets.QMainWindow):
         self.tabifyDockWidget( self.ui.logDock, self.ui.smallOutputDock)
         self.tabifyDockWidget( self.ui.smallOutputDock, self.ui.buttons)
         ButtonDock.tabifyAll(self, self.ui.buttons)
-        # XXX and the button docks
 
     def start(self):
         # nothing else to initialize yet
@@ -1168,7 +1167,7 @@ class noacli(QtWidgets.QMainWindow):
                 self.recheckClose(dialog) # set message
                 #dialog.setInformativeText(msg)
                 #dialog.setModality(Qt.NonModal)
-                #XXX dialog.setTitle("Really quit noacli?")
+                dialog.setWindowTitle("Quit noacli?")
                 result = dialog.exec()
                 if result == QMessageBox.Cancel:
                     event.ignore()
@@ -1205,7 +1204,6 @@ class noacli(QtWidgets.QMainWindow):
         if not wins and not procs:
             # click ignore which will do the right thing anyway
             dialog.button(QMessageBox.Ignore).click()
-        # XX click a button?
         return wins or procs
                                               
     #### job manager fuctions (since it doesn't have its own class)

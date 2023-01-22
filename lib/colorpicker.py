@@ -23,7 +23,7 @@ class ColorPicker():
         'yellow', 'cyan', 'red', 'magenta', 'gray', 'green', 'blue',
         # extras we like
         'pink', 'lime', 'cornflowerblue', 'tan', 'coral', 'limegreen',
-        'orange', 'salmon', 'skyblue'
+        'orange', 'salmon', 'skyblue', 'violet'
         ]
     colorlist = []
 
@@ -59,9 +59,9 @@ class ColorPicker():
 
     def editColors(self):
         self.ecDialog = colorListEditor(self)
-        # XXX connect and destroy when done
+        # connect and destroy when done
         self.ecDialog.finished.connect(self.doneEditColors)
-        self.ecDialog.show() # XXX
+        self.ecDialog.show()
 
     def doneEditColors(self):
         self.ecDialog = None
@@ -116,7 +116,7 @@ class ColorPicker():
         #pixmap.fill((QColor(color)))
         #pixmap.setMask(mask)
         #return QIcon(pixmap)
-        pixmap = QPixmap(50,50) # XXX
+        pixmap = QPixmap(50,50) # XXX hardcoded size, does it matter?
         pixmap.fill(QColor(color))
         return QIcon(pixmap)
 

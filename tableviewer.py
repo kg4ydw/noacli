@@ -153,12 +153,8 @@ class lineBuffer():
 class FixedWidthParser():
     def __init__(self, f, options={}):
         # optimistically do this without peek for now
-        # XX this doesn't handle right justified or centered columns
-        # which might be fixable with peek
+        # this doesn't handle right justified or centered columns but mask does
         lines = f.peekLines(2)  # this will try to get 2 lines, but no promises
-        # Alternate algorithms: XXX
-        # * after picking boundaries, scan down the column to verify
-        # * set a bitmap of columns only containing spaces and scan that
         if len(lines)>1 and lines[1][0] in '=-': # second line looks better
             s=lines[1].expandtabs()
             gapthresh = 1  # OPTION SETTING
@@ -596,6 +592,7 @@ class TableViewer(QtWidgets.QMainWindow):
             print("Mask failed") # EXCEPT
             print(cols) # EXCEPT
         if self.argparse.debug:
+            # XXX mask debug output should be put in a window somewhere
             m10 = ceil(max(len(mask),len(line[0]))/10)
             cols = self.fixedoptions['columns']
             print("".join(str(x%10)+' '*9 for x in range(m10)))

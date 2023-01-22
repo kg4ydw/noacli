@@ -11,8 +11,8 @@ don't hesitate to suggest new ones.
 Here are the items I currently need feedback for the most...
 
 I'm open to code contributions also.  I'm trying to handle at least one
-item from noacli-ideas.txt a day, so check with me to make sure we don't both
-implement something on the same day.  (!!)
+item from noacli-ideas.txt a week, so check with me to make sure we don't both
+implement something at the same time.  (!!)
 
 # Documentation
 
@@ -32,8 +32,7 @@ want output to go to its own main window or a specific dock group?
 Also, I should write a test app to see if I can make Qt crash when moving
 docks between main windows.  (Qt docks seem to not be well debugged...)
 
-Similarly,
-multiple button docks are supported, but should other docks
+Similarly, multiple button docks are supported, but should other docks
 also allow duplicates?
 Should this support multiple command edit windows (rather than
 just setting 'Always on visible workspace' or whatever your WM calls it)?
@@ -53,6 +52,11 @@ extended key binding editor for internal functions as well?
 Reverse search is currently not implemented.  How much is this missed, or
 is it enough to be able to scroll back and see the highlight?  Does the
 'find all' functionality replace reverse search?
+
+The interactive search highlight color is hardcoded to yellow.
+Should this be configurable?
+
+Should the order of the highlight colors be editable?
 
 # Installer?  Pypi?
 

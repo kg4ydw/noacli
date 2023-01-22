@@ -44,7 +44,7 @@ class ButtonDock(myDock):
         self.buttonBox.setSizePolicy(sizePolicy)
         self.buttonBox.setObjectName("buttonBox")
         self.setWidget(self.buttonBox)
-        parent.addDockWidget(QtCore.Qt.DockWidgetArea(4), self) # XXXX
+        parent.addDockWidget(QtCore.Qt.DockWidgetArea(4), self)
         if self.defaultDock[0]==self:
             # default dock always gets run buttons
             for i in self.special_buttons:

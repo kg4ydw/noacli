@@ -107,7 +107,6 @@ class searchDock(QDockWidget):
         parent.addDockWidget(Qt.LeftDockWidgetArea, self)
         global colorpicker
         color = colorpicker.nextColor()
-        # self.color = QtGui.QBrush(Qt.cyan) # XXX
         self.color = QtGui.QBrush(QColor(color))
         self.model = selList()
         self.ui.tableView.setModel(self.model)
