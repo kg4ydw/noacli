@@ -162,6 +162,7 @@ Qtail supports the following options:
 `--watch`  
    Check the 'watch' checkbox which adjusts the default button action
 
+
 ## table viewer
 
 The table viewer takes the output from a command and tries to parse it
@@ -179,7 +180,7 @@ following options:
     Minimum number of spaces between columns if it is space delimited;
     defaults to 2 or if headers are underlined (with = or -) then 1
     
- `--columns=`  
+ `--columns=` or `--cols`  
     If the fixed width parser can't guess column boundaries,
     you can specify them (comma separated) If the heuristic gets it
     almost right, use the item in the view menu to copy the offsets to
@@ -188,22 +189,26 @@ following options:
  `--headers=`  
     comma separated headers to use instead of the first line
     
- `--noheader`  
-    There is no header in the data, use numbered headers instead of the first line
-    
 `--fixed`  
     force fixed width parsing instead of csv parsing with delimiters
+`--mask` or `--mask=nlines`  
+    Forces --fixed; Read the whole table (or just nlines) up front and use a mask algorithm to split fixed width tables, looking for columns with only whitespace (or delimiters if specified, e.g. --delimiters=-=+: ) and merge in any extra columns with --columns= (negative values to remove column seperations)
 
-`--nopick`
-`--pick`  
-    Don't show (or show) the colum picker at start (default: show if more than 10 columns)
+
+The following options change defaults that can be changed in the GUI.
+These are especially useful in favorites.
+
 
 `--filtercol=` and `--filter=`  
     Set initial filter column and filter string (useful in favorites)
     Filtercol may be a (1 based) column index or the first match in headers
 
-`--mask` or `--mask=nlines`  
-    Forces --fixed; Read the whole table (or just nlines) up front and use a mask algorithm to split fixed width tables, looking for columns with only whitespace (or delimiters if specified, e.g. --delimiters=-=+: ) and merge in any extra columns with --columns= (negative values to remove column seperations)
+ `--noheader`  
+    There is no header in the data, use numbered headers instead of the first line
+
+`--nopick`  `--pick`  
+    Don't show (or show) the colum picker at start (default: show if more than 10 columns)
+
 
 Like qtail, table also accepts the --file and --files options when used inside noacli.
 
