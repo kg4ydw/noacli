@@ -82,7 +82,7 @@ class myOptions():
         parser.add_argument('-n', '--lines', help='keep the last NUM lines', metavar='NUM', type=int, default=self.maxLines)
         parser.add_argument('--whole', '-w', help='look at the whole file, not just the tail', action='store_true')
         parser.add_argument('-t','--title', help='set window title if a filename is not supplied',metavar='title')
-        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown','p','h','m'], metavar='format', default='plaintext') # XX markdown doesn't work
+        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown','md', 'p','h','m'], metavar='format', default='plaintext') # XX markdown doesn't work
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true') # set in start()
         parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='seconds', const=0, help='Enable autorefresh and (optionally) set refresh interval')

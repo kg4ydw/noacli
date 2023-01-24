@@ -28,6 +28,7 @@ User interface questions: (please send feedback!!)
 ----ST
 
  -Things to implement soon:
+   move qtail and qtable to threads
  ! history could resize vertically on popout?
    all windows are sized poorly on low res screens
    window title: do a better job of eliding long commands

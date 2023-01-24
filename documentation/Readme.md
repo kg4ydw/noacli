@@ -126,18 +126,41 @@ to indicate the following are filenames rather than a command.
 
 Qtail supports the following options:
 
-`--file`
+`--file`  
     After all options will be a single filename (spaces and all)
 
-`--files`
+`--files`  
     After all the options will be a space separated list of filenames, each of which will be opened in its own qtail window
     
-`--nowrap`
+`--nowrap`  
     Turn word wrap off initially
 
-`--autorefresh`  
-`--autorefresh=seconds`
+`--autorefresh` or `--autorefresh=seconds`  
     Enable autorefresh and (optionally) set refresh interval
+
+`--bytes=N`  
+    Set size of initial tail backtrack, default=1M
+
+`--whole`  
+    Read whole file at start.  WARNING: may be slow and/or exhaust memory.
+
+`--title=`  
+    Set window title instead of using command or filename.
+
+`--format=` (plain html markdown)  
+    Set the file format; default is plain.  Warning: markdown must read the entire file at once.
+
+`--url`  
+    Treat filename as a URL, autodetect format.  Note: doesn't work with remote urls
+
+`--nowrap`  
+    Disable word wrap initially (may be faster)
+
+`--autorefresh`  or `--autorefresh=seconds`  
+    Enable autorefresh (default = 30 seconds); only works on files outside noacli; in noacli,  commands will rerun like "watch"
+
+`--watch`  
+   Check the 'watch' checkbox which adjusts the default button action
 
 ## table viewer
 
