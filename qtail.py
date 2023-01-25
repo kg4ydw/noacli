@@ -87,9 +87,10 @@ class myOptions():
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true') # set in start()
         parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='seconds', const=0, help='Enable autorefresh and (optionally) set refresh interval')
         parser.add_argument('--watch', action='store_true', help='Enable watch')
+        parser.add_argument('--findall', help='Search for a regular expression at start', type=str, default=None, metavar='regex')
 
         parser.add_argument('filename', nargs=argparse.REMAINDER)
-        
+
         #XX more options from original tail
         # -f  : currently default always on
         # --retry
@@ -112,7 +113,6 @@ class myOptions():
         else:
             args = parser.parse_args()
         self.argparse = args
-
         ## this might be called late, so apply settings as we go
         # XX future: refactor to use self namespace and do less checking
         # self.isCommand = parser.command # XX not implemented yet
@@ -493,7 +493,17 @@ class QtTail(QtWidgets.QMainWindow):
                     self.setWatchInterval(self.opt.argparse.autorefresh)
             if self.opt.argparse.watch:
                 self.ui.actionWatch.setChecked(True)
+            if self.opt.argparse.findall:
+                # this only seems to work after being triggered or at eof
+                self.findallConnection = self.ui.textBrowser.sourceChanged.connect(self.triggerFindAll)
 
+    def triggerFindAll(self, url):
+        d= self.findAll(self.opt.argparse.findall)
+        # don't trigger more than once
+        if self.findallConnection: self.disconnect(self.findallConnection)
+        self.findallConnection = None
+        print('triggered')
+                
     def showsize(self, replace=True):
         m = self.statusBar().currentMessage()
         if m and not replace and 'lines' not in m:
@@ -705,6 +715,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.tweakInterval()
         #if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
         self.updateStatusIcon()
+        if self.findallConnection: # this was never triggered, trigger now
+            self.triggerFindAll(None)
         if self.ui.textBrowser.document().isEmpty():
             # XXX should close on empty be conditional?
             self.close()
@@ -870,7 +882,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.ui.actionShowClosedSearches.setEnabled(True)
         dock.showSel.connect(self.mergeSelections)
         dock.hideSel.connect(self.removeSelections)
-        dock.gotoSel.connect(self.textbody.setTextCursor) # XX maek visible instead?
+        dock.gotoSel.connect(self.textbody.setTextCursor) # XX make visible instead?
         self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), title), -1)
         return dock
         
@@ -883,9 +895,10 @@ class QtTail(QtWidgets.QMainWindow):
             self.highlightDock.setSel(selections)
             self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), 'Highlights'), -1)
         
-    def findAll(self):
+    def findAll(self, text=None):
         # XXX call Qt queue processing if this takes too long?
-        text = self.ui.searchTerm.text()
+        if not text:
+            text = self.ui.searchTerm.text()
         if not text: return
         searchterm = buildSearch(text, self.ui)
         if not searchterm: return
@@ -900,10 +913,18 @@ class QtTail(QtWidgets.QMainWindow):
         c.movePosition(QtGui.QTextCursor.Start)
         doc = self.textbody.document() # use this instead of QTextEdit.find()
         c = doc.find(searchterm, c, findflags)
+        prev=0
         while c and c.position()>=0:
-            es = QTextEdit.ExtraSelection()
-            es.cursor = c
+            es = QTextEdit.ExtraSelection() # make a blank entry
+            es.cursor = c       # save position, color it later
             finds.append(es)
+            if not c.hasSelection(): # zero size match
+                # skip to next word, multiple hits in one word is dumb here
+                c.movePosition(QtGui.QTextCursor.NextWord,QtGui.QTextCursor.MoveAnchor, 1 )
+                if c.position()==prev:
+                    print('findall oops') # DEBUG EXCEPTION
+                    break # prevent infinite loop
+            prev = c.position()
             c = doc.find(searchterm, c, findflags)
         if finds:
             self.searchDock(text, finds)

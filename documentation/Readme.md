@@ -11,7 +11,7 @@ There's more stuff discoverable in the shell.
 
 [See screenshots](documentation/screenshots.md)
 
-## Dependencies
+# = Dependencies
 
 This uses Python and Qt, which are dependencies.  To install these:
 
@@ -25,7 +25,7 @@ Ubuntu:
 This has been tested with Python 3.8 - 3.10 and Qt 5.12 - 5.15.
 (Note: Qt before 5.13 will be missing some functionality.)
 
-# Philosophy
+# = Philosophy
 
 There are lots of (old) traditional command line shells that are quite nice.
 There are a few graphical shells that are nice (like gnome-shell, KDE, etc.)
@@ -66,7 +66,7 @@ and follow the end, similar to what tail -f does.
 
 If you run another command, you get another window dedicated to it.
 
-# Structure and details
+# = Structure and details
 
 The graphical interface includes the following items as described below:
 * Pull down menus
@@ -90,7 +90,7 @@ The following settings dialog boxes allow editing settings:
 * Environment variable editor
 * Button dock editor
 
-## qtail
+## == qtail
 The qtail window also works as a separate application from the shell,
 functioning in a way similar to "tail -f" and taking a few similar
 command line arguments.  As an external application, qtail will work
@@ -163,7 +163,7 @@ Qtail supports the following options:
    Check the 'watch' checkbox which adjusts the default button action
 
 
-## table viewer
+## == table viewer
 
 The table viewer takes the output from a command and tries to parse it
 as a table, using several heuristics to try to guess where the columns are.
@@ -217,7 +217,7 @@ table, but if you select a single column name from the list and press
 return in the search box, searches will be restricted to that column.
 Unselect all columns and press return to search the entire table again.
 
-## small output
+## == small output
 The small output dock window will collect output from commands that
 output a small amount of text or no text and then exit quickly.  But
 if a command outputs more, or you run another command before it
@@ -236,7 +236,7 @@ the main window.  Also, if the small output window is not visible when
 a command sends output or exits, a notification will show in the
 status bar temporarily. (Delay is settable.)
 
-## history dock
+## == history dock
 Like traditional cli shells, this shell keeps a history of your commands.
 But unlike traditional shells, you view it in a graphical dock window
 that is scrollable, sortable, and can be easily filtered.
@@ -252,7 +252,7 @@ save it favorites to mark it for future use.
 You can also use ctrl-uparrow and ctrl-down in the command window to
 browse the history.
 
-## job manager
+## == job manager
 
 The jobs you run are also tracked in a job manager dock window that
 shows the critical job details and status, and helps you find or
@@ -269,7 +269,7 @@ or to run it again.  If you already had a partially typed command there,
 it will be saved in history as a command that was never run.  Returning to
 the unrun command will let you continue editing it.
 
-## settings editor dialog
+## == settings editor dialog
 All shell settings can be adjusted in a graphical settings edit window
 that includes tooltips with default values and documentation for each
 setting.  Numbers mentioned in this document are all settings and can
@@ -278,7 +278,7 @@ including timeouts and otherwise hard coded values editable settings.
 Settings with default values will have a grey background and will turn
 to a white background when they are edited.
 
-## favorites and button docks
+## == favorites and button docks
 
 The favorites editor, when opened, shows your previously saved
 favorites, your 10 most recently run commands, and your 10 most
@@ -309,7 +309,7 @@ automatically deleted on next start.
 Button order can be changed from the dock context menu, but this is
 not (currently) savd.
 
-## main command edit
+## == main command edit
 The command edit box allows typing of commands.
 Commands are not restricted to a single line, but can span multiple
 lines.  Multi-line commands are fed (by default) directly to bash -c
@@ -335,7 +335,7 @@ single `/`
 If you want full pathnames instead of relative pathnames, type a * by
 itself before the cursor (not selected) before activating Ctrl-F.
 
-## Log dock window
+## == Log dock window
 
 If you have a command that typically doesn't output anything
 interesting, or all of its output is debug output (like, for instance,
@@ -351,7 +351,7 @@ amounts of output.  Use the qtail window for that.  By default, the
 log window only remembers the last 10,000 lines from all processes it
 is logging.
 
-## Output destinations
+## == Output destinations
 
 When commands are run, their output is sent to an initial destination.
 The currently available output destinations are:
@@ -373,7 +373,7 @@ the future, splitting them may be possible, although this can be done
 now using traditional mechanisms available in the underlying wrapper
 shell.
 
-# Wrappers
+# = Wrappers
 
 This shell does not have the programmability of typical command line
 shells and only does extremely limited parsing.  Instead, it leans on
@@ -418,7 +418,7 @@ ssh will pass that to the remote shell.  This is not the case if you
 used ssh without a wrapper, and your default wrapper will interpret
 these before running ssh, possibly locally.
 
-# Built in commands
+# = Built in commands
 
 (Numbers in () in the following paragraph are a count of bash built in commands.)
 
@@ -477,7 +477,7 @@ The following builtins must be the first word of a regular command or addwrap co
 Additionally, wrappers are activated by keyword somewhat like builtin
 commands and can be placed after the above output direction commands.
 
-# Buffering
+# = Buffering
 
 Internally, noacli handles data in lines (which Qt calls paragraphs).
 Otherwise, very little is done to control buffering, and this is
@@ -492,7 +492,7 @@ unbuffered.  This might incur a performance penalty for large amounts
 of output.  Otherwise, adding well placed flush() commands in your
 code may help.
 
-# Menus
+# = Menus
 
 The following pull down menus are also available:
 
@@ -516,7 +516,7 @@ your needs. If you have a default window profile, it will be loaded at
 noacli start and saved at exit (unless you uncheck the DefWinProfile
 setting).
 
-# Key bindings
+# = Key bindings
 
 There are not many key bindings, although you can bind favorites to key bindings.
 
@@ -545,7 +545,7 @@ In qtail:
 |---|---|
 |Ctrl-F     | Moves keyboard focus to the find box
 
-# Odds and ends
+# = Odds and ends
 
 Many items are internally documented with tooltips.
 * The general settings editor shows a description of the option and
@@ -573,12 +573,12 @@ started.  You can choose to ignore these left overs, but then noacli
 can't exit until all of them exit on their own and will hang around
 (without its own window) until then.
 
-## Using ssh as a wrapper
+## == Using ssh as a wrapper
 
 To use noacli with ssh to remote hosts, it needs to work without asking for
 a password.  There are two ways to do this.
 
-### Permanent authorization
+### == Permanent authorization
 1) create a local ssh key (e.g, ssh-keygen -t rsa )
 2) copy the public key to the remote host in the file `authorized_keys`
    (the permissions have to be exactly right for it to work, must not be
@@ -586,7 +586,7 @@ a password.  There are two ways to do this.
    The easiest way to do this is with `ssh-copy-id`
 3) (optional) authorize this key with ssh-agent
 
-### Temporary authorization
+### === Temporary authorization
 
 On the local machine, edit `~/.ssh/config` and add the following lines
 
@@ -617,7 +617,7 @@ something like
    addwrap somehost ssh user@somehost.fqdn
    ~~~
 
-## Fonts
+## == Fonts
 
 There are 3 fonts that can be adjusted:
 * The font shared by the command editor, small output dock, and log dock
@@ -632,7 +632,7 @@ There are three places to change the 3 adjustable fonts:
 Note that font changes in general settings only affect new qtail windows and
 that the font picker in qtail doesn't save its settings permanently.
 
-# Postscript
+# == Postscript
 
 If you want to see where this project is going or want to influence it,
 look at [Readme-feedback.md](documentation/Readme-feedback.md) and [noacli-ideas.txt](noacli-ideas.txt)

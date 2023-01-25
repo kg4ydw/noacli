@@ -59,12 +59,17 @@ class selList(itemListModel):
     def __init__(self):
         super().__init__(['pre','item','post'])
         self.color = None
-
+        self.haspre = self.hasitem = self.haspost = False
+        
     def setSel(self, extraSelections):
         self.removeRows(0, len(self.data),None) # XX always purge?
         for sel in extraSelections:
-            if sel.cursor.hasSelection(): # skip stale highlights
-                self.appendItem(selItem(sel.cursor))
+            if sel.cursor.position() or sel.cursor.hasSelection(): # skip stale highlights
+                item = selItem(sel.cursor)
+                self.appendItem(item)
+                if item.pretext: self.haspre = True
+                if item.text: self.hasitem = True
+                if item.posttext: self.haspost = True
 
     def headerData(self, col, orientation, role):
         if orientation==Qt.Horizontal and col==1 and role==Qt.BackgroundRole and self.color:
@@ -103,8 +108,9 @@ class searchDock(QDockWidget):
         self.ui.setupUi(self)
         self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
-        # XX (later) check parent for existing docks, and add this as a tab
+        # stuff this in a corner of the parent QMainWindow
         parent.addDockWidget(Qt.LeftDockWidgetArea, self)
+        # XX alternate: check parent for existing docks, and add this as a tab SETTINGS
         global colorpicker
         color = colorpicker.nextColor()
         self.color = QtGui.QBrush(QColor(color))
@@ -112,7 +118,14 @@ class searchDock(QDockWidget):
         self.ui.tableView.setModel(self.model)
         if title:
             self.setWindowTitle(title)
-        if selections: self.setSel(selections)
+        if selections:
+            self.setSel(selections)
+            if title and title!='Highlights':
+                tv = self.ui.tableView
+                # hide empty columns
+                if not self.model.haspre: tv.setColumnHidden(0,True)
+                if not self.model.hasitem: tv.setColumnHidden(1,True)
+                if not self.model.haspost: tv.setColumnHidden(2,True)
         self.model.setColor(self.color)
 
         self.ui.showButton.clicked.connect(partial(self.emitExtraSelections, self.showSel))

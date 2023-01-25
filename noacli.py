@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.8'
+__version__ = '1.9'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -905,7 +905,7 @@ class noacli(QtWidgets.QMainWindow):
         # find our readme
         dir = os.path.dirname(os.path.realpath(__file__))
         p =  os.path.join(dir, 'documentation', 'Readme.md') # XX test path?
-        j.outwinArgs = ['--url']
+        j.outwinArgs = ['--url', '--findall=^=+']
         self.settings.jobs.newjob(j)
         j.startOutwin(p,self.settings)
         # XX clean up on fail?
