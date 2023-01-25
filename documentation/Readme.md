@@ -9,8 +9,6 @@ including common trivial data visualization stuff.
 This readme is not comprehensive, but it hits the major points.
 There's more stuff discoverable in the shell.
 
-[See screenshots](documentation/screenshots.md)
-
 # = Dependencies
 
 This uses Python and Qt, which are dependencies.  To install these:
