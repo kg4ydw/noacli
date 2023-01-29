@@ -595,15 +595,15 @@ class TableViewer(QtWidgets.QMainWindow):
             # XXX mask debug output should be put in a window somewhere
             m10 = ceil(max(len(mask),len(line[0]))/10)
             cols = self.fixedoptions['columns']
-            print("".join(str(x%10)+' '*9 for x in range(m10)))
-            print('0123456789'*min(m10,8))
-            print(lines[0])
-            print("".join( str(x)[0] for x in mask))
+            print("".join(str(x%10)+' '*9 for x in range(m10))) # DEBUG
+            print('0123456789'*min(m10,8))                      # DEBUG
+            print(lines[0])                                     # DEBUG
+            print("".join( str(x)[0] for x in mask))            # DEBUG
             s = [' ']*(cols[-1]+1)
             for x in cols:
                 s[x]='x'
-            print("".join(s))
-            print(','.join([str(x) for x in cols]))
+            print("".join(s))                                   # DEBUG
+            print(','.join([str(x) for x in cols]))             # DEBUG
                   
 
     def openfd(self, csvfile):

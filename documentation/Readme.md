@@ -131,7 +131,7 @@ Qtail supports the following options:
     After all the options will be a space separated list of filenames, each of which will be opened in its own qtail window
     
 `--nowrap`  
-    Turn word wrap off initially
+    Turn word wrap off initially (may be faster)
 
 `--autorefresh` or `--autorefresh=seconds`  
     Enable autorefresh and (optionally) set refresh interval
@@ -150,9 +150,6 @@ Qtail supports the following options:
 
 `--url`  
     Treat filename as a URL, autodetect format.  Note: doesn't work with remote urls
-
-`--nowrap`  
-    Disable word wrap initially (may be faster)
 
 `--autorefresh`  or `--autorefresh=seconds`  
     Enable autorefresh (default = 30 seconds); only works on files outside noacli; in noacli,  commands will rerun like "watch"

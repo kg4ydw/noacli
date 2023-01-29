@@ -40,7 +40,7 @@ typedQSettings().registerOptions({
     'QTailSecondaryFont': [None, 'Alternate font for qtail', QFont],
    #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
    #'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
-   #'QTailWrap':  [ True, 'wrap long lines', bool ]
+    'QTailWordWrap':  [ True, 'Word wrap long lines by default', bool ],
    #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
    #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
     'QTailWatchInterval': [30, "Default automatic refresh interval for qtail in watch mode", int],
@@ -481,6 +481,11 @@ class QtTail(QtWidgets.QMainWindow):
     def start(self):
         doc = self.textbody.document()
         doc.setMaximumBlockCount(self.opt.maxLines)
+        # set defaults before processing cli options
+        qs = typedQSettings()
+        ww = qs.value('QTailWordWrap', False)
+        self.ui.actionWrap_lines.setChecked(ww)
+        self.wrapChanged(ww)
         # this will get run on some pass maybe
         if hasattr(self.opt, 'argparse'):
             if  self.opt.argparse.nowrap:
@@ -502,7 +507,6 @@ class QtTail(QtWidgets.QMainWindow):
         # don't trigger more than once
         if self.findallConnection: self.disconnect(self.findallConnection)
         self.findallConnection = None
-        print('triggered')
                 
     def showsize(self, replace=True):
         m = self.statusBar().currentMessage()
@@ -715,7 +719,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.tweakInterval()
         #if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
         self.updateStatusIcon()
-        if self.findallConnection: # this was never triggered, trigger now
+        if hasattr(self,'findallConnection') and self.findallConnection:
+            # this was never triggered, trigger now
             self.triggerFindAll(None)
         if self.ui.textBrowser.document().isEmpty():
             # XXX should close on empty be conditional?
@@ -771,12 +776,17 @@ class QtTail(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(int)
     def wrapChanged(self, state):
         e = self.textbody.textCursor()
+        # current cursor might not be visible, so get one that is
+        vc = self.textbody.cursorForPosition(QtCore.QPoint(10,10)) # not exactly at top, but close
         if state:
             self.textbody.setLineWrapMode(QTextEdit.WidgetWidth)
         else:
             self.textbody.setLineWrapMode(QTextEdit.NoWrap)
-        self.textbody.setTextCursor(e)
-
+        ## attempting to save and restore position seems to make it worse
+        #self.textbody.setTextCursor(vc)
+        #self.textbody.ensureCursorVisible()
+        #self.textbody.setTextCursor(e)
+        
     ### settings that can change, trigger from UI elements
     # textBrowser.setLineWrapMode = WidgetWidth | NoWrap
     # text mode: html richtext markdown plain --> change insert function, reload
