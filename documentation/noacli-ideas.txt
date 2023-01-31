@@ -28,10 +28,9 @@ User interface questions: (please send feedback!!)
 ----ST
 
  -Things to implement soon:
-   move qtail and qtable to threads
-   resize search dock??
- ! history could resize vertically on popout?
    all windows are sized poorly on low res screens
+   resize search dock??
+   history could resize vertically on popout?
    window title: do a better job of eliding long commands
    table column picker needs an undo select columns
  o settingsDialog needs double click resize (fixed default ??)
@@ -81,7 +80,7 @@ User interface questions: (please send feedback!!)
  -  running long commands with log
 
  -high priority bugs
-   --filter= doesn't support regex
+ ! --filter= doesn't support regex
    mac bugs
      history arrows don't work on mac
      icons and app name don't work on mac
@@ -173,9 +172,9 @@ DE    should warn on duplicate names? (color?)
    version 0.9.9.8s gives exception importing wrappers from previous version
       convince QSettings to use enum.name for enum OutWin
    simpleargs processing in noajobs.py
-     called in multiple places (refactor?)
+ !   called in multiple places (refactor?)
      return value not checked for errors
-     errors not displayed
+ !   errors not displayed
    refactor tableviewer simpleargs to merge with parseargs
    settings dialogs use shared variables and should not be duplicate opened
       raise and focus old dialog instead
@@ -271,9 +270,6 @@ D*      *@ favorites editor (buttons and frequent)
 D*      o% environment var editor
 D*      *% settings editor
  ?       % wrapper editor
- n?      % command default mode editor
-             table: command mode
-             mode: qtail log terminal null local graph (default: pulldown)
  ?       @ ssh manager
 D*       @ fancy table viewer
          @ ulimits editor
@@ -580,12 +576,6 @@ Do   (feature) name completion
 D*   help
  !   times
 
- n handle .desktop files, prepopulate graphical applications from those
- -   ignore everything not Type=Application
- -   look for ^Exec=
- -   look for Terminal=true
- -   ignore everything NoDisplay=true
-
    fancy environment variable editor
      split on delimiter, default :
      turn into checkbox list
@@ -731,7 +721,11 @@ D*       term -> "xterm -e" or "gnome-terminal --"
          filter by section
         clear database
 
-completed misc. features
+ -Unsupported by Qt
+ x move qtail and qtable to threads: can't have subthreads with GUI access
+
+
+-completed misc. features
  * table parsing in qtail
  *    fixed width white space tables
  * add title to jobinfo and use it when small output dup
