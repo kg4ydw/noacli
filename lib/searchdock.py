@@ -137,6 +137,20 @@ class searchDock(QDockWidget):
         if item:
             self.gotoSel.emit(item.cursor)
 
+    # opposite of gotoIndex
+    def findSelection(self, cursor):
+        pos = cursor.position()
+        for index in self.model:
+            ic = self.model.getItem(index).cursor
+            c1 = ic.anchor()
+            c2 = ic.position()
+            if c1>c2:
+                (c1,c2) = (c2,c1)
+            if c1<=pos and pos<=c2:
+                self.ui.tableView.setCurrentIndex(index)
+                return
+        # not found
+        
     def setSel(self, extraSelections):
         self.model.setSel(extraSelections)
         self.ui.tableView.resizeColumnsToContents()

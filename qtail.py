@@ -167,6 +167,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody = self.ui.textBrowser
         if self.opt.maxLines>0:
             self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
+        self.textbody.cursorPositionChanged.connect(self.findSelection)
 
         ## build the Mode menu because QtDesigner can't do it
         m = self.ui.menuMode
@@ -895,6 +896,13 @@ class QtTail(QtWidgets.QMainWindow):
         dock.gotoSel.connect(self.textbody.setTextCursor) # XX make visible instead?
         self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), title), -1)
         return dock
+
+    def findSelection(self):
+        cursor = self.textbody.textCursor()
+        # should this just get the current visible docks?
+        for dock in self.findChildren(QtWidgets.QDockWidget):
+            if hasattr(dock, 'findSelection'): # duck type
+                dock.findSelection(cursor)
         
     def extraSelectionsToDock(self):
         if not self.highlightDock:
