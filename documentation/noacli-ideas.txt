@@ -28,8 +28,8 @@ User interface questions: (please send feedback!!)
 ----ST
 
  -Things to implement soon:
-   all windows are sized poorly on low res screens
-   resize search dock??
+   qtail search dock: update search results if file grows (manual update?)
+   qtail search dock: save regex groups as extra columns?
    history could resize vertically on popout?
    window title: do a better job of eliding long commands
    table column picker needs an undo select columns
@@ -889,6 +889,8 @@ D*   if it ends in / select dirs only??
  *   finish refactoring tableviewer option parser
  * searchdock / saved highlights: delete or mark highlights that have scrolled off
  * button docks were not in show/hide/tabify all docks
+ *  all windows are sized poorly on low res screens (fixed qtail?)
+ * resize search dock??
 
 ----E
 ## ispell put these here

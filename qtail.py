@@ -837,7 +837,7 @@ class QtTail(QtWidgets.QMainWindow):
         #print(' docsize=%d,%d newsize=%d,%d'%(width,height,newsize.width(),newsize.height())) # DEBUG
         if height > newsize.height():
             height = newsize.height()
-        if width<newsize.width() and width*1.5 > newsize.width():  # allow 50% growth
+        if width<newsize.width():  # rely on Qt to ignore rediculous resizes
             width = newsize.width()*1.2 # Qt underesitmates
             #print('expand %d'%width) # DEBUG
         elif width > newsize.width(): # shrink
@@ -886,15 +886,16 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody.setExtraSelections(es)
             
 
-    def searchDock(self, title, selections):
+    def searchDock(self, title, selections, searchterm=None, findflags=None):
         if not selections: return # don't make empty dock
-        dock = searchDock(self, title, selections)
+        dock = searchDock(self, title, selections, searchterm, findflags)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
         dock.showSel.connect(self.mergeSelections)
         dock.hideSel.connect(self.removeSelections)
         dock.gotoSel.connect(self.textbody.setTextCursor) # XX make visible instead?
-        self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), title), -1)
+        self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), title), -1) # maybe dock should do this directly so it can be seen after start
+        self.want_resize.emit()
         return dock
 
     def findSelection(self):
@@ -945,7 +946,7 @@ class QtTail(QtWidgets.QMainWindow):
             prev = c.position()
             c = doc.find(searchterm, c, findflags)
         if finds:
-            self.searchDock(text, finds)
+            self.searchDock(text, finds, searchterm, findflags)
  
 ##### end QtTail end
         

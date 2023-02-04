@@ -102,11 +102,13 @@ class searchDock(QDockWidget):
     hideSel = pyqtSignal(list)
     gotoSel = pyqtSignal(QTextCursor)
     
-    def __init__(self, parent, title=None, selections=None):
+    def __init__(self, parent, title=None, selections=None, searchterm=None, findflags=None):
         super().__init__(parent)
         self.ui = Ui_searchDock()
         self.ui.setupUi(self)
         self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        self.searchterm = searchterm # XXX use these later
+        self.findflags = findflags
 
         # stuff this in a corner of the parent QMainWindow
         parent.addDockWidget(Qt.LeftDockWidgetArea, self)
