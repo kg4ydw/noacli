@@ -1,5 +1,5 @@
 ![noacli](icons/noacli.png "icon")
-noacli: the No Ampersand CLI shell
+[noacli](https://github.com/kg4ydw/noacli): the No Ampersand CLI shell
 
 noacli is a hybrid graphical and command line interface shell.
 It tries to use the command line interface where that is most efficient,
