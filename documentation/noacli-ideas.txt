@@ -808,6 +808,7 @@ d*    rerun interval
  * job manager: indicate how many jobs exist (no clear?)
  * qtail: (colored) indicator showing job status (when relevant)
  * findAll reverse track: find cursor in list from clicking on highlight in body
+ * qtail search: should scroll to found entry
 
  -fixed bugs
  * retore geometry doesn't grab the current selected geometry

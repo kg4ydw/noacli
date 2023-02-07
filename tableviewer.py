@@ -12,7 +12,6 @@ __copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
 
 ## bugs:
 # XX Doesn't have its own icon (yet)
-# XX Doesn't parse command line options, but it should have a few.
 
 import sys, os, io, csv, re, argparse
 from functools import partial

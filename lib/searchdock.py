@@ -120,13 +120,17 @@ class searchDock(QDockWidget):
         self.ui.tableView.setModel(self.model)
         if title:
             self.setWindowTitle(title)
+        self.favcol = 1 # item to scroll to (possibly only visible column)
         if selections:
             self.setSel(selections)
             if title and title!='Highlights':
                 tv = self.ui.tableView
                 # hide empty columns
                 if not self.model.haspre: tv.setColumnHidden(0,True)
-                if not self.model.hasitem: tv.setColumnHidden(1,True)
+                if not self.model.hasitem:
+                    tv.setColumnHidden(1,True)
+                    if self.model.haspre: self.favcol = 0
+                    else: self.favcol = 2
                 if not self.model.haspost: tv.setColumnHidden(2,True)
         self.model.setColor(self.color)
 
@@ -150,9 +154,10 @@ class searchDock(QDockWidget):
                 (c1,c2) = (c2,c1)
             if c1<=pos and pos<=c2:
                 self.ui.tableView.setCurrentIndex(index)
+                self.ui.tableView.scrollTo(index.siblingAtColumn(self.favcol))
                 return
         # not found
-        
+
     def setSel(self, extraSelections):
         self.model.setSel(extraSelections)
         self.ui.tableView.resizeColumnsToContents()
