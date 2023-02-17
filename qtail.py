@@ -119,7 +119,9 @@ class myOptions():
         if args.tailFrag > 100: self.tailFrag = args.tailFrag
         self.maxLines = args.lines
         self.whole = args.whole
-        if self.whole: self.maxLines = 0
+        if self.whole:
+            self.maxLines = 0
+            args.nowrap = True
         if args.title: self.title=args.title # XX late apply?
         if args.format:
             if args.format=='html': self.format='h'
@@ -167,6 +169,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody = self.ui.textBrowser
         if self.opt.maxLines>0:
             self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
+        else:
+            self.disableAdjustSize = True  # too expensive for huge text
         self.textbody.cursorPositionChanged.connect(self.findSelection)
 
         ## build the Mode menu because QtDesigner can't do it

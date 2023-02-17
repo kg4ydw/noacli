@@ -28,6 +28,11 @@ User interface questions: (please send feedback!!)
 ----ST
 
  -Things to implement soon:
+   document aha example or incorporate aha into qtail
+   add ansi format option to qtail (via aha type translation)
+   autodetect formats? html ansi
+   disable word wrap on line threshold?
+   on -w disable: word wrap, adjust size (prevent wordwrap hangs)
    qtail search dock: update search results if file grows (manual update?)
    qtail search dock: save regex groups as extra columns?
    history could resize vertically on popout?
