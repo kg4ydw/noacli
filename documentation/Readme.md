@@ -186,6 +186,7 @@ following options:
     
 `--fixed`  
     force fixed width parsing instead of csv parsing with delimiters
+
 `--mask` or `--mask=nlines`  
     Forces --fixed; Read the whole table (or just nlines) up front and use a mask algorithm to split fixed width tables, looking for columns with only whitespace (or delimiters if specified, e.g. --delimiters=-=+: ) and merge in any extra columns with --columns= (negative values to remove column seperations)
 

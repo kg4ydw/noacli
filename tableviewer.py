@@ -624,7 +624,7 @@ class TableViewer(QtWidgets.QMainWindow):
         peek = peeklines[0] # just one line for now otherwise csv gets too clever
         # self.firstread = False  # got something, initialize! but in case anything goes wrong, set this later
         if self.forcefixed or '\t ' in peek or ' \t' in peek:  # maybe 3 spaces too?
-            if DEBUG: print("Found tabs and spaces, trying fixed width parser") # DEBUG
+            #if DEBUG: print("Found tabs and spaces, trying fixed width parser") # DEBUG
             self.parser = FixedWidthParser(csvfile, self.fixedoptions)
             self.csvreader = iter(self.parser)
         else:

@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.10.1'
+__version__ = '1.10.2'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -247,7 +247,6 @@ class  fontDelegate(QStyledItemDelegate):
         # so the wrong font is used without this
         DEBUG = typedQSettings().value('DEBUG',False)
         if hasattr(self, 'lastmodel'):
-            if DEBUG: print('late set font')
             self.setModelData(self.fd, self.lastmodel, self.lastindex)
 
     def setModelData(self, editor, model, index):

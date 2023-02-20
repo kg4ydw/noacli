@@ -335,7 +335,7 @@ class QtTail(QtWidgets.QMainWindow):
                 return
             else:
                 self.ui.textBrowser.clear()
-                if typedQSettings().value('DEBUG',False): print('rerun '+(" ".join(self.file.arguments()))) # DEBUG
+                #if typedQSettings().value('DEBUG',False): print('rerun '+(" ".join(self.file.arguments()))) # DEBUG
                 self.file.start()
         else:
             self.reload()

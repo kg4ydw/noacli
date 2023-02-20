@@ -35,6 +35,7 @@ User interface questions: (please send feedback!!)
    on -w disable: word wrap, adjust size (prevent wordwrap hangs)
    qtail search dock: update search results if file grows (manual update?)
    qtail search dock: save regex groups as extra columns?
+   general settings editor needs a search
    history could resize vertically on popout?
    window title: do a better job of eliding long commands
    table column picker needs an undo select columns
