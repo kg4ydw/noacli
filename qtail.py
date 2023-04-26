@@ -820,7 +820,8 @@ class QtTail(QtWidgets.QMainWindow):
         framedy = rect.height() - docrect.height()
         #print("ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
         # time this expensive function and don't do it again if it's bad
-        if not self.disableAdjustSize:
+        # also disable it if --whole is used
+        if not self.disableAdjustSize and not self.opt.whole:
             start = time.time()
             doc.adjustSize()
             interval = time.time()-start

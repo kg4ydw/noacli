@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.10.2'
+__version__ = '1.10.3'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -932,7 +932,10 @@ class noacli(QtWidgets.QMainWindow):
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
         if cmdargs==None:
             return # nothing was done, don't set status
-        if type(cmdargs)==str or len(cmdargs)==2:
+        if type(cmdargs)==int: # pass/fail without message
+            histbase.model().setStatus(histbase, cmdargs)
+            return
+        elif type(cmdargs)==str or len(cmdargs)==2:
             if len(cmdargs)==2:
                 (msg, estatus) = cmdargs
             else:
@@ -940,9 +943,6 @@ class noacli(QtWidgets.QMainWindow):
                 estatus = 'ok'  # did it pass or fail?
             self.ui.smallOutputView.internalOutput(self.settings,msg+"\n")
             histbase.model().setStatus(histbase, estatus)
-            return
-        elif type(cmdargs)==int: # pass/fail without message
-            histbase.model().setStatus(histbase, cmdargs)
             return
         outwinArgs = None
         if len(cmdargs)==4:
