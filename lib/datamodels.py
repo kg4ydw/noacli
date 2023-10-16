@@ -218,6 +218,20 @@ class itemListModel(QAbstractTableModel):
         self.endInsertRows()
         item.index = QPersistentModelIndex(self.index(lastrow,1)) # and item remembers itself
         return item.index
+    def insertRowsAt(self, where, rows):
+        # non-standard manipulator
+        # where=0 at start, where=1 at end
+        count = len(rows)
+        if where:
+            start=len(self.data)
+        else:
+            start=0
+        self.beginInsertRows(QModelIndex(),start,start+count-1)
+        if where:
+            self.data = self.data+rows
+        else:
+            self.data = rows + self.data
+        self.endInsertRows()
 
     # subclass needs to first verify these can be deleted
     def removeRows(self, start, count, parent):

@@ -727,8 +727,7 @@ class QtTail(QtWidgets.QMainWindow):
         if hasattr(self,'findallConnection') and self.findallConnection:
             # this was never triggered, trigger now
             self.triggerFindAll(None)
-        if self.ui.textBrowser.document().isEmpty():
-            # XXX should close on empty be conditional?
+        if self.ui.textBrowser.document().isEmpty() and not (self.ui.actionAutorefresh.isChecked() or self.ui.actionWatch.isChecked()):
             self.close()
 
     def terminateProcess(self, checked):
@@ -950,8 +949,12 @@ class QtTail(QtWidgets.QMainWindow):
                     break # prevent infinite loop
             prev = c.position()
             c = doc.find(searchterm, c, findflags)
+            QtCore.QCoreApplication.processEvents()
+            #if typedQSettings().value('DEBUG',False): print(".",end='',flush=True)
         if finds:
             self.searchDock(text, finds, searchterm, findflags)
+        QtCore.QCoreApplication.processEvents() # for good luck
+        #if typedQSettings().value('DEBUG',False):print(len(finds))
  
 ##### end QtTail end
         

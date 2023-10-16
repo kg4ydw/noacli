@@ -1,0 +1,737 @@
+noacli -- no ampersand asynchronous shell
+
+This is the list of completed and abandoned feature ideas.
+If you see an abandoned idea here you would like implemented, let me know!
+
+Column key:
+o  partial implementation
+*  done
+n  decided to not implement this
+x  not supported in Qt (or I haven't figured it out) (might still be possible, or check next version of qt)
+
+
+ o settingsDialog needs double click resize (fixed default ??)
+   tableview matplot lib integration
+      select one or two columns for line graph (label column)
+      select two columns or three for parametric graph
+      select two columns (label, data) for pie graph
+ o table viewer options
+     document short options?
+ x   tableviewer needs its own icon
+   mac installer?
+ x table should send stderr to log
+ x bold default button dock title or something
+
+ -Things that could be implemented but are not currently being considered:  (Request if you want this)
+ - qtail: should the interactive search highlight color (yellow) be configurable?
+ - qtail: should the color editor be available in the menu bar instead of just the context menu?
+ - pip setup.py installer
+ - qtail: implement --command for external use (useful with watch)
+ - button dock: save sort mode?
+ - button dock: add button dragging to set/save order
+ - qtail reverse find (context menu? menu checkbox?)
+ - mac terminal window wrapper (applescript?)
+ -  URL handling
+ -    recognize URLs and highlight in qtail
+ -    open URLS (other than File:// which should already work)
+ -    send URLs to external app(s?) (xdg-open ?)
+ - Rename button dock? --> beware renaming first dock
+
+ - videos
+ o  small output -> qtail demo
+ -  rearrange docks and create everything
+ -  use environment vars
+ -  play with tables (suggest: ls -l or sacct)
+ -  differences with a regular shell
+ -  setting up ssh
+ -  running long commands with log
+
+   should watch windows suspend activity when not visible?
+ x?   Qt visibility event??
+      checkbox in menu
+      cli option to set default
+      general setting?
+ *    measure runtime and set duty cycle
+   SETTING auto pause qtail on maxlines threshold
+      setting to extend 10k lines for this window
+      ugly to implement this with current I/O model
+ * table filter case sensitivity
+ o table view option to fix non-data cells (preamble)
+ *    skip during input
+      span columns?
+      split into multiple cells?
+      delete row?
+ * close stdin
+     ssh still causes tostop or something
+ x add small buttons in dock widget headers
+     jobs: clean
+ *   history: reset sort
+D*   alternately: document table corner button that does this
+ * tag name of button template for window title
+     hidden text?
+     leave out of history & job view (or copy to title)
+   timestamps
+     by option
+     qtail?
+     job manager
+ x detach processes before exiting (optionally)
+d* on exit, wait for jobs to exit or kill them
+d* SETTING: delay after first data before initial window resize
+ o SETTING: max qtail window size (in px), to allow free expansion
+ -User visible bugs:
+ ? qtail closes if proc has no output even if watch is enabled
+ ? on large data, qtail freezes on first resize in qt adust()
+ o   resize early when buffer is small rather than later
+ o   avoid resizing when the buffer is too large (word wrap recalculation causes delay)
+
+ -User visible bugs:
+ ? qtail closes if proc has no output even if watch is enabled
+ ? on large data, qtail freezes on first resize in qt adust()
+ o   resize early when buffer is small rather than later
+ o   avoid resizing when the buffer is too large (word wrap recalculation causes delay)
+ x block tostop signal : try os.setsid ?
+     detect child proc trying to read stdin/stderr
+     kill child proc?
+     move to terminal window automatically?
+     preconnect pty for this purpose?
+
+ -Bugs:
+ * qtail search docks are not deleted on close (possible memory leak or feature?)
+ *   added menu entry to delete or reopen them
+ ? reported lockup on mac when playing with menu bar menus / job manager?
+     maybe fixed?  can't reproduce
+
+ - Misc things to implement
+ x set some keybindings on all windows?
+   make tableviewer / qtail as dock widgets
+     dock vs. mainwindow mode
+     new dockable mainwindow
+     shared toolbars?
+
+
+ - completed features
+D* small output window
+D*   transfer last command output to qtail if:
+D*     output exceeds visible lines-1
+       process exit timeout
+D*     another command is run that produces output
+D*     user presses dup button (or shortcut?)
+D*   single line (or most recent?) output sent to status bar
+d*   don't remember more than visible lines * 2 (option setting?)
+D*   auto
+ o   configured only (default qtail)
+ o   forced (disable auto-qtail)
+ 
+D* merged logs window
+ *   count unviewed messages and show counter in status bar and menu
+ o   send some messages also to small output window or status bar
+        if sow is visible and log is not
+        if newly started program exits before next command
+        if exit value is nonzero
+        blacklist list
+        whitelist ?
+ x   filter by pid, process name, random string
+ *   purge by ^^
+D*   max retention
+
+   set window title based on regex filter list
+ * update status bar with recent process status and errors
+ * short output in status window
+ * single lines to status bar (and status window?)
+
+ * job manager and history:
+ *   scroll to new entry
+ *   resize columns
+ -context menu / widget / class
+ * history manager / historyView
+ * job manager / jobTableVew / noacli
+   button editor / settingsDialog>tableView / settingsDialog
+ * general settings editor / settingsDialog>tableView / settingsDialog
+ * command window / plainTextEdit / commandEditor
+   qtail search / searchTerm / QtTail?
+ * log dock
+
+ -Main features:
+ * main window is a dynamic one line editor
+ n   pwd in message window when nothing else
+ n   directory stack
+D*   complex commands are sent to bash
+ n     detect complex commands
+ *   command window context menu
+ *     run
+ *     save for later and clear
+ *     clear?
+ *     save to favorites
+ o   Qsettings
+D*      save/restore geometry (QWidget)
+D*        save multiple profiles
+ *      save/restore history?
+ o      read history on command
+ *      save env changes?
+ -   docks* and +dialogs?  (%hash @array)
+ -     dock: QT data structure is persistent and master
+ -     dialog: build a table on the fly and save changes
+D*      *@ history
+D*      *% button dock
+D*      *? job manager
+D*      *@ favorites editor (buttons and frequent)
+D*      o% environment var editor
+D*      *% settings editor
+ ?       % wrapper editor
+ ?       @ ssh manager
+D*       @ fancy table viewer
+         @ ulimits editor
+         % internal function keybindings
+D* history with arrow keys
+ n history search with ctrl-s ctrl-r and !? (history filter instead)
+D* history with pull down menu (last 10)
+D* history manager
+D*   table: index frequency exitval command button-name checkbox:edit/run
+D*   editable table --> double click to edit in main window
+D*   exit value: none if never run; color green/red/grey
+D*   allow re-edits of unrun entries
+        move to end of list
+D*   sortable table (by col)
+D*   search box --> filter
+ *   sort: history order (col=-1)
+ *   context menu
+ n remember 10 most frequent commands in pull down menu
+
+D* button editor ("favorites")
+ *   table: *name *key count *command *checkImmediate
+ *   sorted sections: buttons freq
+     make sortable with proxy
+       and searchable?
+       reset sort
+D*   implement key shortcuts
+D*   mark edited lines and save? or just mark to keep or expire
+ * history manager context menu
+ *   (single click copies to edit window, double click runs)
+ *   add to favorites
+ *   delete selected
+ *   remove duplicates
+Do job manager list
+ *   manager table: pid type command kill raise? info rerun
+ *   alternate: QProcess object, status, type, command
+ *   window status
+ *   window type
+D*   click to redisplay / raise window (qtail)
+ *   job manager context menu:
+ *     info? --> process status, time stats, etc
+ *     kill
+ n     edit
+ n     kill or kill and restart
+ *     raise or reopen
+ *     close window
+ n     clone?
+ n   open status icon
+ *   proc/wait info
+D*   delete dead jobs? (life cycle)
+ n   change default type
+ n pipe / fd / job
+ *   handle stdout
+       stderr channels separately
+ n     save to file
+ n     can a process in the middle of a pipeline be restarted?
+ n   handle stdin:
+ n     send file
+ n     pipe  (connect multiple commands, tree style jobs)
+ *     close when not used
+D* settings
+ *   table: name default tooltip currentval
+D*   show default in table ? or unmark when set to default?
+ n   context menu: reset selected to default
+ *   merge qtail options
+ -   items
+d*     historysize
+d*     historyfile
+d*     histfilesize
+ n     histcontrol
+ n       ignorespace : don't remember commands starting with space
+d*       ignoredups: ignore repeated commands
+d*       erasedups: remove previous occurances from history
+d*     JobMenuWidth
+d*     history menu size
+d*     frequent menu size
+d*     frequents size
+ n     frequents threshold
+d*     SHELL external shell
+do     graphical terminal
+ n     QTailFormat
+d      QTailFollow
+d?     QTailWrap
+d      QTailSearchMode
+d      QTailCaseInsensitive
+
+ * environment vars?
+ *   key : [ mode. value ]
+ *   mode = inherited, session, save, deleted, mask
+ *   tooltips:
+ *     inherit: inherited from external environment
+ *     session: keep these changes for this session only
+ *     save: changes saved for future sessions
+ *     deleted: will not be used for subprocesses
+ *     mask: will be masked from use in this and future sessions
+ *   inherit -> reset value from env
+ *   mod value -> (delete,inherit)->session or mask->save
+ *   new key -> save
+     mark changed values
+
+Do wrapper table
+ *   name : [ save, OutWin, args... ]
+ o   load from file
+ o   save to file
+
+ * short output commands -- display last line in editor/launcher
+
+ o terminal (find one in python?)
+D* qtail window
+D* merged log viewer
+D* table parser window
+ n iconified -- status from proc
+   special -- parsed status
+     pie chart for percentages / apt interaction
+     debconf-apt-progress progress bar protocol
+D* ephemeral -- autoclose
+
+Do scrolly window (qtail)
+D*   view / follow a log file
+D*   take input from a pipe
+D*   keep only last X lines?
+ *   autoresize (need trigger event)
+     in a file, button to backscroll to previous lines or read more forward
+        large file handling, line number / fseek index
+     pause (pull down menu) disable input / change button
+ *   start from top / follow tail
+ o   reload button
+ *     if file --> reload
+ *     if process / running command -> kill
+ *     if done command -> rerun
+ -     if open stdin -> stop (close)
+ *     if closed -> close window
+ n   autoclose after exit on specified timeout without user interaction
+ *   command line options (for inside noacli)
+ *     --file
+       --maxlines ?Z
+D*   search / filter ?
+     search context menu
+Do     find next
+       find previous
+       find forward / reverse
+ *     case sensitive SETTING
+ *     regex / plain SETTING
+ n     advanced --> find dialog
+ o   menu bar
+ n     file
+ n       open: new / command / reopen/refresh / rerun / reopen file in other app
+ n       save as
+         buffering: tail [size] / all
+ n       format/view
+ ***       plain text html markdown
+ o         alternate fonts
+ o     memory saver (limit scrollback to 1M / 10000 lines by default)
+ o     find menu
+ n       advanced --> find dialog
+ *       wrap? (always)
+         bookmarks
+ n     find dialog
+ o       buttons: next prev hilight/unhilight
+ *       regex / glob / plain ?
+ *       ignore case
+ x       mark scrollbar with finds (set color for multiple finds?)
+ *       save search & color as preset
+ x       trigger sets of presets based on command name
+ x       run command on current selection?
+     text body context menu
+ x     change format (reloads text)
+ *     transform selection to table
+ *     adjustSize() --> autoresize window?
+     command line options / open menu (menu bar)
+ *     source from stdin
+ *     file
+ o log viewer
+ *    saves to a log, either file or short memory buffer
+ *    buffer size = bytes and/or time or lines
+ *    log format:
+ *      START $pid command
+ *      $pid output line
+ *x     EXIT $pid $exitval wait stats...
+ x    view full or filtered log
+        fold filtered entries
+
+D* simple output window
+D*   for commands that output a small amount and exit in a short time
+ *   rerun / close / clone / save
+ n   pulldown: run this command with mode <> next time
+ o   pulldown: (shared) / dedicated / clone / timeout (set as default for this cmd)
+
+ * table viewer
+ *   select lines, cells, columns, send to clipboard
+ *   show / hide / rearrange columns
+ o   sort by column
+ *   table column selector
+ *     select fields in list -- list view?
+ *     export selected column names --> space or comma sep
+ o   context menu
+ *     merge selected cells in this row
+       (split cell here)
+ o   command line options
+ *     --skip N lines
+ *     --file
+ *     --csv --delimiter
+       --regex (delimiter or split pattern? depends on if groups?)
+ *     --fixed --gap=2
+
+ - built in special commands
+D*   terminal (--set-default)
+D*   scrolly / qtail / tail
+D*   log
+D*   direct run / sh wrapper
+D*   table
+     parse and display graphically (chart, table, pie? matplotlib?)
+Do   (feature) name completion
+ *   host (setwrap) (similar to cd) --> send commands to ssh
+        use remote stub?
+        pty password mode for sudo?
+ o   button --> adds a button for the following command
+     pushd dir --> creates button fur current directory and cd
+     pushd * --> creates buttons for all listed directories
+
+ - bash built in commands by category
+ - shared with noacli marked with *=command !=grpahical or ?=future
+ - misc (1/1)
+ -   command*
+ - environment settings (6/13)
+ -   cd* dirs export! hash logout exit popd pushd pwd times? type*
+ -   ulimit? umask?
+ - shell settings (4.5/9)
+ -   source alias bind!? builtin* readonly set! shopt! unalias unset
+ - user interface settings
+ -   compgen complete compopt
+ - job control (3/8)
+ -   bg disown? exec fg jobs! kill! suspend wait
+ - history (2/2)
+ -   fc! history!
+ - scripting (0/19)
+ -   break caller continue declare typeset echo enable eval getopts
+ -   let local mapfile printf read readarray return shift test trap
+
+ o bookmarks and highlights (fancy find all)
+ ?   replace table with styled delegate to merge line
+ *   select text and hit return to highlight something
+ *   also context menu entry to highlight
+ *   all following actions from context menu or search menu?
+ *     save highlights as bookmarks --> create bookmark dock
+ *     find all --> create search dock
+ *   colors
+ *     QBrush(QColor(name))
+ *     colorNames()
+       too many colors: short list specific to light/dark mode
+ *   Actions:
+ *     save bookmark
+ *     find all
+ *     list current highlights
+ *       add current selection to current highlights dock
+     dock actions
+       delete all bookmarks
+ *     show all
+ *     hide all
+ *     close search (delete)
+       (debug) check if valid
+ *     set color
+       add color indicator to dock somewhere
+       add refresh button to search dock?
+
+
+   folded sections
+     fold selected region
+     unfold icon
+     fold converted table
+     send selection to to tableviewer?
+
+   built in standard commands to implement
+     commands for module
+       source ?
+       export
+
+   commands to implement as graphical functionality
+ x   disown --> disconnect job (context menu?)
+ x   times or other process stats (context menu, infobox, graph)
+     ulimit umask (settings dialog)
+     key bindings for builtin functions
+
+
+   questional built in commands -- or gui eqivs
+ *   set / shopt / unset
+ n   hash / type --> performance needed??
+ *   jobs history --> pop up window?
+ n   pushd popd dirs / dirstack --> use buttons instead?
+ n   alias / unalias
+ *   kill
+ n   exit
+     ulimit
+     umask
+     bind (key)
+D*   help
+ !   times
+
+   fancy environment variable editor
+     split on delimiter, default :
+     turn into checkbox list
+     allow dragging
+     context menu
+       select all/none
+       remove duplicates
+       sort
+
+   hide toolbar if window is too small (>1/3 ?)
+     log viewer
+     history
+     on resize
+     on top level change
+
+ * command parser implementation
+ *   strip matching first word
+ *     output mode
+D*       log
+D*       qtail/tail
+D*       small
+ o       table (qtail with options?)
+ *     built in commands -> parse rest in subfunction
+D*       cd
+ n       pwd?
+ n       pushd popd
+D*     wrapper aliases
+D*       direct  -> word split and run without wrapper
+D*       sh/bash -> bash -c
+D*       term -> "xterm -e" or "gnome-terminal --"
+ o       $hostname -> ssh -n (-M -P 6h) $hostname
+       regex match? (macro?)
+
+   button box dock ideas
+ *   resize to fit on pop out
+ !   right click: dump in editor
+     make FlowLayout draggable
+ *   replace gridlayout with (custom) flowlayout
+     reimplement compact button bar GUI and make its own checkbox
+ *   non-immediate button: marker to move cursor
+ o    context menu:
+ o     Alternate layouts:
+ *       greedy layout
+ *       alphabetize
+         draggable / user order
+ *       include static buttons in order?
+ o     refit / expand to fit
+ n     simulated annealing rearrange / fit
+     context menu for button
+ *     delete
+       run?
+       copy to editor
+       insert into editor (without clearing existing text)
+
+   regex match stuff
+     scan input and output with a list of regex
+     save named groups in a dictionary
+     unnamed grouped matches saved to arrays (name array in rule)
+     use dictionary format() style for command templates
+     possibly trigger rules
+     rule actions:
+       (de)activate other regex
+       internal slots
+         set title
+         special: ssh setsid?
+         change view dest options
+         GUI indicator change?? dialog message?
+         open / bring to top output window
+     dictionary value dock
+       edit values
+       delete values
+       watch rules --> trigger action on value match/change
+   regex on commands
+     aliases
+     ssh -> setsid
+     ssh, man -> set title
+   regex on output
+     sbatch -> tail
+
+   ssh manager
+     run ssh -O check before trying a wrapper?
+     even if nothing directly is implemented, document the below
+     xterm -e  ssh -fnN  {}
+     config (-o 'key val' )
+       ControlMaster auto (-M ?)
+       ControlPath ~/.ssh/socket.%h.%p.%r  (-S)
+       setsid ssh
+       #ControlPersist 6h (yes | 0 )
+       ## close with ssh -O check (forward cancel) stop exit
+
+ -Unsupported by Qt
+ x move qtail and qtable to threads: can't have subthreads with GUI access
+
+-completed misc. features
+ * table parsing in qtail
+ *    fixed width white space tables
+ * add title to jobinfo and use it when small output dup
+ *  button should set title from button name
+ o job life cycle
+ *   delete job if command is done and window is closed
+ *   timeout if no window?
+ * command edit should grab focus after accepting input
+ * job: double click connect to send command to editor
+ *   connect to qtail window status
+ * tables: implement vertical headers??
+ *   make corner button clickable to reset sort column to -1
+ * qtail: resize after visible? or after first read
+ * change Qsettings to use sections
+ *   only read general settings for settings dialog
+ *   move favorites to its own section
+D*   save window position profiles in a section
+D* look at cursor and set file dialog filter
+ * delete QSettings that match defaults
+ * at start, send version to smalloutput
+?* job pull down menu should also raise window
+ x Job and history view: WordWrapMode = WrapWordsOrAnywhere (not supported)
+D* file dialog: disable path prefix stripping without changing start dir
+ * built in command output should go to small window (too)
+ * log window pause / resume process (context)
+ * print exit value if keep is false
+ x small output: replace horiz rule image; scale image to fit box
+ * add running indicator to small output (kill and log buttons)
+ * small output title counter
+D* doubleclick on favorites editor headers to resize row
+D* automatic $SHELL wrappers
+ * save wrappers
+ * qtail: set extra selections for previously found items (clear when?)
+D* if text is selected before pushing template button, save it and paste over mark
+D* qtail: bind ctrl-f to focus on search box
+ x qtail: resize on zoom?
+ * dock autoresize if scrollbar on topLevelChanged(floating==true)
+D* tooltips on buttons --> command
+ * make template buttons distinctive
+ *   immediate buttons are bold
+ *   template buttons are italic
+ * job manager should resize rows vertically in context menu
+ * qtail checkbox to hide toolbar
+ * qtail primary and secondary fonts
+ * small output context --> clear
+D* filedialog prefix '" causes all filenames to be quoted
+ * log gives more info about job at start, stop, context menu
+ * job manager shows tooltips for historical pid and full command
+ * when history wraps it should clear instead of immediately wrapping
+ * font changes
+ *   save font settings in settings
+ *   live font selection
+ n   application font
+ *   create styled item delegate for QFont
+ * qtail on files directly in shell
+ * change default arrangement to show all / tabify all
+ * set tableview default filter col = -1
+ * general settings context menu --> use default
+ * process.setStandardInput?(QProcess::nullDevice())
+ * bind history context menu to history headers too
+ * qtail --nowrap
+ * context->add new env  should move cursor (and scroll to) supplied item (even if it already exists)
+ * tableview sort
+ *    proxy model
+ *    reset in corner
+ o    filter
+ o table viewer options
+D*   --nopick
+D*   --filtercol
+D*   --filter
+ * qtail button mode
+ *    watch vs. transient
+ *    rerun vs. close
+ *    automatic reload checkbox
+d*    rerun interval
+ *     file doesn't need autorefresh?? or should it clear(); seek(0)
+ * built in commands should get marked done in history
+ * button dock: resize to fit on pop out
+ * find: support case sensitivity, whole words
+ * job manager: indicate how many jobs exist (no clear?)
+ * qtail: (colored) indicator showing job status (when relevant)
+ * findAll reverse track: find cursor in list from clicking on highlight in body
+ * qtail search: should scroll to found entry
+
+ -fixed bugs
+ * retore geometry doesn't grab the current selected geometry
+ * history save bug with newline prefix
+d* log window needs a threshold LogBatchLines = 5?
+D* change pick file behavior (without conditions here)
+ *   if prefix starts with / and contains no * treat as intial cwd and strip
+D*   if it ends in / select dirs only??
+ n   maybe output dir/{} syntax (this is just too clever for its own good)
+ * add tooltips to favorites editor command
+ * scroll job manager to bottom on new job?
+ * qtail main window doesn't autoresize even when it has horiz scrollbar
+ * small output size not set at start if not visible
+ * job manager column view width issues
+ *   fix with corner reset button
+ o   use header double click to resize
+ * tableviewer: number blank cols too
+ * resize history to fit window at start (scroll bar bug, only when tiny)
+ *   make sure tableview is resized to fit
+ *     at start
+ *     when dock is popped out or resized
+ *   corner button resets width
+ * QSortFilterProxyModel: index from wrong model passed to mapFromSource
+ * when a dock is pulled out, check if it has scrollbars and resize
+ *    dock: resize? on topLevelChanged (float/nofloat)
+ * default geometry profile used but not checked at start (use setChecked)
+ * make sure autorefresh timer is canceled when window is closed
+ * fix qtail buffering (fixed for large blocks and stdin)
+ * qtail doesn't detect eof on stdin or pipe
+ * qtail follow broken for pipe? and file --> check socket
+ * qtail is slow reading large files
+ *   read in smaller chunks
+ n   use cursor.beginEditBlock / endEditBlock (read single block instead)
+ * fixed format fence post with slurm 1 char margins  sacct -a -X
+ *   trim results?
+ * tableviewer triggers race condition in betterIO.peek
+ *    maybe write a custom buffer class that handles async I/O and readLine properly
+ * all input processors choke on bad unicode? (, errors='backslashreplace')
+ * gets middle of file on /usr/dict/words without --whole
+ * file dialog doesn't strip paths correctly for python <= 3.8 (3.6?)
+ * qtail doesn't detect file not found and keeps trying
+ * tableviewer doesn't work on files or stdin
+ * table: IsADirectoryError: [Errno 21] Is a directory: 'junk' 418/openfile
+ * table: FileNotFoundError: 418/openfile
+ * log prefix is being eaten twice by parser "tail tail" doesn't work
+ * file dialog cwd filter breaks in python 3.8 (work around in place)
+ * settings dialog need a good dynamic default size
+ ? qtail huge pause during adjustSize
+      likely caused by whole document word wrap recalculation
+ *    don't resize after 100 lines or last resize was >0.5s
+ * qtail gives useless errors on file not found
+ * have_error not propagating (convert to exception and delete)
+ * qtail: accept real command line options in shell from simpleargs
+ * fix error message passing from tableviewer and qtail to be more visible
+ *    status bar message?
+ *    smalloutput message
+ n    dialog box
+ * context menu in history headers (h and v)
+ * qtail should resize on smalldup of dead proc
+ * runCommand history may be translating from QPersist to QModelIndex too soon
+ * QFont styled item delegate didn't cancel correctly or sometimes work at all
+ * qtail button is wrong sometimes
+ *   help --> qtail 227 : 'QtTail' object has no attribute 'file'
+ *   file reload not set correctly on watch toggle
+ x force file dialog to always be on top Qt.WindowStaysOnTopHint
+ o   old Qt doesn't seem to do modal correctly??, set parent in 5.15.3 works
+ * reload doesn't work on markdown; does it work on regular files?
+ * reload button should change for pipes
+ * table: use command line parser on real command line
+ * mess with button dock flowlayout for better arrangement control
+ * button dock: sanitize names: remove slash
+ * Closing main window with stuff running is now handled gracefully
+ * showsize is called too often, covering up other messages
+ * fix regex bugs
+ *   qtail untested in qt 5.12 (should disable regex)
+ * mac button spacing in flowlayout was stupid (used PushButton spacing instead of ToolButton)
+ * tableviewer
+ *   --mask and --cols didn't mix: merge and sort
+ *   finish refactoring tableviewer option parser
+ * searchdock / saved highlights: delete or mark highlights that have scrolled off
+ * button docks were not in show/hide/tabify all docks
+ *  all windows are sized poorly on low res screens (fixed qtail?)
+ * resize search dock??

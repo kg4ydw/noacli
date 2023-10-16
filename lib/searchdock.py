@@ -63,13 +63,23 @@ class selList(itemListModel):
         
     def setSel(self, extraSelections):
         self.removeRows(0, len(self.data),None) # XX always purge?
+        # insert rows in batches for better performance
+        rows = []
         for sel in extraSelections:
             if sel.cursor.position() or sel.cursor.hasSelection(): # skip stale highlights
                 item = selItem(sel.cursor)
-                self.appendItem(item)
+                # self.appendItem(item)
+                rows.append(item)
                 if item.pretext: self.haspre = True
                 if item.text: self.hasitem = True
                 if item.posttext: self.haspost = True
+            #if len(rows)&7==0: # this would make it negligibly faster but more chunky
+            QtCore.QCoreApplication.processEvents()
+            if len(rows)>=1000: # XXX SETTING
+                self.insertRowsAt(1,rows)
+                rows=[]
+        if rows: # and the leftovers
+            self.insertRowsAt(1,rows)
 
     def headerData(self, col, orientation, role):
         if orientation==Qt.Horizontal and col==1 and role==Qt.BackgroundRole and self.color:
@@ -118,6 +128,10 @@ class searchDock(QDockWidget):
         self.color = QtGui.QBrush(QColor(color))
         self.model = selList()
         self.ui.tableView.setModel(self.model)
+        # set up connections before the data is loaded
+        self.ui.showButton.clicked.connect(partial(self.emitExtraSelections, self.showSel))
+        self.ui.hideButton.clicked.connect(partial(self.emitExtraSelections, self.hideSel))
+        self.ui.tableView.clicked.connect(self.gotoIndex)
         if title:
             self.setWindowTitle(title)
         self.favcol = 1 # item to scroll to (possibly only visible column)
@@ -133,10 +147,6 @@ class searchDock(QDockWidget):
                     else: self.favcol = 2
                 if not self.model.haspost: tv.setColumnHidden(2,True)
         self.model.setColor(self.color)
-
-        self.ui.showButton.clicked.connect(partial(self.emitExtraSelections, self.showSel))
-        self.ui.hideButton.clicked.connect(partial(self.emitExtraSelections, self.hideSel))
-        self.ui.tableView.clicked.connect(self.gotoIndex)
 
     def gotoIndex(self, index):
         item = self.model.getItem(index)
