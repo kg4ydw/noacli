@@ -69,6 +69,7 @@ class myOptions():
         self.title = None
         self.format = None # p=PlainText m=Markdown h=Html
         self.url = False
+        self.font = None
         # XX whole file mode vs tail mode?  oneshot vs. follow?
         # XX alternate format options: html markdown fixed-font
 
@@ -82,12 +83,13 @@ class myOptions():
         parser.add_argument('-n', '--lines', help='keep the last NUM lines', metavar='NUM', type=int, default=self.maxLines)
         parser.add_argument('--whole', '-w', help='look at the whole file, not just the tail', action='store_true')
         parser.add_argument('-t','--title', help='set window title if a filename is not supplied',metavar='title')
-        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown','md', 'p','h','m'], metavar='format', default='plaintext') # XX markdown doesn't work
+        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown', 'ansi','md', 'p','h','m','a'], metavar='format', default='plaintext') # XX markdown doesn't work
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true') # set in start()
         parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='seconds', const=0, help='Enable autorefresh and (optionally) set refresh interval')
         parser.add_argument('--watch', action='store_true', help='Enable watch')
         parser.add_argument('--findall', help='Search for a regular expression at start', type=str, default=None, metavar='regex')
+        parser.add_argument('--font','-F', help='Select font from list (1,2) or set font by name', type=str, default=None, metavar='font')
 
         parser.add_argument('filename', nargs=argparse.REMAINDER)
 
@@ -126,8 +128,10 @@ class myOptions():
         if args.format:
             if args.format=='html': self.format='h'
             elif args.format in ('markdown', 'md', 'm'): self.format='m' # XX
+            elif args.format in ('ansi', 'a'): self.format='a'
             else: self.format=None
         if args.url: self.url = True
+        #unsed?# if args.font: self.font = args.font
 
         self.args = args.filename
         return self.args
@@ -506,6 +510,18 @@ class QtTail(QtWidgets.QMainWindow):
             if self.opt.argparse.findall:
                 # this only seems to work after being triggered or at eof
                 self.findallConnection = self.ui.textBrowser.sourceChanged.connect(self.triggerFindAll)
+            if self.opt.argparse.font:
+                if self.opt.argparse.font=='1':
+                    primary = self.getFontSetting('QTailPrimaryFont')
+                    if primary: doc.setDefaultFont(primary)
+                elif self.opt.argparse.font=='2':
+                    secondary = self.getFontSetting('QTailSecondaryFont')
+                    if secondary: doc.setDefaultFont(secondary)
+                else:
+                    font = QFont(self.opt.argparse.font)
+                    if font and font.family(): doc.setDefaultFont(font)
+                    # else: silently fail
+                    
 
     def triggerFindAll(self, url):
         d= self.findAll(self.opt.argparse.findall)

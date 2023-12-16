@@ -130,6 +130,9 @@ Qtail supports the following options:
 `--files`  
     After all the options will be a space separated list of filenames, each of which will be opened in its own qtail window
     
+'--font'
+    Choose the primary or secondary font (1 or 2) instead of the default font (only works from inside noacli), or specify a font by name, e.g., --font=mono
+
 `--nowrap`  
     Turn word wrap off initially (may be faster)
 
