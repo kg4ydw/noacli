@@ -371,6 +371,7 @@ class historyItem():
 class History(itemListModel):
     def __init__(self):
         super().__init__(['exit', 'command'])
+        self.modified = False  # prevent excessive saving
 
     @classmethod
     def GetCommand(cls,index):
@@ -429,6 +430,7 @@ class History(itemListModel):
     def saveItem(self, command, index, exitval, count=1):
         # if exitval==None and isValid(index) replace existing entry
         # else append to end of history
+        self.modified = True
         if self.validateIndex(index) and exitval==None:
             item = self.getItem(index)
             if item.status==None:
@@ -576,5 +578,6 @@ class History(itemListModel):
                     file.write("{},{}: {}\n".format(st, i.count, i.command.strip()))
                 else:
                     file.write(": {}\n".format(i.command.strip()))
+        self.modified = False
         # print("history write of "+filename+" failed") # DEBUG
 

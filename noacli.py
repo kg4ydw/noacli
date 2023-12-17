@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.10.3b'
+__version__ = '1.10.4'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -61,6 +61,7 @@ class settingsDict():
     'LogMaxLines':    [10000, 'maximum lines remembered in the log window', int],
     'LogBatchLines': [100, 'number of lines read in a batch for the log window.  Increasing this decreases shell responsiveness but makes logs read faster.', int],
     'MessageDelay':[10, 'Timeout (seconds) for transient message bar messages', float],
+    'SettingsAutoSave':[300, 'Automatically save history and settings (seconds)',int],
     'SHELL':       [ 'bash -c', 'external shell wrapper command to run complex shell commands', str],
     'TemplateMark':['{}', 'Move cursor to this string after loading a command into the edit window', str],
     'SmallMultiplier': [2, 'Number of lines to keep in the small output window, <10 is screen multiples, >=10 is paragraphs, <1 for infinite', int],
@@ -181,6 +182,7 @@ class settings():
         self.apply_settings.emit()
         # history size is reset when history is added? XX
         qs.sync()
+        
     def acceptOrReject(self, result):
         if result: self.acceptchanges()
         #print('finished') # DEBUG
@@ -578,6 +580,11 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.commandParser.new_default_wrapper = self.setTitleFromWrap
 
         self.applyEditorFont()  # do this again after everything is set up
+
+        self.autoSaveTimer = QtCore.QTimer()
+        self.autoSaveTimer.timeout.connect(self.autoSaveAll)
+        self.setAutoSave()
+        self.settings.apply_settings.connect(self.setAutoSave)
 
         ##### install signal handlers XXX
         #try:  # in case anything here is unportable
@@ -1180,6 +1187,17 @@ class noacli(QtWidgets.QMainWindow):
         self.actionSaveHistory()
         self.settings.favorites.saveSettings()
         super().closeEvent(event)
+
+    @QtCore.pyqtSlot()
+    def autoSaveAll(self):
+        if self.settings.history.modified:
+            self.actionSaveHistory()
+        # favorites should save on change now
+    def setAutoSave(self):
+        delay = typedQSettings().value('SettingsAutoSave',300)
+        if delay:
+            self.autoSaveTimer.start(delay*1000)
+        
 
     def delaycheck(self,  dialog, button):
         if self.firstKill:

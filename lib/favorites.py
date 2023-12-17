@@ -225,6 +225,7 @@ class Favorites():
         # above code won't work on a second pass (removed apply button, moot)
         ## don't destroy this in case apply is clicked a second time
         #self.data = None
+        self.saveSettings()
 
     #@QtCore.pyqtSlot(int)
     def doneFavs(self,result):
