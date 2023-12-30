@@ -29,6 +29,8 @@ from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
 from lib.searchdock import searchDock
 
+# XXX some options not implemented yet
+# XXX no option editor for stand alone qtail
 typedQSettings().registerOptions({
     'QTailDelaySearch':[250, 'delay (mSec) while typing before a search is triggered', int],
     'QTailMaxLines': [ 10000, 'maximum lines remembered in a qtail window', int],
@@ -38,6 +40,8 @@ typedQSettings().registerOptions({
     'QTailDelayResize':[ 3, 'Resize qtail to fit output again seconds after first input arrives', int],
     'QTailPrimaryFont': [None, 'Default font for qtail', QFont],
     'QTailSecondaryFont': [None, 'Alternate font for qtail', QFont],
+   ## support additional fonts? QTailFont3...
+    'QTailExtraWidth' : [ 20.0, 'Extra percent width to add to window beyond document size', float],
    #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
    #'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
     'QTailWordWrap':  [ True, 'Word wrap long lines by default', bool ],
@@ -855,13 +859,14 @@ class QtTail(QtWidgets.QMainWindow):
         height = docrect.height()
         width = docrect.width()
         #print(' docsize=%d,%d newsize=%d,%d'%(width,height,newsize.width(),newsize.height())) # DEBUG
-        if height > newsize.height():
+        if height > newsize.height(): # window shouldn't be bigger than doc
             height = newsize.height()
+        extraw = typedQSettings().value('QTailExtraWidth',20.0)/100+1;
         if width<newsize.width():  # rely on Qt to ignore rediculous resizes
-            width = newsize.width()*1.2 # Qt underesitmates
+            width = newsize.width()*extraw # Qt underesitmates
             #print('expand %d'%width) # DEBUG
         elif width > newsize.width(): # shrink
-            width = newsize.width()
+            width = newsize.width()*extraw
         width += framedx
         heightadjust = 100 # SETTING
         ## this was worse
