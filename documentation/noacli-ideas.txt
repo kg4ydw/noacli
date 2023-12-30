@@ -4,8 +4,8 @@ noacli -- no ampersand asynchronous shell
 This is part todo list and part brainstorming repository.
 
 Column key:
-o  partial implementation
-*  done
+o  partial implementation1
+2*  done
 !  next
 E  buggy
 x  not supported in Qt (or I haven't figured it out) (might still be possible)
@@ -17,6 +17,9 @@ v  documented in a future video
 t  documented internally with tool tip
 
  -Things to implement soon:
+ - tail: add oversize compensation factor
+ - BUG: job manager: add force remove job (how does this happen?)
+ - tableviewer: cli option to set show/hide columns initially
  . search all incremental update
  . search all rerun button
  . hyperlink regex on command regex match

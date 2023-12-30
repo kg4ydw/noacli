@@ -1224,6 +1224,22 @@ class noacli(QtWidgets.QMainWindow):
         return wins or procs
                                               
     #### job manager fuctions (since it doesn't have its own class)
+    def jobSqueezeRows(self):
+        jobView = self.ui.jobTableView
+        jobVH = jobView.verticalHeader()
+        minsize = jobVH.minimumSectionSize()
+        jobVH.setDefaultSectionSize(minsize)
+        self.jobResizeRows(minsize)
+    def jobRelaxRows(self):
+        jobView = self.ui.jobTableView
+        jobVH = jobView.verticalHeader()
+        jobVH.resetDefaultSectionSize()
+        self.jobResizeRows(jobVH.defaultSectionSize())
+    def jobResizeRows(self,newsize):
+        jobView = self.ui.jobTableView
+        jobVH = jobView.verticalHeader()
+        for i in range(jobVH.length()):
+            jobVH.resizeSection(i,newsize)
     @QtCore.pyqtSlot('QPoint')
     def jobcontextmenu(self, point):
         jobView = self.ui.jobTableView
@@ -1231,7 +1247,9 @@ class noacli(QtWidgets.QMainWindow):
         ## apparently QTableView doesn't have a standard context menu
         #m = jobView.createStandardContextMenu(point)
         m = QMenu()
-        m.addAction("Resize rows vertically", jobView.resizeRowsToContents)
+        m.addAction("Fit rows vertically", jobView.resizeRowsToContents)
+        m.addAction("Squeeze rows vertically", self.jobSqueezeRows)
+        m.addAction("Relax rows vertically", self.jobRelaxRows)
         # XX jobcontext: convert to log / qtail window
         # XX jobcontext: job info
         job = None
