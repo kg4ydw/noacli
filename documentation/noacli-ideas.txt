@@ -17,7 +17,6 @@ v  documented in a future video
 t  documented internally with tool tip
 
  -Things to implement soon:
- - tail: add oversize compensation factor
  - BUG: job manager: add force remove job (how does this happen?)
  - tableviewer: cli option to set show/hide columns initially
  . search all incremental update

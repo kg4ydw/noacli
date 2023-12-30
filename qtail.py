@@ -179,6 +179,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
         else:
             self.disableAdjustSize = True  # too expensive for huge text
+            self.ui.actionAdjust.setEnabled(False)
         self.textbody.cursorPositionChanged.connect(self.findSelection)
 
         ## build the Mode menu because QtDesigner can't do it
@@ -850,6 +851,7 @@ class QtTail(QtWidgets.QMainWindow):
                 # don't need to do this again if we have enough samples
                 # or if it took too long this time
                 self.disableAdjustSize=True
+                self.ui.actionAdjust.setEnabled(False)
         #print(" ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
         newsize = doc.size()
         #print(' docsize='+str(newsize)) # DEBUG
@@ -872,7 +874,11 @@ class QtTail(QtWidgets.QMainWindow):
         ## this was worse
         #if type(self.file)==QProcess and self.file.state()==QProcess.NotRunning:
         #    heightadjust = 0 # don't leave extra space if it is already dead
-        if height > 50 and height < rect.height()*1.1:
+        screenheight = QtWidgets.QApplication.desktop().screenGeometry().height()
+        maxheight = screenheight*0.75;  # SETTING max window height 75% desktop height
+        maxheight2 =  rect.height()*1.1 # SETTING max window height growth 10%
+        if maxheight2>maxheight: maxheight = maxheight2;
+        if height > 50 and height < maxheight:
             height += heightadjust   # guess at frame size
             #print('shrink height') # DEBUG
         else:
