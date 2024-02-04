@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022-2024, Steven Dick <kg4ydw@gmail.com>'
 
 # The No Ampersand CLI shell
 #
@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.10.5'
+__version__ = '1.11'
 
 # Some settings have been moved to relevant modules
 class settingsDict():

@@ -89,6 +89,7 @@
     <addaction name="actionResetSort"/>
     <addaction name="actionToggle_column_sort_or_select"/>
     <addaction name="separator"/>
+    <addaction name="actionHide_columns"/>
     <addaction name="actionShow_headings"/>
     <addaction name="actionUse_numerical_headings"/>
     <addaction name="actionShow_line_numbers"/>
@@ -298,6 +299,11 @@
    </property>
    <property name="text">
     <string>Autosize row heights</string>
+   </property>
+  </action>
+  <action name="actionHide_columns">
+   <property name="text">
+    <string>Hide selected columns</string>
    </property>
   </action>
  </widget>
@@ -564,6 +570,22 @@
    <signal>toggled(bool)</signal>
    <receiver>TableViewer</receiver>
    <slot>setRowAutosize(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionHide_columns</sender>
+   <signal>triggered()</signal>
+   <receiver>TableViewer</receiver>
+   <slot>hideCols()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>

@@ -1,6 +1,6 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
 
 # simple tables and widgets for manipulating tables
 # contaminated with app specific classes and GUI pieces

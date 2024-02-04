@@ -1,9 +1,9 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022-2024, Steven Dick <kg4ydw@gmail.com>'
 
 from functools import partial
-
+import re
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.Qt import Qt, pyqtSignal, QBrush
 from PyQt5.QtCore import QModelIndex, QPersistentModelIndex, QSettings
@@ -79,6 +79,18 @@ class favoriteItem():
         self.immediate = immediate
         self.button = None
         self.command = command
+        if not buttonName and command:
+            # XX This sets button name but doesn't create the button until edited.
+            # XX Is this too aggressive on setting title or not aggressive enough in not creating the button immediately?
+            if isinstance(command,str):
+                m = re.match(r"^#\s*(\S[^\n]+)\n", self.command,re.MULTILINE)
+                if m and m.group(1):
+                    self.buttonName = m.group(1)
+            else: # XXX can this happen?
+                t = self.command.title()
+                if t:
+                    self.buttonName = t
+                    if typedQSettings().value('DEBUG',False): print("Found button title from cmd")
 
     @classmethod
     def setFunctors(cls, funcs):
@@ -241,8 +253,8 @@ class Favorites():
         # don't mess with the keep checkbox if it is being changed
         if index.column()==0: return True # also prevents recursion
         # if anything else is edited and not blanked, check keep
-        if val and val!=self.data[index.row()][index.column()]:
-            index.model().setData(index.siblingAtColumn(0),True, Qt.EditRole) # XXXX sibling
+        if val and self.data and self.data[index.row()] and val!=self.data[index.row()][index.column()]:
+                index.model().setData(index.siblingAtColumn(0),True, Qt.EditRole) # XXXX sibling
         return True
 
     def saveSettings(self):

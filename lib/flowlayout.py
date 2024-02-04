@@ -3,6 +3,9 @@
 # #mangled this to work with pyqt5 (just changed import)
 # Then this was mangled to add button sorting
 
+# I release copyrights to any changes in this file to the following
+# parties so that it may be included in Qt in the future.
+
 # Copyright (C) 2013 Riverbank Computing Limited.
 # Copyright (C) 2022 The Qt Company Ltd.
 # SPDX-License-Identifier: LicenseRef-Qt-Commercial OR BSD-3-Clause

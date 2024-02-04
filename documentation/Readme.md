@@ -571,6 +571,9 @@ windows opened in the session and kill any processes that were
 started.  You can choose to ignore these left overs, but then noacli
 can't exit until all of them exit on their own and will hang around
 (without its own window) until then.
+## == Titles
+Window titles, job names, and button names can all be edited.
+You can force the default window title or name of a command by putting the title on the first line preceeded with a #
 
 ## == Using ssh as a wrapper
 
@@ -630,6 +633,43 @@ There are three places to change the 3 adjustable fonts:
 
 Note that font changes in general settings only affect new qtail windows and
 that the font picker in qtail doesn't save its settings permanently.
+
+## == Examples
+### === favorites examples
+These could be assigned to a button or a key binding.
+
+* man page with table of contents (uncheck immediate checkbox)
+
+        # man
+        tail --findall=^[a-z][a-z\s]+$ -w --no-wrap man {}
+
+* start (password authenticated) shared ssh session with remote host (see elsewhere for shared ssh connection set up); Uncheck the 'immediate' checkbox and fill in the hostname.
+
+    xterm  h={} ; ssh -fnN -o 'ControlPersist 3h'  $h ; ssh -O check $h ; sleep 3
+
+* check status of shared ssh connections
+
+        # ssh status
+        sh for i in ~/.ssh/socket.*  do
+           j=${i/*socket./}
+           h=${j/\.22*/}
+           echo -n $h ' '  ssh -O check $h
+        done
+
+
+### === Wrapper examples
+
+* default xterm wrapper, output goes to log
+
+        log addwrap xterm xterm -e
+
+* dc postfix calculator with 3 digits of precision (expression on command line, quotes not needed around '*')
+
+        addwrap dc dc -e 3k -e
+
+* run a command on remotehost via ssh
+
+        addwrap remotehost ssh remotehost
 
 # == Postscript
 

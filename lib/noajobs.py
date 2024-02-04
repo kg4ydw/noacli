@@ -1,6 +1,6 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022-2024, Steven Dick <kg4ydw@gmail.com>'
 
 # Do all the job manipulation (view and model) parts of noacli
 
@@ -93,11 +93,13 @@ class jobItem():
         s = str(self.getStatus())+' | '+str(self.title())+' | '+str(self.command())
         return str(s)[0:width]
     def title(self):
-        # XXX if command starts with # then strip first line and set title # DOCUMENT?
         if self.windowTitle:
             title = self.windowTitle
         elif self.window:
             title = self.windowTitle = self.window.windowTitle()
+        elif self.history and (t:=self.history.title()):
+            #print("Found history title: {}".format(t)) # DEBUG
+            title = t
         else:
             # XX or get title from somewhere else?
             # maybe build it from command?
@@ -367,6 +369,12 @@ class historyItem():
         self.status = status
         self.command = command
         self.count = count
+    def title(self):
+        if self.command:
+            m = re.match(r"^#\s*(\S[^\n]+)\n", self.command,re.MULTILINE)
+            if m and m.group(1):
+                return m.group(1)
+        return None
         
 class History(itemListModel):
     def __init__(self):

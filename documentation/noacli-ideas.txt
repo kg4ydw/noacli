@@ -17,6 +17,7 @@ v  documented in a future video
 t  documented internally with tool tip
 
  -Things to implement soon:
+   editing button name should update (or insert) comment in command
  - BUG: job manager: add force remove job (how does this happen?)
  - tableviewer: cli option to set show/hide columns initially
  . search all incremental update
@@ -28,10 +29,10 @@ t  documented internally with tool tip
  ? add completion/status/window open  icons to jobs menu pulldown
    tableviewer: numberize selected/all cells that match ^\s*[+-]?\d+\s*$ (for sorting, formatting)
      same for floats?
-   qtail -> view menu: add sort/select checkbox from column picker
+ * qtail -> view menu: add sort/select checkbox from column picker
  * add setting and timer to sync settings and history (bug fix)
    QTextBrowser.searchPaths() to help find internal docs
-   Bug: reload doesn't work on --file
+ ? Bug: reload doesn't work on --file
    Bug: --format=md doesn't work on pipes?
    qtail: autodetect format
       start with <?xml --> html (or xml? check DOCTYPE line?)
@@ -106,6 +107,7 @@ t  documented internally with tool tip
  * if output windows are not visible, add extra status to main window?
 
  -User visible bugs:
+   some dialogs may not be reentrant -- make them singletons?
    qtable: sometimes splits lines (buffer doesn't join?)
    command buttons can be broken by setwrap (more testing needed)
    duplicate key bindings don't get background paint until dialog is reopened

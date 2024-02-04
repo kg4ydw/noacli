@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022-2024, Steven Dick <kg4ydw@gmail.com>'
 
 # qtail: think of this as a graphical version of less
 #
@@ -957,7 +957,6 @@ class QtTail(QtWidgets.QMainWindow):
             self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), 'Highlights'), -1)
         
     def findAll(self, text=None):
-        # XXX call Qt queue processing if this takes too long?
         if not text:
             text = self.ui.searchTerm.text()
         if not text: return
@@ -975,6 +974,7 @@ class QtTail(QtWidgets.QMainWindow):
         doc = self.textbody.document() # use this instead of QTextEdit.find()
         c = doc.find(searchterm, c, findflags)
         prev=0
+        QtCore.QCoreApplication.processEvents()
         while c and c.position()>=0:
             es = QTextEdit.ExtraSelection() # make a blank entry
             es.cursor = c       # save position, color it later

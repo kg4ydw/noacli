@@ -144,6 +144,8 @@ class Ui_TableViewer(object):
         self.actionAutosizeRowHeights = QtWidgets.QAction(TableViewer)
         self.actionAutosizeRowHeights.setCheckable(True)
         self.actionAutosizeRowHeights.setObjectName("actionAutosizeRowHeights")
+        self.actionHide_columns = QtWidgets.QAction(TableViewer)
+        self.actionHide_columns.setObjectName("actionHide_columns")
         self.menuView.addAction(self.actionAutosizeRowHeights)
         self.menuView.addAction(self.actionAdjust_size)
         self.menuView.addAction(self.actionResize_rows)
@@ -153,6 +155,7 @@ class Ui_TableViewer(object):
         self.menuView.addAction(self.actionResetSort)
         self.menuView.addAction(self.actionToggle_column_sort_or_select)
         self.menuView.addSeparator()
+        self.menuView.addAction(self.actionHide_columns)
         self.menuView.addAction(self.actionShow_headings)
         self.menuView.addAction(self.actionUse_numerical_headings)
         self.menuView.addAction(self.actionShow_line_numbers)
@@ -181,6 +184,7 @@ class Ui_TableViewer(object):
         self.sortOrSelect.toggled['bool'].connect(TableViewer.sortOrSelect) # type: ignore
         self.actionToggle_column_sort_or_select.triggered.connect(self.sortOrSelect.toggle) # type: ignore
         self.actionAutosizeRowHeights.toggled['bool'].connect(TableViewer.setRowAutosize) # type: ignore
+        self.actionHide_columns.triggered.connect(TableViewer.hideCols) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(TableViewer)
 
     def retranslateUi(self, TableViewer):
@@ -209,3 +213,4 @@ class Ui_TableViewer(object):
         self.actionCaseInsensitive.setText(_translate("TableViewer", "Case insensitive"))
         self.actionUnicode.setText(_translate("TableViewer", "Unicode"))
         self.actionAutosizeRowHeights.setText(_translate("TableViewer", "Autosize row heights"))
+        self.actionHide_columns.setText(_translate("TableViewer", "Hide selected columns"))
