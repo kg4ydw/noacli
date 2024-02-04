@@ -833,6 +833,7 @@ class QtTail(QtWidgets.QMainWindow):
     ### menu action slots
     @QtCore.pyqtSlot()
     def actionAdjust(self):
+        DEBUG= typedQSettings().value('DEBUG',False) # XXX
         doc = self.textbody.document()
         docrect = doc.size() # QsizeF
         rect= self.size()
@@ -862,6 +863,7 @@ class QtTail(QtWidgets.QMainWindow):
         width = docrect.width()
         #print(' docsize=%d,%d newsize=%d,%d'%(width,height,newsize.width(),newsize.height())) # DEBUG
         if height > newsize.height(): # window shouldn't be bigger than doc
+            #if DEBUG: print(f"height doc: {height=} {newsize.height()=}")
             height = newsize.height()
         extraw = typedQSettings().value('QTailExtraWidth',20.0)/100+1;
         if width<newsize.width():  # rely on Qt to ignore rediculous resizes
@@ -877,12 +879,21 @@ class QtTail(QtWidgets.QMainWindow):
         screenheight = QtWidgets.QApplication.desktop().screenGeometry().height()
         maxheight = screenheight*0.75;  # SETTING max window height 75% desktop height
         maxheight2 =  rect.height()*1.1 # SETTING max window height growth 10%
-        if maxheight2>maxheight: maxheight = maxheight2;
-        if height > 50 and height < maxheight:
-            height += heightadjust   # guess at frame size
-            #print('shrink height') # DEBUG
+        if maxheight2>maxheight:
+            #print("height: {maxheight=} {maxheight2=} {screenheight=}") # DEBUG
+            maxheight = maxheight2
+        #print(f"height start: {height=} {heightadjust=} {maxheight=} {maxheight2=}") # DEBUG
+        #print(f"{rect.height()=} {newsize.height()=}") # DEBUG
+        if height > 50:
+            if height < maxheight:
+                #print(f"height bump: {height=} {heightadjust=}") # DEBUG
+                height += heightadjust   # guess at frame size
+            else:
+                #print(f"height max: {height=} {maxheight=}") # DEBUG
+                height = maxheight
         else:
             # insane height was supplied
+            #print(f"height keep: {height=} {rect.height()=}") # DEBUG
             height = rect.height()  # don't resize
         #print(' newsize='+str(width)+','+str(height)) # DEBUG
         self.resize(ceil(width), ceil(height))
