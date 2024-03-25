@@ -640,8 +640,8 @@ These could be assigned to a button or a key binding.
 
 * man page with table of contents (uncheck immediate checkbox)
 
-        # man
-        tail --findall=^[a-z][a-z\s]+$ -w --no-wrap man {}
+        # man {}
+        tail --findall=^[a-z][^[(]+$ -w --no-wrap man {}
 
 * start (password authenticated) shared ssh session with remote host (see elsewhere for shared ssh connection set up); Uncheck the 'immediate' checkbox and fill in the hostname.
 

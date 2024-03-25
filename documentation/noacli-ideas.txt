@@ -5,7 +5,7 @@ This is part todo list and part brainstorming repository.
 
 Column key:
 o  partial implementation1
-2*  done
+*  done
 !  next
 E  buggy
 x  not supported in Qt (or I haven't figured it out) (might still be possible)
@@ -26,10 +26,11 @@ t  documented internally with tool tip
      assoc array of command regex
      array of body regex + hyperlink action
      hyperlink action: command with regex subst
+ ? autoresize findall window height if a second window is opened underneath?
  ? add completion/status/window open  icons to jobs menu pulldown
    tableviewer: numberize selected/all cells that match ^\s*[+-]?\d+\s*$ (for sorting, formatting)
      same for floats?
- * qtail -> view menu: add sort/select checkbox from column picker
+ * qtable -> view menu: add sort/select checkbox from column picker
  * add setting and timer to sync settings and history (bug fix)
    QTextBrowser.searchPaths() to help find internal docs
  ? Bug: reload doesn't work on --file

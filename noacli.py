@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.11'
+__version__ = '1.11.1'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -1380,8 +1380,7 @@ class commandEditor(QPlainTextEdit):
         else:
             oldsel = None
         self.clear()
-        if title: # save it, maybe some day we parse the title XX
-            # XX try to put oldstr in title too? maybe not safe?
+        if title and str[0]!='#':
             str = '# '+title + '\n' + str
         self.setFocus()
         self.histindex = None
@@ -1389,7 +1388,7 @@ class commandEditor(QPlainTextEdit):
         # XX is there any use of acceptCommand for which this would be inconvenient?
         mark = typedQSettings().value('TemplateMark',None)
         if mark and len(mark):
-            if self.find(mark) and oldsel:  # repaste selection on top of mark
+            while self.find(mark) and oldsel:  # repaste selection on top of mark
                 cursor = self.textCursor()
                 cursor.insertText(oldsel)
 
