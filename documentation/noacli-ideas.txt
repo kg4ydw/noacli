@@ -17,6 +17,8 @@ v  documented in a future video
 t  documented internally with tool tip
 
  -Things to implement soon:
+ * Hide jobs
+ ? Add hiddenJobs as its own dock
    editing button name should update (or insert) comment in command
  - BUG: job manager: add force remove job (how does this happen?)
  - tableviewer: cli option to set show/hide columns initially
@@ -55,6 +57,7 @@ t  documented internally with tool tip
    on -w disable: word wrap, adjust size (prevent wordwrap hangs)
    qtail search dock: update search results if file grows (manual update?)
    qtail search dock: save regex groups as extra columns?
+   qtail search dock: use regex groups? instead of context?
    general settings editor needs a search
    history could resize vertically on popout?
    window title: do a better job of eliding long commands

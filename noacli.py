@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.11.1'
+__version__ = '1.12'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -86,6 +86,7 @@ class settings():
         self.environment = envSettings()
 
         self.jobs = jobTableModel()
+        self.hiddenJobs = jobTableModel()
         # job manager gets its own special class
         
         self.qtail = qtailSettings()
@@ -1149,8 +1150,13 @@ class noacli(QtWidgets.QMainWindow):
     # in: this window closing
     def closeEvent(self, event):
         self.settings.jobs.cleanup()  # clean up dead stuff
+        self.settings.hiddenJobs.cleanup()
         if self.dontCloseYet: # use this if not modal
-            (wins, procs) = self.settings.jobs.hasJobsLeft() # XXX
+            # closing, so unhide everything to reduce confusion
+            if not self.settings.hiddenJobs.isEmpty():
+                self.settings.hiddenJobs.moveall(self.settings.jobs)
+            (wins, procs) = self.settings.jobs.hasJobsLeft()
+
             if wins or procs:  # Handle these before shutting down
                 dialog = QMessageBox()
                 bcan = dialog.addButton(QMessageBox.Cancel)
@@ -1261,11 +1267,19 @@ class noacli(QtWidgets.QMainWindow):
                 m.addAction("Kill "+job.title(), job.process.kill)
             elif not job.windowOpen:
                 m.addAction("clean dead: "+job.title(), partial(index.model().cleanupJob,index))
+            # XXX assume hiddenJobs doesn't have its own dock yet
+            other = self.settings.hiddenJobs
+            thismodel = self.settings.jobs
+            m.addAction("Hide "+job.title(),partial(thismodel.moveJob,index.row(),other))
             if job.window: 
                 m.addAction("Find window", partial(self.windowShowRaise,index))
             if job.window and job.windowOpen:
                 m.addAction("Close window",job.window.close)
             ## add empty status items
+        if not self.settings.hiddenJobs.isEmpty():
+            # XXX unnecessary if hiddenJobs gets its own dock
+            m.addAction("Unhide hidden jobs",partial(self.settings.hiddenJobs.moveall,self.settings.jobs))
+        if job:
             if job.process and job.process.state()!=QProcess.NotRunning:
                 currun = time.monotonic()-job.timestart
                 m.addAction("runtime: {:1.3f}s".format(currun))

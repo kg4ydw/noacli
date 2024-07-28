@@ -338,14 +338,24 @@ class jobTableModel(itemListModel):
         d = self.data.pop(row)
         d.cleanup()
         self.endRemoveRows()
-        
+    def moveJob(self, row,other):
+        '''Move job to other job manager'''
+        self.beginRemoveRows(QModelIndex(),row,row)
+        d = self.data.pop(row)
+        self.endRemoveRows()
+        other.newjob(d)
     def cleanupJob(self, index):
         if not self.validateIndex(index): return None
         row = index.row()
         job = self.data[row]
         if job.finished and not job.windowOpen:
             self.deleteJob(row)
-        
+
+    # unhide all jobs
+    def moveall(self,other):
+        while self.data:
+            self.moveJob(0,other)
+            
     # delete all dead jobs
     def cleanup(self):
         #print('cleanup') # DEBUG

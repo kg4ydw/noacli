@@ -181,7 +181,7 @@ class logOutput(QTextBrowser):
         else:
             self.oneLine.emit('(exit)')
         # make sure there's no more data
-        if jobitem.hasmore and jobitem.process.atEnd():
+        if jobitem.hasmore and jobitem.process and jobitem.process.atEnd():
             self.readLines(jobitem) # one more can't hurt
         if not jobitem.hasmore and (not jobitem.process or jobitem.process.atEnd()):
             self.cleanProc(jobitem)
