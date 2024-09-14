@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, 2024, Steven Dick <kg4ydw@gmail.com>'
 
 # This could be a stand alone application but integreates into noacli
 # Think of this as a graphical version of less, but for tables.
@@ -239,6 +239,11 @@ class TableViewer(QtWidgets.QMainWindow):
         self.want_readmore.connect(self.readmore, Qt.QueuedConnection)  # for delayed reads
         self.ui.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
         self.ui.tableView.customContextMenuRequested.connect(self.tableContextMenu)
+        # have to connect this separately apparently
+        head = self.ui.tableView.horizontalHeader()
+        head.setContextMenuPolicy(Qt.CustomContextMenu)
+        head.customContextMenuRequested.connect(self.tableContextMenu)
+
         self.ui.actionCaseInsensitive.toggled.connect(self.setSearchCaseInsensitive)
         # set model after opening file
 
@@ -448,9 +453,24 @@ class TableViewer(QtWidgets.QMainWindow):
         m=QMenu()
         # XX could count selected cells before adding to menu...
         m.addAction('Merge adjacent selected cells', self.collapseSelectedCells)
-        col = self.ui.tableView.columnAt(point.x())
+        t = self.ui.tableView
+        col = t.columnAt(point.x())
         if col>=0:
-            m.addAction('Hide column',partial(self.hideColumn, col))
+            name=str(col)+':'+self.headers[col]
+            m.addAction('Hide column '+name, partial(self.hideColumn, col))
+
+        hiddencols = [ col for col in range(len(self.headers))
+                  if t.isColumnHidden(col)]
+        # only if number of columns isn't rediculous
+        ## or list cols around current col to unhide?
+        ## or indicate there are some hidden columns
+        if len(hiddencols) < 15: # XX setting?
+            for col in hiddencols:
+                name=str(col)+':'+self.headers[col]
+                m.addAction('Show column '+name, partial(self.showColumn, col))
+        else:
+            m.addAction(f"{len(hiddencols)} hidden columns")
+        
         # XX more tableviewer context items??
         action = m.exec(self.ui.tableView.mapToGlobal(point))
 
@@ -465,6 +485,8 @@ class TableViewer(QtWidgets.QMainWindow):
     # context menu triggered
     def hideColumn(self, col):
         self.ui.tableView.setColumnHidden(col, True)
+    def showColumn(self, col):
+        self.ui.tableView.setColumnHidden(col, False)
 
     # context menu triggered
     def collapseSelectedCells(self):

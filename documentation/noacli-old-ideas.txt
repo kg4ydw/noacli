@@ -735,3 +735,8 @@ D*   if it ends in / select dirs only??
  * button docks were not in show/hide/tabify all docks
  *  all windows are sized poorly on low res screens (fixed qtail?)
  * resize search dock??
+v11.2
+ * Hide jobs
+v11.3 
+ * tableview: add show column to context menu
+ * tableview: context menu on headers works too now

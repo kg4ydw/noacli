@@ -17,13 +17,25 @@ v  documented in a future video
 t  documented internally with tool tip
 
  -Things to implement soon:
- * Hide jobs
  ? Add hiddenJobs as its own dock
+ ! folding TOC view
+     tree view
+     findall -> assign level and merge
    editing button name should update (or insert) comment in command
  - BUG: job manager: add force remove job (how does this happen?)
  - tableviewer: cli option to set show/hide columns initially
- . search all incremental update
- . search all rerun button
+ ! search all incremental update
+ ! search all rerun button
+ . canned findall sets
+     set name
+     hot key
+     regex + color
+     multiple
+       fold level
+     trigger set from pull down
+     trigger set from regex on command
+       command regex
+       enable
  . hyperlink regex on command regex match
      assoc array of command regex
      array of body regex + hyperlink action
@@ -54,7 +66,7 @@ t  documented internally with tool tip
    add ansi format option to qtail (via aha type translation)
    autodetect formats? html ansi
    disable word wrap on line threshold?
-   on -w disable: word wrap, adjust size (prevent wordwrap hangs)
+ * on -w disable: word wrap, adjust size (prevent wordwrap hangs)
    qtail search dock: update search results if file grows (manual update?)
    qtail search dock: save regex groups as extra columns?
    qtail search dock: use regex groups? instead of context?

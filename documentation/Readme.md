@@ -226,7 +226,7 @@ If a command finishes and you run another command, normally the output
 from the first is cleared, but you can check the 'keep' box if you
 want to retain it for a short while (about two window fulls,
 adjustable).  If you want to retain the output longer, press the dup
-button to pop the output to a qtail window, whether not the process
+button to pop the output to a qtail window, whether or not the process
 has exited.
 
 Programs that emit single lines and exit, or emit single lines slowly
@@ -255,7 +255,7 @@ browse the history.
 
 The jobs you run are also tracked in a job manager dock window that
 shows the critical job details and status, and helps you find or
-reopen or find lost windows.  Finished jobs with closed windows can be
+reopen lost windows.  Finished jobs with closed windows can be
 manually cleared or will automatically clear after a timeout.
 
 If you double click on the window name or mode in the job manager, it
@@ -282,7 +282,7 @@ to a white background when they are edited.
 The favorites editor, when opened, shows your previously saved
 favorites, your 10 most recently run commands, and your 10 most
 frequently run commands not already listed.  (These numbers are settings that
-can be changed of course.)  You can check or uncheck the any entry if
+can be changed of course.)  You can check or uncheck 'keep' on an entry if
 you want to keep it or not.  Named entries show up in the button dock
 for quick access.  Also, a shortcut key binding can be set for any
 favorite.  A favorite can be flagged to be immediately run when
@@ -357,9 +357,9 @@ The currently available output destinations are:
 
 | keyword | destination
 |----|-----|
-| small | output dock window
+| small | small output dock window
 | qtail | large output browser
-| log   |   dock window
+| log   | log dock window
 | table | table parser and viewer
 
 These output destinations are described above, but if the first word in a
@@ -570,7 +570,8 @@ If you close the main window, noacli will offer to also close other
 windows opened in the session and kill any processes that were
 started.  You can choose to ignore these left overs, but then noacli
 can't exit until all of them exit on their own and will hang around
-(without its own window) until then.
+(without its own window) until then.  (This is a Qt limitation.)
+
 ## == Titles
 Window titles, job names, and button names can all be edited.
 You can force the default window title or name of a command by putting the title on the first line preceeded with a #
@@ -580,7 +581,7 @@ You can force the default window title or name of a command by putting the title
 To use noacli with ssh to remote hosts, it needs to work without asking for
 a password.  There are two ways to do this.
 
-### == Permanent authorization
+### === Permanent authorization
 1) create a local ssh key (e.g, ssh-keygen -t rsa )
 2) copy the public key to the remote host in the file `authorized_keys`
    (the permissions have to be exactly right for it to work, must not be
@@ -681,6 +682,6 @@ this release frequency will decrease.  If you want new features,
 please suggest them!! If you find bugs, (or documented bugs annoy
 you), let us know!
 
-This project (and this file) are Copyright (C) 2022 Steven Dick
+This project (and this file) are Copyright (C) 2022, 2023, 2024 Steven Dick
 and may be used under the terms of the GNU General Public LIcense v3
 which should have been included with this project in the file license.txt
