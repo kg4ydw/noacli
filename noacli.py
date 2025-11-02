@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.12'
+__version__ = '1.13'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
