@@ -453,7 +453,7 @@ class noacli(QtWidgets.QMainWindow):
         # cheat a bit, so nearly everyone can get to these
         self.settings.apply_settings = self.apply_settings
         self.settings.apply_settings.connect(self.applyEditorFont)
-        self.settings.app = app # XX redundant
+        self.settings.app = app
         self.settings.smallOutputView = self.ui.smallOutputView
         self.settings.statusBar = self.statusBar()
         self.settings.mainwin = self
@@ -836,8 +836,8 @@ class noacli(QtWidgets.QMainWindow):
         col = index.column()
         if col==0:
             text = str(index.model().getItem(index).getpid())
-            self.app.clipboard().setText(text)
-            self.app.clipboard().setText(text, QClipboard.Selection)
+            self.settings.app.clipboard().setText(text)
+            self.settings.app.clipboard().setText(text, QClipboard.Selection)
         elif col==1: index.model().cleanupJob(index)  # job status
         elif col==2 or col==3: self.windowShowRaise(index)
         elif col==4: self.ui.commandEdit.acceptCommand(index.model().getItem(index).command())

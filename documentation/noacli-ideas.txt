@@ -17,16 +17,41 @@ v  documented in a future video
 t  documented internally with tool tip
 
  -Things to implement soon:
+ * make job table copy/paste work for pid column (bug fix)
+ * tail: show/hide bars in context menu
+ * tail: follow toggle in context menu?
+ x? tail: status icon in title bar?
+ ? tail cli: --notoolbars --follow
+ ? tail: xlate \r \n
+ ! tableviewer search box in pull down
+ ? tableviewer search pulldown: sort/search checkbox?
+ ! bug in button dock: "set default dock" buttons are saved in wrong dock
+ ? button dock: editing a button moves it
+   right click favorite (button or editor) for fav edit dialog
+ ? right click favorite to add smart title
+ ? edit favorite dialog
+     merging all preferences into one dialog
+     separate title
+     button dock selector
+     large text box
+     trigger from favorites editor and right click on button "edit this button"
+ ! fav editor: grey out button if no changes? save vs ok?
+ ? findall autoresize (on restack, context menu?)
+ ! bug: settings dialogs are not reentrant
+ ! tableviewer -> rerun / kill? / stats
+ ! Bug: bus/*.txt table crash (2 bugs)
+ ? detect headings (in search/toc) for markdown
+ ! context regex commands (below)
  ? Add hiddenJobs as its own dock
- ! folding TOC view
-     tree view
+ x folding TOC view
+     tree view (try again in qt6?)
      findall -> assign level and merge
    editing button name should update (or insert) comment in command
  - BUG: job manager: add force remove job (how does this happen?)
  - tableviewer: cli option to set show/hide columns initially
  ! search all incremental update
  ! search all rerun button
- . canned findall sets
+ . canned findall sets (toc searches)
      set name
      hot key
      regex + color
@@ -119,7 +144,7 @@ t  documented internally with tool tip
    menu item (implemented, but not in menu)
  *   close all windows
  *   kill all subprocesses
- o   disown all subprocesses (default on exit?)
+ x   disown all subprocesses (default on exit?)
  * if output windows are not visible, add extra status to main window?
 
  -User visible bugs:
@@ -241,7 +266,61 @@ D* button editor ("favorites")
          related
          filter by section
         clear database
-
+!  Context regex commands
+     on right click, generate a menu of context specific commands
+       use highlighted region as context
+       use current line as context
+       try each regex on context
+     sources
+       qt settings
+       user configured files (deleteable)
+       noacli included config files
+       metadata:
+         name/source
+	 enabled
+     context set
+       from config file
+         preconfigured
+	   OS specific, automatically enabled
+	   user selected sets (menu?)
+	 user imported
+       from qt settings
+     data structure
+       context set
+         source (config file, qt settings)
+	 name  (source,name) is unique
+	 description?
+	 enabled checkbox
+	 regex to match command to enable set (may be empty for global)
+	 list of rules
+       rule list
+         enabled checkbox (default on)
+	 immediate checkbox
+	   run command immediately or
+	   dump command into command editor
+         regex match (using groups)
+	 display text (using group substituions), inserted into menu
+	 command (using group substitutions)
+     configuration
+	read sets from qt settings
+	rulesets from config files
+ 	  get list of enabled config files from qt settings
+ 	  auto-enable config files (if no settings lits)
+	    default enabled sets
+	    os specific sets
+	edit configs
+	  add user defined config file (directory?)
+	  noacli included ruleset directories
+	  enable/disable config files
+	  treeview editor?
+	    sources
+ 	      context set
+	        rule list
+	  global edit in settings
+	  context menu: edit context sets that match current context (treeview)
+     noacli commands
+       {dis,en}ableset source setname
+       usable from buttons
 ----E
 ## ispell put these here
 LocalWords:  settingsDialog tableview smalldup fileDialog smalloutput

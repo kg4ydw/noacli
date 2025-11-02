@@ -19,6 +19,8 @@ class myBrowser(QTextBrowser):
     
     def __init__(self, parent):
         super().__init__(parent)
+        self.ui = parent.parent().ui
+        self.showBars = True
     
     def contextMenuEvent(self, event):
         m=super().createStandardContextMenu(event.pos())
@@ -28,7 +30,31 @@ class myBrowser(QTextBrowser):
         else:
             m.addAction("Convert to table",self.allToTable)
         m.addAction("Clear highlights", self.clearHighlights.emit)
+        if self.ui.followCheck.isChecked():
+            m.addAction("stop following tail",self.contextFollowToggle)
+        else:
+            m.addAction("Follow tail",self.contextFollowToggle)
+        if self.showBars:
+            m.addAction("Hide bars",self.toggleBars)
+        else:
+            m.addAction("Show bars",self.toggleBars)
         m.exec(event.globalPos())
+
+    def contextFollowToggle(self):
+        self.ui.followCheck.setChecked(not self.ui.followCheck.isChecked())
+        ## checkbox action calls this anyway
+        # self.jumpToEndMaybe(self.ui.followCheck.isChecked())
+
+    def toggleBars(self):
+        # this should use self.ui.actionShowToolbar but it didn't work
+        t= self.ui.actionShowToolbar
+        # XX this doesn't work ## showBars = t.isChecked()
+        self.showBars = not self.showBars
+        showBars = self.showBars # proxy for above
+        self.ui.toolBar_2.setVisible(showBars)
+        self.ui.menubar.setVisible(showBars)
+        self.ui.statusbar.setVisible(showBars)
+        t.setChecked(showBars)
 
     def selToTable(self):
         cursor = self.textCursor()

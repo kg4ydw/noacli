@@ -740,3 +740,4 @@ v11.2
 v11.3 
  * tableview: add show column to context menu
  * tableview: context menu on headers works too now
+ x find all: regex groups
