@@ -5,8 +5,10 @@ DISTFILES=$(SRCFILES) $(UI) $(RESOURCES)
 
 all: $(UI)
 
+# fix bugs in pyuic6
 %.py: %.ui
-	pyuic5 -o $@ $<
+	pyuic6 -o $@ $<
+	sed -i 's/QMainWindow\.\(Allow\|Animated\|Grouped\|AllowNestedDocks\)/QMainWindow.DockOption.\1/g' $@
 
 noacli.tgz: $(DISTFILES)
 	rm -f noacli.tgz

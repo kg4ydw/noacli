@@ -1,15 +1,15 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022-2024, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022-2024, 2026, Steven Dick <kg4ydw@gmail.com>'
 
 # Do all the job manipulation (view and model) parts of noacli
 
 import re   # use python re instead of Qt
 import os, time, math
 
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.Qt import Qt, QBrush
-from PyQt5.QtCore import QIODevice, QTimer, QModelIndex, QProcess, QPersistentModelIndex
+from PyQt6 import QtCore, QtWidgets
+from PyQt6.QtGui import QBrush
+from PyQt6.QtCore import Qt, QIODevice, QTimer, QModelIndex, QProcess, QPersistentModelIndex
 
 from lib.datamodels import itemListModel
 from qtail import QtTail
@@ -25,7 +25,7 @@ class mommie(QtCore.QObject):
     # No point in implementing accounting Qt already does.
     def __init__(self):
         super().__init__(QtWidgets.QApplication.instance())
-        
+
     def childEvent(self, event):
         if event.added():
             #print("Mommie!", repr(event.child()), type(event.child())) # DEBUG
@@ -81,7 +81,7 @@ class jobItem():
         if hasattr(self, 'process') and self.process:
             self.process.setParent(None)
         self.process=None
-        
+
     def getpid(self):
         if self.pid: return self.pid
         if self.process:
@@ -116,12 +116,12 @@ class jobItem():
                 if i and i.model():
                     i.model().dataChanged.emit(i,i)
     def setMode(self,mode):  # mode is set in command parser
-        if type(mode)==OutWin:
+        if isinstance(mode, OutWin):
             self.mode = mode
             return
         try:
             newmode = OutWin[mode]
-            if newmode: 
+            if newmode:
                 self.mode = OutWin[mode]
                 if self.index:
                     i = self.index.model().index(self.index.row(),2)
@@ -143,20 +143,20 @@ class jobItem():
     def collectError(self, err):
         self.status += 'E'+str(err)+' '
         self.setStatus(self.status)
-        
+
     def collectFinish(self, exitCode, estatus):
         self.finished = True
         self.setStatus(self.status+'F'+str(exitCode)+':'+str(estatus),exitCode)
         self.timestop = time.monotonic()
         # calculate running average
         t = self.timestop-self.timestart
-        if self.runtime==None: self.runtime=t
+        if self.runtime is None: self.runtime=t
         self.runtime = self.runtime * 0.6 + t*0.4
         #print("runtime {} = {:1.2f}".format(self.runtime, self.runtime)) # DEBUG
     def collectNewstate(self, state):
-        if state==QProcess.Starting:
+        if state==QProcess.ProcessState.Starting:
             self.setStatus(self.status+str('Starting'))
-        if state==QProcess.Running:
+        if state==QProcess.ProcessState.Running:
             self.setStatus(self.status+str('Running'))
         # let finished take care of its own
 
@@ -169,13 +169,13 @@ class jobItem():
                 self.index.model().dataChanged.emit(index,index)
             if not self.history or not self.history.model(): # not a real job
                 pass
-            elif exitStatus!=None:
+            elif exitStatus is not None:
                 self.history.model().setStatus(self.history, exitStatus)
             else:
                 self.history.model().setStatus(self.history, status)
         except:
-            pass # XXX broken 
-    
+            pass # XXX broken
+
 
     # public interfaces
     def command(self):
@@ -201,12 +201,12 @@ class jobItem():
         # XXX need to send title to window??
         if self.outwinArgs: self.window.simpleargs(self.outwinArgs)
         self.window.openfile(file)
-        
+
     def start(self, settings):
         self.process.setProcessEnvironment(settings.environment)
         # XXX connect output to something
         # for now, just merge stdout,stderr and send to qtail
-        self.process.setProcessChannelMode(QProcess.MergedChannels)
+        self.process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels) # XXXX Separate/setReadChannel()
         ## stdin already connected to /dev/null
         #self.process.closeWriteChannel() # close stdin if we have no infile
         outwin = self.mode
@@ -236,8 +236,7 @@ class jobItem():
             #print("start small") # DEBUG
             settings.smallOutputView.openProcess(self.process, self, settings)
         #print('start command: '+self.command())  # DEBUG
-        
-        self.process.start(self.args[0], self.args[1:], QIODevice.ReadOnly|QIODevice.Text)
+        self.process.start(self.args[0], self.args[1:], QIODevice.OpenModeFlag.ReadOnly|QIODevice.OpenModeFlag.Text)
 
     def setWindow(self,w):
         self.window = w
@@ -245,7 +244,7 @@ class jobItem():
         self.windowOpen = True
         self.window.show()
         self.window.start()
-        
+
     def windowClosed(self):
         self.windowOpen = False
         if self.index:
@@ -253,7 +252,7 @@ class jobItem():
             self.index.model().dataChanged.emit(index,index)
         # XXX trigger cleanup?  maybe on a timer
         # self.index.model().cleanupJob(self.index)
-            
+
 class jobTableModel(itemListModel):
     def __init__(self):
         itemListModel.__init__(self, [ 'pid', 'state','mode', 'window', 'command'] )
@@ -289,23 +288,23 @@ class jobTableModel(itemListModel):
         for d in self.data:
             if not d.finished and d.process:
                 d.process.setParent(mommie())
-    
+
     def data(self, index, role):
         if not self.validateIndex(index): return None
         col = index.column()
         job = self.data[index.row()]
-        if role==Qt.ToolTipRole:
+        if role==Qt.ItemDataRole.ToolTipRole:
             if col==0 and job.pid: return str(job.pid)
             if col==1 and job.runtime:
                 return "{:2.2f}s".format(job.runtime)
                 # wish I could get process cpu time too
             elif col==4: return job.command()
-        if role==Qt.BackgroundRole and col==3:
+        if role==Qt.ItemDataRole.BackgroundRole and col==3:
             if job.mode and not job.window:
-                return QBrush(Qt.lightGray)
+                return QBrush(Qt.GlobalColor.lightGray)
             if not job.windowOpen:
-                return QBrush(Qt.gray)
-        if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
+                return QBrush(Qt.GlobalColor.gray)
+        if role in [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole]:
             # if you update these, also udpate noacli.jobDoubleClicked
             # also in jobitem emits above
             if col==0 and job.process: return job.process.processId()
@@ -328,7 +327,7 @@ class jobTableModel(itemListModel):
     def flags(self,index):
         if not index.isValid() or index.column()!=3:
             return super().flags(index)
-        return Qt.ItemIsSelectable|Qt.ItemIsEnabled| Qt.ItemIsEditable
+        return Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled| Qt.ItemFlag.ItemIsEditable
     # can't delete a job unless it is dead, so don't implement removeRows
     def removeRows(self, row, parent):
         return False
@@ -355,7 +354,7 @@ class jobTableModel(itemListModel):
     def moveall(self,other):
         while self.data:
             self.moveJob(0,other)
-            
+
     # delete all dead jobs
     def cleanup(self):
         #print('cleanup') # DEBUG
@@ -385,7 +384,7 @@ class historyItem():
             if m and m.group(1):
                 return m.group(1)
         return None
-        
+
 class History(itemListModel):
     def __init__(self):
         super().__init__(['exit', 'command'])
@@ -395,26 +394,26 @@ class History(itemListModel):
     def GetCommand(cls,index):
         # because persistent indexes and proxy models suck
         if not index or not index.model(): return None
-        return index.model().index(index.row(),1).data(Qt.EditRole)
-    
+        return index.model().index(index.row(),1).data(Qt.ItemDataRole.EditRole)
+
     # format cells
     def data(self, index, role):
         if not self.validateIndex(index): return None
         item = self.getItem(index)
         col = index.column()
-        if role==Qt.BackgroundRole and col==0:
+        if role==Qt.ItemDataRole.BackgroundRole and col==0:
             st = item.status
-            if st==None: return QBrush(Qt.gray)
+            if st is None: return QBrush(Qt.GlobalColor.gray)
             if st==0 or st=='F0:0':
-                return QBrush(Qt.green)
+                return QBrush(Qt.GlobalColor.green)
             elif isinstance(st,str) and len(st)>1:
-                if st[1]=='1': return QBrush(Qt.red) # XX or any number?
-                else: return QBrush(Qt.yellow)
-            elif st: return QBrush(Qt.red)
+                if st[1]=='1': return QBrush(Qt.GlobalColor.red) # XX or any number?
+                else: return QBrush(Qt.GlobalColor.yellow)
+            elif st: return QBrush(Qt.GlobalColor.red)
             else: return None
-        elif role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole, Qt.ToolTipRole]:
+        elif role in [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole, Qt.ItemDataRole.ToolTipRole]:
             if col==0:
-                if role==Qt.ToolTipRole:
+                if role==Qt.ItemDataRole.ToolTipRole:
                     return item.count # XX or make this column 2
                 else:
                     return item.status
@@ -449,9 +448,9 @@ class History(itemListModel):
         # if exitval==None and isValid(index) replace existing entry
         # else append to end of history
         self.modified = True
-        if self.validateIndex(index) and exitval==None:
+        if self.validateIndex(index) and exitval is None:
             item = self.getItem(index)
-            if item.status==None:
+            if item.status is None:
                 item.command = command
                 i = index.model().index(index.row(),1)
                 self.dataChanged.emit(i,i)
@@ -482,7 +481,7 @@ class History(itemListModel):
         self.data[row].status = status
         i = index.model().index(index.row(),0)
         self.dataChanged.emit(i,i)
-    
+
     # slots used by historyView context menu
     def collapseDups(self):
         i = 1
@@ -497,9 +496,9 @@ class History(itemListModel):
                         self.data[start].count += self.data[j].count
                     #print('remove: ({},{})={}'.format(start,i,nc)) # DEBUG
                     self.removeRows(start+1, nc, QModelIndex())
-                start +=1 
+                start +=1
                 i = start+1
-                          
+
     def countHistory(self):
         f = { }
         counts = { }
@@ -550,7 +549,7 @@ class History(itemListModel):
             fname = filename
         else:
             fname = self.getHistfilename()
-        e = re.compile("^\s*(\d*)(,(\d+))?\s*:\s*(\S.*)")
+        e = re.compile(r"^\s*(\d*)(,(\d+))?\s*:\s*(\S.*)")
         try:
             file = open(fname, 'r')
         except:
@@ -590,7 +589,7 @@ class History(itemListModel):
             for ii in range(start,len(self.data)):
                 i = self.data[ii]
                 st = i.status
-                if type(st)==int or (type(st)==str and st.isnumeric()):
+                if  isinstance(st,int) or isinstance(st, str) and st.isnumeric():
                     # XXX this doesn't handle newlines!!!!
                     # handle embedded newlines in input parser (less safe)
                     file.write("{},{}: {}\n".format(st, i.count, i.command.strip()))
@@ -598,4 +597,3 @@ class History(itemListModel):
                     file.write(": {}\n".format(i.command.strip()))
         self.modified = False
         # print("history write of "+filename+" failed") # DEBUG
-

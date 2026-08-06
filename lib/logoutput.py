@@ -1,6 +1,6 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, 2026, Steven Dick <kg4ydw@gmail.com>'
 
 # Receiver for output from multiple processes
 # Manage the output and the processes generating it.
@@ -8,11 +8,11 @@ __copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
 import os,  sys, re, time
 from functools import partial
 
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.Qt import Qt, pyqtSignal
-from PyQt5.QtCore import QTimer, QSettings, QTextStream, QProcess
-from PyQt5.QtGui import QTextCursor, QImage, QTextOption
-from PyQt5.QtWidgets import QTextBrowser
+from PyQt6 import QtCore, QtWidgets
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import QTimer, QSettings, QTextStream, QProcess
+from PyQt6.QtGui import QTextCursor, QImage, QTextOption
+from PyQt6.QtWidgets import QTextBrowser
 
 from lib.typedqsettings import typedQSettings
 from lib.noajobs import jobItem
@@ -41,7 +41,7 @@ class logOutput(QTextBrowser):
     oneLine = pyqtSignal(str)
     readmore = pyqtSignal(jobItem)
     gotNewLines = pyqtSignal(int)
-    
+
     def __init__(self, parent):
         super().__init__(parent)
         self.joblist=set()
@@ -51,8 +51,8 @@ class logOutput(QTextBrowser):
         self.settings = None
         self.applySettings()
         # if a fixed number is set, use it, otherwise delay this
-        self.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere) # SETTING
-        self.readmore.connect(self.readLines, Qt.QueuedConnection)  # for delayed reads
+        self.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere) # SETTING
+        self.readmore.connect(self.readLines, Qt.ConnectionType.QueuedConnection)  # for delayed reads
         self.show()
 
     def applySettings(self):
@@ -61,10 +61,10 @@ class logOutput(QTextBrowser):
         self.document().setMaximumBlockCount(max)
 
     ######## process and I/O handling stuff
-        
+
     def endCursor(self):
         c = self.textCursor()
-        c.movePosition(QTextCursor.End)
+        c.movePosition(QTextCursor.MoveOperation.End)
         if self.followCheck:
             self.setTextCursor(c) # jump to end
         return c
@@ -109,7 +109,7 @@ class logOutput(QTextBrowser):
         c.insertHtml(str(jobitem.getpid())+': <b>Start log</b> <br/>')
         c.insertText("\n")
         self.connectProcess(jobitem)
-                
+
     def connectProcess(self, jobitem):
         jobitem.lc1 = jobitem.process.readyRead.connect(partial(self.readLines, jobitem))
         jobitem.lc2 = jobitem.process.finished.connect(partial(self.procFinished, jobitem))
@@ -147,7 +147,7 @@ class logOutput(QTextBrowser):
         if jobitem.hasmore or jobitem.process.canReadLine():
             if not jobitem.paused:  # more to read but we're not ready
                 self.readmore.emit(jobitem)
-        elif jobitem.process.atEnd() and jobitem.process.state()==QProcess.NotRunning:
+        elif jobitem.process.atEnd() and jobitem.process.state()==QProcess.ProcessState.NotRunning:
             self.cleanProc(jobitem)
         if self.followCheck:
             self.setTextCursor(e)
@@ -155,16 +155,16 @@ class logOutput(QTextBrowser):
     def pauseJob(self, jobitem):
         jobitem.paused = True
         self.disconnectProcess(jobitem)
-        bytes = 0
+        bytec = 0
         if jobitem.process:
-            bytes = jobitem.process.bytesAvailable()
+            bytec = jobitem.process.bytesAvailable()
             c = self.endCursor()
-            c.insertText("{} paused with {} bytes available\n".format(jobitem.pid, bytes))
+            c.insertText("{} paused with {} bytes available\n".format(jobitem.pid, bytec))
     def resumeJob(self,jobitem):
         jobitem.paused = False
         self.connectProcess(jobitem)
         self.readmore.emit(jobitem)
-    
+
     def procFinished(self, jobitem, exitcode, estatus):
         c = self.endCursor()
         runtime = ''
@@ -201,7 +201,7 @@ class logOutput(QTextBrowser):
                 c.insertText("\n")
                 jobitem.cleanup()
                 self.joblist.discard(jobitem)
-            
+
 
     ######## GUI stuff
 
@@ -224,7 +224,7 @@ class logOutput(QTextBrowser):
         else:
             # try again
             cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.Start)
+            cursor.movePosition(QTextCursor.MoveOperation.Start)
             self.setTextCursor(cursor)
             success = self.find(text)
             if success:
@@ -234,12 +234,12 @@ class logOutput(QTextBrowser):
                     m = 'Wrapped'
                 if self.settings and self.settings.statusBar:
                     self.settings.statusBar.showMessage(m)
-                self.findcount = 1;
+                self.findcount = 1
             else:
                 self.setTextCursor(start)
                 if self.settings and self.settings.statusBar:
                     self.settings.statusBar.showMessage('Not found')
-    
+
     @QtCore.pyqtSlot(str)
     def simpleFindNew(self, text):
         self.searchtext = text
@@ -262,10 +262,10 @@ class logOutput(QTextBrowser):
         m=super().createStandardContextMenu(event.pos())
         c = self.cursorForPosition(event.pos())
         # get pid
-        c.movePosition(QTextCursor.StartOfLine)
-        c.movePosition(QTextCursor.NextWord, QTextCursor.KeepAnchor)
+        c.movePosition(QTextCursor.MoveOperation.StartOfLine)
+        c.movePosition(QTextCursor.MoveOperation.NextWord, QTextCursor.MoveMode.KeepAnchor)
         pidT = c.selectedText()
-        
+
         job = None
         if pidT and pidT.isnumeric():
             pid = int(pidT)
@@ -276,7 +276,7 @@ class logOutput(QTextBrowser):
                 sm = m.addMenu('info: '+t)
                 c = job.command()
                 sma = sm.addAction(c) # XX and do what? just view for now
-        if job and job.process and job.process.state()==QProcess.Running:
+        if job and job.process and job.process.state()==QProcess.ProcessState.Running:
             m.addAction("Kill pid "+pidT, partial(self.termJob,job))
             m.addAction("Kill pid {} hard".format(pidT),partial(self.killJob,job))
         elif pidT:
@@ -292,7 +292,7 @@ class logOutput(QTextBrowser):
                 m.addAction("Resume this pid "+status, partial(self.resumeJob,job))
             else:
                 m.addAction("Pause this pid",partial(self.pauseJob,job))
-        if job!=None:
+        if job is not None:
             skipjob = job.pid
         else:
             skipjob = 0
@@ -321,28 +321,28 @@ class logOutput(QTextBrowser):
             print("empty del log") # EXCEPT DEBUG
             return
         c = self.textCursor()
-        c.movePosition(QTextCursor.Start)
+        c.movePosition(QTextCursor.MoveOperation.Start)
         c.beginEditBlock()
         while not c.atEnd():
             if c.block().text().startswith(pidT):
-                c.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+                c.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.KeepAnchor)
                 c.removeSelectedText()
             else:
-                c.movePosition(QTextCursor.NextBlock, QTextCursor.MoveAnchor)
+                c.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
         c.endEditBlock()
     def clearDead(self):
         # we don't have a list of dead jobs, so just delete everything not in joblist
         okjobs = [str(job.pid) for job in self.joblist]
         c = self.textCursor()
-        c.movePosition(QTextCursor.Start)
+        c.movePosition(QTextCursor.MoveOperation.Start)
         c.beginEditBlock()
         while not c.atEnd():
             (start,_,_) = c.block().text().partition(':')
             if start not in okjobs:
-                c.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+                c.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.KeepAnchor)
                 c.removeSelectedText()
             else:
-                c.movePosition(QTextCursor.NextBlock, QTextCursor.MoveAnchor)
+                c.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
         c.endEditBlock()
     def checkStatus(self):
         c=self.endCursor()

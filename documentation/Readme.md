@@ -7,7 +7,7 @@ Noacli takes full advantage of having a GUI as much as possible,
 including common trivial data visualization stuff.
 
 This readme is not comprehensive, but it hits the major points.
-There's more stuff discoverable in the shell.
+There's more stuff discoverable in the shell via tool tips, pull down menus, and context menus..
 
 # = Dependencies
 

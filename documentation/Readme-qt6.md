@@ -36,3 +36,34 @@ Qt bug workaround, fixed in Qt 6.11+
   Docks prevent floating docks from being deleted by catching closeEvent
   * mydock.py
   * searchdock.py
+
+# New features
+
+Qt6 has new features that need to be explored and maybe old bugs fixed.
+* Qt6 has features needed to function correctly in wayland
+  some noacli 1.x features are broken because qt5 doesn't support wayland
+* Qt6 has better regex group support? qtail can use this
+  * show groups instead of prefix, regex, postfix ? (toggle between views?)
+
+Speculation:
+* tree widget was unusable in pyqt5, segfaults easily
+* Maybe there is better support for link actions in files? lots of
+  ideas in todo for this
+* maybe (hope) the text widget family is better
+* terminal/pty solution?
+
+known: https://www.pythonguis.com/faq/pyqt5-vs-pyqt6/
+* graphs module / regex group / apt protocol?  https://doc.qt.io/qt-6/qtgraphs-index.html
+* port designer
+* QRegExp -> QRegularExpression
+* Qt.Checked -> Qt.CheckState.Checked
+* pyinstaller data files for resources
+* QMouseEvent changes
+* QDesktopWidget --> QScreen
+* enhanced: QStringView
+* new: QtDBus*
+* new: QtWayland QtTextInputMethodManager
+* some parts of QtWidgets -> QtGUI
+* tools: QDoc
+* wayland:
+* QProcess::SeparateChannels / setReadChannel()

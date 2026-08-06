@@ -1,11 +1,13 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 
 from functools import partial
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.Qt import Qt, pyqtSignal
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import Qt, pyqtSignal
+dwf = QtWidgets.QDockWidget.DockWidgetFeature
+
 
 from lib.mydock import myDock
 from lib.flowlayout import FlowLayout
@@ -35,11 +37,12 @@ class ButtonDock(myDock):
             self.defaultDock.append(self)
             self._fixup(self.run_command)
             self.firstDock = True # never delete this
-        self.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)
+        #XXX self.setFeatures(QtWidgets.QDockWidget.AllDockWidgetFeatures)
+        self.setFeatures(dwf.DockWidgetClosable | dwf.DockWidgetMovable | dwf.DockWidgetFloatable)
         self.buttonBox = QtWidgets.QWidget()
         self.mylayout = FlowLayout(self.buttonBox)
         self.mylayout.setContentsMargins(0, 0, 0, 0)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         sizePolicy.setHeightForWidth(self.mylayout.hasHeightForWidth())
         self.buttonBox.setSizePolicy(sizePolicy)
         self.buttonBox.setObjectName("buttonBox")
@@ -64,7 +67,7 @@ class ButtonDock(myDock):
             if cls.docklist[i]!=prev:
                 main.tabifyDockWidget(prev, cls.docklist[i])
                 prev = cls.docklist[i]
-      
+
     @classmethod
     def _fixup(cls, sig):
         # overwrite unbound signal with a bound one from the default dock
@@ -91,7 +94,7 @@ class ButtonDock(myDock):
 
     def doButton(self, name, clicked=None):
         c = self.favoritelist[name]
-        if type(c)==str: # special buttons
+        if isinstance(c, str): # special buttons
             self.run_command.emit(c)
         else:
             c.runme()
@@ -109,17 +112,16 @@ class ButtonDock(myDock):
             for d in cls.docklist:
                 cls.docklist[d].delButton(f)
         # update remaining buttons, add new buttons to default dock
-        if changed==None: # assume everything changed
+        if changed is None: # assume everything changed
             changed = set(newfav.keys())
         for f in newfav:
             if f in cls.favoritelist:
                 if  f in changed:
                     cls.favoritelist[f] = newfav[f]
                     # update it everywhere
-                    for d in cls.docklist:
-                        dock = cls.docklist[d]
+                    for d,dock in cls.docklist.items():
                         if f in dock.mybuttons:
-                            if type(dock.mybuttons)==str:
+                            if isinstance(dock.mybuttons, str):
                                 # make a real button
                                 dock.addButton(f)
                             else: # update old button
@@ -132,7 +134,7 @@ class ButtonDock(myDock):
         if button not in self.mybuttons: return
         b = self.mybuttons[button]
         del self.mybuttons[button]
-        if type(b)==str: return
+        if isinstance(b, str): return
         self.mylayout.removeWidget(b)
         b.setParent(None)
 
@@ -143,12 +145,12 @@ class ButtonDock(myDock):
                 self.mybuttons[button] = button
             return
         # if button already exists, don't re-add it
-        if button in self.mybuttons and type(self.mybuttons[button])!=str:
+        if button in self.mybuttons and not isinstance(self.mybuttons[button], str):
             # this *shouldn't* be recursive but it might be
             return self.setButton(button)
         # XX if there was a button by this name, step on it
         b = QtWidgets.QToolButton(self)
-        if type(self.favoritelist[button])==str:
+        if isinstance(self.favoritelist[button], str):
             # make this sort first
             b.setObjectName('@'+button)
         else:
@@ -156,7 +158,7 @@ class ButtonDock(myDock):
         b.setText(button)
         self.mybuttons[button] = b
 
-        if type(self.favoritelist[button])==str:
+        if isinstance(self.favoritelist[button], str):
             # this never changes, just do it here
             if button in self.special_buttons:
                 b.setStyleSheet("""QToolButton:!pressed { border: 1px solid black; border-radius: 6px; font-weight: bold; }""")
@@ -173,8 +175,8 @@ class ButtonDock(myDock):
     def setButton(self, button):
         b = self.mybuttons[button]
         if button not in self.favoritelist: return # not yet
-        if type(self.favoritelist[button])==str: return
-        if type(b)==str:
+        if isinstance(self.favoritelist[button],str): return
+        if isinstance(b, str):
             if button in self.favoritelist:
                 return self.addButton(button)
             else:
@@ -275,7 +277,7 @@ class EditButtonDocks(settingsDialog):
         newdia = buttonbox.addButton("New dock", QtWidgets.QDialogButtonBox.ActionRole)
         newdia.clicked.connect(self.addDock)
         tv =  self.ui.tableView
-        tv.setContextMenuPolicy(Qt.CustomContextMenu)
+        tv.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tv.customContextMenuRequested.connect(self.contextMenu)
 
     def selectionSetCheck(self, state):
@@ -284,12 +286,12 @@ class EditButtonDocks(settingsDialog):
         for index in selected:
             row = index.row()
             col = index.column()
-            if state==None: # toggle
+            if state is None: # toggle
                 self.edata[row][col] = not self.edata[row][col]
             else:
                 self.edata[row][col] = state
             self.model.dataChanged.emit(index, index)
-    
+
     def contextMenu(self, point):
         # attach this to tableView
         t = self.ui.tableView
@@ -306,7 +308,7 @@ class EditButtonDocks(settingsDialog):
         # delete dock (confirm?)
         # set default dock
         m.exec(t.mapToGlobal(point))
-    
+
     def addDock(self):
         (name, result) = QtWidgets.QInputDialog.getText(self, "Add new button dock", "Button dock name")
         if name:
@@ -319,7 +321,7 @@ class EditButtonDocks(settingsDialog):
         coldata = [True, True] + ([False]*(len(self.edata)-2))
         self.model.appendColumn(name,coldata)
         self.ui.tableView.resizeColumnToContents(len(self.edocks))
-    
+
     def finishEdit(self, result):
         if result:
             for di in range(len(self.edocks)):
@@ -339,4 +341,3 @@ class EditButtonDocks(settingsDialog):
         self.setParent(None) # XX delete later?
         self.edocks = None
         if self.doneFunc: self.doneFunc()
-        

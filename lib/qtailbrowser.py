@@ -1,27 +1,27 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023 Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 
 # viewer portion of the qtail application
 
 import re
 from functools import partial
 
-from PyQt5.Qt import pyqtSignal
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QTextBrowser, QFontDialog
-from PyQt5.QtGui import QTextCursor
+from PyQt6.QtCore import pyqtSignal
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import QTextBrowser, QFontDialog
+from PyQt6.QtGui import QTextCursor
 
 class myBrowser(QTextBrowser):
     # context menu actions
     saveHighlight = pyqtSignal()
     clearHighlights = pyqtSignal()
-    
+
     def __init__(self, parent):
         super().__init__(parent)
         self.ui = parent.parent().ui
         self.showBars = True
-    
+
     def contextMenuEvent(self, event):
         m=super().createStandardContextMenu(event.pos())
         if self.textCursor().hasSelection():
@@ -83,13 +83,13 @@ class myBrowser(QTextBrowser):
             table.append(line.split(delimiter))
         #if typedQSettings().value('DEBUG',False):print("table: {},{}".format(len(table),len(table[0]))) # DEBUG
         return table
-    
+
     def toTable(self, text):
         # this doesn't handle quoted delimiters correctly in csv, very primitive
         atable = self.autoTable(text)
         if not atable: return  # fail!
         # normalize the table
-        width = max([len(x) for x in atable])
+        width = max(len(x) for x in atable)
         for row in atable:
             if len(row)<width: row +=['']*(width-len(row))
         cursor = self.textCursor()
@@ -100,14 +100,14 @@ class myBrowser(QTextBrowser):
         for arow in atable:
             for cell in arow:
                 cursor.insertText(cell)
-                cursor.movePosition(QTextCursor.NextCell)
+                cursor.movePosition(QTextCursor.MoveOperation.NextCell)
         cursor.endEditBlock()
-            
+
     @QtCore.pyqtSlot(bool)
     def jumpToEndMaybe(self,checked):
         if not checked: return
         c=self.textCursor()
-        c.movePosition(QTextCursor.End)
+        c.movePosition(QTextCursor.MoveOperation.End)
         self.setTextCursor(c)
 
     def liveFont(self,font):
@@ -127,7 +127,7 @@ class myBrowser(QTextBrowser):
         fd.setWindowTitle("Pick qtail browser font")
         self.fontdialog = fd
         fd.open()
-    
+
     ## this doesn't work any differently than the above
     #def pickFontMono(self):
     #    print('mono') # DEBUG

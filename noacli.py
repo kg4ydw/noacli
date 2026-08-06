@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __license__   = 'GPL v3'
-__copyright__ = '2022-2024, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022-2026, Steven Dick <kg4ydw@gmail.com>'
 
 # The No Ampersand CLI shell
 #
@@ -13,15 +13,15 @@ __copyright__ = '2022-2024, Steven Dick <kg4ydw@gmail.com>'
 # See Readme.md for more documentation.
 
 import os, sys, time
-from pathlib import Path
+#from pathlib import Path
 from functools import partial
-import signal
+#import signal
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.Qt import Qt, pyqtSignal
-from PyQt5.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard, QFont
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QIODevice, QModelIndex,QPersistentModelIndex, QSettings, QProcessEnvironment, QProcess
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+from PyQt6.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard, QFont, QAction, QShortcut, QActionGroup
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import QIODevice, QModelIndex,QPersistentModelIndex, QSettings, QProcessEnvironment, QProcess
 
 from lib.noacli_ui import Ui_noacli
 from lib.typedqsettings import typedQSettings
@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '1.13'
+__version__ = '2.0'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -88,7 +88,7 @@ class settings():
         self.jobs = jobTableModel()
         self.hiddenJobs = jobTableModel()
         # job manager gets its own special class
-        
+
         self.qtail = qtailSettings()
         self.copy2qtail()
 
@@ -106,7 +106,7 @@ class settings():
         m = index.model()
         if index.row()!=1:
             index = m.index(index.row(),1)
-        m.setData(index, index.data(Qt.ToolTipRole), Qt.EditRole)
+        m.setData(index, index.data(Qt.ItemDataRole.ToolTipRole), Qt.ItemDataRole.EditRole)
 
     ## settings dialog info
     # name, default, tooltip / description
@@ -134,10 +134,10 @@ class settings():
         for name in rows: # this was just too messy to do in a comprehension
             val = qs.value(name,None)
             # get qtail current setting which might be default anyway
-            if val==None and name in qt: val=qt.get(name)
+            if val is None and name in qt: val=qt.get(name)
             # fix types
-            if name in self.settingsDirectory and val!=None:
-                if self.settingsDirectory[name][2]==bool and type(val)==str:
+            if name in self.settingsDirectory and val is not None:
+                if self.settingsDirectory[name][2]==bool and isinstance(val,str):
                     val = val.lower() in ['true','yes']
                 else:
                     try:
@@ -145,18 +145,18 @@ class settings():
                     except: # XX debug msg?
                         val = None
             # reset if default value
-            if  val!=None and val==self.settingsDirectory[name][0]:
+            if  val is not None and val==self.settingsDirectory[name][0]:
                 val = None
             data.append([name, val ])
         self.data = data
         # build the types table
-        typedata = [ [None, self.settingsDirectory[i][2] ] for i in rows ] 
+        typedata = [ [None, self.settingsDirectory[i][2] ] for i in rows ]
         # open dialog box
         model = settingsDataModel(self.settingsDirectory, data, typedata)
         self.dialog = settingsDialog(parent, 'Settings', model, 'noacli settings')
         self.dialog.finished.connect(self.acceptOrReject)
         tv =  self.dialog.ui.tableView
-        tv.setContextMenuPolicy(Qt.CustomContextMenu)
+        tv.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tv.customContextMenuRequested.connect(self.generalSettingsContextMenu)
 
     def copy2qtail(self):
@@ -166,12 +166,12 @@ class settings():
         self.qtail.tailFrag = int(qs.value('QTailEndBytes', self.qtail.tailFrag))
         # QTailDefaultTitle: default title is set somewhere else XX
         # XX more qtail settings not implemented yet
-        
+
     def acceptchanges(self):
         #if typedQSettings().value('DEBUG',False):print('accept') # DEBUG
         qs = typedQSettings()
         for d in self.data:
-            if d[1]!=None:
+            if d[1] is not None:
                 #print('save '+str(d[0])+' = '+str(d[1])) # DEBUG
                 qs.setValue(d[0], d[1])
         self.copy2qtail()
@@ -183,7 +183,7 @@ class settings():
         self.apply_settings.emit()
         # history size is reset when history is added? XX
         qs.sync()
-        
+
     def acceptOrReject(self, result):
         if result: self.acceptchanges()
         #print('finished') # DEBUG
@@ -205,7 +205,7 @@ class  fontDelegate(QStyledItemDelegate):
     # them after the fact.  This fixes older qt never setting the
     # right font, and fixes newer qt setting the font to a default
     # system font when it was rejected.
-    # 
+    #
     # Unclear if QStyledItemDelegate is buggy or just poorly documented,
     # or if this is a race condition and the order is coincidental.
     def __init__(self, parent):
@@ -214,7 +214,7 @@ class  fontDelegate(QStyledItemDelegate):
         self.originalfont = None
 
     def convertsetting(self, val):
-        if type(val)==str:
+        if isinstance(val, str):
             font = QFont()
             if font.fromString(val):
                 return font
@@ -225,10 +225,10 @@ class  fontDelegate(QStyledItemDelegate):
             return val
         else:
             return None
-        
+
     def createEditor(self,parent,option,index):
         self.fontselected = False
-        font = self.convertsetting(index.model().data(index,Qt.EditRole))
+        font = self.convertsetting(index.model().data(index,Qt.ItemDataRole.EditRole))
         #print('create editor '+font.toString()) # DEBUG
         self.originalfont = None
         if font:
@@ -260,7 +260,7 @@ class  fontDelegate(QStyledItemDelegate):
         if not self.fontselected:
             return # too early! set later. Or never if canceled.
         if font:
-            model.setData(index, font, Qt.EditRole)
+            model.setData(index, font, Qt.ItemDataRole.EditRole)
 
 # and register the result for later use
 settingsDialog.registerType(QFont, fontDelegate)
@@ -281,10 +281,10 @@ class historyView(QTableView):
             cb.clicked.connect(partial(self.resetHistorySort,True))
         self.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
         self.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
-        self.delayedScroll.connect(self.doDelayedScroll, Qt.QueuedConnection)
+        self.delayedScroll.connect(self.doDelayedScroll, Qt.ConnectionType.QueuedConnection)
         vh = self.verticalHeader()
         vh.customContextMenuRequested.connect(self.buildContextMenu)
-        vh.setContextMenuPolicy(Qt.CustomContextMenu)
+        vh.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
 
     def setModel(self,model):
         self.realModel = model
@@ -308,7 +308,7 @@ class historyView(QTableView):
             row = hp.mapToSource(hp.index(oldrow,0)).row()
             #print('oldrow={}={}'.format(oldrow,row)) # DEBUG
         self.historyProxy.sort(-1)
-        self.horizontalHeader().setSortIndicator(-1,0)
+        self.horizontalHeader().setSortIndicator(-1,Qt.SortOrder.AscendingOrder)
         self.adjustSize()
         # squeeze the last column
         hh = self.horizontalHeader()
@@ -316,7 +316,7 @@ class historyView(QTableView):
         left = hh.sectionSize(0)
         #print("resize: w={} l={} old={} parent={}".format(width, left, hh.sectionSize(1), self.parent().width())) # DEBUG
         hh.resizeSection(1, width-left)
-        
+
         #print('sort bottom') # DEBUG
         # self.scrollToBottom()  # this doesn't work due to a conflict
         #self.delayedScroll.emit(-1)
@@ -343,16 +343,16 @@ class historyView(QTableView):
             i = indexes.pop()
             i.model().removeRow(i.row(), QModelIndex())
         #print(" deleted, left "+str(len(self.realModel.data))) # DEBUG
-        
+
 
     def addFav(self, index):
         m = index.model()
         cmd = m.data(m.index(index.row(),1))
         self.newFavorite.emit(cmd)
-    
+
     def contextMenuEvent(self, event):
         self.buildContextMenu(event.pos())
-        
+
     def buildContextMenu(self, point):
         m = QMenu(self)
         # XXX disable or omit inappropriate actions in this menu
@@ -369,8 +369,9 @@ class historyView(QTableView):
         action = m.exec(self.mapToGlobal(point))  # event.globalPos())
         #print(action) # DEBUG
 
-    def resizeVheader(self, logical):
-        self.ui.tableView.resizeRowToContents(logical)
+    # XXX duplicate function
+    #def resizeVheader(self, logical):
+    #    self.ui.tableView.resizeRowToContents(logical)
 
     def resetView(self, index=None):
         #print('start {},{}'.format(index.row(),index.column())) # DEBUG resetView
@@ -378,7 +379,7 @@ class historyView(QTableView):
         # XXX if index is invalid, should remember the current position instead
         # get the native row and rebuild the index later
         if index:
-            if type(index)==QPersistentModelIndex or type(index.model())==History:
+            if isinstance(index, QPersistentModelIndex) or isinstance(index.model(), History):
                 row = index.row()
                 # i = self.historyProxy.mapFromSource(index)
             else:
@@ -393,17 +394,17 @@ class historyView(QTableView):
             if i.isValid():
                 self.delayedScroll.emit(i)
         elif index and index.isValid():
-            if type(index)==QModelIndex:
+            if isinstance(index, QModelIndex):
                 # XXXXXX convert from QPersistentModelIndex sometimes??
                 self.delayedScroll.emit(index)
         else:
             #self.scrollToBottom()
             #print('bottom') # DEBUG
             self.delayedScroll.emit(None)
-       
+
     def doDelayedScroll(self, index):
         if index and index.isValid():
-            self.scrollTo(index, 1)
+            self.scrollTo(index, QAbstractItemView.ScrollHint.EnsureVisible )
         else:
             self.scrollToBottom()
 
@@ -424,7 +425,7 @@ class menuLineEdit(QLineEdit):
         self.setClearButtonEnabled(True)
     @QtCore.pyqtSlot('QKeyEvent')
     def keyPressEvent(self,event):
-        if event.key() in [Qt.Key_Enter, Qt.Key_Return]:
+        if event.key() in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self.returnPressed.emit()
         else:
             super().keyPressEvent(event)
@@ -432,7 +433,7 @@ class menuLineEdit(QLineEdit):
         t = self.text()
         self.clear()
         return t
-            
+
 class noacli(QtWidgets.QMainWindow):
     want_restore_geo_delay = pyqtSignal(str)
     apply_settings = pyqtSignal()
@@ -445,9 +446,9 @@ class noacli(QtWidgets.QMainWindow):
         ButtonDock.run_command.connect(self.doButton)
 
         self.dontCloseYet = True
-        
+
         # delayed resize works better
-        self.want_restore_geo_delay.connect(self.restore_geo, Qt.QueuedConnection) # delay this
+        self.want_restore_geo_delay.connect(self.restore_geo, Qt.ConnectionType.QueuedConnection) # delay this
 
         self.settings = settings()
         # cheat a bit, so nearly everyone can get to these
@@ -458,7 +459,7 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.statusBar = self.statusBar()
         self.settings.mainwin = self
 
-        self.historypos = 1;
+        self.historypos = 1
         dir = os.path.dirname(os.path.realpath(__file__))
         p =  os.path.join(dir,'icons', 'noacli.png')
         icon = QtGui.QIcon(p)
@@ -533,13 +534,13 @@ class noacli(QtWidgets.QMainWindow):
         # jump to command editor XXX can this be made more global?
         self.editorShortcut = QShortcut(QKeySequence('alt+c'), self)
         self.editorShortcut.activated.connect(self.ui.commandEdit.setFocus)
-        self.editorShortcut.setContext(Qt.ApplicationShortcut) # XX doesn't work?
+        # XXXX self.editorShortcut.setContext(Qt.ApplicationShortcut) # XX doesn't work?
 
         self.ui.smallOutputView.oneLine.connect(self.showMessage)
         self.ui.smallOutputView.newJobStart.connect(self.statusBar().clearMessage)
-        self.ui.jobTableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.ui.jobTableView.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.ui.jobTableView.customContextMenuRequested.connect(self.jobcontextmenu)
-        
+
         ##### geometry profiles
         qs = typedQSettings()
         v = qs.value('DefWinProfile', True)
@@ -614,7 +615,7 @@ class noacli(QtWidgets.QMainWindow):
 
     def setTitleFromWrap(self, title):
         self.setWindowTitle('noacli: '+title)
-    
+
     ## small output UI actions
     def rebuttonKill(self, label, slot, enab=True):
         self.ui.killButton.setText(label)
@@ -625,17 +626,17 @@ class noacli(QtWidgets.QMainWindow):
     def terminateButton(self):
         self.ui.smallOutputView.smallTerminate()
         self.rebuttonKill('Kill harder',self.ui.smallOutputView.smallKill)
-    
+
     def setTerminateButton(self,enab):
         self.rebuttonKill('Kill',self.terminateButton,enab)
 
     ####
-    
+
     def terminalstop(self, sig, stack):
         print("Terminal stop blocked!") # EXCEPT
         self.showMessage("Terminal stop blocked!")
         # do something about the offending child process??
-        
+
     def ouch(self, sig, stack):
         print('Ouch!') # EXCEPT
         # ignore a signal
@@ -665,29 +666,29 @@ class noacli(QtWidgets.QMainWindow):
         cursor = editor.textCursor()
         if cursor.hasSelection():
             pattern = cursor.selectedText()
-        
+
         # avoid the default constructor
         # results = QFileDialog.getOpenFileNames(None, "Pick some files", ".", pattern)
         #fs = results[0]
-        # parent: Attaches dialog to the parent window and covers it (ick!) 
+        # parent: Attaches dialog to the parent window and covers it (ick!)
         # other defaults need customizing, default constructor not flexible enough
         # also make it non-modal
 
         fd = QFileDialog(self, Qt.Dialog)
-        #fd.setWindowFlag(Qt.WindowStaysOnTopHint, True) # prevent modal from getting lost -- doesn't seem to help, prob redundant
+        #fd.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True) # prevent modal from getting lost -- doesn't seem to help, prob redundant
         #fd.setOption(QFileDialog.DontUseNativeDialog)
 
         # check if user was trying to complete a partially typed path
         c = editor.textCursor() # get a fresh cursor
         c.clearSelection()
-        c.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
+        c.movePosition(QTextCursor.MoveOperation.StartOfWord, QTextCursor.MoveMode.KeepAnchor)
         while (c.positionInBlock()>0):
             d = QTextCursor(c) # don't mess with previous one yet
-            d.movePosition(QTextCursor.PreviousCharacter,QTextCursor.KeepAnchor)
+            d.movePosition(QTextCursor.MoveOperation.PreviousCharacter,QTextCursor.MoveMode.KeepAnchor)
             ch = d.selectedText()[0]
             if not ch.isprintable() or ch.isspace(): break
             c=d
-            c.movePosition(QTextCursor.StartOfWord, QTextCursor.KeepAnchor)
+            c.movePosition(QTextCursor.MoveOperation.StartOfWord, QTextCursor.MoveMode.KeepAnchor)
 
         # XXX possibly non-portable path construction
         cwd = os.getcwd()+'/'
@@ -711,14 +712,14 @@ class noacli(QtWidgets.QMainWindow):
                 startdir=dir
                 # and use the remainder as a wildcard pattern
                 if '*' not in tail:  # XX maybe this was suppose to be a prefix?
-                    tail+='*' 
+                    tail+='*'
                 pattern=tail + ';;' + pattern
         if startdir:
             # XX if startdir doesn't exist or has junk at the end, it may be partially ignored and then the prefix removal code below is funky
             fd.setDirectory(startdir)
         else:
             fd.setDirectory('.') # otherwise it remembers the previous dir
-        
+
         #default# fd.setFileMode(QFileDialog.AnyFile) # Directory
         ## the following seems restrictive, but it's the only alternatives
         if pattern[0]=='/':
@@ -772,14 +773,14 @@ class noacli(QtWidgets.QMainWindow):
             ## and return the results to the editor
             f = ' '.join(fs)+' '  # leave a trailing space after filename
             editor.insertPlainText(f)
-        
+
     ################
     # external slots
     # some of these could be moved
 
     # I hate modal dialog boxes.  Rather do this the hard way,
     # and get live font changes too!
-    
+
     @QtCore.pyqtSlot()
     def pickDefaultFont(self):
         startfont = self.ui.commandEdit.document().defaultFont()
@@ -792,7 +793,7 @@ class noacli(QtWidgets.QMainWindow):
         fd.setCurrentFont(startfont)
         self.fontdialog = fd
         fd.open()
-     
+
     def liveFont(self, font):
         if font: # just change one
             self.ui.commandEdit.document().setDefaultFont(font)
@@ -815,7 +816,7 @@ class noacli(QtWidgets.QMainWindow):
         # tear it down
         self.fontdialog.deleteLater()  # possibly still delivering signals
         self.fontdialog = None
-    
+
     @QtCore.pyqtSlot()
     def syncSettings(self):
         qs = QSettings()
@@ -837,7 +838,7 @@ class noacli(QtWidgets.QMainWindow):
         if col==0:
             text = str(index.model().getItem(index).getpid())
             self.settings.app.clipboard().setText(text)
-            self.settings.app.clipboard().setText(text, QClipboard.Selection)
+            self.settings.app.clipboard().setText(text, QClipboard.Mode.Selection)
         elif col==1: index.model().cleanupJob(index)  # job status
         elif col==2 or col==3: self.windowShowRaise(index)
         elif col==4: self.ui.commandEdit.acceptCommand(index.model().getItem(index).command())
@@ -847,14 +848,30 @@ class noacli(QtWidgets.QMainWindow):
         if isinstance(index, QAction): index = index.data() # unwrap
         job = index.model().getItem(index)
         if job.window:
+            iswayland = app.platformName().startswith("wayland")  # XXX only do this in wayland
             job.windowOpen = True
+            if iswayland:
+                #XXX need to move to qt6 and use xdg-activation tokens
+                #XX close and reopen the window get attention
+                #job.window.hide()  # XXXX make this an option or a tripple click?
+                QApplication.processEvents()
+                #XX maybe this works in qt6?
+                job.window.setWindowState(job.window.windowState()&~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
+                # XX didn't work in qt5/wayland
+                #QApplication.alert(job.window,5000)
+                #QApplication.processEvents()
+                #QTimer.singleShot(5000,self.demand_attention)
             job.window.show()
-            # also try moving the mouse to the window
-            QtGui.QCursor().setPos(job.window.pos()+QtCore.QPoint(100,100))
-            job.window.raise_()
+            QApplication.processEvents()
             job.window.activateWindow()
-            # XX maybe blink the mouse too?
-
+            job.window.windowHandle().requestActivate()
+            job.window.showNormal() # restore if minimized XXX redundant?
+            job.window.raise_()
+            # XXX could also try input_field.setfocus()
+            if not iswayland:
+                #job.window.activateWindow()  # this works in qt6 but not wayland qt5
+                # also try moving the mouse to the window
+                QtGui.QCursor().setPos(job.window.pos()+QtCore.QPoint(100,100))
 
     # in: view menu  out: all DOCKs
     @QtCore.pyqtSlot()
@@ -927,9 +944,9 @@ class noacli(QtWidgets.QMainWindow):
             histbase = self.settings.history.saveItem(command, None, None)
             hist = QPersistentModelIndex(histbase)
         else: # make sure we have a histbase to play with to record status
-            if type(hist)==QPersistentModelIndex:
+            if isinstance(hist, QPersistentModelIndex):
                 histbase = QModelIndex(hist)
-            if type(histbase.model())==QtCore.QSortFilterProxyModel:
+            if isinstance(histbase.model(), QtCore.QSortFilterProxyModel):
                 histbase = histbase.model().mapToSource(histbase)
         if hist and not command: # extract command from history
             command = History.GetCommand(hist)
@@ -938,12 +955,12 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.historyView.resetHistorySort(False) # likely invalidates QModelIndex
         cmdargs = self.settings.commandParser.parseCommand(command)
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
-        if cmdargs==None:
+        if cmdargs is None:
             return # nothing was done, don't set status
-        if type(cmdargs)==int: # pass/fail without message
+        if isinstance(cmdargs, int): # pass/fail without message
             histbase.model().setStatus(histbase, cmdargs)
             return
-        elif type(cmdargs)==str or len(cmdargs)==2:
+        if isinstance(cmdargs, str) or len(cmdargs)==2:
             if len(cmdargs)==2:
                 (msg, estatus) = cmdargs
             else:
@@ -960,7 +977,7 @@ class noacli(QtWidgets.QMainWindow):
         if outwinArgs and ('--files' in outwinArgs or '--file' in outwinArgs):
             # handle internal qtail and tableview
             if not title: title=''
-            if type(args)==str: args=[args]  # --file
+            if isinstance(args, str): args=[args]  # --file
             for f in args:
                 j = jobItem(None)
                 # XXX should elide title and make a history entry or something
@@ -1061,7 +1078,7 @@ class noacli(QtWidgets.QMainWindow):
         else:
             n = 'default'
         self.mySaveGeometry(n)
-        
+
     def mySaveGeometry(self,name='default' ):
         #print("Saving profile "+name) # DEBUG
         qs = QSettings()
@@ -1100,8 +1117,8 @@ class noacli(QtWidgets.QMainWindow):
         qs = QSettings()
         qs.beginGroup('Geometry')
         qs.remove(name)
-        
-    
+
+
     @QtCore.pyqtSlot(QAction)
     def actionRestoreGeomAct(self, act):
         # checkedAction()
@@ -1159,32 +1176,32 @@ class noacli(QtWidgets.QMainWindow):
 
             if wins or procs:  # Handle these before shutting down
                 dialog = QMessageBox()
-                bcan = dialog.addButton(QMessageBox.Cancel)
+                bcan = dialog.addButton(QMessageBox.StandardButton.Cancel)
                 bcan.setToolTip("Don't close noacli")
-                bign = dialog.addButton(QMessageBox.Ignore)
+                bign = dialog.addButton(QMessageBox.StandardButton.Ignore)
                 bign.setToolTip("Ignore these and close anyway")
                 if wins:
-                     bcloseWin = dialog.addButton("Close windows",QMessageBox.ActionRole)
+                     bcloseWin = dialog.addButton("Close windows",QMessageBox.ButtonRole.ActionRole)
                      bcloseWin.setToolTip("Close remaining open windows now")
                      bcloseWin.clicked.disconnect() # don't close dialog
                      bcloseWin.clicked.connect(self.settings.jobs.closeAllWins)  # and delete button?
                      bcloseWin.clicked.connect(partial(self.recheckClose, dialog, bcloseWin, None))
                 if procs:
-                    bkillProc = dialog.addButton("Kill processes",QMessageBox.ActionRole)
+                    bkillProc = dialog.addButton("Kill processes",QMessageBox.ButtonRole.ActionRole)
                     bkillProc.setToolTip("Kill remaining processes now")
                     bkillProc.clicked.disconnect()
                     self.firstKill = True
                     bkillProc.clicked.connect(partial(self.delaycheck, dialog,bkillProc))
-                dialog.setDefaultButton(QMessageBox.Cancel)
+                dialog.setDefaultButton(QMessageBox.StandardButton.Cancel)
                 self.recheckClose(dialog) # set message
                 #dialog.setInformativeText(msg)
-                #dialog.setModality(Qt.NonModal)
+                #dialog.setModality(Qt.WindowType.NonModal)
                 dialog.setWindowTitle("Quit noacli?")
                 result = dialog.exec()
-                if result == QMessageBox.Cancel:
+                if result == QMessageBox.StandardButton.Cancel:
                     event.ignore()
                     return
-                elif result == QMessageBox.Ignore:
+                elif result == QMessageBox.StandardButton.Ignore:
                     self.settings.jobs.ignoreJobsOnExit()
                     # move along and close
                     self.dontCloseYet = False
@@ -1203,7 +1220,7 @@ class noacli(QtWidgets.QMainWindow):
         delay = typedQSettings().value('SettingsAutoSave',300)
         if delay:
             self.autoSaveTimer.start(delay*1000)
-        
+
 
     def delaycheck(self,  dialog, button):
         if self.firstKill:
@@ -1226,9 +1243,9 @@ class noacli(QtWidgets.QMainWindow):
         dialog.setText(msg)
         if not wins and not procs:
             # click ignore which will do the right thing anyway
-            dialog.button(QMessageBox.Ignore).click()
+            dialog.button(QMessageBox.StandardButton.Ignore).click()
         return wins or procs
-                                              
+
     #### job manager fuctions (since it doesn't have its own class)
     def jobSqueezeRows(self):
         jobView = self.ui.jobTableView
@@ -1262,7 +1279,7 @@ class noacli(QtWidgets.QMainWindow):
         if index.isValid():
             job = index.model().getItem(index)
         if job:
-            if job.process and job.process.state()!=QProcess.NotRunning:
+            if job.process and job.process.state()!=QProcess.ProcessState.NotRunning:
                 m.addAction("Terminate "+job.title(), job.process.terminate)
                 m.addAction("Kill "+job.title(), job.process.kill)
             elif not job.windowOpen:
@@ -1271,7 +1288,7 @@ class noacli(QtWidgets.QMainWindow):
             other = self.settings.hiddenJobs
             thismodel = self.settings.jobs
             m.addAction("Hide "+job.title(),partial(thismodel.moveJob,index.row(),other))
-            if job.window: 
+            if job.window:
                 m.addAction("Find window", partial(self.windowShowRaise,index))
             if job.window and job.windowOpen:
                 m.addAction("Close window",job.window.close)
@@ -1280,7 +1297,7 @@ class noacli(QtWidgets.QMainWindow):
             # XXX unnecessary if hiddenJobs gets its own dock
             m.addAction("Unhide hidden jobs",partial(self.settings.hiddenJobs.moveall,self.settings.jobs))
         if job:
-            if job.process and job.process.state()!=QProcess.NotRunning:
+            if job.process and job.process.state()!=QProcess.ProcessState.NotRunning:
                 currun = time.monotonic()-job.timestart
                 m.addAction("runtime: {:1.3f}s".format(currun))
             if job.window and hasattr(job.window,'timer') and job.window.timer.isActive():
@@ -1290,7 +1307,7 @@ class noacli(QtWidgets.QMainWindow):
                 m.addAction("avg runtime: {:1.3f}s".format(job.runtime))
             if job.window and hasattr(job.window, 'runcount'):
                 m.addAction("run count: {}".format(job.window.runcount))
-            
+
         action = m.exec(jobView.mapToGlobal(point))
         # all actions have their own handler, nothing to do here
 
@@ -1301,7 +1318,7 @@ class noacli(QtWidgets.QMainWindow):
 
     def editButtonDocks(self):
         EditButtonDocks(self)
-        
+
 ################ end noacli end
 
 class commandEditor(QPlainTextEdit):
@@ -1322,17 +1339,17 @@ class commandEditor(QPlainTextEdit):
         self.histDown.activated.connect(self.historyDown)
         self.histDown2 = QShortcut(QKeySequence('ctrl+n'), self)
         self.histDown2.activated.connect(self.historyDown)
-        self.runCmd2 = QShortcut(QKeySequence(QKeySequence.InsertLineSeparator), self)
+        self.runCmd2 = QShortcut(QKeySequence(QKeySequence.StandardKey.InsertLineSeparator), self)
         self.runCmd2.activated.connect(self.runCommand)
         self.runCmd3 = QShortcut(QKeySequence('Ctrl+Return'), self)
         self.runCmd3.activated.connect(self.runCommand)
         # shift return does not work!?  override keyPressEvent instead?
         self.runCmd4 = QShortcut(QKeySequence('Shift+Return'), self)
         self.runCmd4.activated.connect(self.runCommand)
-        
-        self.setContextMenuPolicy(Qt.DefaultContextMenu)
+
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
         # why can't designer set this?
-        self.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
+        self.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)
 
 
     @QtCore.pyqtSlot('QContextMenuEvent')
@@ -1358,7 +1375,7 @@ class commandEditor(QPlainTextEdit):
     def historyUp(self):
         if not self.history: return
         self.acceptHistory(self.history.prev(self.histindex))
-        
+
     @QtCore.pyqtSlot()
     def historyDown(self):
         if not self.history: return
@@ -1369,7 +1386,7 @@ class commandEditor(QPlainTextEdit):
         text = self.toPlainText()
         if text:
             h = self.history.saveItem(text, self.histindex, None)
-            if type(h)!=QPersistentModelIndex:
+            if not isinstance(h,QPersistentModelIndex):
                 h=QPersistentModelIndex(h)
             self.command_to_run.emit(text, h)
 
@@ -1410,24 +1427,24 @@ class commandEditor(QPlainTextEdit):
     def acceptHistory(self, idx):
         self.clear()
         if idx:
-            if type(idx)!=QPersistentModelIndex: idx=QPersistentModelIndex(idx)
-        self.histindex = idx;
+            if not isinstance(idx, QPersistentModelIndex): idx=QPersistentModelIndex(idx)
+        self.histindex = idx
         if not idx: return  # None when wrapping, leave editor blank.
         # unwrap QPeristentIndex and QSortProxy
-        str = idx.model().index(idx.row(),1).data(Qt.EditRole)
+        str = idx.model().index(idx.row(),1).data(Qt.ItemDataRole.EditRole)
         self.setPlainText(str)
         c = self.textCursor()
-        c.movePosition(QTextCursor.End)
+        c.movePosition(QTextCursor.MoveOperation.End)
         self.setTextCursor(c)
         # scroll history window to this entry and select it
         hv= self.ui.historyView
         hv.resetView(idx)
-        hv.selectionModel().setCurrentIndex(idx.model().index(idx.row(),1), QtCore.QItemSelectionModel.ClearAndSelect )
+        hv.selectionModel().setCurrentIndex(idx.model().index(idx.row(),1), QtCore.QItemSelectionModel.SelectionFlag.ClearAndSelect )
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    QtCore.QCoreApplication.setOrganizationName("kg4ydw");
-    QtCore.QCoreApplication.setApplicationName("noacli");
+    QtCore.QCoreApplication.setOrganizationName("kg4ydw")
+    QtCore.QCoreApplication.setApplicationName("noacli")
 
     # XX process noacli command line args (do to what?)
 

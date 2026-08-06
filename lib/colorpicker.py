@@ -1,17 +1,17 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 
 
 import functools
 from functools import partial
 
-from PyQt5.Qt import Qt
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QDockWidget, QTextEdit, QMenu, QListWidgetItem, QDialog, QLabel
-from PyQt5.QtGui import QPixmap, QIcon, QPalette
-from PyQt5.QtCore import QSettings, QItemSelectionModel
+from PyQt6.QtCore import Qt
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QDockWidget, QTextEdit, QMenu, QListWidgetItem, QDialog, QLabel
+from PyQt6.QtGui import QPixmap, QIcon, QPalette
+from PyQt6.QtCore import QSettings, QItemSelectionModel
 
 from lib.colorlisteditor_ui import Ui_colorListEditor
 
@@ -37,14 +37,14 @@ class ColorPicker():
            self.colorlist = c.split()
         if not self.colorlist:
             self.colorlist.extend(self.defcolorlist)
-        
+
     def nextColor(self):
         self.initColors()
         if not self.colorlist: return None
         self.lastcolor = (self.lastcolor+1)%len(self.colorlist)
         #print(self.lastcolor, self.colorlist[self.lastcolor]) # DEBUG
         return self.colorlist[self.lastcolor]
-    
+
     def colorMenu(self, m=None):
         if not m:
             m = QMenu()
@@ -65,7 +65,7 @@ class ColorPicker():
 
     def doneEditColors(self):
         self.ecDialog = None
-        
+
     def allColorMenu(self, m):
         # delete colors already used?
         used = set(self.colorlist)
@@ -105,14 +105,14 @@ class ColorPicker():
         m = self.allColorMenu()
         act = m.exec(event.globalPos())
         return act.data()
- 
+
     def saveColors(self):
         QSettings().setValue('colorlist', ' '.join(self.colorlist))
 
     @staticmethod
     def colorIcon(color):
         #pixmap = QPixmap()
-        #mask = pixmap.createMaskFromColor(QColor('black'), Qt.MaskOutColor)
+        #mask = pixmap.createMaskFromColor(QColor('black'), Qt.MaskMode.MaskOutColor)
         #pixmap.fill((QColor(color)))
         #pixmap.setMask(mask)
         #return QIcon(pixmap)
@@ -145,7 +145,7 @@ class colorListEditor(QDialog):
     def done(self, result):
         if result: self.saveColors()
         self.deleteLater()
-        
+
     def buildlist(self):
         self.colorpicker.initColors() # XX or pull from QSettings unconditionally?
         wl = self.ui.listWidget
@@ -163,6 +163,5 @@ class colorListEditor(QDialog):
         for row in range(m.rowCount()):
             i = m.index(row,0)
             if i.data() in colorset:
-                sm.select(i, QItemSelectionModel.Select)
+                sm.select(i, QItemSelectionModel.SelectionFlag.Select)
         wl.setSelectionModel(sm)
-

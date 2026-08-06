@@ -25,7 +25,7 @@
 #
 
 import sys
-from PyQt5.QtCore import QSettings
+from PyQt6.QtCore import QSettings
 
 
 class typedQSettings(QSettings):
@@ -55,8 +55,8 @@ class typedQSettings(QSettings):
             return v
         # bools don't cast well
         if self.setdict[key][2]==bool:
-            if type(v)==bool: return v
-            if type(v)==str: v=v.lower()
+            if isinstance(v, bool): return v
+            if isinstance(v, str): v=v.lower()
             return v in ['true','yes']
         # cast everything else
         try:

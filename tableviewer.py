@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, 2024, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022-2026, Steven Dick <kg4ydw@gmail.com>'
 
 # This could be a stand alone application but integreates into noacli
 # Think of this as a graphical version of less, but for tables.
@@ -18,11 +18,11 @@ from functools import partial
 from math import ceil, floor
 from statistics import stdev, mean, median
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QTextCursor
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QMenu
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QModelIndex, QItemSelectionModel, QProcess
-from PyQt5.Qt import Qt, pyqtSignal
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtGui import QTextCursor
+from PyQt6.QtWidgets import QTextEdit, QSizePolicy, QMenu
+from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QModelIndex, QItemSelectionModel, QProcess
+from PyQt6.QtCore import Qt, pyqtSignal
 
 from lib.betterio import betterQProcess, betterTextIOWrapper
 from lib.tableviewer_ui import Ui_TableViewer
@@ -57,7 +57,7 @@ class lineBuffer():
         #  enable non-blocking I/O here?
         ## really only appropriate for stdin, and maybe file, so no
         # os.set_blocking(sys.stdin.fileno(),False)
-        
+
     ## replace strpeek with peeklines as often as possible
     def strpeek(self, size):  # XX not gonna fake size default
         # horribly inefficent but meh, only call this once hopefully
@@ -136,7 +136,7 @@ class lineBuffer():
             raise StopIteration
         return self.lines.pop(0)
 
-            
+
 ## ideas to implement and/or document
 # context menu
 #  refactor columns
@@ -181,7 +181,7 @@ class FixedWidthParser():
         self.lines = iter(f)
         # column offsets are now available by clipboard in the view menu
         #print("col = "+(",".join([str(i) for i in col]))) # DEBUG
-    
+
     def __len__(self):
         return len(self.col)
     def __iter__(self):
@@ -207,7 +207,7 @@ class softArgumentParser(argparse.ArgumentParser):
         elif status:
             print(message) # EXCEPT
             #raise Exception(message) # XXX need to test error handling
-   
+
 class TableViewer(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
@@ -226,22 +226,22 @@ class TableViewer(QtWidgets.QMainWindow):
         self.headers = None
         self.forcefixed=False
         # connect to my own event so I can send myself a delayed signal
-        self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection)
+        self.want_resize.connect(self.actionAdjust, Qt.ConnectionType.QueuedConnection)
         self.ui = Ui_TableViewer()
         self.ui.setupUi(self)
         self.ui.menuView.addAction(self.ui.colPickerDock.toggleViewAction())
-        self.ui.colPicker.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.ui.colPicker.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.ui.colPicker.customContextMenuRequested.connect(self.colPickerContext)
         hh = self.ui.tableView.horizontalHeader()
         hh.setSectionsMovable(True)
         hh.sectionDoubleClicked.connect(self.resizeHheader)
         self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
-        self.want_readmore.connect(self.readmore, Qt.QueuedConnection)  # for delayed reads
-        self.ui.tableView.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.want_readmore.connect(self.readmore, Qt.ConnectionType.QueuedConnection)  # for delayed reads
+        self.ui.tableView.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.ui.tableView.customContextMenuRequested.connect(self.tableContextMenu)
         # have to connect this separately apparently
         head = self.ui.tableView.horizontalHeader()
-        head.setContextMenuPolicy(Qt.CustomContextMenu)
+        head.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         head.customContextMenuRequested.connect(self.tableContextMenu)
 
         self.ui.actionCaseInsensitive.toggled.connect(self.setSearchCaseInsensitive)
@@ -253,7 +253,7 @@ class TableViewer(QtWidgets.QMainWindow):
         else:
             cs = Qt.CaseSensitive
         self.proxymodel.setFilterCaseSensitivity(cs)
-        
+
     def argparse(self, args=None):
         # duplicate functionality of simpleargs for now, merge later
         self.argdict = {}  # save in case anything else wants to look
@@ -272,7 +272,7 @@ class TableViewer(QtWidgets.QMainWindow):
         parser.add_argument('--filter', type=str, help='set initial filter string')
         parser.add_argument('--filtercol', type=str, help="Set initial filter column (1 based index or first matching column header)")
         parser.add_argument('--mask', help='Use mask algorithm to split fix width tables, looking for columns with only whitespace (or delimiters if specified)', required=False, type=int, const=0, nargs='?', metavar='nLines')
-        parser.add_argument('--debug', help="Print extra info to help mask column boundaries", action='store_true') 
+        parser.add_argument('--debug', help="Print extra info to help mask column boundaries", action='store_true')
         parser.add_argument('filename', nargs=argparse.REMAINDER)
 
 
@@ -318,7 +318,7 @@ class TableViewer(QtWidgets.QMainWindow):
         if args.noheader: self.useheader = False
         self.forcefixed = args.fixed
         return args.filename
-        
+
     def simpleargs(self, args):
         msg = None
         try:
@@ -339,7 +339,7 @@ class TableViewer(QtWidgets.QMainWindow):
         if typedQSettings().value('TableviewerResizeRows',False):
             self.ui.actionAutosizeRowHeights.setChecked(True)
             self.setRowAutosize(True)
-        # probably should do more here and less in open 
+        # probably should do more here and less in open
         pass
 
     ################ GUI stuff
@@ -364,7 +364,7 @@ class TableViewer(QtWidgets.QMainWindow):
             self.model.headers = [str(col+1) for col in range(len(self.model.headers))]
         else: # recopy first row
             self.model.headers = self.model.mydata[0]
-        self.model.headerDataChanged.emit(Qt.Horizontal, 0, len(self.model.headers))
+        self.model.headerDataChanged.emit(Qt.Orientation.Horizontal, 0, len(self.model.headers))
 
     def squeezeColumns(self):
         # measure the width of every visible column and set the width to mean+2*stdev
@@ -402,7 +402,7 @@ class TableViewer(QtWidgets.QMainWindow):
     def resizeWindowToTable(self, useratio=False):
         oldsize = self.size()
         ratio = typedQSettings().value('TableviewerResizeRatio', 2)
-        frame = oldsize - self.ui.tableView.size() 
+        frame = oldsize - self.ui.tableView.size()
         vh = self.ui.tableView.verticalHeader()
         hh = self.ui.tableView.horizontalHeader()
         # calculate max size based on header sizes and add other decorations
@@ -430,20 +430,20 @@ class TableViewer(QtWidgets.QMainWindow):
         super().closeEvent(event)
 
     def copyClip1(self, index):
-        text = index.data(Qt.DisplayRole)
+        text = index.data(Qt.ItemDataRole.DisplayRole)
         #print("Copy1 "+text) # DEBUG
         if type(text)!=str:
             text = str(text)
         self.app.clipboard().setText(text)
 
     def copyClip2(self, index):
-        text = index.data(Qt.DisplayRole)
+        text = index.data(Qt.ItemDataRole.DisplayRole)
         #print("Copy2 "+text) # DEBUG
         if type(text)!=str:
             text = str(text)
         self.app.clipboard().setText(text)
-        self.app.clipboard().setText(text, QtGui.QClipboard.Selection)
-            
+        self.app.clipboard().setText(text, QtGui.QClipboard.Mode.Selection)
+
     def resizeHheader(self, logical):
         self.ui.tableView.resizeColumnToContents(logical)
     def resizeVheader(self, logical):
@@ -470,16 +470,16 @@ class TableViewer(QtWidgets.QMainWindow):
                 m.addAction('Show column '+name, partial(self.showColumn, col))
         else:
             m.addAction(f"{len(hiddencols)} hidden columns")
-        
+
         # XX more tableviewer context items??
         action = m.exec(self.ui.tableView.mapToGlobal(point))
 
     def setRowAutosize(self, checked):
         if checked:
-            self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+            self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
             self.ui.actionResize_rows.setVisible(False) # does nothing if this is active
         else:
-            self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Interactive)
+            self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Interactive)
             self.ui.actionResize_rows.setVisible(True)
 
     # context menu triggered
@@ -528,7 +528,7 @@ class TableViewer(QtWidgets.QMainWindow):
     def copyColOffsets(self):
         text = ",".join([str(col) for col in self.parser.col])
         self.app.clipboard().setText(text)
-        self.app.clipboard().setText(text, QtGui.QClipboard.Selection)
+        self.app.clipboard().setText(text, QtGui.QClipboard.Mode.Selection)
 
     ################ table parsing stuff
 
@@ -561,7 +561,7 @@ class TableViewer(QtWidgets.QMainWindow):
         ## qtail does the following, should these buttons be ported here?
         # self.rebutton('kill', self.terminateProcess) XXX
         # self.file.finished.connect(self.procFinished) ###
-        
+
     def openstdin(self):
         os.set_blocking(sys.stdin.fileno(),False)
         self.csvfile = lineBuffer(sys.stdin)
@@ -580,7 +580,7 @@ class TableViewer(QtWidgets.QMainWindow):
             lines = None
             while lines==None:
                 lines = csvfile.peekAll()
-        
+
         delimiters = ' '
         if 'delimiters' in self.argdict and self.argdict['delimiters']:
             delimiters += self.argdict['delimiters']
@@ -625,7 +625,7 @@ class TableViewer(QtWidgets.QMainWindow):
                 s[x]='x'
             print("".join(s))                                   # DEBUG
             print(','.join([str(x) for x in cols]))             # DEBUG
-                  
+
 
     def openfd(self, csvfile):
         DEBUG = typedQSettings().value('DEBUG',False)
@@ -642,7 +642,7 @@ class TableViewer(QtWidgets.QMainWindow):
             return
         peeklines = csvfile.peekLines(1)
         if not peeklines or not peeklines[0]:  # try again later
-            return 
+            return
         peek = peeklines[0] # just one line for now otherwise csv gets too clever
         # self.firstread = False  # got something, initialize! but in case anything goes wrong, set this later
         if self.forcefixed or '\t ' in peek or ' \t' in peek:  # maybe 3 spaces too?
@@ -686,7 +686,7 @@ class TableViewer(QtWidgets.QMainWindow):
         else:
             headers=[]
             # don't disable header view, need it to resize columns
-    
+
         # fix blank headers
         for i in range(len(headers)):
             if headers[i].strip()=='':
@@ -735,8 +735,8 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def resetTableSort(self, clicked=True):
         self.proxymodel.sort(-1)
-        self.ui.tableView.horizontalHeader().setSortIndicator(-1,0)
-     
+        self.ui.tableView.horizontalHeader().setSortIndicator(-1,Qt.SortOrder.AscendingOrder)
+
     def readmore(self,fromwhere):
         DEBUG = typedQSettings().value('DEBUG',False)
         if not self.csvfile.canReadLine():
@@ -781,7 +781,7 @@ class TableViewer(QtWidgets.QMainWindow):
         for i in indexes:
             ii = view.index(i.column(),0)
             selection.select(ii,ii)
-        self.ui.colPicker.selectionModel().select(selection, QItemSelectionModel.Select)
+        self.ui.colPicker.selectionModel().select(selection, QItemSelectionModel.SelectionFlag.Select)
 
     def colPickerContext(self, point):
         m = QMenu()
@@ -809,8 +809,8 @@ class TableViewer(QtWidgets.QMainWindow):
         headers = [self.headers[index.row()] for index in indexes]
         text = delimiter.join(headers)
         self.app.clipboard().setText(text)
-        self.app.clipboard().setText(text, QtGui.QClipboard.Selection)
-                                              
+        self.app.clipboard().setText(text, QtGui.QClipboard.Mode.Selection)
+
     def pickShowCol(self, wanthid):
         view = self.ui.tableView
         viewmodel = view.model()
@@ -823,7 +823,7 @@ class TableViewer(QtWidgets.QMainWindow):
             if wanthid==view.isColumnHidden(i):
                 ii = pickmodel.index(i,0)
                 selection.select(ii,ii)
-        self.ui.colPicker.selectionModel().select(selection, QItemSelectionModel.Select)
+        self.ui.colPicker.selectionModel().select(selection, QItemSelectionModel.SelectionFlag.Select)
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
@@ -837,7 +837,7 @@ if __name__ == '__main__':
     mainwin = TableViewer()
     mainwin.app = app
     #if options.title: mainwin.setWindowTitle(options.title)
-    
+
     w = mainwin.ui
 
     mainwin.show()
@@ -846,7 +846,7 @@ if __name__ == '__main__':
     #if options.isCommand:
     #    # save command for later reuse
     #    # open pipe
-    #    # resize window with adjust() if command exits 
+    #    # resize window with adjust() if command exits
     #    pass
     #elif args and args[0]!='-':
     #    # XXX handle multiple files later
@@ -860,5 +860,5 @@ if __name__ == '__main__':
         mainwin.openfile(args[0])
     else:
         mainwin.openstdin()
-    
+
     app.exec()

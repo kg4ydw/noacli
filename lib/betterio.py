@@ -11,12 +11,14 @@
 # past EOF when there will be no more data, and the resulting types
 # pass the duck type test so they can be used with native python classes.
 
+# Note: No copyright is placed on this file in hopes some of the ideas
+# here might be adopted by either library.  This file is in the public domain.
 
 import sys
 import os
 import io
 
-from PyQt5.QtCore import  QIODevice, QSocketNotifier, QProcess
+from PyQt6.QtCore import  QIODevice, QSocketNotifier, QProcess
 
 # can't monkeypatch QProcess, so wrapping it instead
 class betterQProcess():
@@ -39,7 +41,7 @@ class betterQProcess():
         setattr(self,name,f)
         return f
 
-        
+
 ## missing stuff from TextIOWrapper
 class betterTextIOWrapper():
     def __init__(self, tiow):

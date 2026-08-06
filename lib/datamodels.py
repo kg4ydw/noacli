@@ -1,14 +1,14 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 
 # simple tables and widgets for manipulating tables
 # contaminated with app specific classes and GUI pieces
 
-from PyQt5 import QtCore
-from PyQt5.Qt import Qt, QAbstractTableModel, QBrush, pyqtSignal
-from PyQt5.QtCore import QObject, QModelIndex, QPersistentModelIndex
-from PyQt5 import QtWidgets
+from PyQt6 import QtCore
+from PyQt6.QtCore import Qt, QObject, QModelIndex, QPersistentModelIndex,QAbstractTableModel, pyqtSignal
+from PyQt6.QtGui import QBrush
+from PyQt6 import QtWidgets
 from lib.settingsdialog_ui import Ui_settingsDialog
 
 class simpleTable(QAbstractTableModel):
@@ -34,20 +34,20 @@ class simpleTable(QAbstractTableModel):
             return self.datatypesrow[col]
         return False
     def data(self, index, role):
-        if not self.validateIndex(index): return None;
+        if not self.validateIndex(index): return None
         row = index.row()
         col = index.column()
         # don't return normal data if this is suppose to be a checkbox
         ctype = self.dataType(row,col)
-        if ctype and (ctype==bool or type(self.mydata[row][col])==bool):
-            if role==Qt.CheckStateRole:
+        if ctype and (ctype==bool or isinstance(self.mydata[row][col],bool)):
+            if role==Qt.ItemDataRole.CheckStateRole:
                 if self.mydata[row][col]:
                     return Qt.Checked
                 else:
                     return Qt.Unchecked
             else:
                 return None
-        if role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
+        if role in [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole]:
             try:  # ignore messy tables
                 return self.mydata[row][col]
             except:
@@ -59,7 +59,7 @@ class simpleTable(QAbstractTableModel):
         row = index.row()
         col = index.column()
         # try user validator
-        if self.validator and role in [Qt.EditRole, Qt.CheckStateRole]:
+        if self.validator and role in [Qt.ItemDataRole.EditRole, Qt.ItemDataRole.CheckStateRole]:
             if not self.validator(index,value): return False
         # validate and force type
         ctype = self.dataType(row,col)
@@ -79,27 +79,27 @@ class simpleTable(QAbstractTableModel):
         col = index.column()
         if not (self.datatypesrow or self.editmask) or col<0 or col>=len(self.headers):
             return super(simpleTable,self).flags(index)
-        mask = Qt.ItemIsSelectable|Qt.ItemIsEnabled
+        mask = Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled
         ctype = self.dataType(index.row(),col)
         if ctype==bool:
             mask |=  Qt.ItemIsUserCheckable
         elif self.editmask and self.editmask[col]:
             mask |= Qt.ItemIsEditable
         return mask
-        
+
     def validateIndex(self, index):
         if not index or not index.isValid(): return False
         row = index.row()
         if row<0 or row>=len(self.mydata): return False
         col = index.column()
-        if col<0 or col>=len(self.headers): return false
+        if col<0 or col>=len(self.headers): return False
         return True
     # recommended: headerData
     def headerData(self, col, orientation, role):
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal and col<len(self.headers):
+        if role == Qt.ItemDataRole.DisplayRole:
+            if orientation == Qt.Orientation.Horizontal and col<len(self.headers):
                 return self.headers[col]
-            elif orientation == Qt.Vertical and col<len(self.mydata):
+            elif orientation == Qt.Orientation.Vertical and col<len(self.mydata):
                 if self.vheaders and col<len(self.vheaders):
                     return self.vheaders[col]
                 # if you don't like veritcal headers, turn them off in designer
@@ -118,7 +118,7 @@ class simpleTable(QAbstractTableModel):
             self.mydata = self.mydata+rows
         else:
             self.mydata = rows + self.mydata
-        maxx = max([len(row) for row in rows])
+        maxx = max(len(row) for row in rows)
         self.endInsertRows()
         self.checkExtendHeaders(maxx)
 
@@ -135,14 +135,14 @@ class simpleTable(QAbstractTableModel):
         if self.editmask:
             self.editmask.append(self.editmask[-1])
         self.endInsertColumns()
-        
+
     def checkExtendHeaders(self, maxx):
         if maxx> len(self.headers):
             start = len(self.headers)
             for i in range(start,maxx):
                 self.headers.append(str(i+1))
-            self.headerDataChanged.emit(Qt.Horizontal, start,maxx)
-        
+            self.headerDataChanged.emit(Qt.Orientation.Horizontal, start,maxx)
+
     def appendRow(self, row):
         lastrow = len(self.mydata)
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)
@@ -175,14 +175,14 @@ class itemListModel(QAbstractTableModel):
     # make this iterable
     def __getitem__(self, key):
         # note: this returns an index rather than returning the data
-        if not type(key)==int: raise TypeError
+        if not isinstance(key,int): raise TypeError
         if key<0 or key>=len(self.data): raise IndexError
         return self.index(key,0)
         ### this could return the entry instead
         #return self.data[key]
     def isEmpty(self):
         return len(self.data)==0
-    
+
     # required functions rowCount columnCount data
     def rowCount(self, parent):
         return len(self.data)
@@ -198,10 +198,10 @@ class itemListModel(QAbstractTableModel):
 
     # recommended: headerData
     def headerData(self, col, orientation, role):
-        if role == Qt.DisplayRole:
-            if orientation == Qt.Horizontal and col<len(self.headers):
+        if role == Qt.ItemDataRole.DisplayRole:
+            if orientation == Qt.Orientation.Horizontal and col<len(self.headers):
                 return self.headers[col]
-            elif orientation == Qt.Vertical and col<len(self.data):
+            elif orientation == Qt.Orientation.Vertical and col<len(self.data):
                 # if you don't like veritcal headers, turn them off in designer
                 return str(col+1)
         return None
@@ -255,19 +255,19 @@ class settingsDataModel(simpleTable):
         row = index.row()
         rowname = self.mydata[row][0]
         # color and supply default data
-        if col==1 and self.mydata[row][1]==None: # not set, use default
-            if role==Qt.BackgroundRole:
-                return QBrush(Qt.lightGray)
+        if col==1 and self.mydata[row][1] is None: # not set, use default
+            if role==Qt.ItemDataType.BackgroundRole:
+                return QBrush(Qt.GlobalColor.lightGray)
             if self.docdict[rowname][2]==bool:
-                if role==Qt.CheckStateRole:
+                if role==Qt.ItemDataRole.CheckStateRole:
                     if self.docdict[rowname][0]: return Qt.Checked
                     else: return Qt.Unchecked
-                elif role!=Qt.ToolTipRole:
+                elif role!=Qt.ItemDataRole.ToolTipRole:
                     return None  # no text label on bools
-            elif role in [Qt.DisplayRole, Qt.UserRole, Qt.EditRole]:
+            elif role in [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole]:
                 # have to fill in default data to get type right
                 return self.docdict[rowname][0]
-        if role==Qt.ToolTipRole:  # XX and StatusRole ?
+        if role==Qt.ItemDataRole.ToolTipRole:  # XX and StatusRole ?
             if self.mydata[row][0] not in self.docdict: return None
             doc = self.docdict[rowname]
             # swap tooltip columns
@@ -286,7 +286,7 @@ class settingsDialog(QtWidgets.QDialog):
         self.ui = ui
         ui.setupUi(self)
         ui.tableView.setModel(model)
-        self.want_resize.connect(self.adjustSize, Qt.QueuedConnection)
+        self.want_resize.connect(self.adjustSize, Qt.ConnectionType.QueuedConnection)
         if hasattr(model,'datatypesrow') and model.datatypesrow:
             for i in range(len(model.datatypesrow)):
                 typename = str(model.datatypesrow[i])
@@ -335,7 +335,7 @@ class settingsDialog(QtWidgets.QDialog):
             #print("resize {}".format(size.width())) # DEBUG
             # XX minimum vertical hight relative to header height?
             self.resize(size)
-  
+
     def resizeHheader(self, logical):
         self.ui.tableView.resizeColumnToContents(logical)
     def resizeVheader(self, logical):

@@ -1,15 +1,15 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 
 # handle search results and bookmarks
 
 from functools import partial
 
-from PyQt5.Qt import Qt, pyqtSignal
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QTextCursor, QColor
-from PyQt5.QtWidgets import QDockWidget, QTextEdit, QMenu
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtGui import QTextCursor, QColor
+from PyQt6.QtWidgets import QDockWidget, QTextEdit, QMenu
 
 from lib.searchdock_ui import Ui_searchDock
 from lib.datamodels import itemListModel
@@ -30,29 +30,29 @@ class selItem():
         contextChars = 20 # XXX setting
         if anchor>pos: # swap!!
             (pos,anchor) = (anchor,pos)
-            cursor.setPosition(anchor, QTextCursor.MoveAnchor)
-            cursor.setPosition(pos, QTextCursor.KeepAnchor)
+            cursor.setPosition(anchor, QTextCursor.MoveMode.MoveAnchor)
+            cursor.setPosition(pos, QTextCursor.MoveMode.KeepAnchor)
         if not context or cursor.atBlockStart():
             self.pretext = ''
         else:
             c = QTextCursor(cursor)
-            c.setPosition(anchor, QTextCursor.KeepAnchor)
-            c.movePosition(QTextCursor.PreviousCharacter,QTextCursor.KeepAnchor , contextChars)
+            c.setPosition(anchor, QTextCursor.MoveMode.KeepAnchor)
+            c.movePosition(QTextCursor.MoveOperation.PreviousCharacter,QTextCursor.MoveMode.KeepAnchor , contextChars)
             if self.line!=c.blockNumber(): # fell off, start over
                 #c = QTextCursor(cursor)
-                c.setPosition(anchor, QTextCursor.KeepAnchor)
-                c.movePosition(QTextCursor.StartOfBlock, QTextCursor.KeepAnchor, 1)
+                c.setPosition(anchor, QTextCursor.MoveMode.KeepAnchor)
+                c.movePosition(QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.KeepAnchor, 1)
             self.pretext = c.selectedText()
         if not context or cursor.atBlockEnd():
             self.posttext = ''
         else:
             c = QTextCursor(cursor)
             c.clearSelection()
-            c.movePosition(QTextCursor.NextCharacter, QTextCursor.KeepAnchor, contextChars)
+            c.movePosition(QTextCursor.MoveOperation.NextCharacter, QTextCursor.MoveMode.KeepAnchor, contextChars)
             if self.line!=c.blockNumber(): # fell off, start over
-                c.setPosition(pos, QTextCursor.KeepAnchor)
+                c.setPosition(pos, QTextCursor.MoveMode.KeepAnchor)
                 #c = QTextCursor(cursor)
-                c.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor, 1)
+                c.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor, 1)
             self.posttext = c.selectedText()
 
 class selList(itemListModel):
@@ -60,7 +60,7 @@ class selList(itemListModel):
         super().__init__(['pre','item','post'])
         self.color = None
         self.haspre = self.hasitem = self.haspost = False
-        
+
     def setSel(self, extraSelections):
         self.removeRows(0, len(self.data),None) # XX always purge?
         # insert rows in batches for better performance
@@ -82,46 +82,46 @@ class selList(itemListModel):
             self.insertRowsAt(1,rows)
 
     def headerData(self, col, orientation, role):
-        if orientation==Qt.Horizontal and col==1 and role==Qt.BackgroundRole and self.color:
+        if orientation==Qt.Orientation.Horizontal and col==1 and role==Qt.ItemDataRole.BackgroundRole and self.color:
             return self.color
-        if role==Qt.DisplayRole and orientation==Qt.Vertical and col<len(self.data):
+        if role==Qt.ItemDataRole.DisplayRole and orientation==Qt.Orientation.Vertical and col<len(self.data):
             return str(self.data[col].line+1)
         else:
             return super().headerData(col, orientation, role)
 
     def setColor(self, c):
         self.color = c
-        self.headerDataChanged.emit(Qt.Horizontal, 1, 1)
+        self.headerDataChanged.emit(Qt.Orientation.Horizontal, 1, 1)
 
     def data(self, index, role):
-        if role==Qt.TextAlignmentRole: # too bad can't set elide style too
+        if role==Qt.ItemDataRole.TextAlignmentRole: # too bad can't set elide style too
             col = index.column()
             if col==0: return Qt.AlignRight
             elif col==1: return Qt.AlignCenter
             elif col==2: return Qt.AlignLeft
         item = self.getItem(index)
-        if not item or role not in (Qt.DisplayRole, Qt.EditRole): return None
+        if not item or role not in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole): return None
         col = index.column()
         if col==0: return item.pretext
         elif col==1: return item.text
         elif col==2: return item.posttext
         else: return None
-    
+
 class searchDock(QDockWidget):
     showSel = pyqtSignal(list)
     hideSel = pyqtSignal(list)
     gotoSel = pyqtSignal(QTextCursor)
-    
+
     def __init__(self, parent, title=None, selections=None, searchterm=None, findflags=None):
         super().__init__(parent)
         self.ui = Ui_searchDock()
         self.ui.setupUi(self)
-        self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
+        self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.searchterm = searchterm # XXX use these later
         self.findflags = findflags
 
         # stuff this in a corner of the parent QMainWindow
-        parent.addDockWidget(Qt.LeftDockWidgetArea, self)
+        parent.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self)
         # XX alternate: check parent for existing docks, and add this as a tab SETTINGS
         global colorpicker
         color = colorpicker.nextColor()
@@ -189,11 +189,11 @@ class searchDock(QDockWidget):
         self.color = QtGui.QBrush(QColor(color))
         self.model.setColor(self.color)
         self.emitExtraSelections(self.showSel)
-        
+
     def contextMenuEvent(self, event):
         global colorpicker
         color = colorpicker.execColorMenu(event)
-        #print(color) # DEBUG 
+        #print(color) # DEBUG
         if color: self.setColor(color)
 
     def closeEvent(self, event):

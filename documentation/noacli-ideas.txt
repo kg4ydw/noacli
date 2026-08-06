@@ -17,6 +17,8 @@ v  documented in a future video
 t  documented internally with tool tip
 
  -Things to implement soon:
+ ? redo font mapping
+ ? separate fonts for job manager, output windows, main interface, etc.
  * make job table copy/paste work for pid column (bug fix)
  * tail: show/hide bars in context menu
  * tail: follow toggle in context menu?

@@ -1,15 +1,15 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, 2023, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2023, 2026, Steven Dick <kg4ydw@gmail.com>'
 
 # Add a few features to QDockWidget to
 # * make activity in log windows obvious.
 # * resize to use available space
-# * work around a dock close bug in Qt
+# * work around a dock close bug in Qt5
 
-from PyQt5 import QtCore
-from PyQt5.Qt import Qt, pyqtSignal
-from PyQt5.QtWidgets import QDockWidget, QAbstractScrollArea, QWidget
+from PyQt6 import QtCore
+from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtWidgets import QDockWidget, QAbstractScrollArea, QWidget
 
 class myDock(QDockWidget):
     def __init__(self, parent):
@@ -50,7 +50,7 @@ class myDock(QDockWidget):
                 hh = hs.height()
             if s.height() < hh:
                 self.resize(QtCore.QSize(s.width(), hh)+diff)
-        
+
     @QtCore.pyqtSlot(str)
     def setWindowTitle(self, title):
         # XXX only change number of lines if not visible?

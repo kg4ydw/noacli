@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 __license__   = 'GPL v3'
-__copyright__ = '2022-2024, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022-2026, Steven Dick <kg4ydw@gmail.com>'
 
 # qtail: think of this as a graphical version of less
 #
@@ -18,11 +18,11 @@ import os, re, sys, time, argparse, copy, math
 from functools import partial
 from math import ceil
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtGui import QTextCursor, QFont, QTextDocument
-from PyQt5.QtWidgets import QTextEdit, QSizePolicy, QLineEdit, QActionGroup, QWidgetAction, QSpinBox, QAbstractSpinBox, QShortcut, QLabel, QStyle
-from PyQt5.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
-from PyQt5.Qt import Qt, pyqtSignal
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtGui import QTextCursor, QFont, QTextDocument, QActionGroup, QShortcut
+from PyQt6.QtWidgets import QTextEdit, QSizePolicy, QLineEdit,  QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle
+from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
+from PyQt6.QtCore import Qt, pyqtSignal
 
 from lib.qtail_ui import Ui_QtTail
 from lib.typedqsettings import typedQSettings
@@ -49,7 +49,7 @@ typedQSettings().registerOptions({
    #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
     'QTailWatchInterval': [30, "Default automatic refresh interval for qtail in watch mode", int],
     'colorlist': [None, "Default list of colors to use for highlighting", str],
-})    
+})
 
 class softArgumentParser(argparse.ArgumentParser):
     exit_on_error=True
@@ -139,7 +139,7 @@ class myOptions():
 
         self.args = args.filename
         return self.args
-                
+
 class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
@@ -161,14 +161,14 @@ class QtTail(QtWidgets.QMainWindow):
         self.setWindowIcon(icon)
 
         # connect to my own event so I can send myself a delayed signal
-        self.want_resize.connect(self.actionAdjust, Qt.QueuedConnection) # delay this
-        self.want_read_more.connect(self.readtext, Qt.QueuedConnection) # read more after everything else is updated
+        self.want_resize.connect(self.actionAdjust, Qt.ConnectionType.QueuedConnection) # delay this
+        self.want_read_more.connect(self.readtext, Qt.ConnectionType.QueuedConnection) # read more after everything else is updated
 
         if options==None:
             options=myOptions()
         else:
             options = copy.copy(options) # don't modify parent object
-        
+
         self.firstRead = True
         self.resizecount = 0
         self.opt = options
@@ -188,7 +188,7 @@ class QtTail(QtWidgets.QMainWindow):
         line = QSpinBox(m)  # or double?
         line.setMaximum(86400)
         line.setSingleStep(10)  # redundant with adaptive on
-        line.setStepType(QAbstractSpinBox.AdaptiveDecimalStepType)
+        line.setStepType(QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
         line.setWrapping(False) # stick at ends of range
         line.setValue(typedQSettings().value('QTailWatchInterval',30))
         line.setToolTip('Refresh interval')
@@ -200,7 +200,7 @@ class QtTail(QtWidgets.QMainWindow):
         m.addAction(wa)
         ### can't do this yet
         #if type(self.file)!=QProcess: # can't watch a non-process
-        #    self.ui.actionWatch.setEnabled(False) 
+        #    self.ui.actionWatch.setEnabled(False)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.reloadOrRerun)
         self.findTimer = QTimer(self)
@@ -247,7 +247,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.ui.actionDeleteClosedSearches.setVisible(False)
         if not skip:
             self.ui.actionShowClosedSearches.setVisible(False)
-        
+
     def showClosedSearches(self):
         # both show and tabify them all
         prev = None
@@ -262,7 +262,7 @@ class QtTail(QtWidgets.QMainWindow):
             prev = dock
         # disable since there's nothing hidden anymore...
         self.ui.actionDeleteClosedSearches.setVisible(False)
-        
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.resizecount += 1
@@ -278,14 +278,14 @@ class QtTail(QtWidgets.QMainWindow):
             return None
 
     def setButtonMode(self):
-        if hasattr(self,'file') and type(self.file)==QProcess:
-            if self.file.state()!=QProcess.NotRunning:
+        if hasattr(self,'file') and isinstance(self.file, QProcess):
+            if self.file.state()!=QProcess.ProcessState.NotRunning:
                 self.rebutton('Kill', self.terminateProcess)
             elif self.ui.actionWatch.isChecked():
                 self.rebutton('Rerun', self.reloadOrRerun)
             else:
                 self.rebutton('Close', self.close,'modeNorun')
-        else: 
+        else:
             ## XX distinguish between stdin and a file eventually (seekable?)
             # print(type(self.file), self.filename, hasattr(self, 'filename')) # DEBUG
             if hasattr(self,'filename') and self.ui.actionWatch.isChecked():
@@ -293,7 +293,7 @@ class QtTail(QtWidgets.QMainWindow):
             else:
                 self.rebutton('Close', self.close,'modefile')
         #else: # file
-        
+
     def tweakInterval(self):
         if not hasattr(self, 'reinterval'): self.reinterval=30
         if self.reinterval<1: self.reinterval=1
@@ -315,7 +315,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.ui.intervalLine.setSuffix(' seconds')
         # XX if duty cycle > 50% turn off timer if window is obscured
         # is there an event when window is obscured??
-        
+
     def setWatchInterval(self, value=None):
         if value:
             val = value
@@ -325,7 +325,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.reinterval = val
         self.tweakInterval()
         self.actionAutoRefresh() # set timer
-            
+
     def actionAutoRefresh(self):
         checked = self.ui.actionAutorefresh.isChecked()
         if checked:
@@ -333,14 +333,14 @@ class QtTail(QtWidgets.QMainWindow):
         else:
             self.timer.stop()
         self.updateStatusIcon()
-            
+
     def reloadOrRerun(self):
         # XX reset and restart timer if this was user triggered?
         self.firstRead = False  # don't trigger resize if button pushed
         # XXX on reload maybe cancel resize timer too?
-        if type(self.file)==QProcess:
+        if isinstance(self.file, QProcess):
             #print("proc state="+str(self.file.state())) # DEBUG
-            if self.file.state()==QProcess.Running:  # it's taking a long time
+            if self.file.state()==QProcess.ProcessState.Running:  # it's taking a long time
                 return
             else:
                 self.ui.textBrowser.clear()
@@ -348,7 +348,7 @@ class QtTail(QtWidgets.QMainWindow):
                 self.file.start()
         else:
             self.reload()
-            
+
     def closeEvent(self,event):
         self.timer.stop()  # restart this on reopen?
         self.window_close_signal.emit()
@@ -362,7 +362,7 @@ class QtTail(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def clearFinds(self):
         self.textbody.setExtraSelections([])
-        
+
     def saveHighlight(self, user=True):
         start = self.textbody.textCursor()
         if start.hasSelection():
@@ -375,13 +375,13 @@ class QtTail(QtWidgets.QMainWindow):
                 e.cursor = start  # in case selection changed
             else: # make a new one
                 es = QTextEdit.ExtraSelection()
-                es.format.setBackground(QtGui.QBrush(Qt.yellow)) # SETTING XXX
+                es.format.setBackground(QtGui.QBrush(Qt.GlobalColor.yellow)) # SETTING XXX
                 es.cursor = start
                 ess.append(es)
                 self.textbody.setExtraSelections(ess)
             if user and self.highlightDock:
                 self.highlightDock.addSel(start)
-        
+
     @QtCore.pyqtSlot(str)
     def simpleFind(self, text):
         start = self.textbody.textCursor()
@@ -406,7 +406,7 @@ class QtTail(QtWidgets.QMainWindow):
         else:
             # try again
             cursor = self.textbody.textCursor()
-            cursor.movePosition(QtGui.QTextCursor.Start)
+            cursor.movePosition(QtGui.QTextCursor.MoveOperation.Start)
             self.textbody.setTextCursor(cursor)
             success = self.textbody.find(searchterm, findflags)
             if success:
@@ -449,7 +449,7 @@ class QtTail(QtWidgets.QMainWindow):
         # b = None?  b=0? b<blocksize?  b==blocksize?
         #print(type(b),len(b), self.file.atEnd()) # DEBUG
         e = self.textbody.textCursor()
-        e.movePosition(QtGui.QTextCursor.End)
+        e.movePosition(QtGui.QTextCursor.MoveOperation.End)
         #print('read {}: {}'.format(fromwhere,len(b))) # DEBUG
         if b==None: # already got EOF (probably?)
             #if typedQSettings().value('DEBUG',False):print("EOF from "+fromwhere)
@@ -481,7 +481,7 @@ class QtTail(QtWidgets.QMainWindow):
             rdelay = typedQSettings().value('QTailDelayResize',3)
             if b and rdelay:
                 #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
-                QTimer.singleShot(int(rdelay)*1000, Qt.VeryCoarseTimer, self.actionAdjust)
+                QTimer.singleShot(int(rdelay)*1000, Qt.TimerType.VeryCoarseTimer, self.actionAdjust)
         self.showsize(False)
 
     # @QtCore.pyqtSlot(str)
@@ -491,7 +491,7 @@ class QtTail(QtWidgets.QMainWindow):
     def socketActivated(self, socket):
         # XXX detect eof here???
         self.readtext('socket')
-        
+
     def start(self):
         doc = self.textbody.document()
         doc.setMaximumBlockCount(self.opt.maxLines)
@@ -526,14 +526,14 @@ class QtTail(QtWidgets.QMainWindow):
                     font = QFont(self.opt.argparse.font)
                     if font and font.family(): doc.setDefaultFont(font)
                     # else: silently fail
-                    
+
 
     def triggerFindAll(self, url):
         d= self.findAll(self.opt.argparse.findall)
         # don't trigger more than once
         if self.findallConnection: self.disconnect(self.findallConnection)
         self.findallConnection = None
-                
+
     def showsize(self, replace=True):
         m = self.statusBar().currentMessage()
         if m and not replace and 'lines' not in m:
@@ -597,14 +597,14 @@ class QtTail(QtWidgets.QMainWindow):
             if len(title)>30: title=os.path.basename(title)
             self.setWindowTitle(title)
         self.reload();
-        
+
         # follow the tail of the file
         self.watcher = QtCore.QFileSystemWatcher([filename])
         self.watcher.fileChanged.connect(self.filechanged)
         self.endcursor = self.textbody.textCursor()
-        self.endcursor.movePosition(QtGui.QTextCursor.End)
+        self.endcursor.movePosition(QtGui.QTextCursor.MoveOperation.End)
         self.textbody.setTextCursor(self.endcursor)
-    
+
     def openMarkdownFile(self, filename):
         # Qt textBrowser doesn't support appending to markdown so...
         # we break all the rules for this one
@@ -647,7 +647,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.opt.file = False  #XXX sometimes this might be a file
         #if typedQSettings().value('DEBUG',False):print("stdin") # DEBUG
         #self.reload();  # socket notifier makes this redundant
-        
+
     def openProcess(self, title, process):
         self.start()
         self.file = process
@@ -668,20 +668,20 @@ class QtTail(QtWidgets.QMainWindow):
 
     def updateStatusIcon(self):
         if not hasattr(self,'statusIconLabel'): return
-        running = self.file.state()!=QProcess.NotRunning
+        running = self.file.state()!=QProcess.ProcessState.NotRunning
         tooltip = ''
-        icon = QStyle.SP_MediaStop
+        icon = QStyle.StandardPixmap.SP_MediaStop
         if running:
-            icon = QStyle.SP_MediaPlay
+            icon = QStyle.StandardPixmap.SP_MediaPlay
             tooltip = 'running'
         elif self.timer.isActive():
             tooltip = 'waiting'
-            icon = QStyle.SP_MediaPause
+            icon = QStyle.StandardPixmap.SP_MediaPause
         elif hasattr(self, 'exitcode') and not self.exitcode:
-            icon = QStyle.SP_DialogYesButton
+            icon = QStyle.StandardPixmap.SP_DialogYesButton
         if not running and hasattr(self, 'exitcode') and self.exitcode:
             tooltip = " exit {}".format(self.exitcode)
-            icon = QStyle.SP_MessageBoxWarning
+            icon = QStyle.StandardPixmap.SP_MessageBoxWarning
         if hasattr(self,'runtime') and self.runtime:
             if tooltip: tooltip += ', '
             tooltip += 'runtime={:1.2f}'.format(self.runtime)
@@ -723,7 +723,7 @@ class QtTail(QtWidgets.QMainWindow):
         # these are likely too soon
         #self.actionAdjust()
         # if there's some text and it's big enough, or no more is coming...
-        if pretext and (len(pretext)>200 or type(self.file)!=QProcess or self.file.state()==QProcess.NotRunning): # SETTING min size threshold
+        if pretext and (len(pretext)>200 or not isinstance(self.file, QProcess) or self.file.state()==QProcess.ProcessState.NotRunning): # SETTING min size threshold
             self.want_resize.emit()
         #else: wait for data
 
@@ -772,7 +772,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def sizeHint(self):
         return QSize(100,100)
-    
+
     @QtCore.pyqtSlot()
     def reload(self):
         if not self.file and hasattr(self, 'filename'):
@@ -804,14 +804,14 @@ class QtTail(QtWidgets.QMainWindow):
         # current cursor might not be visible, so get one that is
         vc = self.textbody.cursorForPosition(QtCore.QPoint(10,10)) # not exactly at top, but close
         if state:
-            self.textbody.setLineWrapMode(QTextEdit.WidgetWidth)
+            self.textbody.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
         else:
-            self.textbody.setLineWrapMode(QTextEdit.NoWrap)
+            self.textbody.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         ## attempting to save and restore position seems to make it worse
         #self.textbody.setTextCursor(vc)
         #self.textbody.ensureCursorVisible()
         #self.textbody.setTextCursor(e)
-        
+
     ### settings that can change, trigger from UI elements
     # textBrowser.setLineWrapMode = WidgetWidth | NoWrap
     # text mode: html richtext markdown plain --> change insert function, reload
@@ -823,13 +823,13 @@ class QtTail(QtWidgets.QMainWindow):
     # edit->textCursor().insertHtml(QString) insertPlainText=cursor.insertText
     #  insert{Html,Table,Text}
     # textCursor() / setTextCursor() (get=copy/set visible)
-    # cursor.movePosition(op, mode, anchor, num) op=(Start End) 
+    # cursor.movePosition(op, mode, anchor, num) op=(Start End)
     # setKeepPositionOnInsert(bool)
     # clear()
     # setFontFamily setCurrentFont
     # find Qstring|RegEx
     # setMaximumBlockCount / blockCount()
-    
+
     ### menu action slots
     @QtCore.pyqtSlot()
     def actionAdjust(self):
@@ -874,9 +874,9 @@ class QtTail(QtWidgets.QMainWindow):
         width += framedx
         heightadjust = 100 # SETTING
         ## this was worse
-        #if type(self.file)==QProcess and self.file.state()==QProcess.NotRunning:
+        #if type(self.file)==QProcess and self.file.state()==QProcess.ProcessState.NotRunning:
         #    heightadjust = 0 # don't leave extra space if it is already dead
-        screenheight = QtWidgets.QApplication.desktop().screenGeometry().height()
+        screenheight = self.screen().geometry().height()
         maxheight = screenheight*0.75;  # SETTING max window height 75% desktop height
         maxheight2 =  rect.height()*1.1 # SETTING max window height growth 10%
         if maxheight2>maxheight:
@@ -916,7 +916,7 @@ class QtTail(QtWidgets.QMainWindow):
         if sel:
             newsel += sel
         self.textbody.setExtraSelections(newsel)
-            
+
     def removeSelections(self, selections):
         es = self.textbody.extraSelections()
         for s in selections:
@@ -926,7 +926,7 @@ class QtTail(QtWidgets.QMainWindow):
             except StopIteration:
                 pass
         self.textbody.setExtraSelections(es)
-            
+
 
     def searchDock(self, title, selections, searchterm=None, findflags=None):
         if not selections: return # don't make empty dock
@@ -946,7 +946,7 @@ class QtTail(QtWidgets.QMainWindow):
         for dock in self.findChildren(QtWidgets.QDockWidget):
             if hasattr(dock, 'findSelection'): # duck type
                 dock.findSelection(cursor)
-        
+
     def extraSelectionsToDock(self):
         if not self.highlightDock:
             self.highlightDock = self.searchDock("Highlights", self.textbody.extraSelections())
@@ -955,7 +955,7 @@ class QtTail(QtWidgets.QMainWindow):
             selections =self.textbody.extraSelections()
             self.highlightDock.setSel(selections)
             self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), 'Highlights'), -1)
-        
+
     def findAll(self, text=None):
         if not text:
             text = self.ui.searchTerm.text()
@@ -970,7 +970,7 @@ class QtTail(QtWidgets.QMainWindow):
 
         finds = []
         c = self.textbody.textCursor()
-        c.movePosition(QtGui.QTextCursor.Start)
+        c.movePosition(QtGui.QTextCursor.MoveOperation.Start)
         doc = self.textbody.document() # use this instead of QTextEdit.find()
         c = doc.find(searchterm, c, findflags)
         prev=0
@@ -981,7 +981,7 @@ class QtTail(QtWidgets.QMainWindow):
             finds.append(es)
             if not c.hasSelection(): # zero size match
                 # skip to next word, multiple hits in one word is dumb here
-                c.movePosition(QtGui.QTextCursor.NextWord,QtGui.QTextCursor.MoveAnchor, 1 )
+                c.movePosition(QtGui.QTextCursor.MoveOperation.NextWord,QtGui.QTextCursor.MoveAnchor, 1 )
                 if c.position()==prev:
                     print('findall oops') # DEBUG EXCEPTION
                     break # prevent infinite loop
@@ -993,9 +993,9 @@ class QtTail(QtWidgets.QMainWindow):
             self.searchDock(text, finds, searchterm, findflags)
         QtCore.QCoreApplication.processEvents() # for good luck
         #if typedQSettings().value('DEBUG',False):print(len(finds))
- 
+
 ##### end QtTail end
-        
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     # display
@@ -1009,7 +1009,7 @@ if __name__ == '__main__':
 
     mainwin = QtTail(options)
     if options.title: mainwin.setWindowTitle(options.title)
-    
+
     w = mainwin.ui
 
     mainwin.show()
@@ -1018,11 +1018,11 @@ if __name__ == '__main__':
     if options.isCommand:
         # save command for later reuse
         # open pipe
-        # resize window with adjust() if command exits 
+        # resize window with adjust() if command exits
         pass
     elif args and args[0]!='-':
         mainwin.openfile(args[0])
     else:
         mainwin.openstdin()
-    
+
     app.exec()

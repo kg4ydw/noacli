@@ -2,6 +2,7 @@
 # note: why isn't this included in the standard layouts???
 # #mangled this to work with pyqt5 (just changed import)
 # Then this was mangled to add button sorting
+# and mangled for PyQt6 (enum changes mostly)
 
 # I release copyrights to any changes in this file to the following
 # parties so that it may be included in Qt in the future.
@@ -14,8 +15,8 @@
 
 import sys, heapq
 
-from PyQt5.QtCore import Qt, QMargins, QPoint, QRect, QSize
-from PyQt5.QtWidgets import QApplication, QLayout, QPushButton, QSizePolicy, QWidget
+from PyQt6.QtCore import Qt, QMargins, QPoint, QRect, QSize
+from PyQt6.QtWidgets import QApplication, QLayout, QPushButton, QSizePolicy, QWidget
 
 
 class Window(QWidget):
@@ -121,12 +122,13 @@ class FlowLayout(QLayout):
         #print(rect, rect.x(), rect.right(), rect.right()-rect.x()) # DEBUG
 
         while items:
+            item = items[0][3]
             style = item.widget().style()
             layout_spacing_x = style.layoutSpacing(
-                QSizePolicy.ToolButton, QSizePolicy.ToolButton, Qt.Horizontal
+                QSizePolicy.ControlType.ToolButton, QSizePolicy.ControlType.ToolButton, Qt.Orientation.Horizontal
             )
             layout_spacing_y = style.layoutSpacing(
-                QSizePolicy.ToolButton, QSizePolicy.ToolButton, Qt.Vertical
+                QSizePolicy.ControlType.ToolButton, QSizePolicy.ControlType.ToolButton, Qt.Orientation.Vertical
             )
             space_x = spacing + layout_spacing_x
             space_y = spacing + layout_spacing_y
@@ -177,10 +179,10 @@ class FlowLayout(QLayout):
         for item in self._item_list:
             style = item.widget().style()
             layout_spacing_x = style.layoutSpacing(
-                QSizePolicy.ToolButton, QSizePolicy.ToolButton, Qt.Horizontal
+                QSizePolicy.ControlType.ToolButton, QSizePolicy.ControlType.ToolButton, Qt.Orientation.Horizontal
             )
             layout_spacing_y = style.layoutSpacing(
-                QSizePolicy.ToolButton, QSizePolicy.ToolButton, Qt.Vertical
+                QSizePolicy.ControlType.ToolButton, QSizePolicy.ControlType.ToolButton, Qt.Orientation.Vertical
             )
             space_x = spacing + layout_spacing_x
             space_y = spacing + layout_spacing_y

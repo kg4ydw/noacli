@@ -1,16 +1,16 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2026 Steven Dick <kg4ydw@gmail.com>'
 
 # receiver window for small amounts of output, send to qtail if it gets big
 
 import os, sys, re
 
-from PyQt5 import QtCore
-from PyQt5.Qt import pyqtSignal
-from PyQt5.QtCore import QTimer, QSettings, QTextStream
-from PyQt5.QtGui import QTextCursor, QImage, QTextOption, QPixmap
-from PyQt5.QtWidgets import QTextBrowser
+from PyQt6 import QtCore
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import QTimer, QSettings, QTextStream
+from PyQt6.QtGui import QTextCursor, QImage, QTextOption, QPixmap
+from PyQt6.QtWidgets import QTextBrowser
 
 from lib.typedqsettings import typedQSettings
 from lib.noajobs import jobItem
@@ -45,7 +45,7 @@ class smallOutput(QTextBrowser):
     sendToLog = pyqtSignal('PyQt_PyObject')
     buttonState = pyqtSignal(bool)
     gotNewLines = pyqtSignal(int)
-    
+
     def __init__(self, parent):
         super(smallOutput,self).__init__(parent)
         self.keepState = False
@@ -63,7 +63,7 @@ class smallOutput(QTextBrowser):
         self.lineImage = QImage(px)
         self.applySettings()
         # why can't designer set this?
-        self.setWordWrapMode(QTextOption.WrapAtWordBoundaryOrAnywhere)
+        self.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)
 
     def applySettings(self):
         qs = typedQSettings()
@@ -82,7 +82,7 @@ class smallOutput(QTextBrowser):
                 num_lines = (size.height() - 2*margin)/fm
             lines=int(num_lines * mul)+1
             self.document().setMaximumBlockCount(lines)
-                
+
     ##### overrides
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -124,9 +124,9 @@ class smallOutput(QTextBrowser):
         #c.removeSelectedText()
         ### make a new cursor based on procStartLine
         c = self.textCursor()
-        c.movePosition(QTextCursor.Start)
-        c.movePosition( QTextCursor.NextBlock, QTextCursor.MoveAnchor,self.procStartLine-1)
-        c.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+        c.movePosition(QTextCursor.MoveOperation.Start)
+        c.movePosition( QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor,self.procStartLine-1)
+        c.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.KeepAnchor)
         text = c.selectedText()+more
         c.removeSelectedText()
 
@@ -209,13 +209,13 @@ class smallOutput(QTextBrowser):
         #self.jobitem = None   # maybe don't clear job item so fast
 
     ################
-        
+
     def getProcCursor(self):
         if not self.procCursor:
             self.procCursor = self.textCursor()
-            self.procCursor.movePosition(QTextCursor.End)
+            self.procCursor.movePosition(QTextCursor.MoveOperation.End)
             # XXX alternately, find previous <hr> or move to start
-        self.procCursor.movePosition(QTextCursor.End, QTextCursor.KeepAnchor)
+        self.procCursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.KeepAnchor)
         return self.procCursor
 
     #### convenience functions
@@ -223,14 +223,14 @@ class smallOutput(QTextBrowser):
         return self.document().maximumBlockCount()
     def curBlock(self):
         return self.getProcCursor().blockNumber()
-    
+
     ##### dunno if any of these are useful or correct yet
     def textLen(self):
         c = self.getProcCursor()
         return c.position() - c.anchor()
 
     def textBlockLen(self):
-        b = getProcCursor()
+        b = self.getProcCursor()
         # not sure this is right
         a = self.textCursor().setPosition(b.anchor())
         return b.blockNumber() - a.blockNumber()
@@ -265,7 +265,7 @@ class smallOutput(QTextBrowser):
         self.process.readyRead.connect(self.readLines)
         self.process.finished.connect(self.procFinished)
         self.buttonState.emit(True)
-    
+
     def internalOutput(self, settings, msg):
         ## Accept output from internal commands
         # Note: do the normal thing if the previous was an internal command
@@ -281,7 +281,7 @@ class smallOutput(QTextBrowser):
         self.procStartLine = self.document().blockCount()
         self.doneProc = True
         self.addLines(msg)
-        
+
     def readLines(self):
         t = self.textstream.readAll()
         self.addLines(t)
@@ -313,7 +313,7 @@ class smallOutput(QTextBrowser):
             else:
                 # no status bar?
                 pass
-         
+
     def procFinished(self, exitcode, estatus):
         #print('small proc finished ') # DEBUG
         if not self.gettingFull(2):

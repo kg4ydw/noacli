@@ -1,14 +1,14 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2026 Steven Dick <kg4ydw@gmail.com>'
 
 # Command parser and implementation for internal commands
 
 import os
 import sys
 from enum import Enum
-from PyQt5.Qt import pyqtSignal
-from PyQt5.QtCore import QSettings, QT_VERSION_STR, PYQT_VERSION_STR
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import QSettings, QT_VERSION_STR, PYQT_VERSION_STR
 
 # This is a very primitive command parser, but it should be sufficent for the
 # kinds of things this shell needs.
@@ -95,19 +95,19 @@ class commandParser:
             # probably unnecessary sanity checks
             v = qs.value(key,None)
             if not v or len(v)<2: continue
-            if type(v[0])!=OutWin: continue
+            if not isinstance(v[0], OutWin): continue
             # not gonna verify the rest
             self.wrappers[key] = v
-        
+
     def parseCommand(self, cmd):
         # returns one of
         #  None if nothing was done
         #  str  display info, command incomplete (internal)
         #  int  pass/fail result (internal)
         #  (str, int) message with pass/fail result (internal)
-        #  [title, outwin, args] 
-        #  [title, outwin, [outwinargs], args] 
-        #  [title, outwin, ['--files' or '--file', outwinargs], [filenames] ] 
+        #  [title, outwin, args]
+        #  [title, outwin, [outwinargs], args]
+        #  [title, outwin, ['--files' or '--file', outwinargs], [filenames] ]
         # if command can't be parsed, just use the default wrapper
         # exception: something went wrong
         cmd = cmd.strip()
@@ -126,9 +126,9 @@ class commandParser:
             else:
                 rest=''
             # handle built in commands, but not two OutWin in a row
-            if word in builtinCommands and not (gotoutwin and type(builtinCommands[word])==OutWin):
+            if word in builtinCommands and not (gotoutwin and isinstance(builtinCommands[word], OutWin)):
                 func = builtinCommands[word]
-                if type(func) is OutWin:
+                if isinstance(func, OutWin):
                     #print('window type word={} rest=({})'.format(word,rest)) # DEBUG
                     outwin = func
                     cmd = rest
@@ -185,7 +185,7 @@ class commandParser:
         # This doesn't do any parsing, so you can have dirnames with
         # spaces in them without needing to support quoting.
         if len(rest)==0:  # no arg takes you home
-            rest = os.environ.get('HOME') 
+            rest = os.environ.get('HOME')
         try:
             os.chdir(rest)
         except OSError as e:
@@ -207,7 +207,7 @@ class commandParser:
         else:
             return ("Wrapper '{}' not found.".format(rest), 1)
         return None # incomplete?
-    
+
     @builtin('addwrap')
     def cmd_addwrap(self, title, outwin, rest):
         '''Add a wrapper shortcut to wrap unparsed commands'''
@@ -226,7 +226,7 @@ class commandParser:
         qs.beginGroup('Wrappers')
         qs.setValue(words[0], self.wrappers[words[0]])
         return ("Added wrap "+words[0], 0)
-    
+
     @builtin('unwrap')
     def cmd_unwrap(self, title, outwin, rest):
         '''Delete a wrapper'''
@@ -256,7 +256,7 @@ class commandParser:
         '''Run an executable with arguments directly instead of sending it to a wrapper for parsing and execution'''
         # very simple parsing, hope there's no quotes in this
         return [title, outwin]+ [rest.split()]
-    
+
     @builtin('help')
     def cmd_help(self, title, outwin, rest):
         '''Describe or list built in commands.'''
@@ -300,7 +300,7 @@ class commandParser:
         elif os.path.isfile(f):
             return (True, f +'\n')
         return False
-                    
+
     @builtin('type')
     def cmd_type(self, title, outwin, rest):
         '''Find what things match the given command'''
@@ -325,7 +325,7 @@ class commandParser:
                 foundit = True
             if cmd[0]=='/':
                 result = self.checkfile(cmd)
-                if result==False:
+                if not result:
                     t += prefix + "Not found\n"
                 else:
                     (ok, msg) = result
@@ -337,7 +337,7 @@ class commandParser:
                 prefix='  '
                 f = os.path.join(dir,cmd)
                 result = self.checkfile(f)
-                if result==False:
+                if not result:
                     continue # don't say anything if it isn't found in this dir
                 (ok, msg) = result
                 if msg:
@@ -351,11 +351,9 @@ class commandParser:
                 t += prefix + "Not found\n"
                 fails += 1
         return (t, fails)
-            
+
     #### Other future built-in commands not implemented yet
     # 'pwd':  is this needed at all?  external pwd works fine
     # 'pushd':'popd': needs internal directory stack and probable parsing
     #  setenv -- bash or csh syntax? and this is already in GUI
     #  qtail like command to open multiple files for viewing at once
-        
-        

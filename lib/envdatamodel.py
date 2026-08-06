@@ -1,15 +1,15 @@
 
 __license__   = 'GPL v3'
-__copyright__ = '2022, Steven Dick <kg4ydw@gmail.com>'
+__copyright__ = '2022, 2026 Steven Dick <kg4ydw@gmail.com>'
 
 # Remember, edit, save, and manage environment variables for subprocess use.
 
 from enum import Enum
 
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QStyledItemDelegate, QComboBox, QMenu, QInputDialog
-from PyQt5.Qt import Qt
-from PyQt5.QtCore import QProcess, QProcessEnvironment, QSettings, QAbstractListModel, QModelIndex
+from PyQt6 import QtWidgets, QtCore
+from PyQt6.QtWidgets import QStyledItemDelegate, QComboBox, QMenu, QInputDialog
+from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QProcess, QProcessEnvironment, QSettings, QAbstractListModel, QModelIndex
 
 from lib.datamodels import settingsDialog, settingsDataModel, simpleTable
 
@@ -20,7 +20,7 @@ class envModes(Enum):
     Deleted = 3
     Mask = 4
 envModes.Inherit.__doc__ = "Inherit from external environment, reset local changes"
-envModes.Session.__doc__ = "Changes used for this session only" 
+envModes.Session.__doc__ = "Changes used for this session only"
 envModes.Save.__doc__ = "Save changes for future sessions"
 envModes.Deleted.__doc__ = "Will not be used for subprocesses in this session"
 envModes.Mask.__doc__ = "Masked from use in this and future sessions"
@@ -37,11 +37,11 @@ class envModeModel(QAbstractListModel):
         except ValueError:
             print("bad envModes {}".format(i)) # EXCEPT
             return None
-        if role==Qt.DisplayRole:
+        if role==Qt.ItemDataRole.DisplayRole:
             return v.name
-        if role==Qt.EditRole:
+        if role==Qt.ItemDataRole.EditRole:
             return v
-        elif role==Qt.ToolTipRole:
+        elif role==Qt.ItemDataRole.ToolTipRole:
             return v.__doc__
         return None
 
@@ -53,26 +53,26 @@ class envModesDelegate(QStyledItemDelegate):
         # XXX do something with option? set background?
         w = QComboBox(parent)
         w.setModel(envModeModel(parent))
-        #data = index.model().data(index, Qt.EditRole)
+        #data = index.model().data(index, Qt.ItemDataRole.EditRole)
         #w.setCurrentIndex(data.value)
         #w.insertItems(0,[i.name for i in envModes])
         return w
     def setEditorData(self, editor, index):
-        data = index.model().data(index, Qt.EditRole)
+        data = index.model().data(index, Qt.ItemDataRole.EditRole)
         if data:
-            if type(data)==str: data=envModes[data]
+            if isinstance(data, str): data=envModes[data]
             editor.setCurrentIndex(data.value)
     def setModelData(self, editor, model, index):
         val = editor.currentIndex()
-        index.model().setData(index,envModes(val), Qt.EditRole)
+        index.model().setData(index,envModes(val), Qt.ItemDataRole.EditRole)
     def paint(self, painter, option, index):
-        d = index.data(Qt.DisplayRole)
-        if type(d)!=str: d=d.name
+        d = index.data(Qt.ItemDataRole.DisplayRole)
+        if not isinstance(d, str): d=d.name
         QStyledItemDelegate.paint(self, painter, option, QModelIndex())
         painter.save()
         rect = QtCore.QRectF(option.rect)
         painter.setClipRect(rect)
-        painter.drawText(rect, Qt.AlignCenter|Qt.AlignVCenter|Qt.TextSingleLine, d)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter|Qt.AlignmentFlag.AlignVCenter|Qt.TextFlag.TextSingleLine, d)
         painter.restore()
 
 class envSettings(QProcessEnvironment):
@@ -83,7 +83,7 @@ class envSettings(QProcessEnvironment):
         for key in self.keys():
             self.modes[key] = envModes.Inherit
         self.loadEnvironment()
-    
+
     def loadEnvironment(self):
         # load environment changes from QSettings
         qs = QSettings()
@@ -131,12 +131,12 @@ class envSettings(QProcessEnvironment):
             self.envdata.append( [key,  self.modes[key].name, val])
         # add empty entries for editing in custom values
         # this is wrong, key isn't editable, use context menu instead
-        #self.envdata += [['',envModes.Session, ''],['', envModes.Session,'']] 
+        #self.envdata += [['',envModes.Session, ''],['', envModes.Session,'']]
         model = simpleTable(self.envdata, ['Env Var','Mode', 'Value'], editmask=[False, True, True], datatypesrow = [str, envModes, str], validator=self.validator)
         self.model = model
         self.envDia = settingsDialog(parent,'Environment variables', model)
         self.envDia.finished.connect(self.finishEnv)
-        self.envDia.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.envDia.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.envDia.customContextMenuRequested.connect(self.envContextMenu)
         buttonbox = self.envDia.ui.buttonBox
         newenv = buttonbox.addButton('New or Find', QtWidgets.QDialogButtonBox.ActionRole)
@@ -149,26 +149,26 @@ class envSettings(QProcessEnvironment):
         row = index.row()
         key = self.envdata[row][0]
         if col==1: # changing mode
-            if type(old)==str: old=envModes[old]
+            if isinstance(old,str): old=envModes[old]
             if value==old: return True
             if value==envModes.Inherit:
-                index.model().setData(index.siblingAtColumn(2), self.origenv.value(key,''), Qt.EditRole) # XX sibling
+                index.model().setData(index.siblingAtColumn(2), self.origenv.value(key,''), Qt.ItemDataRole.EditRole) # XX sibling
         elif col==2:
             if old==value: return True
             mode = self.envdata[row][1]
-            if type(mode)==str: mode=envModes[mode]
+            if isinstance(mode, str): mode=envModes[mode]
             if mode in [envModes.Deleted, envModes.Inherit]:
-                index.model().setData(index.siblingAtColumn(1), envModes.Session, Qt.EditRole) # XX sibling
+                index.model().setData(index.siblingAtColumn(1), envModes.Session, Qt.ItemDataRole.EditRole) # XX sibling
             elif mode==envModes.Mask:
-                index.model().setData(index.siblingAtColumn(1), envModes.Save, Qt.EditRole)
+                index.model().setData(index.siblingAtColumn(1), envModes.Save, Qt.ItemDataRole.EditRole)
         return True
-        
+
     def finishEnv(self, result):
         if result:
             for i in range(len(self.envdata)):
                 (key,mode,value) = self.envdata[i][0:3]
                 ## if mode is str, then row is unchanged
-                if type(mode)==str: # no changes
+                if isinstance(mode, str): # no changes
                     self.envset.discard(key)
                     continue
                 if mode in [envModes.Deleted, envModes.Mask] :
@@ -218,4 +218,4 @@ class envSettings(QProcessEnvironment):
             table.scrollTo(index)
             sm = table.selectionModel()
             sm.reset()
-            sm.select(index.siblingAtColumn(2), QtCore.QItemSelectionModel.Select)
+            sm.select(index.siblingAtColumn(2), QtCore.QItemSelectionModel.SelectionFlag.Select)
