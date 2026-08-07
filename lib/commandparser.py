@@ -52,7 +52,7 @@ class commandParser:
     new_default_wrapper = None # non-Qt fake signal (unfancy, but we only need one)
     # decorator generator to register commands
     # use __doc__ strings as help strings
-    def builtin(name):
+    def builtin(name):   # pylint: disable=no-self-argument
         def decorator(func):
             builtinCommands[name] = func
             return func
@@ -213,13 +213,13 @@ class commandParser:
         '''Add a wrapper shortcut to wrap unparsed commands'''
         words = rest.split()
         if len(words)<1:
-          return 'addwrap: '+(' '.join(self.wrappers.keys()))
+            return 'addwrap: '+(' '.join(self.wrappers.keys()))
         elif len(words)==1:
-          w = words[0]
-          if w in self.wrappers:
-            return ' '.join(['addwrap',w,'= (', self.wrappers[w][0].name,')']+ self.wrappers[w][1:])
-          else:
-            return ('addwrap {} not found'.format(w), 1)
+            w = words[0]
+            if w in self.wrappers:
+                return ' '.join(['addwrap',w,'= (', self.wrappers[w][0].name,')']+ self.wrappers[w][1:])
+            else:
+                return ('addwrap {} not found'.format(w), 1)
         self.wrappers[words[0]] = [outwin] + words[1:]
         # and save it
         qs = QSettings()

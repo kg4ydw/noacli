@@ -34,7 +34,7 @@ class ColorPicker():
         c = QSettings().value('colorlist',None)
         if c=='None': c=None
         if c:
-           self.colorlist = c.split()
+            self.colorlist = c.split()
         if not self.colorlist:
             self.colorlist.extend(self.defcolorlist)
 

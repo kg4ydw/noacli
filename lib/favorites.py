@@ -210,8 +210,8 @@ class Favorites():
             fav = favoriteItem(command, name, shortcut, immediate)
             # delete old stuff that changed
             if self.oldcmds[i]!=command or not keep or command in self.cmds and self.cmds[command]!=fav:
-                    self.delFavorite(self.oldcmds[i])
-                    if keep: changed.add(name)
+                self.delFavorite(self.oldcmds[i])
+                if keep: changed.add(name)
         # only take the first instance of each command
         gotcmd = set()
         for row in self.data:
@@ -254,7 +254,7 @@ class Favorites():
         if index.column()==0: return True # also prevents recursion
         # if anything else is edited and not blanked, check keep
         if val and self.data and self.data[index.row()] and val!=self.data[index.row()][index.column()]:
-                index.model().setData(index.siblingAtColumn(0),True, Qt.ItemDataRole.EditRole) # XXXX sibling
+            index.model().setData(index.siblingAtColumn(0),True, Qt.ItemDataRole.EditRole) # XXXX sibling
         return True
 
     def saveSettings(self):

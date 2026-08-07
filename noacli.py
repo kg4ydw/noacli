@@ -35,7 +35,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.0'
+__version__ = '2.0 alpha 1'
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -1181,11 +1181,11 @@ class noacli(QtWidgets.QMainWindow):
                 bign = dialog.addButton(QMessageBox.StandardButton.Ignore)
                 bign.setToolTip("Ignore these and close anyway")
                 if wins:
-                     bcloseWin = dialog.addButton("Close windows",QMessageBox.ButtonRole.ActionRole)
-                     bcloseWin.setToolTip("Close remaining open windows now")
-                     bcloseWin.clicked.disconnect() # don't close dialog
-                     bcloseWin.clicked.connect(self.settings.jobs.closeAllWins)  # and delete button?
-                     bcloseWin.clicked.connect(partial(self.recheckClose, dialog, bcloseWin, None))
+                    bcloseWin = dialog.addButton("Close windows",QMessageBox.ButtonRole.ActionRole)
+                    bcloseWin.setToolTip("Close remaining open windows now")
+                    bcloseWin.clicked.disconnect() # don't close dialog
+                    bcloseWin.clicked.connect(self.settings.jobs.closeAllWins)  # and delete button?
+                    bcloseWin.clicked.connect(partial(self.recheckClose, dialog, bcloseWin, None))
                 if procs:
                     bkillProc = dialog.addButton("Kill processes",QMessageBox.ButtonRole.ActionRole)
                     bkillProc.setToolTip("Kill remaining processes now")

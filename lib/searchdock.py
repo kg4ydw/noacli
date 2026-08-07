@@ -198,6 +198,7 @@ class searchDock(QDockWidget):
 
     def closeEvent(self, event):
         # if a search dock is closed, make visible the menu entry to delete them
+        # XXX test if this bug fix is still needed and see if removing it changes functionsality
         p = self.parent()
         if p:
             p.ui.actionDeleteClosedSearches.setVisible(True)

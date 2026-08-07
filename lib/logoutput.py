@@ -57,8 +57,8 @@ class logOutput(QTextBrowser):
 
     def applySettings(self):
         qs = typedQSettings()
-        max = qs.value('LogMaxLines',10000)
-        self.document().setMaximumBlockCount(max)
+        maxv = qs.value('LogMaxLines',10000)
+        self.document().setMaximumBlockCount(maxv)
 
     ######## process and I/O handling stuff
 

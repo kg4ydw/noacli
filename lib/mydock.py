@@ -20,10 +20,11 @@ class myDock(QDockWidget):
         self.visibilityChanged.connect(self.adjustTitle)
         self.topLevelChanged.connect(self.resizeOnFloat)
 
-    def resizeOnFloat(self, float):
-        if not float: return
+    def resizeOnFloat(self, floatw):
+        if not floatw: return
         # resize the dock when it floats to get rid of horizontal scrollbar
         # but try to not grow every time we are floated
+        # XXX should this resize height too?
         o = self.findChild(QAbstractScrollArea)
         if o:
             hw =  o.sizeHint().width()
@@ -83,8 +84,9 @@ class myDock(QDockWidget):
             super().setWindowTitle("{} ({})".format(self.basetitle, self.newlines))
 
     # bug workaround for QTBUG-74606 Oct 2021, fixed in Qt 6.11+? buggy in 5.15.3
+    # XXX test if this bug fix is still needed
     def closeEvent(self, event):
-        if self.isFloating():
+        if self.isFloating():  # pylint: disable R0801
             self.setFloating(False)
             self.hide()
             event.ignore()
