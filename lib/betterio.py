@@ -18,7 +18,8 @@ import sys
 import os
 import io
 
-from PyQt6.QtCore import  QIODevice, QSocketNotifier, QProcess
+from PyQt6.QtCore import QIODevice, QSocketNotifier, QProcess
+
 
 # can't monkeypatch QProcess, so wrapping it instead
 class betterQProcess():
@@ -29,16 +30,20 @@ class betterQProcess():
     '''
     def __init__(self, qio):
         self.qio = qio
+
     def strpeek(self, size):
-        return str(self.qio.peek(size),'utf-8')
+        return str(self.qio.peek(size), 'utf-8')
+
     def __iter__(self):
         return self
+
     def __next__(self):
         return str(self.qio.readLine(), 'utf-8')
     ## try to dynamicaly patch in anything else
+
     def __getattr__(self, name):
-        f=getattr(self.qio,name) # next time get it direct
-        setattr(self,name,f)
+        f = getattr(self.qio, name)    # next time get it direct
+        setattr(self,name, f)
         return f
 
 
@@ -46,16 +51,19 @@ class betterQProcess():
 class betterTextIOWrapper():
     def __init__(self, tiow):
         self.tiow = tiow
+
     def strpeek(self, size):  # XX not gonna fake size default
         return self.tiow.buffer.peek(size).decode('utf-8')
+
     def canReadLine(self):
         return '\n' in self.strpeek(1024)
 
     # can't copy these, they have to really exist
     def __iter__(self): return self.tiow.__iter__()
     def __next__(self): return self.tiow.__next__()
+
     # and bring in anything else we need on demand
     def __getattr__(self, name):
-        f=getattr(self.tiow, name) # next time get it direct
+        f = getattr(self.tiow, name)  # next time get it direct
         setattr(self, name, f)
         return f

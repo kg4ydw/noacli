@@ -31,25 +31,26 @@ from PyQt6.QtCore import QSettings
 class typedQSettings(QSettings):
     setdict = {}
     beginGroup = False  # not supported, use QSettings directly if you want this
+
     def __init__(self):
         super().__init__()
         self.warnmissing = True
 
     def value(self, key, default):
         try:
-            if key in self.setdict: # replace supplied default
+            if key in self.setdict:   # replace supplied default
                 default = self.setdict[key][0]
         except Exception as e:
-            self.setdict = {}  # only warn first time
+            self.setdict = {}         # only warn first time
             frame = sys.exc_info()[2].tb_frame.f_back
-            if self.warnmissing: # XX this is probably obsolete anyway
-                print("Warn: typedQSettings.value called before dict set: "+str(frame.f_code)+"\n"+str(e)) # EXCEPT
+            if self.warnmissing:      # XX this is probably obsolete anyway
+                print("Warn: typedQSettings.value called before dict set: "+str(frame.f_code)+"\n"+str(e))  # EXCEPT
             # frame.f_code.co_name
             return super(typedQSettings,self).value(key,default)
         v = super(typedQSettings,self).value(key,default)
-        if key not in self.setdict: # return what we have
+        if key not in self.setdict:   # return what we have
             if self.warnmissing:
-                print("Warning: setting {} missing from settings dictionary.".format(key)) # DEBUG EXCEPT
+                print("Warning: setting {} missing from settings dictionary.".format(key))  # DEBUG EXCEPT
             # add it to dict, guess at type, add caller?
             self.setdict[key] = [v,"Unknown setting", type(v)]
             return v
@@ -62,8 +63,8 @@ class typedQSettings(QSettings):
         try:
             return self.setdict[key][2](v)
         except Exception as e:
-            print("Bad setting value for {}: '{}'".format(key,v)) # EXCEPT
-            print(str(e)) # EXCEPT
+            print("Bad setting value for {}: '{}'".format(key,v))  # EXCEPT
+            print(str(e))             # EXCEPT
             return default
 
     @classmethod
@@ -74,6 +75,6 @@ class typedQSettings(QSettings):
         for key,val in options.items():
             if key in cls.setdict:
                 if val!=cls.setdict[key]:
-                    print('Warning: conflicting option '+key) # EXCEPT
+                    print('Warning: conflicting option '+key)  # EXCEPT
             else:
                 cls.setdict[key] = val

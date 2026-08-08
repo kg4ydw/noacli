@@ -166,7 +166,6 @@ class FlowLayout(QLayout):
         if not test_only:
             self._item_list = greedy
         return y + line_height - rect.y()
-    
 
     def _do_layout(self, rect, test_only):
         if self.mode==1: self.alphasort()

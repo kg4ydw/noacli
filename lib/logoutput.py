@@ -51,7 +51,7 @@ class logOutput(QTextBrowser):
         self.settings = None
         self.applySettings()
         # if a fixed number is set, use it, otherwise delay this
-        self.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere) # SETTING
+        self.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)  # SETTING
         self.readmore.connect(self.readLines, Qt.ConnectionType.QueuedConnection)  # for delayed reads
         self.show()
 
@@ -66,7 +66,7 @@ class logOutput(QTextBrowser):
         c = self.textCursor()
         c.movePosition(QTextCursor.MoveOperation.End)
         if self.followCheck:
-            self.setTextCursor(c) # jump to end
+            self.setTextCursor(c)  # jump to end
         return c
 
     # call triggered by dcommand processor
@@ -80,7 +80,7 @@ class logOutput(QTextBrowser):
         self.connectProcess(jobitem)
         c = self.endCursor()
         p = jobitem.getpid()
-        if p==0: # instead of logging start, schedule this for later
+        if p==0:   # instead of logging start, schedule this for later
             c.insertHtml('Early: <b>Start log</b> ')
             c.insertText("\n")
             jobitem.process.started.connect(partial(self.processStarted,jobitem))
@@ -88,7 +88,7 @@ class logOutput(QTextBrowser):
             c.insertHtml(str(jobitem.getpid())+': <b>Start log</b> <br/>')
             c.insertText((jobitem.title() or jobitem.command())+'\n')
             #c.insertText("\n")
-        if pretext: # pid should be set by now, so this should work
+        if pretext:    # pid should be set by now, so this should work
             for line in str.splitlines():
                 c.insertText(str(jobitem.getpid())+': (S) '+line+"\n")
 
@@ -104,7 +104,7 @@ class logOutput(QTextBrowser):
         self.joblist.add(jobitem)
         #jobitem.pid = jobitem.process.processId() # XX do this in jobitem
         #jobitem.prefix = str(jobitem.pid)+': ' # this works, but not above
-        jobitem.setMode('Log') # XX redundant?
+        jobitem.setMode('Log')  # XX redundant?
         c = self.endCursor()
         c.insertHtml(str(jobitem.getpid())+': <b>Start log</b> <br/>')
         c.insertText("\n")
@@ -160,6 +160,7 @@ class logOutput(QTextBrowser):
             bytec = jobitem.process.bytesAvailable()
             c = self.endCursor()
             c.insertText("{} paused with {} bytes available\n".format(jobitem.pid, bytec))
+
     def resumeJob(self,jobitem):
         jobitem.paused = False
         self.connectProcess(jobitem)
@@ -182,16 +183,16 @@ class logOutput(QTextBrowser):
             self.oneLine.emit('(exit)')
         # make sure there's no more data
         if jobitem.hasmore and jobitem.process and jobitem.process.atEnd():
-            self.readLines(jobitem) # one more can't hurt
+            self.readLines(jobitem)  # one more can't hurt
         if not jobitem.hasmore and (not jobitem.process or jobitem.process.atEnd()):
             self.cleanProc(jobitem)
         else:
-            print("Not cleaned at exit: pid={} m={} e={}".format(jobitem.pid, jobitem.hasmore, jobitem.process.atEnd())) # EXCEPT
+            print("Not cleaned at exit: pid={} m={} e={}".format(jobitem.pid, jobitem.hasmore, jobitem.process.atEnd()))  # EXCEPT
 
     def cleanProc(self, jobitem):
         if jobitem and jobitem.process:
             if jobitem.hasmore or not jobitem.process.atEnd():
-                print("cleanproc too soon m={} e={} b={}".format(jobitem.hasmore, jobitem.process.atEnd(), jobitem.process.bytesAvailable())) # EXCEPT
+                print("cleanproc too soon m={} e={} b={}".format(jobitem.hasmore, jobitem.process.atEnd(), jobitem.process.bytesAvailable()))  # EXCEPT
                 return
             self.disconnectProcess(jobitem)
             c=self.endCursor()
@@ -201,7 +202,6 @@ class logOutput(QTextBrowser):
                 c.insertText("\n")
                 jobitem.cleanup()
                 self.joblist.discard(jobitem)
-
 
     ######## GUI stuff
 
@@ -219,7 +219,7 @@ class logOutput(QTextBrowser):
         success = self.find(text)
         if success:
             self.findcount += 1
-            if self.settings and self.settings.statusBar: # use if available
+            if self.settings and self.settings.statusBar:  # use if available
                 self.settings.statusBar.showMessage('Found '+str(self.findcount))
         else:
             # try again
@@ -258,7 +258,7 @@ class logOutput(QTextBrowser):
             return None
 
     def contextMenuEvent(self, event):
-        self.gotNewLines.emit(0) # force title update
+        self.gotNewLines.emit(0)  # force title update
         m=super().createStandardContextMenu(event.pos())
         c = self.cursorForPosition(event.pos())
         # get pid
@@ -275,7 +275,7 @@ class logOutput(QTextBrowser):
             if t:
                 sm = m.addMenu('info: '+t)
                 c = job.command()
-                sma = sm.addAction(c) # XX and do what? just view for now
+                sma = sm.addAction(c)  # XX and do what? just view for now
         if job and job.process and job.process.state()==QProcess.ProcessState.Running:
             m.addAction("Kill pid "+pidT, partial(self.termJob,job))
             m.addAction("Kill pid {} hard".format(pidT),partial(self.killJob,job))
@@ -299,7 +299,7 @@ class logOutput(QTextBrowser):
         deadjobs = set()
         for job in self.joblist:
             if not job.paused or job.pid==skipjob: continue
-            m.addAction("Resume pid {} at {} bytes".format(job.pid, job.process.bytesAvailable()) , partial(self.resumeJob,job))
+            m.addAction("Resume pid {} at {} bytes".format(job.pid, job.process.bytesAvailable()), partial(self.resumeJob,job))
 
             # XXX autopause if bytes waiting > threshold
         m.addAction("Clear finished jobs from log",self.clearDead)
@@ -314,11 +314,13 @@ class logOutput(QTextBrowser):
 
     def termJob(self, job):
         job.process.terminate()
+
     def killJob(self,job):
         job.process.kill()
+
     def delLog(self, pidT):
         if not pidT or len(pidT)==0:
-            print("empty del log") # EXCEPT DEBUG
+            print("empty del log")  # EXCEPT DEBUG
             return
         c = self.textCursor()
         c.movePosition(QTextCursor.MoveOperation.Start)
@@ -330,6 +332,7 @@ class logOutput(QTextBrowser):
             else:
                 c.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
         c.endEditBlock()
+
     def clearDead(self):
         # we don't have a list of dead jobs, so just delete everything not in joblist
         okjobs = [str(job.pid) for job in self.joblist]
@@ -344,6 +347,7 @@ class logOutput(QTextBrowser):
             else:
                 c.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
         c.endEditBlock()
+
     def checkStatus(self):
         c=self.endCursor()
         c.beginEditBlock()
@@ -351,14 +355,14 @@ class logOutput(QTextBrowser):
             t = []
             if job.paused: t.append('Paused')
             if job.process:
-                s = job.process.state() # this doesn't seem to really be an enum
+                s = job.process.state()  # this doesn't seem to really be an enum
                 if s==0: ss='Dead'
                 elif s==1: ss='Starting'
                 elif s==2: ss='Running'
                 else: ss='Unknown'
                 t.append(ss)
             t.append(job.title())
-            if job.window: # not possible yet
+            if job.window:      # not possible yet
                 t.append('window')
             # emit array of items
             c.insertText(" ".join([str(job.getpid())+':']+ t)+"\n")

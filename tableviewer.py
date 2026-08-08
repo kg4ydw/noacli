@@ -50,6 +50,7 @@ typedQSettings().registerOptions({
 # * instead of throwing away lines as we parse, maybe keep them all and reparse and rebuild the table when we've got more
 class lineBuffer():
     lineEnds = '\n\r\x1d\x1e\x85\v\f\u2028\u2029'  # XX update this? from splitlines
+
     def __init__(self, file):
         self.file = file
         self.lines = []
@@ -61,7 +62,7 @@ class lineBuffer():
     ## replace strpeek with peeklines as often as possible
     def strpeek(self, size):  # XX not gonna fake size default
         # horribly inefficent but meh, only call this once hopefully
-        s =  "".join(self.lines)
+        s = "".join(self.lines)
         if len(s)<size:
             self.canReadLine(True) # get some more
             return "".join(self.lines)
@@ -74,6 +75,7 @@ class lineBuffer():
             #print('terminate at eof') # DEBUG
             self.lines[0]+='\n'
         return len(self.lines)>0 # use up what is left
+
     def canReadLine(self, readmore=False):
         if not readmore: # force buffer growth for extended peeking
             if len(self.lines)>1: return True
@@ -84,8 +86,8 @@ class lineBuffer():
         buf = ''
         while len(lines)<1 or len(lines[0])<1 or lines[0][-1] not in self.lineEnds:
             buffer = self.file.read(1024)
-            if buffer==None or len(buffer)==0: break
-            if type(buffer)==str:
+            if buffer is None or len(buffer)==0: break
+            if isinstance(buffer, str):
                 buf += buffer
             else:
                 buf += buffer.decode('utf-8', errors='backslashreplace')
@@ -100,7 +102,7 @@ class lineBuffer():
         if len(lines)>0:
             self.lines += lines
         # deal with EOF, including using last partial line
-        if buffer==None:
+        if buffer is None:
             self.eof = 6
             return self.handleEOF()
         elif len(buffer)==0:
@@ -110,13 +112,14 @@ class lineBuffer():
         # if not eof, did we get a whole line
         if len(self.lines)==0: return False
         if len(self.lines)>1 or (len(self.lines[0])>0 and self.lines[0][-1] in self.lineEnds):
-                return True
+            return True
         return False
 
     def peekLines(self, minimum=1 ):
         if minimum==0 or len(self.lines)<minimum:
-                self.canReadLine(True) # attempt to read more
+            self.canReadLine(True) # attempt to read more
         return self.lines  # just let 'em see them all
+
     def peekAll(self):
         # turn off nonblocking
         try:
@@ -127,8 +130,10 @@ class lineBuffer():
         self.peekLines(False)
         if self.eof<2: return None
         else: return self.lines
+
     def __iter__(self):
         return self
+
     def __next__(self):
         # should this make sure the next line is whole
         # or assume the calling code already called canReadLine
@@ -150,7 +155,8 @@ class lineBuffer():
 
 # this relies on features from lineBuffer to correctly pace I/O
 class FixedWidthParser():
-    def __init__(self, f, options={}):
+    def __init__(self, f, options=None):
+        if options is None: options={}
         # optimistically do this without peek for now
         # this doesn't handle right justified or centered columns but mask does
         lines = f.peekLines(2)  # this will try to get 2 lines, but no promises
@@ -184,11 +190,12 @@ class FixedWidthParser():
 
     def __len__(self):
         return len(self.col)
+
     def __iter__(self):
         while True:
             try:
                 s = next(self.lines)
-                if s!=None:
+                if s is not None:
                     s=s.expandtabs()
                 else:
                     yield None  # not end of file
@@ -198,9 +205,11 @@ class FixedWidthParser():
                 return
             yield [ s[self.col[i]:self.col[i+1]].strip() for i in range(len(self.col)-1) ] + [  s[self.col[-1]:].strip() ]
 
+
 # this is so small, just copy it rather than import
 class softArgumentParser(argparse.ArgumentParser):
     exit_on_error=True
+
     def exit(self, status=0, message=None):
         if self.exit_on_error:
             super().exit(status,message)
@@ -208,10 +217,12 @@ class softArgumentParser(argparse.ArgumentParser):
             print(message) # EXCEPT
             #raise Exception(message) # XXX need to test error handling
 
+
 class TableViewer(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
     want_readmore = pyqtSignal(str)
+
     def __init__(self, options=None, parent=None):
         super().__init__()
         self.data = []
@@ -275,7 +286,6 @@ class TableViewer(QtWidgets.QMainWindow):
         parser.add_argument('--debug', help="Print extra info to help mask column boundaries", action='store_true')
         parser.add_argument('filename', nargs=argparse.REMAINDER)
 
-
         if args:  # called from noacli (eventually)
             # set up soft error handling XXX not tested yet
             msg = None
@@ -294,7 +304,8 @@ class TableViewer(QtWidgets.QMainWindow):
                 if msg:
                     self.errmsg = msg # XX nobody uses this yet
                     print('except: '+msg) # EXCEPT
-                    return (msg, -1)
+                    # we intend to swallow this exception after printing
+                    return (msg, -1)   # pylint: disable=W0134,W0150
         else:
             args = parser.parse_args()
             self.argparse = args
@@ -302,8 +313,8 @@ class TableViewer(QtWidgets.QMainWindow):
         ## values pulled directly from argdict:
         for arg in ( 'filtercol', 'filter', 'mask', 'delimiters'):
             if hasattr(args,arg):
-                v =  getattr(args,arg)
-                if v!=None: self.argdict[arg] = v
+                v = getattr(args,arg)
+                if v is not None: self.argdict[arg] = v
         if args.nopick: self.argdict['nopick'] = True # don't set if false
         if args.pick: self.argdict['pick'] = True
         # copy the rest to relevant places
@@ -332,7 +343,8 @@ class TableViewer(QtWidgets.QMainWindow):
             if msg:
                 self.errmsg = msg # XX nobody uses this yet
                 print('except: '+msg) # EXCEPT
-                return (msg, -1)
+                # we intend to swallow this exception after printing
+                return (msg, -1) # pylint: disable=W0134,W0150
 
     def start(self):
         # apply settings after UI is set up
@@ -369,7 +381,7 @@ class TableViewer(QtWidgets.QMainWindow):
     def squeezeColumns(self):
         # measure the width of every visible column and set the width to mean+2*stdev
         head = self.ui.tableView.horizontalHeader()
-        shown = list([ i for i in range(len(self.headers)) if not head.isSectionHidden(i) ])
+        shown = list(i for i in range(len(self.headers)) if not head.isSectionHidden(i) )
         widths = [ head.sectionSize(i) for i in shown]
         width = self.ui.tableView.width()-50
         m = min(median(widths),mean(widths))
@@ -432,20 +444,21 @@ class TableViewer(QtWidgets.QMainWindow):
     def copyClip1(self, index):
         text = index.data(Qt.ItemDataRole.DisplayRole)
         #print("Copy1 "+text) # DEBUG
-        if type(text)!=str:
+        if not isinstance(text, str):
             text = str(text)
         self.app.clipboard().setText(text)
 
     def copyClip2(self, index):
         text = index.data(Qt.ItemDataRole.DisplayRole)
         #print("Copy2 "+text) # DEBUG
-        if type(text)!=str:
+        if not isinstance(text, str):
             text = str(text)
         self.app.clipboard().setText(text)
         self.app.clipboard().setText(text, QtGui.QClipboard.Mode.Selection)
 
     def resizeHheader(self, logical):
         self.ui.tableView.resizeColumnToContents(logical)
+
     def resizeVheader(self, logical):
         self.ui.tableView.resizeRowToContents(logical)
 
@@ -485,6 +498,7 @@ class TableViewer(QtWidgets.QMainWindow):
     # context menu triggered
     def hideColumn(self, col):
         self.ui.tableView.setColumnHidden(col, True)
+
     def showColumn(self, col):
         self.ui.tableView.setColumnHidden(col, False)
 
@@ -499,7 +513,7 @@ class TableViewer(QtWidgets.QMainWindow):
         while len(slist)>1:
             # find consecutive items in the same row
             row = slist[0].row()
-            i = 0;
+            i = 0
             while i+1<len(slist) and slist[i+1].row()==row and slist[i].column()-1==slist[i+1].column():
                 i+=1
             if i>0:
@@ -515,6 +529,7 @@ class TableViewer(QtWidgets.QMainWindow):
             #else: warn error XXX
         else:
             self.proxymodel.setFilterFixedString(str)
+
     def setFilterColumn(self):
         selcol = self.ui.colPicker.selectionModel().selectedIndexes()
         if len(selcol)==1:
@@ -536,8 +551,9 @@ class TableViewer(QtWidgets.QMainWindow):
         title = filename
         if len(title)>30: title=os.path.basename(title)
         self.setWindowTitle(title)
+        # not using with because we need to clean up ourself too
         try:
-            self.csvfile = lineBuffer(open(filename, errors='backslashreplace'))
+            self.csvfile = lineBuffer(open(filename, errors='backslashreplace')) # pylint: disable=R1732
         except OSError as e:
             self.error = e.strerror
             err = 'Open failed on {}: {}'.format(filename,e.strerror)
@@ -578,7 +594,7 @@ class TableViewer(QtWidgets.QMainWindow):
             lines = csvfile.peekLines(nlines)
         else:
             lines = None
-            while lines==None:
+            while lines is None:
                 lines = csvfile.peekAll()
 
         delimiters = ' '
@@ -603,7 +619,7 @@ class TableViewer(QtWidgets.QMainWindow):
             # merge
             cols = set(cols) | set(self.fixedoptions['columns'])
             # remove negative cols
-            rm =[j for i in cols  if i<0 for j in (-i,i)]
+            rm =[j for i in cols if i<0 for j in (-i,i)]
             self.fixedoptions['columns'] = sorted(cols-set(rm))
         elif cols:
             self.fixedoptions['columns'] = cols
@@ -614,9 +630,9 @@ class TableViewer(QtWidgets.QMainWindow):
             print(cols) # EXCEPT
         if self.argparse.debug:
             # XXX mask debug output should be put in a window somewhere
-            m10 = ceil(max(len(mask),len(line[0]))/10)
+            m10 = ceil(max(len(mask),len(lines[0]))/10)
             cols = self.fixedoptions['columns']
-            print("".join(str(x%10)+' '*9 for x in range(m10))) # DEBUG
+            print("".join(str(x % 10)+' '*9 for x in range(m10))) # DEBUG
             print('0123456789'*min(m10,8))                      # DEBUG
             print(lines[0])                                     # DEBUG
             print("".join( str(x)[0] for x in mask))            # DEBUG
@@ -625,7 +641,6 @@ class TableViewer(QtWidgets.QMainWindow):
                 s[x]='x'
             print("".join(s))                                   # DEBUG
             print(','.join([str(x) for x in cols]))             # DEBUG
-
 
     def openfd(self, csvfile):
         DEBUG = typedQSettings().value('DEBUG',False)
@@ -670,12 +685,12 @@ class TableViewer(QtWidgets.QMainWindow):
         lines = 3
         while self.csvfile.canReadLine() and lines>0:
             # be brave without a try
-                row = self.csvreader.__next__()
-                # XXX if not row: what??
-                self.data.append(row)
-                x = len(row)
-                if x>maxx: maxx=x
-                lines -= 1
+            row = self.csvreader.__next__()
+            # XXX if not row: what??
+            self.data.append(row)
+            x = len(row)
+            if x>maxx: maxx=x
+            lines -= 1
         if lines<0 and self.csvfile.canReadLine():
             self.want_readmore.emit('initial') # get more without waiting
         #else: print("end: {}, {}".format(lines, self.csvfile.canReadLine())) # DEBUG
@@ -694,7 +709,7 @@ class TableViewer(QtWidgets.QMainWindow):
         try:
             # optionally hide column picker for small tables
             if 'nopick' in self.argdict or ('pick' not in self.argdict and
-            maxx < typedQSettings().value('TableviewerPickerCols', 10)):
+              maxx < typedQSettings().value('TableviewerPickerCols', 10)):
                 self.ui.colPickerDock.setVisible(False)
         except:
             pass
@@ -766,6 +781,7 @@ class TableViewer(QtWidgets.QMainWindow):
         for i in indexes:
             self.ui.tableView.setColumnHidden(i.row(),True)
         self.ui.colPicker.selectionModel().clear()
+
     def showCols(self):
         indexes = self.ui.colPicker.selectedIndexes()
         for i in indexes:
@@ -796,14 +812,17 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def pickShown(self):
         self.pickShowCol(False)
+
     def pickHidden(self):
         self.pickShowCol(True)
+
     def setShown(self):
         view = self.ui.tableView
         pickselmodel = self.ui.colPicker.selectionModel()
         pickmodel = self.ui.colPicker.model()
         for i in range(len(self.headers)):
             view.setColumnHidden(i, not pickselmodel.isSelected(pickmodel.index(i,0)))
+
     def exportCol(self, delimiter):
         indexes = self.ui.colPicker.selectedIndexes()
         headers = [self.headers[index.row()] for index in indexes]
@@ -825,11 +844,12 @@ class TableViewer(QtWidgets.QMainWindow):
                 selection.select(ii,ii)
         self.ui.colPicker.selectionModel().select(selection, QItemSelectionModel.SelectionFlag.Select)
 
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     # display
-    QtCore.QCoreApplication.setOrganizationName("kg4ydw");
-    QtCore.QCoreApplication.setApplicationName("TableViewer");
+    QtCore.QCoreApplication.setOrganizationName("kg4ydw")
+    QtCore.QCoreApplication.setApplicationName("TableViewer")
 
     #options = myOptions()
     #args = options.process(app)

@@ -12,10 +12,12 @@ from PyQt6.QtGui import QBrush
 from PyQt6.QtCore import Qt, QIODevice, QTimer, QModelIndex, QProcess, QPersistentModelIndex
 
 from lib.datamodels import itemListModel
-from qtail import QtTail
 from lib.typedqsettings import typedQSettings
 from lib.commandparser import OutWin
+
+from qtail import QtTail
 from tableviewer import TableViewer
+
 
 class mommie(QtCore.QObject):
     # be the parent of stuff that wants to outlive our main window
@@ -36,6 +38,7 @@ class mommie(QtCore.QObject):
             self.deleteLater()
         #else: print("Mommie event: ",repr(event.child()), type(event.child())) # DEBUG
 
+
 class jobItem():
     def __init__(self, history):
         self.index = None
@@ -46,11 +49,11 @@ class jobItem():
         self.windowTitle = None
         self.fullstatus = None
         self.mode = None
-        self.pid = None # QProcess deletes pid too fast
+        self.pid = None         # QProcess deletes pid too fast
         self.window=None
         self.paused = False
         self.jcommand = None
-        self.timestart = time.monotonic() # in case we miss the real start
+        self.timestart = time.monotonic()  # in case we miss the real start
         self.runtime = None
         if history:  # only for real jobs
             self.setStatus('init')
@@ -61,8 +64,8 @@ class jobItem():
             self.process.finished.connect(self.collectFinish)
             self.process.stateChanged.connect(self.collectNewstate)
             self.hasmore = True
-        else:  # fake jobitem for internal commands
-            self.finished = True # so it can be deleted later
+        else:                     # fake jobitem for internal commands
+            self.finished = True  # so it can be deleted later
             self.hasmore = False
             self.fullstatus=' '
             self.setStatus(' ')
@@ -87,11 +90,14 @@ class jobItem():
         if self.process:
             self.pid = self.process.processId()
             return self.pid
+        return None
+
     def __str__(self):  # mash some stuff together
         qs = typedQSettings()
         width = int(qs.value('JobMenuWidth', 30))
         s = str(self.getStatus())+' | '+str(self.title())+' | '+str(self.command())
         return str(s)[0:width]
+
     def title(self):
         if self.windowTitle:
             title = self.windowTitle
@@ -105,6 +111,7 @@ class jobItem():
             # maybe build it from command?
             title = ''
         return title
+
     def setTitle(self,title):
         if not title: return
         self.windowTitle = title
@@ -115,6 +122,7 @@ class jobItem():
                 i = self.index.model().index(self.index.row(),3)
                 if i and i.model():
                     i.model().dataChanged.emit(i,i)
+
     def setMode(self,mode):  # mode is set in command parser
         if isinstance(mode, OutWin):
             self.mode = mode
@@ -127,10 +135,10 @@ class jobItem():
                     i = self.index.model().index(self.index.row(),2)
                     i.model().dataChanged.emit(i,i)
             else:
-               #if typedQSettings().value('DEBUG',False): print("Failed to convert winmode "+mode) # DEBUG
+                #if typedQSettings().value('DEBUG',False): print("Failed to convert winmode "+mode) # DEBUG
                 pass
         except Exception as e:
-            print(e) # EXCEPT
+            print(e)  # EXCEPT
             pass
 
     # private slots
@@ -140,6 +148,7 @@ class jobItem():
             index = self.index.model().sibling(self.index.row(),0,QModelIndex())
             self.index.model().dataChanged.emit(index,index)
         self.timestart = time.monotonic()
+
     def collectError(self, err):
         self.status += 'E'+str(err)+' '
         self.setStatus(self.status)
@@ -153,6 +162,7 @@ class jobItem():
         if self.runtime is None: self.runtime=t
         self.runtime = self.runtime * 0.6 + t*0.4
         #print("runtime {} = {:1.2f}".format(self.runtime, self.runtime)) # DEBUG
+
     def collectNewstate(self, state):
         if state==QProcess.ProcessState.Starting:
             self.setStatus(self.status+str('Starting'))
@@ -167,21 +177,21 @@ class jobItem():
             if self.index and self.index.model():
                 index = self.index.model().sibling(self.index.row(),1,QModelIndex())
                 self.index.model().dataChanged.emit(index,index)
-            if not self.history or not self.history.model(): # not a real job
+            if not self.history or not self.history.model():  # not a real job
                 pass
             elif exitStatus is not None:
                 self.history.model().setStatus(self.history, exitStatus)
             else:
                 self.history.model().setStatus(self.history, status)
         except:
-            pass # XXX broken
-
+            pass  # XXX broken
 
     # public interfaces
     def command(self):
         if not self.jcommand:
             self.jcommand = History.GetCommand(self.history)
         return self.jcommand
+
     def getStatus(self):
         if self.fullstatus: return self.fullstatus
         if self.status: return self.status
@@ -194,7 +204,7 @@ class jobItem():
             self.setWindow(QtTail(settings.qtail))
         elif outwin==OutWin.Table:
             self.setWindow(TableViewer())
-            self.window.app = settings.app # XXX redundant?
+            self.window.app = settings.app  # XXX redundant?
         else:
             # ??? can't get here, do nothing anyway
             return
@@ -206,7 +216,7 @@ class jobItem():
         self.process.setProcessEnvironment(settings.environment)
         # XXX connect output to something
         # for now, just merge stdout,stderr and send to qtail
-        self.process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels) # XXXX Separate/setReadChannel()
+        self.process.setProcessChannelMode(QProcess.ProcessChannelMode.MergedChannels)  # XXXX Separate/setReadChannel()
         ## stdin already connected to /dev/null
         #self.process.closeWriteChannel() # close stdin if we have no infile
         outwin = self.mode
@@ -218,7 +228,7 @@ class jobItem():
             if not title or len(title)==0:
                 title = typedQSettings().value('QTailDefaultTitle','subprocess')
             if self.outwinArgs: self.window.simpleargs(self.outwinArgs)
-            self.window.openProcess(title , self.process)
+            self.window.openProcess(title, self.process)
         elif outwin==OutWin.Log:
             #print("start log") # DEBUG
             settings.logOutputView.openProcess(self.process, self, settings)
@@ -230,13 +240,13 @@ class jobItem():
                 # does tableviewer get its own default title SETTING?
                 title = typedQSettings().value('QTailDefaultTitle','subprocess')
             if self.outwinArgs: self.window.simpleargs(self.outwinArgs)
-            self.window.openProcess(title , self.process)
+            self.window.openProcess(title, self.process)
         else:
             self.setMode('Small')
             #print("start small") # DEBUG
             settings.smallOutputView.openProcess(self.process, self, settings)
         #print('start command: '+self.command())  # DEBUG
-        self.process.start(self.args[0], self.args[1:], QIODevice.OpenModeFlag.ReadOnly|QIODevice.OpenModeFlag.Text)
+        self.process.start(self.args[0], self.args[1:], QIODevice.OpenModeFlag.ReadOnly | QIODevice.OpenModeFlag.Text)
 
     def setWindow(self,w):
         self.window = w
@@ -252,6 +262,7 @@ class jobItem():
             self.index.model().dataChanged.emit(index,index)
         # XXX trigger cleanup?  maybe on a timer
         # self.index.model().cleanupJob(self.index)
+
 
 class jobTableModel(itemListModel):
     def __init__(self):
@@ -274,6 +285,7 @@ class jobTableModel(itemListModel):
         for d in self.data:
             if d.windowOpen and d.window:
                 d.window.close()
+
     def killAllProcs(self, extreme):
         # should this be more gentle? terminate then kill?
         for d in self.data:
@@ -323,26 +335,31 @@ class jobTableModel(itemListModel):
         self.data[index.row()].setTitle(value)
         self.dataChanged.emit(index,index)
         return True
+
     # make window title editable
     def flags(self,index):
         if not index.isValid() or index.column()!=3:
             return super().flags(index)
-        return Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled| Qt.ItemFlag.ItemIsEditable
+        return Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable
+
     # can't delete a job unless it is dead, so don't implement removeRows
     def removeRows(self, row, parent):
         return False
+
     def deleteJob(self,row):
         # skip validation -- done elsewhere
         self.beginRemoveRows(QModelIndex(),row,row)
         d = self.data.pop(row)
         d.cleanup()
         self.endRemoveRows()
+
     def moveJob(self, row,other):
         '''Move job to other job manager'''
         self.beginRemoveRows(QModelIndex(),row,row)
         d = self.data.pop(row)
         self.endRemoveRows()
         other.newjob(d)
+
     def cleanupJob(self, index):
         if not self.validateIndex(index): return None
         row = index.row()
@@ -359,7 +376,7 @@ class jobTableModel(itemListModel):
     def cleanup(self):
         #print('cleanup') # DEBUG
         i=0
-        while i<len(self.data): # watch for infinite loops!
+        while i<len(self.data):            # watch for infinite loops!
             if self.data[i].finished and not self.data[i].windowOpen:
                 self.deleteJob(i)
             else:
@@ -373,17 +390,20 @@ class jobTableModel(itemListModel):
         ct = int(qs.value('JobCleanTime', 120))*1000  # could be float
         self.cleanTime.start(ct)
 
+
 class historyItem():
     def __init__(self, status, command, count=1):
         self.status = status
         self.command = command
         self.count = count
+
     def title(self):
         if self.command:
             m = re.match(r"^#\s*(\S[^\n]+)\n", self.command,re.MULTILINE)
             if m and m.group(1):
                 return m.group(1)
         return None
+
 
 class History(itemListModel):
     def __init__(self):
@@ -407,14 +427,14 @@ class History(itemListModel):
             if st==0 or st=='F0:0':
                 return QBrush(Qt.GlobalColor.green)
             elif isinstance(st,str) and len(st)>1:
-                if st[1]=='1': return QBrush(Qt.GlobalColor.red) # XX or any number?
+                if st[1]=='1': return QBrush(Qt.GlobalColor.red)  # XX or any number?
                 else: return QBrush(Qt.GlobalColor.yellow)
             elif st: return QBrush(Qt.GlobalColor.red)
             else: return None
         elif role in [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole, Qt.ItemDataRole.ToolTipRole]:
             if col==0:
                 if role==Qt.ItemDataRole.ToolTipRole:
-                    return item.count # XX or make this column 2
+                    return item.count      # XX or make this column 2
                 else:
                     return item.status
             elif col==1: return item.command
@@ -426,13 +446,16 @@ class History(itemListModel):
     #    return QModelIndex()
     def first(self):
         return self.index(0,1)
+
     def last(self):
         return self.index(len(self.data)-1,1)
+
     def next(self, idx):
         if not idx or not idx.isValid(): return self.first()
         row = idx.row()+1
-        if row>=len(self.data): return None # row=0  # let it go invalid at the end
+        if row>=len(self.data): return None  # row=0  # let it go invalid at the end
         return self.index(row,1)
+
     def prev(self, idx):
         h = self.prevNoWrap(idx)
         if h: return h
@@ -465,7 +488,7 @@ class History(itemListModel):
         try:
             hsize = int(qs.value('HISTSIZE', 1000))
         except Exception as e:
-            print(str(e)) # EXCEPT
+            print(str(e))                  # EXCEPT
             return
         if len(self.data)>hsize:
             # print("Deleting history overflow: "+str(d)) # DEBUG
@@ -475,6 +498,7 @@ class History(itemListModel):
     def getCommand(self, index):
         if not self.validateIndex(index): return
         return self.data[index.row()].command
+
     def setStatus(self, index, status):
         if not self.validateIndex(index): return
         row = index.row()
@@ -537,7 +561,7 @@ class History(itemListModel):
             # XXX nonportable path construction?
             fname = os.environ.get('HOME') +'/'
         except Exception as e:
-            print(str(e)) # EXCEPT
+            print(str(e))                  # EXCEPT
             fname= ''
         fname += f
         return fname
@@ -553,7 +577,7 @@ class History(itemListModel):
         try:
             file = open(fname, 'r')
         except:
-            return # XX no history file?
+            return                         # XX no history file?
         with file:
             for line in file:
                 count = 1
@@ -563,7 +587,7 @@ class History(itemListModel):
                     (g1, _, count, cmd) = m.groups()
                     if g1=='': g1=None
                     else: g1 = int(g1)
-                    if count and  count.isnumeric(): count=int(count)
+                    if count and count.isnumeric(): count=int(count)
                     else: count=1
                     last = self.saveItem(cmd, None, g1, count )
                 else:
@@ -589,7 +613,7 @@ class History(itemListModel):
             for ii in range(start,len(self.data)):
                 i = self.data[ii]
                 st = i.status
-                if  isinstance(st,int) or isinstance(st, str) and st.isnumeric():
+                if isinstance(st,int) or isinstance(st, str) and st.isnumeric():
                     # XXX this doesn't handle newlines!!!!
                     # handle embedded newlines in input parser (less safe)
                     file.write("{},{}: {}\n".format(st, i.count, i.command.strip()))

@@ -40,26 +40,29 @@ typedQSettings().registerOptions({
     'QTailDelayResize':[ 3, 'Resize qtail to fit output again seconds after first input arrives', int],
     'QTailPrimaryFont': [None, 'Default font for qtail', QFont],
     'QTailSecondaryFont': [None, 'Alternate font for qtail', QFont],
-   ## support additional fonts? QTailFont3...
+    ## support additional fonts? QTailFont3...
     'QTailExtraWidth' : [ 20.0, 'Extra percent width to add to window beyond document size', float],
-   #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
-   #'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
+    #'QTailFormat': [ 'plaintext', 'plaintext or html', str ],
+    #'QTailFollow': [ False, 'scroll qtail to the end of the file on updates', bool ],
     'QTailWordWrap':  [ True, 'Word wrap long lines by default', bool ],
-   #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
-   #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
+    #'QTailSearchMode': ['exact', 'exact or regex search mode', str],
+    #'QTailCaseInsensitive': [True, 'Ignore case when searching', bool],
     'QTailWatchInterval': [30, "Default automatic refresh interval for qtail in watch mode", int],
     'colorlist': [None, "Default list of colors to use for highlighting", str],
 })
 
+
 class softArgumentParser(argparse.ArgumentParser):
     exit_on_error=True
+
     def exit(self, status=0, message=None):
         if self.exit_on_error:
             super().exit(status,message)
         elif status:
-            print(message) # EXCEPT
-            raise Exception(message) # XXX need to test error handling
+            print(message)           # EXCEPT
+            raise Exception(message)  # XXX need to test error handling
         #else: print('status={} message={}'.format(status,message)) #DEBUG
+
 
 # options values -- set defaults
 class myOptions():
@@ -71,7 +74,7 @@ class myOptions():
         self.file = False
         self.whole = False
         self.title = None
-        self.format = None # p=PlainText m=Markdown h=Html
+        self.format = None      # p=PlainText m=Markdown h=Html
         self.url = False
         self.font = None
         # XX whole file mode vs tail mode?  oneshot vs. follow?
@@ -87,9 +90,9 @@ class myOptions():
         parser.add_argument('-n', '--lines', help='keep the last NUM lines', metavar='NUM', type=int, default=self.maxLines)
         parser.add_argument('--whole', '-w', help='look at the whole file, not just the tail', action='store_true')
         parser.add_argument('-t','--title', help='set window title if a filename is not supplied',metavar='title')
-        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown', 'ansi','md', 'p','h','m','a'], metavar='format', default='plaintext') # XX markdown doesn't work
+        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown', 'ansi','md', 'p','h','m','a'], metavar='format', default='plaintext')  # XX markdown doesn't work
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
-        parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true') # set in start()
+        parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true')  # set in start()
         parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='seconds', const=0, help='Enable autorefresh and (optionally) set refresh interval')
         parser.add_argument('--watch', action='store_true', help='Enable watch')
         parser.add_argument('--findall', help='Search for a regular expression at start', type=str, default=None, metavar='regex')
@@ -128,10 +131,10 @@ class myOptions():
         if self.whole:
             self.maxLines = 0
             args.nowrap = True
-        if args.title: self.title=args.title # XX late apply?
+        if args.title: self.title=args.title  # XX late apply?
         if args.format:
             if args.format=='html': self.format='h'
-            elif args.format in ('markdown', 'md', 'm'): self.format='m' # XX
+            elif args.format in ('markdown', 'md', 'm'): self.format='m'  # XX
             elif args.format in ('ansi', 'a'): self.format='a'
             else: self.format=None
         if args.url: self.url = True
@@ -140,34 +143,36 @@ class myOptions():
         self.args = args.filename
         return self.args
 
+
 class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
     want_read_more = pyqtSignal(str)
+
     def __init__(self, options=None, parent=None):
         super().__init__()
         self.runcount = 0
         self.findcount = 0
-        self.timestart = time.monotonic() # in case we miss the real start
+        self.timestart = time.monotonic()  # in case we miss the real start
         self.runtime = None
         self.disableAdjustSize = False
-        self.eof = 0 # hack
+        self.eof = 0            # hack
         self.buttonCon = None
         self.highlightDock = None
         dir = os.path.dirname(os.path.realpath(__file__))
         icon = QtGui.QIcon(os.path.join(dir,'icons', 'qtail.png'))
-        if icon.isNull() or len(icon.availableSizes())<1: # try again
+        if icon.isNull() or len(icon.availableSizes())<1:  # try again
             icon = QtGui.QIcon('qtail.png')
         self.setWindowIcon(icon)
 
         # connect to my own event so I can send myself a delayed signal
-        self.want_resize.connect(self.actionAdjust, Qt.ConnectionType.QueuedConnection) # delay this
-        self.want_read_more.connect(self.readtext, Qt.ConnectionType.QueuedConnection) # read more after everything else is updated
+        self.want_resize.connect(self.actionAdjust, Qt.ConnectionType.QueuedConnection)  # delay this
+        self.want_read_more.connect(self.readtext, Qt.ConnectionType.QueuedConnection)  # read more after everything else is updated
 
         if options is None:
             options=myOptions()
         else:
-            options = copy.copy(options) # don't modify parent object
+            options = copy.copy(options)  # don't modify parent object
 
         self.firstRead = True
         self.resizecount = 0
@@ -189,7 +194,7 @@ class QtTail(QtWidgets.QMainWindow):
         line.setMaximum(86400)
         line.setSingleStep(10)  # redundant with adaptive on
         line.setStepType(QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
-        line.setWrapping(False) # stick at ends of range
+        line.setWrapping(False)  # stick at ends of range
         line.setValue(typedQSettings().value('QTailWatchInterval',30))
         line.setToolTip('Refresh interval')
         line.editingFinished.connect(self.setWatchInterval)
@@ -300,12 +305,12 @@ class QtTail(QtWidgets.QMainWindow):
         if self.runcount < 3: return
         dutycycle = 0.5
         if self.reinterval<10 and self.runtime<10:
-            dutycycle = 0.1 # lower duty cycle for high freq
+            dutycycle = 0.1     # lower duty cycle for high freq
         mininterval = self.runtime / dutycycle
         if self.reinterval < mininterval:
             self.reinterval = mininterval
             msg = "Resetting timer to {:1.3f}s (runtime={:1.3f}s)".format(self.reinterval, self.runtime)
-            if typedQSettings().value('DEBUG',False): print(msg) # reset interval
+            if typedQSettings().value('DEBUG',False): print(msg)  # reset interval
             self.statusBar().showMessage(msg, math.floor(mininterval*10))
             self.actionAutoRefresh()
             self.ui.intervalLine.setValue(math.floor(mininterval+0.5))
@@ -324,7 +329,7 @@ class QtTail(QtWidgets.QMainWindow):
             val = self.ui.intervalLine.value()
         self.reinterval = val
         self.tweakInterval()
-        self.actionAutoRefresh() # set timer
+        self.actionAutoRefresh()  # set timer
 
     def actionAutoRefresh(self):
         checked = self.ui.actionAutorefresh.isChecked()
@@ -354,7 +359,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.window_close_signal.emit()
         super().closeEvent(event)
 
-    def show(self): # restart timer
+    def show(self):             # restart timer
         super().show()
         # restart timer if it is active
         self.actionAutoRefresh()
@@ -373,9 +378,9 @@ class QtTail(QtWidgets.QMainWindow):
                     break
             if e and e.cursor.anchor()==start.anchor():
                 e.cursor = start  # in case selection changed
-            else: # make a new one
+            else:                 # make a new one
                 es = QTextEdit.ExtraSelection()
-                es.format.setBackground(QtGui.QBrush(Qt.GlobalColor.yellow)) # SETTING XXX
+                es.format.setBackground(QtGui.QBrush(Qt.GlobalColor.yellow))  # SETTING XXX
                 es.cursor = start
                 ess.append(es)
                 self.textbody.setExtraSelections(ess)
@@ -422,7 +427,6 @@ class QtTail(QtWidgets.QMainWindow):
                 self.textbody.setTextCursor(start)
                 self.statusBar().showMessage('Not found')
 
-
     @QtCore.pyqtSlot(str)
     def simpleFindNew(self, text):
         delay = typedQSettings().value('QTailDelaySearch', 200)
@@ -451,15 +455,15 @@ class QtTail(QtWidgets.QMainWindow):
         e = self.textbody.textCursor()
         e.movePosition(QtGui.QTextCursor.MoveOperation.End)
         #print('read {}: {}'.format(fromwhere,len(b))) # DEBUG
-        if b==None: # already got EOF (probably?)
+        if b is None:           # already got EOF (probably?)
             #if typedQSettings().value('DEBUG',False):print("EOF from "+fromwhere)
             self.eof = 6
-        if b==None or len(b)==0:  # EOF hack, probably has race conditions
-           if self.eof > 2 and hasattr(self,'notifier'):
-              # this gets false positives for QProcess (which doesn't set notifier
-              # but seems to be OK with file and stdin
-              self.notifier.setEnabled(False)  # stop looking for more
-              self.rebutton('Close', self.close,'eof={}'.format(self.eof))
+        if b is None or len(b)==0:  # EOF hack, probably has race conditions
+            if self.eof > 2 and hasattr(self,'notifier'):
+                # this gets false positives for QProcess (which doesn't set notifier
+                # but seems to be OK with file and stdin
+                self.notifier.setEnabled(False)  # stop looking for more
+                self.rebutton('Close', self.close,'eof={}'.format(self.eof))
         if b and len(b)>0:
             self.eof = 0
             t = b.decode('utf-8', errors='backslashreplace')
@@ -472,7 +476,7 @@ class QtTail(QtWidgets.QMainWindow):
                 self.textbody.setTextCursor(e)
         if b and len(b)==blocksize and not self.file.atEnd():
             self.want_read_more.emit('more')
-        if self.firstRead and (self.eof>2 or e.position()>200 or self.textbody.document().blockCount()>10): # SETTING threshold
+        if self.firstRead and (self.eof>2 or e.position()>200 or self.textbody.document().blockCount()>10):  # SETTING threshold
             # if never resized, resize at eof or 200 bytes or 10 lines
             # XXX but maybe not if there's more to read immediately??
             self.firstRead=False
@@ -487,6 +491,7 @@ class QtTail(QtWidgets.QMainWindow):
     # @QtCore.pyqtSlot(str)
     def filechanged(self, path):
         self.readtext('changed')
+
     # @QtCore.pyqtSlot(QSocketDescriptor, QsocketNotifier.Type)
     def socketActivated(self, socket):
         # XXX detect eof here???
@@ -502,11 +507,11 @@ class QtTail(QtWidgets.QMainWindow):
         self.wrapChanged(ww)
         # this will get run on some pass maybe
         if hasattr(self.opt, 'argparse'):
-            if  self.opt.argparse.nowrap:
+            if self.opt.argparse.nowrap:
                 # change it in both places
                 self.ui.actionWrap_lines.setChecked(False)
                 self.wrapChanged(False)
-            if self.opt.argparse.autorefresh!=None:
+            if self.opt.argparse.autorefresh is not None:
                 self.ui.actionAutorefresh.setChecked(True)
                 if self.opt.argparse.autorefresh:
                     self.setWatchInterval(self.opt.argparse.autorefresh)
@@ -526,7 +531,6 @@ class QtTail(QtWidgets.QMainWindow):
                     font = QFont(self.opt.argparse.font)
                     if font and font.family(): doc.setDefaultFont(font)
                     # else: silently fail
-
 
     def triggerFindAll(self, url):
         d= self.findAll(self.opt.argparse.findall)
@@ -555,13 +559,14 @@ class QtTail(QtWidgets.QMainWindow):
             msg = str(e)
         finally:
             if msg:
-                self.errmsg = msg # XX nobody uses this yet
-                print('except: '+msg) # EXCEPT
-                return (msg, -1)
+                self.errmsg = msg      # XX nobody uses this yet
+                print('except: '+msg)  # EXCEPT
+                # we intend to swallow this exception after printing
+                return (msg, -1)  # pylint: disable=W0134,W0150
 
         if typedQSettings().value('DEBUG',False) and hasattr(self.opt,'rest') and len(self.opt.rest)>1:
-            print('Unparsed options: '+repr(self.opt.rest)) # ifDEBUG
-            if '--rest' in self.opt.rest: # debug the debug
+            print('Unparsed options: '+repr(self.opt.rest))  # ifDEBUG
+            if '--rest' in self.opt.rest:  # debug the debug
                 print("parsed: "+repr(self.opt.argparse)) # ifDEBUG
         return
 
@@ -596,7 +601,7 @@ class QtTail(QtWidgets.QMainWindow):
             title=filename
             if len(title)>30: title=os.path.basename(title)
             self.setWindowTitle(title)
-        self.reload();
+        self.reload()
 
         # follow the tail of the file
         self.watcher = QtCore.QFileSystemWatcher([filename])
@@ -611,8 +616,9 @@ class QtTail(QtWidgets.QMainWindow):
         #self.opt.format = 'm'
         self.filename = filename
         self.file = None
+        # not using with because we need to clean up ourself too
         try:
-            f = open(filename)
+            f = open(filename) # pylint: disable=R1732
             # XXX set filename and flag as markdown?
             text = f.read()
         except OSError:
@@ -633,7 +639,7 @@ class QtTail(QtWidgets.QMainWindow):
         # QFile doesn't work with readyRead, use QSocketNotifier instead for pipes
         f = QtCore.QFile()
         self.file = f
-        f.open(sys.stdin.fileno(), QtCore.QFile.ReadOnly);
+        f.open(sys.stdin.fileno(), QtCore.QFile.ReadOnly)
         os.set_blocking(sys.stdin.fileno(), False)  # XX not portable?
         #broken on File # self.file.readyRead.connect(self.readtext)
 
@@ -644,7 +650,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.socketconnection = n.activated.connect(self.socketActivated)
         self.errnotifier = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Exception, self)
 
-        self.opt.file = False  #XXX sometimes this might be a file
+        self.opt.file = False  # XXX sometimes this might be a file
         #if typedQSettings().value('DEBUG',False):print("stdin") # DEBUG
         #self.reload();  # socket notifier makes this redundant
 
@@ -708,7 +714,7 @@ class QtTail(QtWidgets.QMainWindow):
                 #c = process.program() # XX get args too?
                 # as long as we always wrap in bash -c, just get the args
                 # should set the title from a template in SETTINGs?
-                c = " ".join(process.arguments()[1:])
+                c = " ".join(jobitem.process.arguments()[1:])
                 c = c.strip()
                 c = c.partition('\n')[0]  # don't mess with multiple lines
                 c = c.strip('#') # DOCUMENT default title!
@@ -740,7 +746,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.timestop = time.monotonic()
         # calculate running average
         t = self.timestop-self.timestart
-        if self.runtime==None: self.runtime=t
+        if self.runtime is None: self.runtime=t
         self.runtime = self.runtime * 0.6 + t*0.4
         self.tweakInterval()
         #if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
@@ -865,7 +871,7 @@ class QtTail(QtWidgets.QMainWindow):
         if height > newsize.height(): # window shouldn't be bigger than doc
             #if DEBUG: print(f"height doc: {height=} {newsize.height()=}")
             height = newsize.height()
-        extraw = typedQSettings().value('QTailExtraWidth',20.0)/100+1;
+        extraw = typedQSettings().value('QTailExtraWidth',20.0)/100+1
         if width<newsize.width():  # rely on Qt to ignore rediculous resizes
             width = newsize.width()*extraw # Qt underesitmates
             #print('expand %d'%width) # DEBUG
@@ -877,8 +883,8 @@ class QtTail(QtWidgets.QMainWindow):
         #if type(self.file)==QProcess and self.file.state()==QProcess.ProcessState.NotRunning:
         #    heightadjust = 0 # don't leave extra space if it is already dead
         screenheight = self.screen().geometry().height()
-        maxheight = screenheight*0.75;  # SETTING max window height 75% desktop height
-        maxheight2 =  rect.height()*1.1 # SETTING max window height growth 10%
+        maxheight = screenheight*0.75  # SETTING max window height 75% desktop height
+        maxheight2 = rect.height()*1.1 # SETTING max window height growth 10%
         if maxheight2>maxheight:
             #print("height: {maxheight=} {maxheight2=} {screenheight=}") # DEBUG
             maxheight = maxheight2
@@ -926,7 +932,6 @@ class QtTail(QtWidgets.QMainWindow):
             except StopIteration:
                 pass
         self.textbody.setExtraSelections(es)
-
 
     def searchDock(self, title, selections, searchterm=None, findflags=None):
         if not selections: return # don't make empty dock
@@ -996,11 +1001,12 @@ class QtTail(QtWidgets.QMainWindow):
 
 ##### end QtTail end
 
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     # display
-    QtCore.QCoreApplication.setOrganizationName("kg4ydw");
-    QtCore.QCoreApplication.setApplicationName("QtTail");
+    QtCore.QCoreApplication.setOrganizationName("kg4ydw")
+    QtCore.QCoreApplication.setApplicationName("QtTail")
 
     options = myOptions()
     args = options.processOptions(app)

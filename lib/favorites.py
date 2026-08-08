@@ -13,6 +13,7 @@ from lib.typedqsettings import typedQSettings
 from lib.datamodels import simpleTable, settingsDataModel, settingsDialog
 from lib.buttondock import ButtonDock
 
+
 # data model for favorites to apply validator
 # and add tooltip for command
 class favoritesModel(simpleTable):
@@ -37,11 +38,11 @@ class favoritesModel(simpleTable):
         row = index.row()
         if col==5 and role==Qt.ItemDataRole.ToolTipRole and self.mydata[row][col]:
             return self.mydata[row][col]
-        if role!=Qt.ItemDataRole.BackgroundRole or not col in [1,2,5] or not self.mydata[row][col]:
+        if role!=Qt.ItemDataRole.BackgroundRole or col not in [1,2,5] or not self.mydata[row][col]:
             return super().data(index,role)
         d = self.mydata[row][col]
         if d in self.vdata[col] and len(self.vdata[col][d])>1:
-            if col==5: # XXX is key critical too?
+            if col==5:          # XXX is key critical too?
                 return QBrush(Qt.GlobalColor.red)
             else:
                 return QBrush(Qt.GlobalColor.yellow)
@@ -57,12 +58,12 @@ class favoritesModel(simpleTable):
         oldval = self.mydata[row][col]
         if oldval and oldval in self.vdata[col]:
             self.vdata[col][oldval].discard(row)
-            if len(self.vdata[col][oldval])==1: # update oldval if it's ok now
+            if len(self.vdata[col][oldval])==1:  # update oldval if it's ok now
                 remaining = next(iter(self.vdata[col][oldval]))
                 i = self.index(remaining, col, QModelIndex())
                 self.dataChanged.emit(i,i)
         if value and value in self.vdata[col]:
-            if len(self.vdata[col][value])==1: # update newval if it's now dup
+            if len(self.vdata[col][value])==1:  # update newval if it's now dup
                 remaining = next(iter(self.vdata[col][value]))
                 i = self.index(remaining, col, QModelIndex())
                 self.dataChanged.emit(i,i)
@@ -71,8 +72,10 @@ class favoritesModel(simpleTable):
             self.vdata[col][value] = set([row])
         return super().setData(index,value,role)
 
+
 class favoriteItem():
-    functors = [None, None] # fill this in later
+    functors = [None, None]     # fill this in later
+
     def __init__(self,  command, buttonName=None, shortcut=None, immediate=True):
         self.buttonName = buttonName
         self.shortcut = shortcut
@@ -86,7 +89,7 @@ class favoriteItem():
                 m = re.match(r"^#\s*(\S[^\n]+)\n", self.command,re.MULTILINE)
                 if m and m.group(1):
                     self.buttonName = m.group(1)
-            else: # XXX can this happen?
+            else:  # XXX can this happen?
                 t = self.command.title()
                 if t:
                     self.buttonName = t
@@ -99,11 +102,12 @@ class favoriteItem():
 
     def runme(self):
         name = self.buttonName
-        if not name: name=self.command # XXXX not ideal
+        if not name: name=self.command  # XXXX not ideal
         if self.immediate:
             self.functors[0](self.command, name)
         else:
             self.functors[1](self.command, name)
+
 
 class Favorites():
     # buttons, keyboard shortcuts, and other marked commands
@@ -128,7 +132,7 @@ class Favorites():
     def addShortcut(self, c):
         #print("add favorite {} = {}".format(buttonName,command)) # DEBUG
         if c.shortcut:
-            buttonbox = ButtonDock.defaultDock[0].buttonBox # XXX cheat
+            buttonbox = ButtonDock.defaultDock[0].buttonBox  # XXX cheat
             c.shortcuto = QShortcut(QKeySequence(c.shortcut), self.settings.mainwin)
             c.shortcuto.activated.connect(c.runme)
 
@@ -157,7 +161,7 @@ class Favorites():
 
         #### collect commands from favorites
         f = sorted(self.cmds.keys())
-        data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, (c in count and count[c]) or 0 , c] for c in f]
+        data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, (c in count and count[c]) or 0, c] for c in f]
         # only remember previously saved favorites, and in order
         self.oldcmds = [ data[x][5] for x in range(len(data))]
         cmdlist = set(f)  # don't put dup commands in
@@ -186,7 +190,7 @@ class Favorites():
         model = favoritesModel(data,
             ['keep', 'name',  'key', 'Immediate',  'count', 'command'], datatypesrow=datatypes,
           editmask=[True, True, True, True, False, True],
-                            validator=self.validateData)
+                               validator=self.validateData)
         # extra features
 
         # if anything is checked or edited (not blanked), check keep
@@ -221,7 +225,7 @@ class Favorites():
             fav = favoriteItem(command, name, shortcut, immediate)
             if not keep: continue  # don't warn on discards
             if command in gotcmd:
-                print("Warning: ignoring duplicate cmd: "+command) # EXCEPT
+                print("Warning: ignoring duplicate cmd: "+command)  # EXCEPT
             else:
                 if command not in self.cmds:
                     gotcmd.add(command)
@@ -251,10 +255,10 @@ class Favorites():
     def validateData(self, index, val):
         if not index.isValid(): return False
         # don't mess with the keep checkbox if it is being changed
-        if index.column()==0: return True # also prevents recursion
+        if index.column()==0: return True  # also prevents recursion
         # if anything else is edited and not blanked, check keep
         if val and self.data and self.data[index.row()] and val!=self.data[index.row()][index.column()]:
-            index.model().setData(index.siblingAtColumn(0),True, Qt.ItemDataRole.EditRole) # XXXX sibling
+            index.model().setData(index.siblingAtColumn(0),True, Qt.ItemDataRole.EditRole)  # XXXX sibling
         return True
 
     def saveSettings(self):
@@ -281,6 +285,7 @@ class Favorites():
         if buttons:
             ButtonDock.updateFavs(buttons)
 
+
 class keySequenceDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
@@ -292,6 +297,7 @@ class keySequenceDelegate(QtWidgets.QStyledItemDelegate):
         #if option and option.backgroundBrush:
         #    w.setBackgroundRole(option.backgroundBrush.color())
         return w
+
     def setEditorData(self, editor, index):
         data = index.model().data(index, Qt.ItemDataRole.EditRole)
         if data:
@@ -306,7 +312,7 @@ class keySequenceDelegate(QtWidgets.QStyledItemDelegate):
         if k==QKeySequence.Backspace or k.toString()=='Backspace':
             # cancel shortcut; this is a work around in qt misfeature
             model.setData(index, '', Qt.ItemDataRole.EditRole)
-            editor.clear() # looks wierd but works
+            editor.clear()      # looks wierd but works
         else:
             model.setData(index, k.toString(), Qt.ItemDataRole.EditRole)
     ####

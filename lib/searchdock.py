@@ -18,6 +18,7 @@ from lib.colorpicker import ColorPicker
 
 colorpicker = ColorPicker()
 
+
 class selItem():
     def __init__(self, cursor, context=True):
         # save in case it goes out of context
@@ -27,8 +28,8 @@ class selItem():
         # XX get pretext and posttext
         pos = cursor.position()
         anchor = cursor.anchor()
-        contextChars = 20 # XXX setting
-        if anchor>pos: # swap!!
+        contextChars = 20       # XXX setting
+        if anchor>pos:          # swap!!
             (pos,anchor) = (anchor,pos)
             cursor.setPosition(anchor, QTextCursor.MoveMode.MoveAnchor)
             cursor.setPosition(pos, QTextCursor.MoveMode.KeepAnchor)
@@ -37,8 +38,8 @@ class selItem():
         else:
             c = QTextCursor(cursor)
             c.setPosition(anchor, QTextCursor.MoveMode.KeepAnchor)
-            c.movePosition(QTextCursor.MoveOperation.PreviousCharacter,QTextCursor.MoveMode.KeepAnchor , contextChars)
-            if self.line!=c.blockNumber(): # fell off, start over
+            c.movePosition(QTextCursor.MoveOperation.PreviousCharacter, QTextCursor.MoveMode.KeepAnchor, contextChars)
+            if self.line!=c.blockNumber():  # fell off, start over
                 #c = QTextCursor(cursor)
                 c.setPosition(anchor, QTextCursor.MoveMode.KeepAnchor)
                 c.movePosition(QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.KeepAnchor, 1)
@@ -49,11 +50,12 @@ class selItem():
             c = QTextCursor(cursor)
             c.clearSelection()
             c.movePosition(QTextCursor.MoveOperation.NextCharacter, QTextCursor.MoveMode.KeepAnchor, contextChars)
-            if self.line!=c.blockNumber(): # fell off, start over
+            if self.line!=c.blockNumber():  # fell off, start over
                 c.setPosition(pos, QTextCursor.MoveMode.KeepAnchor)
                 #c = QTextCursor(cursor)
                 c.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor, 1)
             self.posttext = c.selectedText()
+
 
 class selList(itemListModel):
     def __init__(self):
@@ -62,11 +64,11 @@ class selList(itemListModel):
         self.haspre = self.hasitem = self.haspost = False
 
     def setSel(self, extraSelections):
-        self.removeRows(0, len(self.data),None) # XX always purge?
+        self.removeRows(0, len(self.data),None)  # XX always purge?
         # insert rows in batches for better performance
         rows = []
         for sel in extraSelections:
-            if sel.cursor.position() or sel.cursor.hasSelection(): # skip stale highlights
+            if sel.cursor.position() or sel.cursor.hasSelection():  # skip stale highlights
                 item = selItem(sel.cursor)
                 # self.appendItem(item)
                 rows.append(item)
@@ -75,10 +77,10 @@ class selList(itemListModel):
                 if item.posttext: self.haspost = True
             #if len(rows)&7==0: # this would make it negligibly faster but more chunky
             QtCore.QCoreApplication.processEvents()
-            if len(rows)>=1000: # XXX SETTING
+            if len(rows)>=1000:  # XXX SETTING
                 self.insertRowsAt(1,rows)
                 rows=[]
-        if rows: # and the leftovers
+        if rows:                # and the leftovers
             self.insertRowsAt(1,rows)
 
     def headerData(self, col, orientation, role):
@@ -94,7 +96,7 @@ class selList(itemListModel):
         self.headerDataChanged.emit(Qt.Orientation.Horizontal, 1, 1)
 
     def data(self, index, role):
-        if role==Qt.ItemDataRole.TextAlignmentRole: # too bad can't set elide style too
+        if role==Qt.ItemDataRole.TextAlignmentRole:  # too bad can't set elide style too
             col = index.column()
             if col==0: return Qt.AlignmentFlag.AlignRight
             elif col==1: return Qt.AlignmentFlag.AlignCenter
@@ -107,6 +109,7 @@ class selList(itemListModel):
         elif col==2: return item.posttext
         else: return None
 
+
 class searchDock(QDockWidget):
     showSel = pyqtSignal(list)
     hideSel = pyqtSignal(list)
@@ -117,7 +120,7 @@ class searchDock(QDockWidget):
         self.ui = Ui_searchDock()
         self.ui.setupUi(self)
         self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-        self.searchterm = searchterm # XXX use these later
+        self.searchterm = searchterm  # XXX use these later
         self.findflags = findflags
 
         # stuff this in a corner of the parent QMainWindow
@@ -134,7 +137,7 @@ class searchDock(QDockWidget):
         self.ui.tableView.clicked.connect(self.gotoIndex)
         if title:
             self.setWindowTitle(title)
-        self.favcol = 1 # item to scroll to (possibly only visible column)
+        self.favcol = 1  # item to scroll to (possibly only visible column)
         if selections:
             self.setSel(selections)
             if title and title!='Highlights':

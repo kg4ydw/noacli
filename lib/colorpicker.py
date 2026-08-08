@@ -15,6 +15,7 @@ from PyQt6.QtCore import QSettings, QItemSelectionModel
 
 from lib.colorlisteditor_ui import Ui_colorListEditor
 
+
 class ColorPicker():
     lastcolor = 0
     # XXX these are light colors, this should detect dark mode or something
@@ -24,7 +25,7 @@ class ColorPicker():
         # extras we like
         'pink', 'lime', 'cornflowerblue', 'tan', 'coral', 'limegreen',
         'orange', 'salmon', 'skyblue', 'violet'
-        ]
+    ]
     colorlist = []
 
     # init can't be called before QCoreApplication.setApplicationName
@@ -41,7 +42,7 @@ class ColorPicker():
     def nextColor(self):
         self.initColors()
         if not self.colorlist: return None
-        self.lastcolor = (self.lastcolor+1)%len(self.colorlist)
+        self.lastcolor = (self.lastcolor+1) % len(self.colorlist)
         #print(self.lastcolor, self.colorlist[self.lastcolor]) # DEBUG
         return self.colorlist[self.lastcolor]
 
@@ -66,7 +67,7 @@ class ColorPicker():
     def doneEditColors(self):
         self.ecDialog = None
 
-    def allColorMenu(self, m):
+    def allColorMenu(self, m=None):
         # delete colors already used?
         used = set(self.colorlist)
         if not m:
@@ -116,9 +117,10 @@ class ColorPicker():
         #pixmap.fill((QColor(color)))
         #pixmap.setMask(mask)
         #return QIcon(pixmap)
-        pixmap = QPixmap(50,50) # XXX hardcoded size, does it matter?
+        pixmap = QPixmap(50,50)      # XXX hardcoded size, does it matter?
         pixmap.fill(QColor(color))
         return QIcon(pixmap)
+
 
 class colorListEditor(QDialog):
     def __init__(self, colorpicker):
@@ -147,7 +149,7 @@ class colorListEditor(QDialog):
         self.deleteLater()
 
     def buildlist(self):
-        self.colorpicker.initColors() # XX or pull from QSettings unconditionally?
+        self.colorpicker.initColors()   # XX or pull from QSettings unconditionally?
         wl = self.ui.listWidget
         wl.clear()
         for color in QtGui.QColor.colorNames():

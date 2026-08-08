@@ -12,6 +12,7 @@ from PyQt6 import QtCore
 from PyQt6.QtWidgets import QTextBrowser, QFontDialog
 from PyQt6.QtGui import QTextCursor
 
+
 class myBrowser(QTextBrowser):
     # context menu actions
     saveHighlight = pyqtSignal()
@@ -50,7 +51,7 @@ class myBrowser(QTextBrowser):
         t= self.ui.actionShowToolbar
         # XX this doesn't work ## showBars = t.isChecked()
         self.showBars = not self.showBars
-        showBars = self.showBars # proxy for above
+        showBars = self.showBars  # proxy for above
         self.ui.toolBar_2.setVisible(showBars)
         self.ui.menubar.setVisible(showBars)
         self.ui.statusbar.setVisible(showBars)

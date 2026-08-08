@@ -11,6 +11,7 @@ from PyQt6 import QtCore
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QDockWidget, QAbstractScrollArea, QWidget
 
+
 class myDock(QDockWidget):
     def __init__(self, parent):
         super().__init__(parent)
@@ -27,13 +28,13 @@ class myDock(QDockWidget):
         # XXX should this resize height too?
         o = self.findChild(QAbstractScrollArea)
         if o:
-            hw =  o.sizeHint().width()
+            hw = o.sizeHint().width()
             w = self.size().width()
-            frame = w  - o.viewport().size().width()
-            nw = hw+frame # + 50  # XX 50 is a guess
+            frame = w - o.viewport().size().width()
+            nw = hw+frame       # + 50  # XX 50 is a guess
             hsbv = o.horizontalScrollBar().isVisible()
             #print('sbv={} w={} hw={} ow={} vsw={} nw={}'.format(hsbv, w, hw ,o.size().width(),  o.viewport().size().width(),nw)) # DEBUG
-            if hsbv and w==nw: # hint wasn't enough to get rid of HScrollBar
+            if hsbv and w==nw:  # hint wasn't enough to get rid of HScrollBar
                 nw += 20
             if nw>w and hsbv:
                 self.resize(QtCore.QSize(nw, self.size().height()))
@@ -71,14 +72,14 @@ class myDock(QDockWidget):
         self.newlines = val
         self.adjustTitle()
 
-    def  adjustTitle(self):
-        visible =  not self.visibleRegion().isEmpty() # XX not perfect
+    def adjustTitle(self):
+        visible = not self.visibleRegion().isEmpty()  # XX not perfect
         if visible and not self.keeplines:
             self.newlines=0
         # do we need to throttle changing title when it doesn't need changed?
         if self.newlines==0:
             super().setWindowTitle(self.basetitle)
-        elif self.keeplines: # display kept count differently
+        elif self.keeplines:    # display kept count differently
             super().setWindowTitle("{} [{}]".format(self.basetitle, self.newlines))
         else:
             super().setWindowTitle("{} ({})".format(self.basetitle, self.newlines))

@@ -21,15 +21,17 @@ from PyQt6.QtCore import QSettings, QT_VERSION_STR, PYQT_VERSION_STR
 # This tries to pass commands to the wrapper shell as unmolested as possible.
 # This reduces needing multiple layers of quoting to get things through.
 
+
 # will use the names of these for the pull down menu
 class OutWin(Enum):
     Default = 0  # use current default or command default
     Small = 1
     QTail = 2
-    Tail = 2 # alias
+    Tail = 2  # alias
     Log = 3
     Table = 4
     Internal = 99  # only use internally as a status
+
 
 # enums don't natively support doc strings; this is used by cmd_help
 OutWin.Small.__doc__ = "Send output to the small output dock window"
@@ -38,18 +40,20 @@ OutWin.Log.__doc__ = "Merge output from this and other commands into the merged 
 OutWin.Table.__doc__="Parse file output as a table (delimiters autodetected)"
 
 builtinCommands = {
- #### output destinations
- # 'name' : functor  --> functor(rest)
+    #### output destinations
+    # 'name' : functor  --> functor(rest)
     'log' : OutWin.Log,
     'tail': OutWin.QTail,
     'qtail': OutWin.QTail,
-    'small': OutWin.Small, # default
+    'small': OutWin.Small,      # default
     'table': OutWin.Table,
     ## actual commands will be added by @builtin('command')
 }
 
+
 class commandParser:
-    new_default_wrapper = None # non-Qt fake signal (unfancy, but we only need one)
+    new_default_wrapper = None  # non-Qt fake signal (unfancy, but we only need one)
+
     # decorator generator to register commands
     # use __doc__ strings as help strings
     def builtin(name):   # pylint: disable=no-self-argument
@@ -71,21 +75,22 @@ class commandParser:
         # 'hostname': [ OutWin.small, 'ssh', 'hostname'],
         'xterm': [ OutWin.Log, 'xterm', '-e' ],
         # gnome terminal doesn't work as well, it needs help
-        'gterm': [ OutWin.Log , 'gnome-terminal', '--', 'bash', '-c'],
-        }
+        'gterm': [ OutWin.Log, 'gnome-terminal', '--', 'bash', '-c'],
+    }
+
     def __init__(self):
-        self.defaultWrapper = 'bash' #  SETTING
-        self.defaultOutWin = OutWin.Small # SETTING
+        self.defaultWrapper = 'bash'            # SETTING
+        self.defaultOutWin = OutWin.Small       # SETTING
         # get default shell and make it the default wrapper
         shell = os.environ.get('SHELL')
         base = os.path.basename(shell)
         basem, ext = os.path.splitext(base)  # windows??
         # this intentionally bypasses setwrap so it doesn't get saved
-        if basem not in self.wrappers: # don't override if it exists already
+        if basem not in self.wrappers:    # don't override if it exists already
             # This assumes '$SHELL -c' works for $SHELL
             self.wrappers[basem] = [ OutWin.Small, shell, '-c' ]
         self.defaultWrapper = basem  # SETTING ?
-        self.applySettings() # but this can override
+        self.applySettings()         # but this can override
 
     # Should this be called with sync settings?
     def applySettings(self):
@@ -166,17 +171,17 @@ class commandParser:
                 rest = cmd
                 # fall through as if default wrapper was specified
             #print('word={} rest=({})'.format(word,rest)) # DEBUG
-            if word in self.wrappers: # should always be true
+            if word in self.wrappers:   # should always be true
                 if not title:
-                    title = rest[:30].strip() # SETTING
+                    title = rest[:30].strip()   # SETTING
                 if outwin==OutWin.Default:
                     outwin = self.wrappers[word][0]
                 if outwinArgs:
                     return [title, outwin, outwinArgs, self.wrappers[word][1:] + [rest]]
                 else:
                     return [title, outwin, self.wrappers[word][1:] + [rest]]
-            print('iloop: This cant happen') # EXCEPT
-        pass # XXX only get here if OutWin with options with no command
+            print('iloop: This cant happen')    # EXCEPT
+        pass  # XXX only get here if OutWin with options with no command
 
     @builtin('cd')
     @builtin('chdir')
@@ -192,7 +197,7 @@ class commandParser:
             return (e.strerror, e.errno)
         return (os.getcwd(),0)
 
-    @builtin('setwrapper') # how do you spell this again?
+    @builtin('setwrapper')              # how do you spell this again?
     @builtin('setwrap')
     def cmd_setwrap(self, title, outwin, rest):
         '''Change to a new default command wrapper, or lists the current wrapper if none is supplied'''
@@ -206,7 +211,7 @@ class commandParser:
                 return 0
         else:
             return ("Wrapper '{}' not found.".format(rest), 1)
-        return None # incomplete?
+        return None  # incomplete?
 
     @builtin('addwrap')
     def cmd_addwrap(self, title, outwin, rest):
@@ -235,9 +240,9 @@ class commandParser:
         if rest=='':
             return ("No wrapper specified for deletion.", 1)
         if rest==self.defaultWrapper:
-            return ("Can't delete default wrapper "+self.defaultWrapper , 2)
+            return ("Can't delete default wrapper "+self.defaultWrapper, 2)
         if rest not in self.wrappers:
-            return "Wrapper {} already deleted.".format(rest) # ambiguous pass/fail
+            return "Wrapper {} already deleted.".format(rest)  # ambiguous pass/fail
         result = 0
         try:
             del self.wrappers[rest]
@@ -274,7 +279,6 @@ class commandParser:
                 text += "{} not found\n".format(word)
         return (text, 0)
 
-
     @builtin('version')
     def cmd_version(self, title, outwin, rest):
         '''What version is am I?'''
@@ -295,7 +299,7 @@ class commandParser:
             except OSError:
                 return (False, f + ' BROKEN symlink\n')
             except Exception as e:
-                print('realpath: '+str(e)) # EXCEPT
+                print('realpath: '+str(e))      # EXCEPT
                 return (False, f + ' broken\n')
         elif os.path.isfile(f):
             return (True, f +'\n')
@@ -338,7 +342,7 @@ class commandParser:
                 f = os.path.join(dir,cmd)
                 result = self.checkfile(f)
                 if not result:
-                    continue # don't say anything if it isn't found in this dir
+                    continue  # don't say anything if it isn't found in this dir
                 (ok, msg) = result
                 if msg:
                     t+= prefix + msg
@@ -346,7 +350,7 @@ class commandParser:
                 if ok:
                     foundit = True
                 else:
-                    fails += 1 # got an error
+                    fails += 1  # got an error
             if not foundit and not msgit:
                 t += prefix + "Not found\n"
                 fails += 1

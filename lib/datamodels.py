@@ -11,6 +11,7 @@ from PyQt6.QtGui import QBrush
 from PyQt6 import QtWidgets
 from lib.settingsdialog_ui import Ui_settingsDialog
 
+
 class simpleTable(QAbstractTableModel):
     def __init__(self,data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):
         QAbstractTableModel.__init__(self)
@@ -23,16 +24,20 @@ class simpleTable(QAbstractTableModel):
         self.editmask = editmask
         self.validator = validator
     # required functions rowCount columnCount data
+
     def rowCount(self, parent):
         return len(self.mydata)
+
     def columnCount(self, parent):
         return len(self.headers)
+
     def dataType(self, row,col):
         if self.datatypes and self.datatypes[row][col]:
-            return  self.datatypes[row][col]
-        elif self.datatypesrow and  self.datatypesrow[col]:
+            return self.datatypes[row][col]
+        elif self.datatypesrow and self.datatypesrow[col]:
             return self.datatypesrow[col]
         return False
+
     def data(self, index, role):
         if not self.validateIndex(index): return None
         row = index.row()
@@ -53,6 +58,7 @@ class simpleTable(QAbstractTableModel):
             except:
                 return None
         return None
+
     def setData(self, index, value, role):
         if not self.validateIndex(index): return False
         # flags() controls if cell is writable
@@ -69,7 +75,7 @@ class simpleTable(QAbstractTableModel):
                 self.dataChanged.emit(index,index)
                 return True
             except Exception as e:
-                print(str(e)) # EXCEPT
+                print(str(e))   # EXCEPT
                 return False
         self.mydata[row][col] = value  # do it without any validation or cast
         self.dataChanged.emit(index,index)
@@ -79,10 +85,10 @@ class simpleTable(QAbstractTableModel):
         col = index.column()
         if not (self.datatypesrow or self.editmask) or col<0 or col>=len(self.headers):
             return super(simpleTable,self).flags(index)
-        mask = Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled
+        mask = Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled
         ctype = self.dataType(index.row(),col)
         if ctype==bool:
-            mask |=  Qt.ItemFlag.ItemIsUserCheckable
+            mask |= Qt.ItemFlag.ItemIsUserCheckable
         elif self.editmask and self.editmask[col]:
             mask |= Qt.ItemFlag.ItemIsEditable
         return mask
@@ -94,6 +100,7 @@ class simpleTable(QAbstractTableModel):
         col = index.column()
         if col<0 or col>=len(self.headers): return False
         return True
+
     # recommended: headerData
     def headerData(self, col, orientation, role):
         if role == Qt.ItemDataRole.DisplayRole:
@@ -105,6 +112,7 @@ class simpleTable(QAbstractTableModel):
                 # if you don't like veritcal headers, turn them off in designer
                 return str(col+1)
         return None
+
     def insertRowsAt(self, where, rows):
         # non-standard manipulator
         # where=0 at start, where=1 at end
@@ -157,13 +165,14 @@ class simpleTable(QAbstractTableModel):
         # note: model doesn't have a beginMangleCells, sigh.
         row = index.row()
         col = index.column()
-        if col+count>=len(self.mydata[row]): return False # whoops!
+        if col+count>=len(self.mydata[row]): return False  # whoops!
         # XX this should merge cells with the correct delimiter, oops
         for i in range(1,count+1):
             self.mydata[row][col] += ' '+self.mydata[row][col+i]
         del self.mydata[row][col+1:col+count+1]
         self.dataChanged.emit(self.index(row,col), self.index(row,len(self.mydata[row])))
         return True
+
 
 class itemListModel(QAbstractTableModel):
     # an array of items, where each item is a row
@@ -180,14 +189,17 @@ class itemListModel(QAbstractTableModel):
         return self.index(key,0)
         ### this could return the entry instead
         #return self.data[key]
+
     def isEmpty(self):
         return len(self.data)==0
 
     # required functions rowCount columnCount data
     def rowCount(self, parent):
         return len(self.data)
+
     def columnCount(self, parent):
         return len(self.headers)
+
     # convenience function
     def validateIndex(self, index):
         if not index or not index.isValid(): return False
@@ -216,8 +228,9 @@ class itemListModel(QAbstractTableModel):
         self.beginInsertRows(QModelIndex(), lastrow,lastrow)
         self.data.append(item)
         self.endInsertRows()
-        item.index = QPersistentModelIndex(self.index(lastrow,1)) # and item remembers itself
+        item.index = QPersistentModelIndex(self.index(lastrow,1))  # and item remembers itself
         return item.index
+
     def insertRowsAt(self, where, rows):
         # non-standard manipulator
         # where=0 at start, where=1 at end
@@ -243,19 +256,21 @@ class itemListModel(QAbstractTableModel):
         self.endRemoveRows()
         return True
 
+
 class settingsDataModel(simpleTable):
     def __init__(self, docdict, data, typedata=None):
         self.docdict = docdict
         # XX this could be 3 column with the tool tips in col 3
         super().__init__(data, ['Setting', 'Value'], typedata, editmask=[False, True])
         # nothing else to do, most done in gui model
+
     def data(self, index, role):
         if not self.validateIndex(index): return None
         col = index.column()
         row = index.row()
         rowname = self.mydata[row][0]
         # color and supply default data
-        if col==1 and self.mydata[row][1] is None: # not set, use default
+        if col==1 and self.mydata[row][1] is None:   # not set, use default
             if role==Qt.ItemDataRole.BackgroundRole:
                 return QBrush(Qt.GlobalColor.lightGray)
             if self.docdict[rowname][2]==bool:
@@ -274,9 +289,11 @@ class settingsDataModel(simpleTable):
             return doc[1-col]
         return super(settingsDataModel,self).data(index, role)
 
+
 class settingsDialog(QtWidgets.QDialog):
     typedelegates = {}
     want_resize = pyqtSignal()
+
     def __init__(self, parent, title, model, doc=None):
         # need parent so that this isn't persistent in window close
         super().__init__(parent)
@@ -330,7 +347,7 @@ class settingsDialog(QtWidgets.QDialog):
         mw = self.size().width()
         frame = mw - tw
         #print("hw={} tw={} ntw={} mw={}".format(hw,tw,newtw, mw)) # DEBUG
-        if newtw>tw: # don't shrink
+        if newtw>tw:  # don't shrink
             size = QtCore.QSize(newtw+frame+30, self.size().height())
             #print("resize {}".format(size.width())) # DEBUG
             # XX minimum vertical hight relative to header height?
@@ -338,6 +355,7 @@ class settingsDialog(QtWidgets.QDialog):
 
     def resizeHheader(self, logical):
         self.ui.tableView.resizeColumnToContents(logical)
+
     def resizeVheader(self, logical):
         self.ui.tableView.resizeRowToContents(logical)
 

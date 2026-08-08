@@ -59,7 +59,7 @@ class smallOutput(QTextBrowser):
         self.outwinArgs = None
         px = QPixmap(301,2)
         if not px.loadFromData(b'P1\n301 2\n'+(b'1 0 '*302)):
-            print('image fail') # EXCEPT
+            print('image fail')  # EXCEPT
         self.lineImage = QImage(px)
         self.applySettings()
         # why can't designer set this?
@@ -69,15 +69,15 @@ class smallOutput(QTextBrowser):
         qs = typedQSettings()
         mul = qs.value('SmallMultiplier', 2)
         # if a fixed number is set, use it, otherwise delay this
-        if mul>10 or mul<=0: # no max or fixed number of lines
+        if mul>10 or mul<=0:    # no max or fixed number of lines
             self.document().setMaximumBlockCount(mul)
         elif mul<10:
-            num_lines = 10 # guess at the window size? decent default
+            num_lines = 10  # guess at the window size? decent default
             doc = self.document()
             if not doc: return  # just give up
             margin = doc.documentMargin()
             fm = self.fontMetrics().height()
-            size = self.size() # what if it hasn't been shown yet?
+            size = self.size()  # what if it hasn't been shown yet?
             if fm and size and size.height():
                 num_lines = (size.height() - 2*margin)/fm
             lines=int(num_lines * mul)+1
@@ -91,7 +91,7 @@ class smallOutput(QTextBrowser):
         num_lines = (event.size().height() - 2*margin)/self.fontMetrics().height()
         qs=typedQSettings()
         mul = qs.value('SmallMultiplier', 2)
-        if mul>0 and mul<10:
+        if 0 < mul <10:
             lines=int(num_lines * mul)+1
             #print('set max={} ({},{})'.format(lines,num_lines,mul)) # DEBUG
             self.document().setMaximumBlockCount(lines)
@@ -133,7 +133,7 @@ class smallOutput(QTextBrowser):
         # XXX if self.keepState leave a placeholder?
         self.disconnectProcess()
 
-        if not self.jobitem: # internal command!
+        if not self.jobitem:    # internal command!
             title = 'internal'
             # construct a fake jobitem
             self.jobitem = jobItem(None)
@@ -147,10 +147,10 @@ class smallOutput(QTextBrowser):
             if self.jobitem:
                 title = self.jobitem.title()
             elif self.process:
-                title = self.process.command()[0] # XX
+                title = self.process.command()[0]  # XX
                 self.jobitem.setTitle(title)
             else:
-                title = 'dead' # pull default? SETTING
+                title = 'dead'  # pull default? SETTING
         qt = QtTail(self.settings.qtail)
         qt.openPretext(self.jobitem, self.textstream, pretext=text, title=title)
         self.jobitem = None
@@ -162,6 +162,7 @@ class smallOutput(QTextBrowser):
             self.process.kill()
         else:
             self.oneLine.emit('Nothing to kill')
+
     @QtCore.pyqtSlot()
     def smallTerminate(self):
         if self.process:
@@ -178,7 +179,7 @@ class smallOutput(QTextBrowser):
         # pack up jobitem for easy passing
         self.jobitem.process = self.process
         self.jobitem.textstream = self.textstream
-        self.sendToLog.emit(self.jobitem) # send pretext?
+        self.sendToLog.emit(self.jobitem)  # send pretext?
         self.clearproc()
         self.jobitem = None
 
@@ -219,8 +220,10 @@ class smallOutput(QTextBrowser):
         return self.procCursor
 
     #### convenience functions
+
     def maxBlocks(self):
         return self.document().maximumBlockCount()
+
     def curBlock(self):
         return self.getProcCursor().blockNumber()
 
@@ -234,16 +237,19 @@ class smallOutput(QTextBrowser):
         # not sure this is right
         a = self.textCursor().setPosition(b.anchor())
         return b.blockNumber() - a.blockNumber()
+
     def gettingFull(self,more=0):
         mx = self.maxBlocks()
         if mx>0:
-            c= self.curBlock()+more-self.procStartLine # don't care about previous output
+            c= self.curBlock()+more-self.procStartLine  # don't care about previous output
             #print("{}: {}>{}".format(mx,c,mx/2)) # DEBUG
             return c>mx/2
         return False
         #return self.maxBlocks()>0 and self.curBlock() +2 > self.maxBlocks()/2
+
     def countLines(self,t):
         return len(re.findall("\n", t))
+
     ################
     # process and I/O handling stuff
 
@@ -253,9 +259,9 @@ class smallOutput(QTextBrowser):
         if self.process: self.smallDup()
         if not self.keepState:
             self.clear()
-        c = self.getProcCursor() # always do this just to intialize it
+        c = self.getProcCursor()    # always do this just to intialize it
         if self.keepState:
-            self.setTextCursor(c) # jump to end
+            self.setTextCursor(c)   # jump to end
         self.procStartLine = self.document().blockCount()
         self.jobitem = jobitem  # keep for later
         self.newJobStart.emit()
@@ -276,8 +282,8 @@ class smallOutput(QTextBrowser):
                 self.clear()
         self.settings = settings
         # don't clear or dup for previous small output
-        c = self.getProcCursor() # always do this just to intialize it
-        self.setTextCursor(c) # jump to end
+        c = self.getProcCursor()  # always do this just to intialize it
+        self.setTextCursor(c)     # jump to end
         self.procStartLine = self.document().blockCount()
         self.doneProc = True
         self.addLines(msg)
@@ -330,7 +336,7 @@ class smallOutput(QTextBrowser):
         else:
             self.oneLine.emit('(exit)')
         if self.process and self.process.bytesAvailable():
-            self.doneProc = True # let readLines clean up
+            self.doneProc = True    # let readLines clean up
         else:
             self.disconnectProcess()
             self.clearproc()  # really done now
