@@ -96,9 +96,9 @@ class selList(itemListModel):
     def data(self, index, role):
         if role==Qt.ItemDataRole.TextAlignmentRole: # too bad can't set elide style too
             col = index.column()
-            if col==0: return Qt.AlignRight
-            elif col==1: return Qt.AlignCenter
-            elif col==2: return Qt.AlignLeft
+            if col==0: return Qt.AlignmentFlag.AlignRight
+            elif col==1: return Qt.AlignmentFlag.AlignCenter
+            elif col==2: return Qt.AlignmentFlag.AlignLeft
         item = self.getItem(index)
         if not item or role not in (Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.EditRole): return None
         col = index.column()

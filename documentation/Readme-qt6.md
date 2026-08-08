@@ -56,14 +56,8 @@ known: https://www.pythonguis.com/faq/pyqt5-vs-pyqt6/
 * graphs module / regex group / apt protocol?  https://doc.qt.io/qt-6/qtgraphs-index.html
 * port designer
 * QRegExp -> QRegularExpression
-* Qt.Checked -> Qt.CheckState.Checked
 * pyinstaller data files for resources
 * QMouseEvent changes
-* QDesktopWidget --> QScreen
 * enhanced: QStringView
 * new: QtDBus*
-* new: QtWayland QtTextInputMethodManager
-* some parts of QtWidgets -> QtGUI
-* tools: QDoc
-* wayland:
 * QProcess::SeparateChannels / setReadChannel()

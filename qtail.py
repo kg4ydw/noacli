@@ -164,7 +164,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.want_resize.connect(self.actionAdjust, Qt.ConnectionType.QueuedConnection) # delay this
         self.want_read_more.connect(self.readtext, Qt.ConnectionType.QueuedConnection) # read more after everything else is updated
 
-        if options==None:
+        if options is None:
             options=myOptions()
         else:
             options = copy.copy(options) # don't modify parent object
@@ -388,11 +388,11 @@ class QtTail(QtWidgets.QMainWindow):
         # remember previous find
         self.saveHighlight(False)
         searchterm = buildSearch(text, self.ui)
-        findflags = QTextDocument.FindFlags()
+        findflags = QTextDocument.FindFlag(0)
         if not self.ui.actionCaseInsensitive.isChecked():
-            findflags |= QTextDocument.FindCaseSensitively
+            findflags |= QTextDocument.FindFlag.FindCaseSensitively
         if self.ui.actionWholeWords.isChecked():
-            findflags |= QTextDocument.FindWholeWords
+            findflags |= QTextDocument.FindFlag.FindWholeWords
         # XX FindBackward
         if searchterm:
             success = self.textbody.find(searchterm, findflags)
@@ -417,7 +417,7 @@ class QtTail(QtWidgets.QMainWindow):
                 else:
                     m = 'Wrapped'
                 self.statusBar().showMessage(m)
-                self.findcount = 1;
+                self.findcount = 1
             else:
                 self.textbody.setTextCursor(start)
                 self.statusBar().showMessage('Not found')
@@ -962,11 +962,11 @@ class QtTail(QtWidgets.QMainWindow):
         if not text: return
         searchterm = buildSearch(text, self.ui)
         if not searchterm: return
-        findflags = QTextDocument.FindFlags()
+        findflags = QTextDocument.FindFlag(0)
         if not self.ui.actionCaseInsensitive.isChecked():
-            findflags |= QTextDocument.FindCaseSensitively
+            findflags |= QTextDocument.FindFlag.FindCaseSensitively
         if self.ui.actionWholeWords.isChecked():
-            findflags |= QTextDocument.FindWholeWords
+            findflags |= QTextDocument.FindFlag.FindWholeWords
 
         finds = []
         c = self.textbody.textCursor()

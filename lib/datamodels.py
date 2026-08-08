@@ -42,9 +42,9 @@ class simpleTable(QAbstractTableModel):
         if ctype and (ctype==bool or isinstance(self.mydata[row][col],bool)):
             if role==Qt.ItemDataRole.CheckStateRole:
                 if self.mydata[row][col]:
-                    return Qt.Checked
+                    return Qt.CheckState.Checked
                 else:
-                    return Qt.Unchecked
+                    return Qt.CheckState.Unchecked
             else:
                 return None
         if role in [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole]:
@@ -82,9 +82,9 @@ class simpleTable(QAbstractTableModel):
         mask = Qt.ItemFlag.ItemIsSelectable|Qt.ItemFlag.ItemIsEnabled
         ctype = self.dataType(index.row(),col)
         if ctype==bool:
-            mask |=  Qt.ItemIsUserCheckable
+            mask |=  Qt.ItemFlag.ItemIsUserCheckable
         elif self.editmask and self.editmask[col]:
-            mask |= Qt.ItemIsEditable
+            mask |= Qt.ItemFlag.ItemIsEditable
         return mask
 
     def validateIndex(self, index):
@@ -256,12 +256,12 @@ class settingsDataModel(simpleTable):
         rowname = self.mydata[row][0]
         # color and supply default data
         if col==1 and self.mydata[row][1] is None: # not set, use default
-            if role==Qt.ItemDataType.BackgroundRole:
+            if role==Qt.ItemDataRole.BackgroundRole:
                 return QBrush(Qt.GlobalColor.lightGray)
             if self.docdict[rowname][2]==bool:
                 if role==Qt.ItemDataRole.CheckStateRole:
-                    if self.docdict[rowname][0]: return Qt.Checked
-                    else: return Qt.Unchecked
+                    if self.docdict[rowname][0]: return Qt.CheckState.Checked
+                    else: return Qt.CheckState.Unchecked
                 elif role!=Qt.ItemDataRole.ToolTipRole:
                     return None  # no text label on bools
             elif role in [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole]:

@@ -193,8 +193,8 @@ class Favorites():
         self.dialog = settingsDialog(parent, 'Favorites editor', model, 'Favorites, shortcuts, and buttons')
         self.dialog.finished.connect(self.doneFavs)
         buttonbox = self.dialog.ui.buttonBox
-        buttonbox.setStandardButtons(buttonbox.standardButtons()| QDialogButtonBox.Save)
-        savebutton = buttonbox.button(QDialogButtonBox.Save).clicked.connect(self.saveSettings)
+        buttonbox.setStandardButtons(buttonbox.standardButtons()| QDialogButtonBox.StandardButton.Save)
+        savebutton = buttonbox.button(QDialogButtonBox.StandardButton.Save).clicked.connect(self.saveSettings)
 
     #@QtCore.pyqtSlot(bool)
     def saveFavs(self,checked):

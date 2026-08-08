@@ -127,7 +127,7 @@ class colorListEditor(QDialog):
         self.ui = Ui_colorListEditor()
         self.ui.setupUi(self)
         buttonbox = self.ui.buttonBox
-        buttonDefault = buttonbox.addButton("Reset Defaults",QtWidgets.QDialogButtonBox.ActionRole)
+        buttonDefault = buttonbox.addButton("Reset Defaults",QtWidgets.QDialogButtonBox.ButtonRole.ActionRole)
         buttonDefault.clicked.connect(partial(self.selectColorSet,self.colorpicker.defcolorlist))
         self.accepted.connect(self.saveColors)
         self.finished.connect(self.done)

@@ -72,7 +72,7 @@ class envModesDelegate(QStyledItemDelegate):
         painter.save()
         rect = QtCore.QRectF(option.rect)
         painter.setClipRect(rect)
-        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter|Qt.AlignmentFlag.AlignVCenter|Qt.TextFlag.TextSingleLine, d)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignmentFlag.AlignCenter|Qt.AlignmentFlag.AlignVCenter|Qt.TextFlag.TextSingleLine, d)
         painter.restore()
 
 class envSettings(QProcessEnvironment):
@@ -139,7 +139,7 @@ class envSettings(QProcessEnvironment):
         self.envDia.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.envDia.customContextMenuRequested.connect(self.envContextMenu)
         buttonbox = self.envDia.ui.buttonBox
-        newenv = buttonbox.addButton('New or Find', QtWidgets.QDialogButtonBox.ActionRole)
+        newenv = buttonbox.addButton('New or Find', QtWidgets.QDialogButtonBox.ButtonRole.ActionRole)
         newenv.clicked.connect(self.addnewvar)
 
 

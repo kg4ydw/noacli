@@ -19,9 +19,10 @@ from functools import partial
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
-from PyQt6.QtGui import QTextCursor, QKeySequence,QTextOption, QClipboard, QFont, QAction, QShortcut, QActionGroup
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import QIODevice, QModelIndex,QPersistentModelIndex, QSettings, QProcessEnvironment, QProcess
+from PyQt6.QtGui import QTextCursor, QKeySequence, QTextOption, QClipboard, QFont, QAction, QShortcut, QActionGroup
+#from PyQt6.QtWidgets import *
+from PyQt6.QtWidgets import QMenu, QStyledItemDelegate, QTableView, QErrorMessage, QAbstractItemView, QLineEdit, QFileDialog, QMessageBox, QPlainTextEdit, QWidgetAction, QApplication, QFontDialog
+from PyQt6.QtCore import QModelIndex, QPersistentModelIndex, QSettings, QProcess
 
 from lib.noacli_ui import Ui_noacli
 from lib.typedqsettings import typedQSettings
@@ -35,7 +36,8 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.0 alpha 1'
+__version__ = '2.0 alpha 2'
+
 
 # Some settings have been moved to relevant modules
 class settingsDict():
@@ -69,6 +71,7 @@ class settingsDict():
 
     def __init__(self):
         typedQSettings().registerOptions(self.settingsDirectory)
+
 
 # initialize, load, hold, and save various global settings
 class settings():
@@ -192,6 +195,7 @@ class settings():
         self.dialog = None
         self.data = None
 
+
 class  fontDelegate(QStyledItemDelegate):
     # All tested versions of Qt call setModelData when they think
     # editing is done, not when the font dialog is done.  This happens
@@ -241,7 +245,6 @@ class  fontDelegate(QStyledItemDelegate):
         self.fd = fd
         fd.open()
         return fd
-
 
     def fixfontsel(self, font):
         self.fontselected = True
@@ -344,7 +347,6 @@ class historyView(QTableView):
             i.model().removeRow(i.row(), QModelIndex())
         #print(" deleted, left "+str(len(self.realModel.data))) # DEBUG
 
-
     def addFav(self, index):
         m = index.model()
         cmd = m.data(m.index(index.row(),1))
@@ -410,9 +412,9 @@ class historyView(QTableView):
 
     def resizeHheader(self, logical):
         self.resizeColumnToContents(logical)
+
     def resizeVheader(self, logical):
         self.resizeRowToContents(logical)
-
 
 
 # thanks to https://stackoverflow.com/questions/18475870/qt-menu-with-qlinedit-action (gct)
@@ -423,20 +425,24 @@ class menuLineEdit(QLineEdit):
         super().__init__(parent)
         self.setPlaceholderText(placeholder)
         self.setClearButtonEnabled(True)
+
     @QtCore.pyqtSlot('QKeyEvent')
     def keyPressEvent(self,event):
         if event.key() in [Qt.Key.Key_Enter, Qt.Key.Key_Return]:
             self.returnPressed.emit()
         else:
             super().keyPressEvent(event)
+
     def textAndClear(self):
         t = self.text()
         self.clear()
         return t
 
+
 class noacli(QtWidgets.QMainWindow):
     want_restore_geo_delay = pyqtSignal(str)
     apply_settings = pyqtSignal()
+
     def __init__(self, app):
         settingsDict()   # do this very early
         super().__init__()
@@ -519,7 +525,6 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.jobTableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeJobHheader)
         self.ui.jobTableView.verticalHeader().sectionDoubleClicked.connect(self.resizeJobVheader)
 
-
         # build history context menu
         self.ui.historyMenu.aboutToShow.connect(self.buildHistoryMenu)
         self.ui.menuJobs.aboutToShow.connect(self.buildJobMenu)
@@ -601,7 +606,6 @@ class noacli(QtWidgets.QMainWindow):
 
     ## end __init__
 
-
     def jobsChanged(self, idx, first, last):
         # receive jobs(model).rows{Inserted,Removed}
         self.ui.jobManager.resetLines(self.settings.jobs.rowCount(None))
@@ -640,7 +644,6 @@ class noacli(QtWidgets.QMainWindow):
     def ouch(self, sig, stack):
         print('Ouch!') # EXCEPT
         # ignore a signal
-
 
     def tabifyAll(self):
         # convert all the DOCKs to tabs
@@ -901,7 +904,6 @@ class noacli(QtWidgets.QMainWindow):
         ui.logDock.setVisible(False)
         ButtonDock.setAllVisibility(False)
 
-
     # in: commandEditor runCurrent(button)
     # push button signal
     @QtCore.pyqtSlot()
@@ -1154,7 +1156,6 @@ class noacli(QtWidgets.QMainWindow):
             pass
         qs.endGroup()
 
-
     @QtCore.pyqtSlot(str)
     def showMessage(self, msg):
         qs = typedQSettings()
@@ -1216,11 +1217,11 @@ class noacli(QtWidgets.QMainWindow):
         if self.settings.history.modified:
             self.actionSaveHistory()
         # favorites should save on change now
+
     def setAutoSave(self):
         delay = typedQSettings().value('SettingsAutoSave',300)
         if delay:
             self.autoSaveTimer.start(delay*1000)
-
 
     def delaycheck(self,  dialog, button):
         if self.firstKill:
@@ -1441,11 +1442,12 @@ class commandEditor(QPlainTextEdit):
         hv.resetView(idx)
         hv.selectionModel().setCurrentIndex(idx.model().index(idx.row(),1), QtCore.QItemSelectionModel.SelectionFlag.ClearAndSelect )
 
+
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     QtCore.QCoreApplication.setOrganizationName("kg4ydw")
     QtCore.QCoreApplication.setApplicationName("noacli")
-
+    app.setDesktopFileName("org.kg4ydw.noacli")
     # XX process noacli command line args (do to what?)
 
     mainwin = noacli(app)

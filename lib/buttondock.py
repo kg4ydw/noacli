@@ -274,7 +274,7 @@ class EditButtonDocks(settingsDialog):
         self.ui.tableView.resizeColumnsToContents()
         self.finished.connect(self.finishEdit)
         buttonbox = self.ui.buttonBox
-        newdia = buttonbox.addButton("New dock", QtWidgets.QDialogButtonBox.ActionRole)
+        newdia = buttonbox.addButton("New dock", QtWidgets.QDialogButtonBox.ButtonRole.ActionRole)
         newdia.clicked.connect(self.addDock)
         tv =  self.ui.tableView
         tv.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
