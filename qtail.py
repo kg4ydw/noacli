@@ -203,7 +203,7 @@ class QtTail(QtWidgets.QMainWindow):
         wa = QWidgetAction(m)
         wa.setDefaultWidget(line)
         m.addAction(wa)
-        ### can't do this yet
+        ### can't do this yet XXXX
         #if type(self.file)!=QProcess: # can't watch a non-process
         #    self.ui.actionWatch.setEnabled(False)
         self.timer = QTimer(self)
@@ -227,7 +227,7 @@ class QtTail(QtWidgets.QMainWindow):
         if secondary:
             m.addAction(secondary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, secondary))
         try:
-            # XXRemove hide functionality broken in Qt 5.12 (delete this later)
+            # XXXXRemove hide functionality broken in Qt 5.12 (delete this later)
             v = QtCore. QT_VERSION_STR.split('.')
             if v[0]=='5' and int(v[1])<13:
                 print("Disabling regex, sorry.")  # EXCEPT
@@ -584,7 +584,7 @@ class QtTail(QtWidgets.QMainWindow):
             return
         # XXX assume tail mode
         f = QtCore.QFile(filename)
-        if not f.open(QtCore.QFile.ReadOnly):
+        if not f.open(QtCore.QFile.OpenModeFlag.ReadOnly):
             err = 'Open failed on {}: {}'.format(filename,f.errorString())
             print(err) # EXCEPT
             # clean up
@@ -639,13 +639,13 @@ class QtTail(QtWidgets.QMainWindow):
         # QFile doesn't work with readyRead, use QSocketNotifier instead for pipes
         f = QtCore.QFile()
         self.file = f
-        f.open(sys.stdin.fileno(), QtCore.QFile.ReadOnly)
+        f.open(sys.stdin.fileno(), QtCore.QFile.OpenModeFlag.ReadOnly)
         os.set_blocking(sys.stdin.fileno(), False)  # XX not portable?
         #broken on File # self.file.readyRead.connect(self.readtext)
 
         # Attempt a socket notifier instead of readyread
         # seems to work equally well (in linux) on pipes and files
-        n = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Read, self)
+        n = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Type.Read, self)
         self.notifier = n
         self.socketconnection = n.activated.connect(self.socketActivated)
         self.errnotifier = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Exception, self)

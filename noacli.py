@@ -36,7 +36,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.0'
+__version__ = '2.0.1'
 
 
 # Some settings have been moved to relevant modules
@@ -678,7 +678,7 @@ class noacli(QtWidgets.QMainWindow):
         # other defaults need customizing, default constructor not flexible enough
         # also make it non-modal
 
-        fd = QFileDialog(self, Qt.Dialog)
+        fd = QFileDialog(self, Qt.WindowType.Dialog)
         #fd.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True) # prevent modal from getting lost -- doesn't seem to help, prob redundant
         #fd.setOption(QFileDialog.DontUseNativeDialog)
 
@@ -728,9 +728,9 @@ class noacli(QtWidgets.QMainWindow):
         ## the following seems restrictive, but it's the only alternatives
         if pattern[0]=='/':
             if pattern=='/': pattern=None
-            fd.setFileMode(QFileDialog.Directory)  # select single directory
+            fd.setFileMode(QFileDialog.FileMode.Directory)  # select single directory
         else:
-            fd.setFileMode(QFileDialog.ExistingFiles)  # select multiple files
+            fd.setFileMode(QFileDialog.FileMode.ExistingFiles)  # select multiple files
 
         fd.setNameFilter(pattern)
         # setLabelText

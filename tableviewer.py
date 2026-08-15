@@ -581,7 +581,7 @@ class TableViewer(QtWidgets.QMainWindow):
     def openstdin(self):
         os.set_blocking(sys.stdin.fileno(),False)
         self.csvfile = lineBuffer(sys.stdin)
-        self.notifier = QSocketNotifier(sys.stdin.fileno(),QSocketNotifier.Read, self)
+        self.notifier = QSocketNotifier(sys.stdin.fileno(),QSocketNotifier.Type.Read, self)
         # set up notifier for incoming data
         self.notifier.activated.connect(partial(self.readmore,'socket'))
         self.openfd(self.csvfile)

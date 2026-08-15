@@ -309,7 +309,7 @@ class keySequenceDelegate(QtWidgets.QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         k = editor.keySequence()
-        if k==QKeySequence.Backspace or k.toString()=='Backspace':
+        if k==QKeySequence.StandardKey.Backspace or k.toString()=='Backspace':
             # cancel shortcut; this is a work around in qt misfeature
             model.setData(index, '', Qt.ItemDataRole.EditRole)
             editor.clear()      # looks wierd but works
