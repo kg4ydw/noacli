@@ -260,9 +260,9 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def setSearchCaseInsensitive(self, checked):
         if checked:
-            cs = Qt.CaseInsensitive
+            cs = Qt.CaseSensitivity.CaseInsensitive
         else:
-            cs = Qt.CaseSensitive
+            cs = Qt.CaseSensitivity.CaseSensitive
         self.proxymodel.setFilterCaseSensitivity(cs)
 
     def argparse(self, args=None):

@@ -986,7 +986,7 @@ class QtTail(QtWidgets.QMainWindow):
             finds.append(es)
             if not c.hasSelection(): # zero size match
                 # skip to next word, multiple hits in one word is dumb here
-                c.movePosition(QtGui.QTextCursor.MoveOperation.NextWord,QtGui.QTextCursor.MoveAnchor, 1 )
+                c.movePosition(QtGui.QTextCursor.MoveOperation.NextWord,QtGui.QTextCursor.MoveMode.MoveAnchor, 1 )
                 if c.position()==prev:
                     print('findall oops') # DEBUG EXCEPTION
                     break # prevent infinite loop

@@ -36,7 +36,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.0.1'
+__version__ = '2.0.2'
 
 
 # Some settings have been moved to relevant modules
@@ -680,7 +680,7 @@ class noacli(QtWidgets.QMainWindow):
 
         fd = QFileDialog(self, Qt.WindowType.Dialog)
         #fd.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True) # prevent modal from getting lost -- doesn't seem to help, prob redundant
-        #fd.setOption(QFileDialog.DontUseNativeDialog)
+        #fd.setOption(QFileDialog.Option.DontUseNativeDialog)
 
         # check if user was trying to complete a partially typed path
         c = editor.textCursor()  # get a fresh cursor
@@ -724,7 +724,7 @@ class noacli(QtWidgets.QMainWindow):
         else:
             fd.setDirectory('.')  # otherwise it remembers the previous dir
 
-        #default# fd.setFileMode(QFileDialog.AnyFile) # Directory
+        #default# fd.setFileMode(QFileDialog.FileMode.AnyFile) # Directory
         ## the following seems restrictive, but it's the only alternatives
         if pattern[0]=='/':
             if pattern=='/': pattern=None
