@@ -26,6 +26,7 @@ from PyQt6.QtCore import QModelIndex, QPersistentModelIndex, QSettings, QProcess
 
 from lib.noacli_ui import Ui_noacli
 from lib.typedqsettings import typedQSettings
+from lib.clipboardbug import SafeClipboardFilter
 
 from lib.datamodels import simpleTable, settingsDataModel, settingsDialog
 from lib.noajobs import jobItem, jobTableModel, History
@@ -36,7 +37,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.0.2'
+__version__ = '2.0.3'
 
 
 # Some settings have been moved to relevant modules
@@ -449,6 +450,8 @@ class noacli(QtWidgets.QMainWindow):
         super().__init__()
         self.ui = Ui_noacli()
         self.ui.setupUi(self)
+        # patch to fix Qt 6.4.2 segfaulting on empty paste buffer
+        self.clipboardfilter = SafeClipboardFilter(self)
         self.ui.buttons = ButtonDock(self, 'Buttons')  # make default button dock
         ButtonDock.run_command.connect(self.doButton)
 
@@ -842,6 +845,7 @@ class noacli(QtWidgets.QMainWindow):
         col = index.column()
         if col==0:
             text = str(index.model().getItem(index).getpid())
+            if not text: return
             self.settings.app.clipboard().setText(text)
             self.settings.app.clipboard().setText(text, QClipboard.Mode.Selection)
         elif col==1: index.model().cleanupJob(index)  # job status

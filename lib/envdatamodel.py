@@ -82,7 +82,7 @@ class envModesDelegate(QStyledItemDelegate):
         painter.save()
         rect = QtCore.QRectF(option.rect)
         painter.setClipRect(rect)
-        painter.drawText(rect, Qt.AlignmentFlag.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter | Qt.TextFlag.TextSingleLine, d)
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter | Qt.TextFlag.TextSingleLine, d)
         painter.restore()
 
 

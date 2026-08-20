@@ -446,15 +446,17 @@ class TableViewer(QtWidgets.QMainWindow):
         #print("Copy1 "+text) # DEBUG
         if not isinstance(text, str):
             text = str(text)
-        self.app.clipboard().setText(text)
+        if text:
+            self.app.clipboard().setText(text)
 
     def copyClip2(self, index):
         text = index.data(Qt.ItemDataRole.DisplayRole)
         #print("Copy2 "+text) # DEBUG
         if not isinstance(text, str):
             text = str(text)
-        self.app.clipboard().setText(text)
-        self.app.clipboard().setText(text, QtGui.QClipboard.Mode.Selection)
+        if text:
+            self.app.clipboard().setText(text)
+            self.app.clipboard().setText(text, QtGui.QClipboard.Mode.Selection)
 
     def resizeHheader(self, logical):
         self.ui.tableView.resizeColumnToContents(logical)

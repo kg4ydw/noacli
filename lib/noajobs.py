@@ -193,10 +193,13 @@ class jobItem():
         return self.jcommand
 
     def getStatus(self):
-        if self.fullstatus: return self.fullstatus
-        if self.status: return self.status
-        # make something up
-        return str(self.process.state())
+        # had to restructure this to delete Qt6's stupid enum
+        status = ''
+        if self.fullstatus: status = self.fullstatus
+        elif self.status: status = self.status
+        else: # make something up
+            status = str(self.process.state())
+        return status.replace('ExitStatus.','',1)
 
     def startOutwin(self, file, settings):
         outwin = self.mode
