@@ -79,6 +79,7 @@ class myOptions():
         self.font = None
         # XX whole file mode vs tail mode?  oneshot vs. follow?
         # XX alternate format options: html markdown fixed-font
+        self.delay = typedQSettings().value('QTailDelayResize',3)
 
     def processOptions(self, app, args=None):
         # vestiges of QCommandLineParser remain here (maybe refactor later)
@@ -93,7 +94,8 @@ class myOptions():
         parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown', 'md', 'p','h','m'], metavar='format', default='plaintext')
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true')  # set in start()
-        parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='seconds', const=0, help='Enable autorefresh and (optionally) set refresh interval')
+        parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='autorefresh', const=0, help='Enable autorefresh and (optionally) set refresh interval')
+        parser.add_argument('--delay', nargs=1, type=int, metavar='delay', default=self.delay, help='Seconds to delay before automatic resize')
         parser.add_argument('--watch', action='store_true', help='Enable watch')
         parser.add_argument('--findall', help='Search for a regular expression at start', type=str, default=None, metavar='regex')
         parser.add_argument('--font','-F', help='Select font from list (1,2) or set font by name', type=str, default=None, metavar='font')
@@ -138,6 +140,9 @@ class myOptions():
             elif args.format in ('ansi', 'a'): self.format='a'
             else: self.format=None
         if args.url: self.url = True
+        if args.delay and args.delay[0]>3:
+            self.delay = args.delay[0]
+
         #unsed?# if args.font: self.font = args.font
 
         self.args = args.filename
@@ -472,7 +477,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.firstRead=False
             self.actionAdjust()
             rdelay = 0
-            rdelay = typedQSettings().value('QTailDelayResize',3)
+            rdelay = self.opt.delay
             if b and rdelay:
                 #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
                 QTimer.singleShot(int(rdelay)*1000, Qt.TimerType.VeryCoarseTimer, self.actionAdjust)
@@ -505,6 +510,8 @@ class QtTail(QtWidgets.QMainWindow):
                 self.ui.actionAutorefresh.setChecked(True)
                 if self.opt.argparse.autorefresh:
                     self.setWatchInterval(self.opt.argparse.autorefresh)
+                else:
+                    self.actionAutoRefresh()  # set timer
             if self.opt.argparse.watch:
                 self.ui.actionWatch.setChecked(True)
             if self.opt.argparse.findall:
