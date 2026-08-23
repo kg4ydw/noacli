@@ -77,8 +77,8 @@ class envModesDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         d = index.data(Qt.ItemDataRole.DisplayRole)
+        if not d: d=''
         if not isinstance(d, str): d=d.name
-        QStyledItemDelegate.paint(self, painter, option, QModelIndex())
         painter.save()
         rect = QtCore.QRectF(option.rect)
         painter.setClipRect(rect)

@@ -39,7 +39,17 @@ class myBrowser(QTextBrowser):
             m.addAction("Hide bars",self.toggleBars)
         else:
             m.addAction("Show bars",self.toggleBars)
+        # converting html to html is probably not good
+        # but reload might make this necsesary so always offer it anyway
+        m.addAction("View as html", self.makeHtml)
+        m.addAction("View as markdown", self.makeMarkdown)
         m.exec(event.globalPos())
+
+    def makeHtml(self):
+        self.setHtml(self.document().toRawText())
+
+    def makeMarkdown(self):
+        self.setMarkdown(self.document().toRawText())
 
     def contextFollowToggle(self):
         self.ui.followCheck.setChecked(not self.ui.followCheck.isChecked())
@@ -132,7 +142,7 @@ class myBrowser(QTextBrowser):
     ## this doesn't work any differently than the above
     #def pickFontMono(self):
     #    print('mono') # DEBUG
-    #    opts =  ( QFontDialog.MonospacedFonts, )
+    #    opts =  ( QFontDialog.FontDialogOption.MonospacedFonts, )
     #    (font, ok)  = QFontDialog.getFont(self.document().defaultFont(), None, "Select editor font", *opts)
     #    if ok:
     #        self.document().setDefaultFont(font)

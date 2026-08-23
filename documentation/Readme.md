@@ -149,7 +149,11 @@ Qtail supports the following options:
     Set window title instead of using command or filename.
 
 `--format=` (plain html markdown)  
-    Set the file format; default is plain.  Warning: markdown must read the entire file at once.
+    Set the file format; default is plain.
+    Warning: markdown must read the entire file at once, and html
+    doesn't work well incrementally either.  Recommendation is to not
+    use this option on pipes and instead convert in the context menu
+    when the pipe is done.  (But this still works well on files.)
 
 `--url`  
     Treat filename as a URL, autodetect format.  Note: doesn't work with remote urls

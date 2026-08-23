@@ -90,7 +90,7 @@ class myOptions():
         parser.add_argument('-n', '--lines', help='keep the last NUM lines', metavar='NUM', type=int, default=self.maxLines)
         parser.add_argument('--whole', '-w', help='look at the whole file, not just the tail', action='store_true')
         parser.add_argument('-t','--title', help='set window title if a filename is not supplied',metavar='title')
-        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown', 'ansi','md', 'p','h','m','a'], metavar='format', default='plaintext')  # XX markdown doesn't work
+        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown', 'md', 'p','h','m'], metavar='format', default='plaintext')
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true')  # set in start()
         parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='seconds', const=0, help='Enable autorefresh and (optionally) set refresh interval')
@@ -226,16 +226,6 @@ class QtTail(QtWidgets.QMainWindow):
         secondary = self.getFontSetting('QTailSecondaryFont')
         if secondary:
             m.addAction(secondary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, secondary))
-        try:
-            # XXXXRemove hide functionality broken in Qt 5.12 (delete this later)
-            v = QtCore. QT_VERSION_STR.split('.')
-            if v[0]=='5' and int(v[1])<13:
-                print("Disabling regex, sorry.")  # EXCEPT
-                self.ui.actionUseRegEx.setChecked(False)
-                self.ui.actionUseRegEx.setVisible(False)
-                self.ui.actionUnicode.setVisible(False)
-        except:
-            pass
 
     def deleteClosedSearches(self):
         skip = 0
@@ -573,8 +563,14 @@ class QtTail(QtWidgets.QMainWindow):
     def openfile(self,filename):
         self.filename = filename # reuse later?
         self.start()
-        if self.opt.format=='m':
-            self.openMarkdownFile(filename)
+        #print(f"openfile {filename}") # DEBUG
+        if not self.opt.title:
+            title=filename
+            if len(title)>30: title=os.path.basename(title)
+            self.setWindowTitle(title)
+        # html, markdown don't work well with partial reads
+        if self.opt.format in ('m', 'h'):  # XXX or self.whole:
+            self.openWholeFile(filename)
             return
         if self.opt.url:
             # bypass normal file I/O and let Qt do it
@@ -597,10 +593,6 @@ class QtTail(QtWidgets.QMainWindow):
             self.file = f
             self.opt.file = True
 
-        if not self.opt.title:
-            title=filename
-            if len(title)>30: title=os.path.basename(title)
-            self.setWindowTitle(title)
         self.reload()
 
         # follow the tail of the file
@@ -610,10 +602,10 @@ class QtTail(QtWidgets.QMainWindow):
         self.endcursor.movePosition(QtGui.QTextCursor.MoveOperation.End)
         self.textbody.setTextCursor(self.endcursor)
 
-    def openMarkdownFile(self, filename):
-        # Qt textBrowser doesn't support appending to markdown so...
+    def openWholeFile(self, filename):
+        #print(f"whole file {filename}")  # DEBUG
+        # Qt textBrowser doesn't support appending to markdown or html so...
         # we break all the rules for this one
-        #self.opt.format = 'm'
         self.filename = filename
         self.file = None
         # not using with because we need to clean up ourself too
@@ -628,7 +620,10 @@ class QtTail(QtWidgets.QMainWindow):
         finally:
             f.close()
         self.setWindowTitle(filename)
-        self.ui.textBrowser.document().setMarkdown(text)
+        if self.opt.format == 'm':
+            self.ui.textBrowser.document().setMarkdown(text)
+        if self.opt.format == 'h':
+            self.ui.textBrowser.document().setHtml(text)
         self.setButtonMode()
 
     def openstdin(self):

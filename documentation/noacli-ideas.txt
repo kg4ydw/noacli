@@ -17,14 +17,57 @@ v  documented in a future video
 t  documented internally with tool tip
 
  -Things to implement soon:
+ ! track highlight: update searchdocs to highlight before cursor (context)
+ ? Implement settings modules
+     menu to scan dir and show potential modules to import
+     include both app and user module dirs
+     predefined wrappers
+     predefined favorites and buttons
+     predefined searches
+     predefined context menu searches
+Dx tail --format=html needs to read the whole text at once
+ *   too messy to fix, implemented work around (convert after reading as plain)
+ E  qtail -auto cli option doesn't initial trigger
+ ! jobs: click on status column to hide/show lost windows in addtion to raise
+ ? change where templates get data
+     regex groups?
+     try selected text first
+     then whole edit buffer
+     then clipboard
+     setting to turn each of these on or off (and set order?)
  ? redo font mapping
- ? separate fonts for job manager, output windows, main interface, etc.
- * make job table copy/paste work for pid column (bug fix)
- * tail: show/hide bars in context menu
- * tail: follow toggle in context menu?
- x? tail: status icon in title bar?
+ ? fonts for every noacli UI
+     main window
+     button window
+     edit window
+     log windows
+     small window
+     numbered fonts in tail window
+     table window??
  ? tail cli: --notoolbars --follow
- ? tail: xlate \r \n
+ ? searchdock: detect previous searchdoc(s) and shrink it
+ !  add QProgressBar to QStatusBar with addWidget or addPermanentWidget
+ ?  pie graph QtCharts/QPieSeries or progress bar dock widget
+      tail option -> context option, view option
+      percentage regex
+      show on main window
+      concentric? / colors
+      pick panel
+ ? qtail size hint / delay  cli option
+ ? qtail: xlate \r \n
+ ? qtail: translate ansi sequences
+ ? tableviewer: recognize psql ascii table format
+ ? qtail context menu: if selection, find more...
+ ? qtail context actions from regex or use QTextBrowser.anchorClicked
+ ! context regex commands (below)
+ ? toc build using QTextFormat.HeadingLevel paragraph property
+ ? rebuild visible searches on reload and follow tail
+ ? qtail detect text type automatically?
+ ? file buffering large text like less
+ ? QTextOption.WordWrap --> WrapAtWordBoundaryOrAnywhere
+ ? qtail findallgroup: iterate blocks, column align (LCRH)
+ ? jump to line feature (with cli and gui support)
+ ? https://pypi.org/project/pyqt-line-number-widget/ (how badly is ths wanted?)
  ! tableviewer search box in pull down
  ? tableviewer search pulldown: sort/search checkbox?
  ! bug in button dock: "set default dock" buttons are saved in wrong dock
@@ -43,8 +86,9 @@ t  documented internally with tool tip
  ! tableviewer -> rerun / kill? / stats
  ! Bug: bus/*.txt table crash (2 bugs)
  ? detect headings (in search/toc) for markdown
- ! context regex commands (below)
  ? Add hiddenJobs as its own dock
+ ? qtail findall: mark scrollbar with finds (custom painter)
+
  x folding TOC view
      tree view (try again in qt6?)
      findall -> assign level and merge
@@ -75,7 +119,7 @@ t  documented internally with tool tip
  * add setting and timer to sync settings and history (bug fix)
    QTextBrowser.searchPaths() to help find internal docs
  ? Bug: reload doesn't work on --file
-   Bug: --format=md doesn't work on pipes?
+   Bug: --format=md doesn't work on pipes? need to read all
    qtail: autodetect format
       start with <?xml --> html (or xml? check DOCTYPE line?)
       start with \e[ -> ansi
@@ -146,7 +190,6 @@ t  documented internally with tool tip
    menu item (implemented, but not in menu)
  *   close all windows
  *   kill all subprocesses
- x   disown all subprocesses (default on exit?)
  * if output windows are not visible, add extra status to main window?
 
  -User visible bugs:
@@ -159,6 +202,10 @@ t  documented internally with tool tip
      disable workaround for newer versions?  make workaround a setting??
  * favorites editor bugs
 DE    should warn on duplicate names? (color?)
+
+ -Fixed bugs and finished features (delete these next version or document):
+ * Qt6 bug: strip ExitStatus. from state in job view
+ 
 
  -Bugs:
  ! refactor flowlayout to separate Qt code and noacli code (inherit)
@@ -212,7 +259,7 @@ D* button editor ("favorites")
      SETTING: set dock collection location or style or default (tabify, vert stack, etc.)
  !   Action to rerun all searches
  *   Adjust search to update window progressively instead of freezing until done?
- x     allow aborting long running search
+ x     allow aborting long running search (button? detect window close?)
 
    Possible internal actions for shortcut keys
      save favorites
@@ -271,6 +318,7 @@ D* button editor ("favorites")
 !  Context regex commands
      on right click, generate a menu of context specific commands
        use highlighted region as context
+       use current word as context
        use current line as context
        try each regex on context
      sources
@@ -297,6 +345,7 @@ D* button editor ("favorites")
 	 list of rules
        rule list
          enabled checkbox (default on)
+	 document context (highlight, line, word)
 	 immediate checkbox
 	   run command immediately or
 	   dump command into command editor

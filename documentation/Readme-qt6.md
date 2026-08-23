@@ -1,36 +1,23 @@
 
-Early on in this project it was decided it was too soon to use Qt6 as it
-didn't have support on all the desired platforms.  This will no longer be
-true some time before April 2024.
+noacli v1 used Qt5.
 
-In preparation for the change, the intent is that code will be ready for
-the upgrade and only the imports will need to be adjusted.  The following
-is a list of changes to make this true.
+In 2026, some platforms have limited or poor support for Qt5, and Qt5
+has issues with wayland.
 
+The point of noacli v2 is to switch to Qt6.
+As of the 2.0 version, this has been done, but it has caused bugs which are
+being worked on.   In 2.1, new features will be added that take advantage
+of Qt6 new features.
 
-# Done
-
-Deprecated exec_ --> exec
-
-# Not done
-
-Note that for class moves, most places in the code will just need the
-import adjusted, but designer is notorious for fully qualifying every
-class.
-
-QtWidgets.QAction -> QtGui.Qaction
-
-(hmm, that list was shorter than expected.)
+Currently testing with Qt 6.4 which has a few bugs but is what Ubuntu 24
+ships with.
 
 # Code to remove
 
 look for tag XXRemove
 
-Python 3.8 (Ubuntu 20.04)
+Python 3.8 (Ubuntu 20.04, check MacOS)
 * noacli.pickfile code for lack of removeprefix
-
-Qt 5.12 compatibility: 
-* qtail.py QtTail.__init__ disable regex missing from QTextEdit
 
 Qt bug workaround, fixed in Qt 6.11+
   Docks prevent floating docks from being deleted by catching closeEvent

@@ -18,12 +18,12 @@ class SafeClipboardFilter(QtCore.QObject):
         if self.is_clipboard_invalid(QClipboard.Mode.Selection):
             return True
       #else:
-      #    print("skip", event.button())
+      #    print("skip", event.button())  # DEBUG
     #elif isinstance(event, QtGui.QMouseEvent):
-    #    print(event, event.flags(), event.type(), event.button())
+    #    print(event, event.flags(), event.type(), event.button()) # DEBUG
     # what else segfaults?
     #else:
-    #    print("ACK ", type(event))
+    #    print("ACK ", type(event))  # DEBUG
     return super().eventFilter(watched, event)
 
   def is_clipboard_invalid(self, mode: QClipboard.Mode) -> bool:
@@ -35,6 +35,5 @@ class SafeClipboardFilter(QtCore.QObject):
     if mime_data is None or not mime_data.formats():
         # stuff something valid in the clipboard since blocking this event isn't enough
         QApplication.clipboard().setText("", mode)
-        #print("block",mime_data, mime_data.formats())
         return True
     return False

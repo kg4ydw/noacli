@@ -126,6 +126,7 @@ class searchDock(QDockWidget):
         # stuff this in a corner of the parent QMainWindow
         parent.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self)
         # XX alternate: check parent for existing docks, and add this as a tab SETTINGS
+        # XX alternate: check parent for existing docks and shrink them vertically after inserting ourselves
         global colorpicker
         color = colorpicker.nextColor()
         self.color = QtGui.QBrush(QColor(color))

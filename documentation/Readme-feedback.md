@@ -8,7 +8,9 @@ You are also welcome to suggest things.  There's quite a few features
 that I managed to implement before they ever got on that list, so
 don't hesitate to suggest new ones.
 
-Here are the items I currently need feedback for the most...
+Here are the items I currently need feedback for the most.  Without
+feedback, I have no plans or ideas on how to change these and they are
+not in my development roadmap.
 
 I'm open to code contributions also.  I'm trying to handle at least one
 item from noacli-ideas.txt a week, so check with me to make sure we don't both
@@ -58,6 +60,24 @@ Should this be configurable?
 
 Should the order of the highlight colors be editable?
 
+# Settings and cli options
+
+Currently a few groups of settings have fancy dialog editors.  All the
+rest are just jammed in to General settings as a table.  I've rolled
+around a few ideas to improve this, but none have looked good in my
+head.
+
+Also, the code is spattered with 'SETTING' where a value is hardcoded
+that could be an option or setting.  And a lot of existing settings
+could be cli options that are not.
+
+# Wrapper GUI editor
+
+Wrappers are currently set from the command lnie in the editor window
+and saved.  This could use a fancy GUI editor, but it's simple enough to set
+and view them without that.  Does it need one?  Does it need it more
+if you have a lot of them?
+
 # Installer?  Pypi?
 
 Does this need a traditional python setup.py installer?
@@ -97,13 +117,19 @@ There are other ideas for this to encourage exploration of random man
 pages, like keeping a database of visited pages, suggesting an
 unviewed page a day to read, etc.
 
+(This feels like a huge feature creep but I might implement the generic
+parts of it eventually.)
+
 # Resource limits, Process monitor, System monitor
 
 The original design included some of the following...
 
 A dialog box to edit ulimits...
 
-Implementation of the 'times' command from shells; supported by python.
+Implementation of the 'times' command from shells; supported by
+python.  There is some support for this now in the conext menu for the
+job manager and tooltips including on the qtail status indicator at
+the bottom.
 
 Grapical widgets to monitor process progress and/or resource consumption...
 This turns out to not be supported by Qt or python, so the code to do
@@ -119,10 +145,9 @@ qtail and table viewer, but so far, I haven't come up with anything solid.
 For example, a progress meter could be done, maybe using the
 debconf-apt-progress protocol or maybe a regex scraper to pull numbers
 out of an output stream and send them to matplotlib or something.  But
-the debconf progress protocol seems like a pretty limited use case,
-and anything involving matplotlib would be highly specialized unless
-there's already a clever language to describe graphs.  (Hmm, maybe
-make it easy to add a graph plugin and just do it in python?)
+the debconf progress protocol seems like a pretty limited use case.
+The Qt6 chart widgets would work well.  This might have to wait for
+incremental regex searches to be implemented.
 
 It might also be nice to have a visualizer for cpu and resource use
 for running jobs.  But this is highly non-portable and Qt doesn't even
@@ -155,6 +180,10 @@ revalidate it before running.
 This would require some minimal terminal support in noacli while a
 password is entered so that noacli can manage the ssh job afterwards.
 
+(local) sudo has similar issues, but it can be mitigated by sudo wrappers
+and graphical versions of sudo that separately prompt.  (But the latter
+seems to be deprecated?)
+
 # Terminal integration
 
 Currently, noacli relies on existing external terminal applications if
@@ -167,9 +196,10 @@ probably require rewriting QProcess, but that could fix other issues too.)
 
 # Microsoft Windows support
 
-noacli is untested in Windows, but there's not really a reason why it couldn't work.
-There are a number of unportable things (like default wrappers) that might need
-adjustment, and windows integrated ssh is missing features (like multiplexing?).
+noacli is untested in Windows, but there's not really a reason why it
+couldn't work.  There are a number of unportable things (like default
+sets of wrappers) that might need adjustment, and windows integrated
+ssh is missing features (like connection multiplexing).
 
 # Other misc.
 
@@ -183,6 +213,11 @@ not worth expanding on here:
 * Manual Button dock arrangement (implement drag in FlowLayout)
 * More button actions (middle and right click?)
 * More options for fonts?  Save fonts in qtail?
+
+Some of these minor features are on my roadmap, but I'm fuzzy on how.
+
+See also noacli-old-ideas.txt for abandoned ideas.  Some of these
+are possible if there is interest.
 
 Postscript
 ==========

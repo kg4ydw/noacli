@@ -17,7 +17,7 @@ x  not supported in Qt (or I haven't figured it out) (might still be possible, o
       select two columns (label, data) for pie graph
  o table viewer options
      document short options?
- x   tableviewer needs its own icon
+ x   tableviewer needs its own icon (not supported by OS)
    mac installer?
  x table should send stderr to log
  x bold default button dock title or something
@@ -29,11 +29,11 @@ x  not supported in Qt (or I haven't figured it out) (might still be possible, o
  - qtail: implement --command for external use (useful with watch)
  - button dock: save sort mode?
  - button dock: add button dragging to set/save order
- - qtail reverse find (context menu? menu checkbox?)
+ - qtail reverse find (context menu? menu checkbox? or just use findall)
  - mac terminal window wrapper (applescript?)
  -  URL handling
  -    recognize URLs and highlight in qtail
- -    open URLS (other than File:// which should already work)
+ -    open URLs (other than File:// which should already work)
  -    send URLs to external app(s?) (xdg-open ?)
  - Rename button dock? --> beware renaming first dock
 
@@ -108,6 +108,9 @@ d* SETTING: delay after first data before initial window resize
      new dockable mainwindow
      shared toolbars?
 
+ - abandoned features
+  x  qtail: status icon in title bar?
+  x  disown all subprocesses (default on exit?)
 
  - completed features
 D* small output window
@@ -338,7 +341,6 @@ Do     find next
  o       buttons: next prev hilight/unhilight
  *       regex / glob / plain ?
  *       ignore case
- x       mark scrollbar with finds (set color for multiple finds?)
  *       save search & color as preset
  x       trigger sets of presets based on command name
  x       run command on current selection?
@@ -461,7 +463,7 @@ Do   (feature) name completion
      key bindings for builtin functions
 
 
-   questional built in commands -- or gui eqivs
+   questionable built in commands -- or gui eqivs
  *   set / shopt / unset
  n   hash / type --> performance needed??
  *   jobs history --> pop up window?
@@ -567,6 +569,7 @@ D*       term -> "xterm -e" or "gnome-terminal --"
 
  -Unsupported by Qt
  x move qtail and qtable to threads: can't have subthreads with GUI access
+   ^^ might be possible in wayland or Qt6?
 
 -completed misc. features
  * table parsing in qtail
@@ -740,4 +743,4 @@ v11.2
 v11.3 
  * tableview: add show column to context menu
  * tableview: context menu on headers works too now
- x find all: regex groups
+

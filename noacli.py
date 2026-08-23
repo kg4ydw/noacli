@@ -19,9 +19,9 @@ from functools import partial
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
-from PyQt6.QtGui import QTextCursor, QKeySequence, QTextOption, QClipboard, QFont, QAction, QShortcut, QActionGroup
+from PyQt6.QtGui import QTextCursor, QKeySequence, QTextOption, QClipboard, QFont, QAction, QShortcut, QActionGroup, QAction
 #from PyQt6.QtWidgets import *
-from PyQt6.QtWidgets import QMenu, QStyledItemDelegate, QTableView, QErrorMessage, QAbstractItemView, QLineEdit, QFileDialog, QMessageBox, QPlainTextEdit, QWidgetAction, QApplication, QFontDialog
+from PyQt6.QtWidgets import QMenu, QStyledItemDelegate, QTableView, QErrorMessage, QAbstractItemView, QLineEdit, QFileDialog, QMessageBox, QPlainTextEdit, QWidgetAction, QApplication, QFontDialog, QInputDialog
 from PyQt6.QtCore import QModelIndex, QPersistentModelIndex, QSettings, QProcess
 
 from lib.noacli_ui import Ui_noacli
@@ -37,7 +37,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.0.3'
+__version__ = '2.0.4 alpha'
 
 
 # Some settings have been moved to relevant modules
@@ -421,6 +421,7 @@ class historyView(QTableView):
 
 # thanks to https://stackoverflow.com/questions/18475870/qt-menu-with-qlinedit-action (gct)
 # insert this into a menu
+# this crashes the MacOS menubar, oops
 class menuLineEdit(QLineEdit):
     # note: use placeholder instead of contents!
     def __init__(self, parent, placeholder):
@@ -558,12 +559,19 @@ class noacli(QtWidgets.QMainWindow):
             self.myRestoreGeometry()
         ## fix up the menu
         m = ui.menuSettings
-        # Add a lineEdit to create new profiles
-        le = menuLineEdit(m, "(New geometry profile)")
-        le.returnPressed.connect(lambda: self.mySaveGeometry(le.textAndClear()))
-        wa = QWidgetAction(m)
-        wa.setDefaultWidget(le)
-        m.addAction(wa)
+        if False:  # XXX test for MacOS or SETTING
+            # Add a lineEdit to create new profiles: MacOS hates this
+            # this might be too clever for its own good XXX
+            le = menuLineEdit(m, "(New geometry profile)")
+            le.returnPressed.connect(lambda: self.mySaveGeometry(le.wa()))
+            textAndClear = QWidgetAction(m)
+            wa.setDefaultWidget(le)
+            m.addAction(wa)
+        else:
+            # this works well enough
+            newprofile = QAction("New profile", m)
+            newprofile.triggered.connect(self.newProfile)
+            m.addAction(newprofile)
         # browse QSettings to add a list of profiles
         qs = QSettings()
         qs.beginGroup('Geometry')
@@ -609,6 +617,11 @@ class noacli(QtWidgets.QMainWindow):
         #    pass
 
     ## end __init__
+
+    def newProfile(self):
+        name, ok = QInputDialog.getText(self, "New profile", "Enter new profile name:")
+        if ok and name:
+            self.mySaveGeometry(name)
 
     def jobsChanged(self, idx, first, last):
         # receive jobs(model).rows{Inserted,Removed}
