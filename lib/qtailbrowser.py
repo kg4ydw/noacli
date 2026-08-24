@@ -7,7 +7,7 @@ __copyright__ = '2022, 2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 import re
 from functools import partial
 
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import pyqtSignal, QPoint
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QTextBrowser, QFontDialog
 from PyQt6.QtGui import QTextCursor
@@ -17,6 +17,7 @@ class myBrowser(QTextBrowser):
     # context menu actions
     saveHighlight = pyqtSignal()
     clearHighlights = pyqtSignal()
+    findPreviousHilights = pyqtSignal(QPoint)
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -31,6 +32,7 @@ class myBrowser(QTextBrowser):
         else:
             m.addAction("Convert to table",self.allToTable)
         m.addAction("Clear highlights", self.clearHighlights.emit)
+        m.addAction("Find previous highlights", lambda: self.findPreviousHilights.emit(event.pos()))
         if self.ui.followCheck.isChecked():
             m.addAction("stop following tail",self.contextFollowToggle)
         else:

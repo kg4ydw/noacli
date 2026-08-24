@@ -191,7 +191,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.disableAdjustSize = True  # too expensive for huge text
             self.ui.actionAdjust.setEnabled(False)
         self.textbody.cursorPositionChanged.connect(self.findSelection)
-
+        self.textbody.findPreviousHilights.connect(self.findPreviousSelection)
         ## build the Mode menu because QtDesigner can't do it
         m = self.ui.menuMode
 
@@ -953,6 +953,15 @@ class QtTail(QtWidgets.QMainWindow):
         for dock in self.findChildren(QtWidgets.QDockWidget):
             if hasattr(dock, 'findSelection'): # duck type
                 dock.findSelection(cursor)
+
+    def findPreviousSelection(self, pos):
+        cursor = self.textbody.cursorForPosition(pos)
+        # should this just get the current visible docks?
+        for dock in self.findChildren(QtWidgets.QDockWidget):
+            if hasattr(dock, 'findLastSelectionBefore'): # duck type
+                dock.findLastSelectionBefore(cursor)
+        # restore cursor position in case it was moved
+        self.textbody.setTextCursor(cursor)
 
     def extraSelectionsToDock(self):
         if not self.highlightDock:

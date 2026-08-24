@@ -166,11 +166,29 @@ class searchDock(QDockWidget):
             c2 = ic.position()
             if c1>c2:
                 (c1,c2) = (c2,c1)
-            if c1<=pos and pos<=c2:
+            if c1<=pos<=c2:
                 self.ui.tableView.setCurrentIndex(index)
                 self.ui.tableView.scrollTo(index.siblingAtColumn(self.favcol))
                 return
         # not found
+
+    def findLastSelectionBefore(self, cursor):
+        pos = cursor.position()
+        found = None
+        if self.model:
+            found = self.model[0]
+        for index in self.model:
+            ic = self.model.getItem(index).cursor
+            c1 = ic.anchor()
+            c2 = ic.position()
+            if c1>c2:
+                (c1,c2) = (c2,c1)
+            if c1> pos: break
+            found = index
+        if found:
+            self.ui.tableView.setCurrentIndex(found)
+            self.ui.tableView.scrollTo(found.siblingAtColumn(self.favcol))
+        # restore position?
 
     def setSel(self, extraSelections):
         self.model.setSel(extraSelections)
