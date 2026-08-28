@@ -158,8 +158,11 @@ Qtail supports the following options:
 `--url`  
     Treat filename as a URL, autodetect format.  Note: doesn't work with remote urls
 
-`--autorefresh`  or `--autorefresh=seconds`  
+`--autorefresh`  or `--autorefresh=seconds`  (or `--auto`)
     Enable autorefresh (default = 30 seconds); only works on files outside noacli; in noacli,  commands will rerun like "watch"
+
+`--delay=seconds` (default=3)
+    Delay between first chunk of read data and automatic resize attempt
 
 `--watch`  
    Check the 'watch' checkbox which adjusts the default button action

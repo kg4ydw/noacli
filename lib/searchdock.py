@@ -15,6 +15,7 @@ from lib.searchdock_ui import Ui_searchDock
 from lib.datamodels import itemListModel
 
 from lib.colorpicker import ColorPicker
+from bisect import bisect_left
 
 colorpicker = ColorPicker()
 
@@ -124,7 +125,8 @@ class searchDock(QDockWidget):
         self.findflags = findflags
 
         # stuff this in a corner of the parent QMainWindow
-        parent.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self)
+        parent.addSearchDock(self)
+
         # XX alternate: check parent for existing docks, and add this as a tab SETTINGS
         # XX alternate: check parent for existing docks and shrink them vertically after inserting ourselves
         global colorpicker
@@ -159,6 +161,8 @@ class searchDock(QDockWidget):
 
     # opposite of gotoIndex
     def findSelection(self, cursor):
+        # XX could this be done with a binary search? (works as is, seems fast)
+        # could binary search on cursor.blockNumber() == self.line
         pos = cursor.position()
         for index in self.model:
             ic = self.model.getItem(index).cursor
@@ -233,3 +237,129 @@ class searchDock(QDockWidget):
             event.ignore()
         else:
             super().closeEvent(event)
+
+
+class searchDockGroup(QDockWidget):
+    # show groups from regex searches
+    # loosely duplicate searchDock but with major differences (and stuff left out)
+    def __init__(self, parent, title=None, grouphits=None, searchexp=None):
+        # XXX convert searchexp to searchterm and findflags later
+        super().__init__(parent)
+        self.ui = Ui_searchDock()
+        self.ui.setupUi(self)
+        # higlights are expensive for this, so disable it
+        self.ui.showButton.hide()
+        self.ui.hideButton.hide()
+        self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        if title:
+            self.setWindowTitle(title)
+        self.searchexp = searchexp  # XXX use these later
+        self.model = groupList(grouphits)
+        self.ui.tableView.setModel(self.model)
+        # stuff this in a corner of the parent QMainWindow
+        self.ui.tableView.resizeColumnsToContents()
+        parent.addSearchDock(self)
+        # XXXX connections to scroll on click
+        #XX not ready ## self.ui.tableView.clicked.connect(self.gotoIndex)
+        # XX highlight color picker setup
+        # XX adjust columns
+
+    #def gotoIndex(self, index):
+    #    item = self.model.getItem(index)
+    #    if item:
+    #        
+    #        # we don't have cursors, but we do have line a number and instance count
+    #        # XX maybe use instance count later -- have to rerun match on the line
+    # XXXX gotoLine needs to be implemented
+    #        self.gotoLine.emit(item[0][0])  # XXXX is this the right structure?
+
+
+    def findSelection(self, cursor, exact=True):
+        # extract block number from cursor, search for that in the data
+        line = cursor.blockNumber()
+        index = self.model.findLine(line, exact)
+        if not index: return
+        # if not exact and line doesn't match, pick the previous line XXXX BUG
+        self.ui.tableView.setCurrentIndex(index)
+        self.ui.tableView.scrollTo(index)
+
+    def findLastSelectionBefore(self, cursor):
+        self.findSelection(cursor,exact=False)
+
+    #def contextMenuEvent(self, event):
+    #  hide/show columns
+    
+class groupItem():
+    # data comes in as ((line, instance), (whole match, groups...))
+    def __init__(self, item):
+        if not item: return None
+        try:
+            self.text = item[1][0]
+        except Exception as e:
+            print(e)
+        (self.line, self.offcount) = item[0]
+        self.groups = item[1]
+        # don't bother with context, if the user wants that they should put a group for it in the regex
+
+# XXXXX unfinished group stuff
+# add clear function and call it in the ui
+# look at abstract item data model and add signals for clear / reset
+
+# this is a bit of a ducktype of selList
+class groupList(itemListModel):
+    def __init__(self, hits=None):
+        # note: can't set headers properly until first data item
+        self._cols = 1
+        if not hits:
+            super().__init__(['0'])
+        else:
+            #self.cols = len(hits[0][1])
+            super().__init__(['junk'])
+            for item in hits:
+                self.addMatch(item) # XX not the most efficent way ...
+        # XX color?
+        self.haspre = self.hasitem = self.haspost = False # not gonna use this but quack!
+
+    def addMatch(self, itemdata):
+        i=groupItem(itemdata)
+        self.appendItem(i)
+        if self._cols<2:
+            # first inserted row?
+            self.beginResetModel()
+            self._cols  = len(i.groups) # XXXXX cols changed signal?
+            self.endResetModel()
+
+    def headerData(self, col, orientation, role):
+        if self.isEmpty(): return None
+        if role == Qt.ItemDataRole.DisplayRole:
+            # horizontal numeric headers
+            if orientation == Qt.Orientation.Horizontal and col<self._cols:
+                return str(col)
+            elif orientation == Qt.Orientation.Vertical and col<len(self._data):
+                # pull line number from item XX and offcount?
+                return str(self._data[col].line)
+        return None
+
+    def columnCount(self, parent):
+        return self._cols
+
+    def data(self, index, role):
+        # validate
+        if role != Qt.ItemDataRole.DisplayRole: return None
+        item = self.getItem(index)
+        if not item: return None
+        col = index.column()
+        if col> len(item.groups): return None
+        # all group columns should be strings already
+        return item.groups[col]
+
+    def findLine(self, line, exact=False):
+        i = bisect_left(self._data, line, key=lambda d: d.line)
+        if exact and self._data[i].line != line:
+            return None
+        return self.index(i,0)
+
+    # implement fetchmore if an iterator is used
+    #def fetchMore(self, parent):
+    #def canFetchMore(): --> True/False
+

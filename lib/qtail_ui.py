@@ -122,6 +122,8 @@ class Ui_QtTail(object):
         self.actionShowClosedSearches = QtGui.QAction(parent=QtTail)
         self.actionShowClosedSearches.setVisible(False)
         self.actionShowClosedSearches.setObjectName("actionShowClosedSearches")
+        self.actionFind_all_groups = QtGui.QAction(parent=QtTail)
+        self.actionFind_all_groups.setObjectName("actionFind_all_groups")
         self.menuView.addAction(self.actionShowToolbar)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionAdjust)
@@ -142,6 +144,7 @@ class Ui_QtTail(object):
         self.menuSearch.addAction(self.actionFind_all)
         self.menuSearch.addAction(self.actionDeleteClosedSearches)
         self.menuSearch.addAction(self.actionShowClosedSearches)
+        self.menuSearch.addAction(self.actionFind_all_groups)
         self.menubar.addAction(self.menuView.menuAction())
         self.menubar.addAction(self.menuMode.menuAction())
         self.menubar.addAction(self.menuSearch.menuAction())
@@ -166,6 +169,7 @@ class Ui_QtTail(object):
         self.actionShowToolbar.triggered['bool'].connect(self.toolBar_2.setVisible) # type: ignore
         self.actionDeleteClosedSearches.triggered.connect(QtTail.deleteClosedSearches) # type: ignore
         self.actionShowClosedSearches.triggered.connect(QtTail.showClosedSearches) # type: ignore
+        self.actionFind_all_groups.triggered.connect(QtTail.findAllGroup) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
@@ -200,4 +204,5 @@ class Ui_QtTail(object):
         self.actionFind_all.setText(_translate("QtTail", "Find all"))
         self.actionDeleteClosedSearches.setText(_translate("QtTail", "Delete closed searches"))
         self.actionShowClosedSearches.setText(_translate("QtTail", "Show and tabify all searches"))
+        self.actionFind_all_groups.setText(_translate("QtTail", "Find all groups"))
 from lib.qtailbrowser import myBrowser

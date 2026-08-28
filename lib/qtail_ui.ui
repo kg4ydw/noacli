@@ -131,6 +131,7 @@
     <addaction name="actionFind_all"/>
     <addaction name="actionDeleteClosedSearches"/>
     <addaction name="actionShowClosedSearches"/>
+    <addaction name="actionFind_all_groups"/>
    </widget>
    <addaction name="menuView"/>
    <addaction name="menuMode"/>
@@ -295,6 +296,11 @@
     <bool>false</bool>
    </property>
   </action>
+  <action name="actionFind_all_groups">
+   <property name="text">
+    <string>Find all groups</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -447,8 +453,8 @@
    <slot>simpleFindNew(QString)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>228</x>
-     <y>33</y>
+     <x>464</x>
+     <y>57</y>
     </hint>
     <hint type="destinationlabel">
      <x>231</x>
@@ -463,8 +469,8 @@
    <slot>simpleFind2()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>386</x>
-     <y>28</y>
+     <x>622</x>
+     <y>57</y>
     </hint>
     <hint type="destinationlabel">
      <x>397</x>
@@ -483,8 +489,8 @@
      <y>35</y>
     </hint>
     <hint type="destinationlabel">
-     <x>43</x>
-     <y>57</y>
+     <x>52</x>
+     <y>121</y>
     </hint>
    </hints>
   </connection>
@@ -616,6 +622,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionFind_all_groups</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>findAllGroup()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>468</x>
+     <y>44</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>simpleFind(QString)</slot>
@@ -636,5 +658,6 @@
   <slot>saveHighlight()</slot>
   <slot>deleteClosedSearches()</slot>
   <slot>showClosedSearches()</slot>
+  <slot>findAllGroup()</slot>
  </slots>
 </ui>

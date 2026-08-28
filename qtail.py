@@ -20,14 +20,15 @@ from math import ceil
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtGui import QTextCursor, QFont, QTextDocument, QActionGroup, QShortcut
-from PyQt6.QtWidgets import QTextEdit, QSizePolicy, QLineEdit,  QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle
+from PyQt6.QtWidgets import QTextEdit, QSizePolicy, QLineEdit,  QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle, QDockWidget
 from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt6.QtCore import Qt, pyqtSignal
+#from PyQt6.QtCore import QRegularExpression
 
 from lib.qtail_ui import Ui_QtTail
 from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
-from lib.searchdock import searchDock
+from lib.searchdock import searchDock, searchDockGroup
 
 # XXX some options not implemented yet
 # XXX no option editor for stand alone qtail
@@ -60,7 +61,7 @@ class softArgumentParser(argparse.ArgumentParser):
             super().exit(status,message)
         elif status:
             print(message)           # EXCEPT
-            raise Exception(message)  # XXX need to test error handling
+            raise Exception(message)  # XX need to test error handling
         #else: print('status={} message={}'.format(status,message)) #DEBUG
 
 
@@ -95,7 +96,7 @@ class myOptions():
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true')  # set in start()
         parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='autorefresh', const=0, help='Enable autorefresh and (optionally) set refresh interval')
-        parser.add_argument('--delay', nargs=1, type=int, metavar='delay', default=self.delay, help='Seconds to delay before automatic resize')
+        parser.add_argument('--delay', type=int, metavar='delay', default=self.delay, help='Seconds to delay before automatic resize')
         parser.add_argument('--watch', action='store_true', help='Enable watch')
         parser.add_argument('--findall', help='Search for a regular expression at start', type=str, default=None, metavar='regex')
         parser.add_argument('--font','-F', help='Select font from list (1,2) or set font by name', type=str, default=None, metavar='font')
@@ -140,8 +141,8 @@ class myOptions():
             elif args.format in ('ansi', 'a'): self.format='a'
             else: self.format=None
         if args.url: self.url = True
-        if args.delay and args.delay[0]>3:
-            self.delay = args.delay[0]
+        if args.delay and args.delay>3:
+            self.delay = args.delay
 
         #unsed?# if args.font: self.font = args.font
 
@@ -337,7 +338,7 @@ class QtTail(QtWidgets.QMainWindow):
     def reloadOrRerun(self):
         # XX reset and restart timer if this was user triggered?
         self.firstRead = False  # don't trigger resize if button pushed
-        # XXX on reload maybe cancel resize timer too?
+        # XX on reload maybe cancel resize timer too?
         if isinstance(self.file, QProcess):
             #print("proc state="+str(self.file.state())) # DEBUG
             if self.file.state()==QProcess.ProcessState.Running:  # it's taking a long time
@@ -375,7 +376,7 @@ class QtTail(QtWidgets.QMainWindow):
                 e.cursor = start  # in case selection changed
             else:                 # make a new one
                 es = QTextEdit.ExtraSelection()
-                es.format.setBackground(QtGui.QBrush(Qt.GlobalColor.yellow))  # SETTING XXX
+                es.format.setBackground(QtGui.QBrush(Qt.GlobalColor.yellow))  # SETTING XX
                 es.cursor = start
                 ess.append(es)
                 self.textbody.setExtraSelections(ess)
@@ -397,7 +398,7 @@ class QtTail(QtWidgets.QMainWindow):
         if searchterm:
             success = self.textbody.find(searchterm, findflags)
         else:
-            # XXX warn error
+            # XX warn error
             return
         if success:
             self.findcount += 1
@@ -473,7 +474,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.want_read_more.emit('more')
         if self.firstRead and (self.eof>2 or e.position()>200 or self.textbody.document().blockCount()>10):  # SETTING threshold
             # if never resized, resize at eof or 200 bytes or 10 lines
-            # XXX but maybe not if there's more to read immediately??
+            # XX but maybe not if there's more to read immediately??
             self.firstRead=False
             self.actionAdjust()
             rdelay = 0
@@ -489,7 +490,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     # @QtCore.pyqtSlot(QSocketDescriptor, QsocketNotifier.Type)
     def socketActivated(self, socket):
-        # XXX detect eof here???
+        # XX detect eof here???
         self.readtext('socket')
 
     def start(self):
@@ -531,7 +532,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def triggerFindAll(self, url):
         d= self.findAll(self.opt.argparse.findall)
-        # don't trigger more than once
+        # don't trigger more than once when command line is reprocessed
         if self.findallConnection: self.disconnect(self.findallConnection)
         self.findallConnection = None
 
@@ -551,7 +552,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.opt.processOptions(None,args)
         except argparse.ArgumentError as e:
             #print(repr(e)) # DEBUG
-            msg = format("--{}: {}".format(e.args[0].dest, e.args[1]))
+            msg = format("{}: {}".format(e.args[0].dest, e.args[1]))
         except Exception as e:
             msg = str(e)
         finally:
@@ -585,7 +586,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.ui.textBrowser.setSource(QtCore.QUrl(filename))
             self.setButtonMode()
             return
-        # XXX assume tail mode
+        # XX assume tail mode
         f = QtCore.QFile(filename)
         if not f.open(QtCore.QFile.OpenModeFlag.ReadOnly):
             err = 'Open failed on {}: {}'.format(filename,f.errorString())
@@ -618,7 +619,7 @@ class QtTail(QtWidgets.QMainWindow):
         # not using with because we need to clean up ourself too
         try:
             f = open(filename) # pylint: disable=R1732
-            # XXX set filename and flag as markdown?
+            # XX set filename and flag as markdown?
             text = f.read()
         except OSError:
             self.close()
@@ -652,7 +653,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.socketconnection = n.activated.connect(self.socketActivated)
         self.errnotifier = QSocketNotifier(sys.stdin.fileno(), QSocketNotifier.Exception, self)
 
-        self.opt.file = False  # XXX sometimes this might be a file
+        self.opt.file = False  # XX sometimes this might be a file
         #if typedQSettings().value('DEBUG',False):print("stdin") # DEBUG
         #self.reload();  # socket notifier makes this redundant
 
@@ -790,7 +791,7 @@ class QtTail(QtWidgets.QMainWindow):
         if self.file and self.opt.file:
             # back up 1M if we can (default)
             tailoff = self.opt.tailFrag
-            # XXX whole is slow and eats memory if the file is too big!
+            # XX whole is slow and eats memory if the file is too big!
             if not self.opt.whole:
                 p = self.file.size()
             if not self.opt.whole and p > tailoff:
@@ -841,7 +842,7 @@ class QtTail(QtWidgets.QMainWindow):
     ### menu action slots
     @QtCore.pyqtSlot()
     def actionAdjust(self):
-        DEBUG= typedQSettings().value('DEBUG',False) # XXX
+        DEBUG= typedQSettings().value('DEBUG',False)
         doc = self.textbody.document()
         docrect = doc.size() # QsizeF
         rect= self.size()
@@ -856,7 +857,7 @@ class QtTail(QtWidgets.QMainWindow):
             interval = time.time()-start
             blocks = doc.blockCount()
             #print('adjustSize took {}s for {} blocks'.format(interval, blocks)) # DEBUG
-            if interval > 0.5 or blocks>100:  # SETTING time and maxline threshold for resize
+            if interval > 0.5 or blocks>1000:  # SETTING time and maxline threshold for resize
                 # don't need to do this again if we have enough samples
                 # or if it took too long this time
                 self.disableAdjustSize=True
@@ -944,7 +945,6 @@ class QtTail(QtWidgets.QMainWindow):
         dock.hideSel.connect(self.removeSelections)
         dock.gotoSel.connect(self.textbody.setTextCursor) # XX make visible instead?
         self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), title), -1) # maybe dock should do this directly so it can be seen after start
-        self.want_resize.emit()
         return dock
 
     def findSelection(self):
@@ -1010,14 +1010,70 @@ class QtTail(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.processEvents() # for good luck
         #if typedQSettings().value('DEBUG',False):print(len(finds))
 
+    def findAllGroupIter(self, restr):
+        ## return ((line, count), (whole, groups...))
+        # use python regex instead to get groups
+        # may as well since we can't apply QRegeularExpression to QDocument
+        if not restr: return
+        # XX replace XX searchterm = buildSearch(text, self.ui)
+        regex = re.compile(restr)  # XX flags  # can throw exception!
+        # assume regex is valid or exception thrown
+        
+        block = self.textbody.document().firstBlock()
+        while block.isValid():
+            QtCore.QCoreApplication.processEvents()
+            i = 0
+            for m in regex.finditer(block.text()):
+                if m: yield ((block.blockNumber(), i), m.groups())
+                i+=1
+            block = block.next()  # Move to the next block
+
+    def findAllGroup(self, restr=None, title=None):
+        if not restr:
+            restr = self.ui.searchTerm.text()
+        if not restr: return
+        if not title: title=restr
+        QtCore.QCoreApplication.processEvents()
+        # XXX this could get built incrementally instead of all at once sometimes
+        finds = list(self.findAllGroupIter(restr))
+        # build a dock and connect it
+        dock = searchDockGroup(self, title, finds, restr)
+        self.ui.actionShowClosedSearches.setVisible(True)
+        self.ui.actionShowClosedSearches.setEnabled(True)
+        # XXX dock.gotoSel.connect(self.textbody.gotoBlockNo)
+
+    # callback from search dock creation to place the dock
+    def addSearchDock(self, dock):
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock)
+        dg = dock.geometry()
+        # find all the docks above this, and resize them all
+        docks = []
+        sizes = []
+        for odock in self.findChildren(QDockWidget):
+            # skip misplaced docks
+            if odock.isFloating(): continue
+            if odock.isHidden(): continue
+            if odock.x() != dg.x(): continue
+            # ok, got one
+            docks.append(odock)
+            sizes.append(100)  # minimum size sorta
+        if not docks or len(docks)<1:
+            # this must be the first dock
+            # XXX this doesn't resize horzontally!??
+            #QtCore.QCoreApplication.processEvents()
+            self.want_resize.emit()
+            return
+        self.resizeDocks(docks, sizes, Qt.Orientation.Vertical)
+          
+
 ##### end QtTail end
 
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
     # display
-    QtCore.QCoreApplication.setOrganizationName("kg4ydw")
-    QtCore.QCoreApplication.setApplicationName("QtTail")
+    app.setOrganizationName("kg4ydw")
+    app.setApplicationName("QtTail")
 
     options = myOptions()
     args = options.processOptions(app)

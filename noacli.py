@@ -37,7 +37,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.1'
+__version__ = '2.2 alpha'
 
 
 # Some settings have been moved to relevant modules
@@ -1468,8 +1468,8 @@ class commandEditor(QPlainTextEdit):
 
 if __name__ == '__main__':
     app = QtWidgets.QApplication(sys.argv)
-    QtCore.QCoreApplication.setOrganizationName("kg4ydw")
-    QtCore.QCoreApplication.setApplicationName("noacli")
+    app.setOrganizationName("kg4ydw")
+    app.setApplicationName("noacli")
     app.setDesktopFileName("org.kg4ydw.noacli")
     # XX process noacli command line args (do to what?)
 
