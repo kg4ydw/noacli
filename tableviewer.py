@@ -649,6 +649,7 @@ class TableViewer(QtWidgets.QMainWindow):
         maxx=0
         while self.skiplines>0:
             if csvfile.canReadLine():
+                # XXXX stuff line into small output window?
                 next(csvfile)
                 self.skiplines -= 1
             else:

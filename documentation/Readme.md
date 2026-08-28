@@ -14,14 +14,13 @@ There's more stuff discoverable in the shell via tool tips, pull down menus, and
 This uses Python and Qt, which are dependencies.  To install these:
 
 Mac: (pick one)
-* sudo pip3 install PyQt5
-* pip3 install --user PyQt5
+* sudo pip3 install PyQt6
+* pip3 install --user PyQt6
 
 Ubuntu:
-* sudo apt install python3-pyqt5
+* sudo apt install python3-pyqt6
 
-This has been tested with Python 3.8 - 3.10 and Qt 5.12 - 5.15.
-(Note: Qt before 5.13 will be missing some functionality.)
+This has been tested with Python 3.8, 3.11 and Qt 6.4, 6.11
 
 # = Philosophy
 

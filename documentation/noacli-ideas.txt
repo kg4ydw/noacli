@@ -16,6 +16,19 @@ V  documented in a video
 v  documented in a future video
 t  documented internally with tool tip
 
+  Bugs 
+    new group search is undocumented
+    find previous highlights feature is not documented
+    group search dock line number bugs
+    group search dock document tracking might not be right
+    autoersize width on new dock works and then reverts!?
+
+    Group search dock not fully implemented:
+      clicking in search dock should scroll document
+      highlights?
+      resize columns on doubleclick
+      hide/show columns
+
  -Things to implement soon:
  ! track highlight: update searchdocs to highlight before cursor (context)
  ? Implement settings modules
@@ -120,24 +133,22 @@ Dx tail --format=html needs to read the whole text at once
    QTextBrowser.searchPaths() to help find internal docs
  ? Bug: reload doesn't work on --file
    Bug: --format=md doesn't work on pipes? need to read all
-   qtail: autodetect format
-      start with <?xml --> html (or xml? check DOCTYPE line?)
-      start with \e[ -> ansi
+ *   work around for format=md,html: convert from context menu after loading
    preliminary ansi support
+      should be easy to directly implement in Qt text changes directly
       set ansi flag or input hook
       translate known ansi codes
       log untranslated ansi codes and request bug filing
       regex "\033[(\d*)m"
-      30-36: span style="color: \e -> \033
+      30-36: 
        0: reset to default format
-       1: style="font-weight: bold;
+       1:  bold
        31: red
        32: green 
        36: teal (cyan?)
-   add ansi format option to qtail (via aha type translation)
-   autodetect formats? html ansi
    disable word wrap on line threshold?
  * on -w disable: word wrap, adjust size (prevent wordwrap hangs)
+ ! test word wrap performance in Qt6
    qtail search dock: update search results if file grows (manual update?)
    qtail search dock: save regex groups as extra columns?
    qtail search dock: use regex groups? instead of context?
@@ -209,11 +220,6 @@ DE    should warn on duplicate names? (color?)
 
  -Bugs:
  ! refactor flowlayout to separate Qt code and noacli code (inherit)
- o file dialog is modal and can get lost
- *   set always on top? (partial fix)
- !   make this a setting / change default on version?
-   version 0.9.9.8s gives exception importing wrappers from previous version
-      convince QSettings to use enum.name for enum OutWin
    simpleargs processing in noajobs.py
  !   called in multiple places (refactor?)
      return value not checked for errors

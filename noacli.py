@@ -873,16 +873,13 @@ class noacli(QtWidgets.QMainWindow):
             iswayland = app.platformName().startswith("wayland")  # XXX only do this in wayland
             job.windowOpen = True
             if iswayland:
-                #XXX need to move to qt6 and use xdg-activation tokens
-                #XX close and reopen the window get attention
+                #XXX need to move to qt6 and use xdg-activation tokens?
+                # close and reopen the window get attention
+                # works better than just show if the window is actually lost
                 #job.window.hide()  # XXXX make this an option or a tripple click?
                 QApplication.processEvents()
-                #XX maybe this works in qt6?
+                # this mostly works in qt6?
                 job.window.setWindowState(job.window.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
-                # XX didn't work in qt5/wayland
-                #QApplication.alert(job.window,5000)
-                #QApplication.processEvents()
-                #QTimer.singleShot(5000,self.demand_attention)
             job.window.show()
             QApplication.processEvents()
             job.window.activateWindow()
@@ -891,7 +888,6 @@ class noacli(QtWidgets.QMainWindow):
             job.window.raise_()
             # XXX could also try input_field.setfocus()
             if not iswayland:
-                #job.window.activateWindow()  # this works in qt6 but not wayland qt5
                 # also try moving the mouse to the window
                 QtGui.QCursor().setPos(job.window.pos()+QtCore.QPoint(100,100))
 
