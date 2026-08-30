@@ -10,6 +10,10 @@ all: $(UI)
 	pyuic6 -o $@ $<
 	sed -i 's/QMainWindow\.\(Allow\|Animated\|Grouped\|AllowNestedDocks\)/QMainWindow.DockOption.\1/g' $@
 
+macos: dist
+dist:
+	pyinstaller --windowed --name=noacli noacli.py
+
 noacli.tgz: $(DISTFILES)
 	rm -f noacli.tgz
 	tar czvf noacli.tgz $(DISTFILES)

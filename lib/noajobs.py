@@ -117,6 +117,8 @@ class jobItem():
         self.windowTitle = title
         if self.window:
             self.window.setWindowTitle(title)
+            # XX note: wayland may not update immeidately without activateWindow or sendEvent(QEvent.windowStateChange)
+            # or this could be a Qt 6.4 bug
             if self.index:
                 # QPersistentIndex doesn't have sibling
                 i = self.index.model().index(self.index.row(),3)

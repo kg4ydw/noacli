@@ -1028,6 +1028,14 @@ class QtTail(QtWidgets.QMainWindow):
                 i+=1
             block = block.next()  # Move to the next block
 
+    def gotoLineNumber(self, line):
+        # build a cursor for the target line number
+        block = self.textbody.document().findBlockByNumber(line)
+        if not block: return
+        cursor = self.textbody.textCursor()
+        cursor.setPosition(block.position())
+        self.textbody.setTextCursor(cursor)
+
     def findAllGroup(self, restr=None, title=None):
         if not restr:
             restr = self.ui.searchTerm.text()
@@ -1040,7 +1048,7 @@ class QtTail(QtWidgets.QMainWindow):
         dock = searchDockGroup(self, title, finds, restr)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
-        # XXX dock.gotoSel.connect(self.textbody.gotoBlockNo)
+        dock.gotoLine.connect(self.gotoLineNumber)
 
     # callback from search dock creation to place the dock
     def addSearchDock(self, dock):

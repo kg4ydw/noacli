@@ -241,7 +241,9 @@ class searchDock(QDockWidget):
 
 class searchDockGroup(QDockWidget):
     # show groups from regex searches
-    # loosely duplicate searchDock but with major differences (and stuff left out)
+    # loosely duplicate searchDock but with major differences (and stuff left out
+    gotoLine = pyqtSignal(int)
+    
     def __init__(self, parent, title=None, grouphits=None, searchexp=None):
         # XXX convert searchexp to searchterm and findflags later
         super().__init__(parent)
@@ -259,20 +261,14 @@ class searchDockGroup(QDockWidget):
         # stuff this in a corner of the parent QMainWindow
         self.ui.tableView.resizeColumnsToContents()
         parent.addSearchDock(self)
-        # XXXX connections to scroll on click
-        #XX not ready ## self.ui.tableView.clicked.connect(self.gotoIndex)
+        self.ui.tableView.clicked.connect(self.gotoIndex)
         # XX highlight color picker setup
         # XX adjust columns
 
-    #def gotoIndex(self, index):
-    #    item = self.model.getItem(index)
-    #    if item:
-    #        
-    #        # we don't have cursors, but we do have line a number and instance count
-    #        # XX maybe use instance count later -- have to rerun match on the line
-    # XXXX gotoLine needs to be implemented
-    #        self.gotoLine.emit(item[0][0])  # XXXX is this the right structure?
-
+    def gotoIndex(self, index):
+        item = self.model.getItem(index)
+        if item:
+            self.gotoLine.emit(item.line)
 
     def findSelection(self, cursor, exact=True):
         # extract block number from cursor, search for that in the data
@@ -337,7 +333,9 @@ class groupList(itemListModel):
                 return str(col)
             elif orientation == Qt.Orientation.Vertical and col<len(self._data):
                 # pull line number from item XX and offcount?
-                return str(self._data[col].line)
+                return str(self._data[col].line+1)
+            else:
+                return super().headerData(col, orientation, role)
         return None
 
     def columnCount(self, parent):
@@ -355,8 +353,13 @@ class groupList(itemListModel):
 
     def findLine(self, line, exact=False):
         i = bisect_left(self._data, line, key=lambda d: d.line)
-        if exact and self._data[i].line != line:
-            return None
+        if not 0 <= i < len(self._data):
+            return None # XXX
+        if self._data[i].line != line:
+            if exact:
+                return None
+            elif i>0:
+                i -=1  # bisect_left returns the next value not prev
         return self.index(i,0)
 
     # implement fetchmore if an iterator is used

@@ -37,7 +37,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.2 alpha'
+__version__ = '2.2'
 
 
 # Some settings have been moved to relevant modules
@@ -636,6 +636,8 @@ class noacli(QtWidgets.QMainWindow):
 
     def setTitleFromWrap(self, title):
         self.setWindowTitle('noacli: '+title)
+        # XX note: wayland may not update immeidately without activateWindow or sendEvent(QEvent.windowStateChange)
+        # or this could be a Qt 6.4 bug
 
     ## small output UI actions
     def rebuttonKill(self, label, slot, enab=True):

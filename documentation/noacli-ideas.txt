@@ -19,12 +19,9 @@ t  documented internally with tool tip
   Bugs 
     new group search is undocumented
     find previous highlights feature is not documented
-    group search dock line number bugs
-    group search dock document tracking might not be right
     autoersize width on new dock works and then reverts!?
 
     Group search dock not fully implemented:
-      clicking in search dock should scroll document
       highlights?
       resize columns on doubleclick
       hide/show columns
@@ -49,7 +46,7 @@ Dx tail --format=html needs to read the whole text at once
      then clipboard
      setting to turn each of these on or off (and set order?)
  ? redo font mapping
- ? fonts for every noacli UI
+ ! fonts for every noacli UI
      main window
      button window
      edit window
