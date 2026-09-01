@@ -19,7 +19,7 @@ from functools import partial
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
-from PyQt6.QtGui import QTextCursor, QKeySequence, QTextOption, QClipboard, QFont, QAction, QShortcut, QActionGroup, QAction
+from PyQt6.QtGui import QTextCursor, QKeySequence, QTextOption, QClipboard, QFont, QAction, QShortcut, QActionGroup
 #from PyQt6.QtWidgets import *
 from PyQt6.QtWidgets import QMenu, QStyledItemDelegate, QTableView, QErrorMessage, QAbstractItemView, QLineEdit, QFileDialog, QMessageBox, QPlainTextEdit, QWidgetAction, QApplication, QFontDialog, QInputDialog
 from PyQt6.QtCore import QModelIndex, QPersistentModelIndex, QSettings, QProcess
@@ -37,7 +37,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.2'
+__version__ = '2.2.1'
 
 
 # Some settings have been moved to relevant modules
@@ -576,6 +576,7 @@ class noacli(QtWidgets.QMainWindow):
         qs = QSettings()
         qs.beginGroup('Geometry')
         g = qs.childGroups()
+        # XXX if there are too many profiles, make this a submenu?
         #print('Profiles: '+str(g)) # DEBUG
         gm = QActionGroup(m)
         self.ui.profileMenuGroup = gm

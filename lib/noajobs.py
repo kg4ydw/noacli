@@ -429,7 +429,7 @@ class History(itemListModel):
         if role==Qt.ItemDataRole.BackgroundRole and col==0:
             st = item.status
             if st is None: return QBrush(Qt.GlobalColor.gray)
-            if st==0 or st=='F0:0':
+            if st in (0,  'F0:0', '0:NormalExit'):
                 return QBrush(Qt.GlobalColor.green)
             elif isinstance(st,str) and len(st)>1:
                 if st[1]=='1': return QBrush(Qt.GlobalColor.red)  # XX or any number?
@@ -501,7 +501,7 @@ class History(itemListModel):
             self.removeRows(0,d,QModelIndex())
 
     def getCommand(self, index):
-        if not self.validateIndex(index): return
+        if not self.validateIndex(index): return None
         return self.data[index.row()].command
 
     def setStatus(self, index, status):

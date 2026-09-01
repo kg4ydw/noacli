@@ -179,6 +179,7 @@ class itemListModel(QAbstractTableModel):
     def __init__(self, headers):
         QAbstractTableModel.__init__(self)
         self.data = [ ]
+        self._data = self.data  # XXXX
         self.headers = headers
 
     # make this iterable
@@ -222,6 +223,13 @@ class itemListModel(QAbstractTableModel):
         if not self.validateIndex(index): return None
         return self.data[index.row()]
 
+    def setItem(self, index, item):
+        if not self.validateIndex(index): return False
+        row = index.row()
+        self._data[row] = item
+        self.dataChanged.emit(self.index(row, 0), self.index(row, self.columnCount()-1, None))
+        return True
+
     # most added items are added at the end...
     def appendItem(self, item):
         lastrow = len(self.data)
@@ -256,6 +264,7 @@ class itemListModel(QAbstractTableModel):
         self.endRemoveRows()
         return True
 
+    # def clearAllDAta:  don't do this, just drop and recreate the model
 
 class settingsDataModel(simpleTable):
     def __init__(self, docdict, data, typedata=None):

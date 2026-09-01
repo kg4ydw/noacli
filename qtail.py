@@ -531,7 +531,7 @@ class QtTail(QtWidgets.QMainWindow):
                     # else: silently fail
 
     def triggerFindAll(self, url):
-        d= self.findAll(self.opt.argparse.findall)
+        self.findAll(self.opt.argparse.findall)
         # don't trigger more than once when command line is reprocessed
         if self.findallConnection: self.disconnect(self.findallConnection)
         self.findallConnection = None
@@ -1024,7 +1024,7 @@ class QtTail(QtWidgets.QMainWindow):
             QtCore.QCoreApplication.processEvents()
             i = 0
             for m in regex.finditer(block.text()):
-                if m: yield ((block.blockNumber(), i), m.groups())
+                if m: yield ((block.blockNumber(), i), (m.group(0), *m.groups()))
                 i+=1
             block = block.next()  # Move to the next block
 
