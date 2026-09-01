@@ -19,8 +19,8 @@ from functools import partial
 from math import ceil
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtGui import QTextCursor, QFont, QTextDocument, QActionGroup, QShortcut
-from PyQt6.QtWidgets import QTextEdit, QSizePolicy, QLineEdit,  QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle, QDockWidget
+from PyQt6.QtGui import QTextCursor, QFont, QTextDocument, QActionGroup, QShortcut, QAction
+from PyQt6.QtWidgets import QTextEdit, QSizePolicy, QLineEdit,  QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle, QDockWidget, QInputDialog
 from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt6.QtCore import Qt, pyqtSignal
 #from PyQt6.QtCore import QRegularExpression
@@ -195,20 +195,24 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody.findPreviousHilights.connect(self.findPreviousSelection)
         ## build the Mode menu because QtDesigner can't do it
         m = self.ui.menuMode
-
-        line = QSpinBox(m)  # or double?
-        line.setMaximum(86400)
-        line.setSingleStep(10)  # redundant with adaptive on
-        line.setStepType(QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
-        line.setWrapping(False)  # stick at ends of range
-        line.setValue(typedQSettings().value('QTailWatchInterval',30))
-        line.setToolTip('Refresh interval')
-        line.editingFinished.connect(self.setWatchInterval)
-        line.setSuffix(' seconds')
-        self.ui.intervalLine = line
-        wa = QWidgetAction(m)
-        wa.setDefaultWidget(line)
-        m.addAction(wa)
+        if sys.platform == 'darwin':  # MacOS hates editable stuff in menus
+            a = QAction("Set refresh delay", m)
+            a.triggered.connect(self.autorefreshDialog)
+            m.addAction(a)
+        else:
+            line = QSpinBox(m)  # or double?
+            line.setMaximum(86400)
+            line.setSingleStep(10)  # redundant with adaptive on
+            line.setStepType(QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
+            line.setWrapping(False)  # stick at ends of range
+            line.setValue(typedQSettings().value('QTailWatchInterval',30))
+            line.setToolTip('Refresh interval')
+            line.editingFinished.connect(self.setWatchInterval)
+            line.setSuffix(' seconds')
+            self.ui.intervalLine = line
+            wa = QWidgetAction(m)
+            wa.setDefaultWidget(line)
+            m.addAction(wa)
         ### can't do this yet XXXX
         #if type(self.file)!=QProcess: # can't watch a non-process
         #    self.ui.actionWatch.setEnabled(False)
@@ -232,6 +236,12 @@ class QtTail(QtWidgets.QMainWindow):
         secondary = self.getFontSetting('QTailSecondaryFont')
         if secondary:
             m.addAction(secondary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, secondary))
+
+    def autorefreshDialog(self):
+        val = math.floor(self.reinterval+0.5) # could use a float dialog I guess
+        delay, ok = QInputDialog.getInt(self, "Autorefresh Delay", "Set autorefresh delay",value = val, min=0, max=86400, step=10 )
+        if ok:
+            self.setWatchInterval(delay)
 
     def deleteClosedSearches(self):
         skip = 0
@@ -309,20 +319,25 @@ class QtTail(QtWidgets.QMainWindow):
             if typedQSettings().value('DEBUG',False): print(msg)  # reset interval
             self.statusBar().showMessage(msg, math.floor(mininterval*10))
             self.actionAutoRefresh()
-            self.ui.intervalLine.setValue(math.floor(mininterval+0.5))
-        if self.reinterval == 1:
-            self.ui.intervalLine.setSuffix(' second')
-        else:
-            self.ui.intervalLine.setSuffix(' seconds')
+            if hasattr(self.ui, 'intervalLine'):
+                self.ui.intervalLine.setValue(math.floor(mininterval+0.5))
+        if hasattr(self.ui, 'intervalLine'):
+            if self.reinterval == 1:
+                self.ui.intervalLine.setSuffix(' second')
+            else:
+                self.ui.intervalLine.setSuffix(' seconds')
         # XX if duty cycle > 50% turn off timer if window is obscured
         # is there an event when window is obscured??
 
     def setWatchInterval(self, value=None):
-        if value:
-            val = value
-            self.ui.intervalLine.setValue(value)
+        if hasattr(self.ui, 'intervalLine'):
+            if value:
+                val = value
+                self.ui.intervalLine.setValue(value)
+            else:
+                val = self.ui.intervalLine.value()
         else:
-            val = self.ui.intervalLine.value()
+            val = value
         self.reinterval = val
         self.tweakInterval()
         self.actionAutoRefresh()  # set timer
@@ -684,7 +699,7 @@ class QtTail(QtWidgets.QMainWindow):
             icon = QStyle.StandardPixmap.SP_MediaPlay
             tooltip = 'running'
         elif self.timer.isActive():
-            tooltip = 'waiting'
+            tooltip = f"waiting {self.reinterval:.1f}s"
             icon = QStyle.StandardPixmap.SP_MediaPause
         elif hasattr(self, 'exitcode') and not self.exitcode:
             icon = QStyle.StandardPixmap.SP_DialogYesButton
