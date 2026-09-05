@@ -132,6 +132,7 @@
     <addaction name="actionDeleteClosedSearches"/>
     <addaction name="actionShowClosedSearches"/>
     <addaction name="actionFind_all_groups"/>
+    <addaction name="actionSaved_searches"/>
    </widget>
    <addaction name="menuView"/>
    <addaction name="menuMode"/>
@@ -299,6 +300,11 @@
   <action name="actionFind_all_groups">
    <property name="text">
     <string>Find all groups</string>
+   </property>
+  </action>
+  <action name="actionSaved_searches">
+   <property name="text">
+    <string>Saved searches</string>
    </property>
   </action>
  </widget>
@@ -629,8 +635,24 @@
    <slot>findAllGroup()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>468</x>
-     <y>44</y>
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>359</x>
+     <y>253</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSaved_searches</sender>
+   <signal>triggered()</signal>
+   <receiver>QtTail</receiver>
+   <slot>savedSearchesDialog()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>359</x>
+     <y>253</y>
     </hint>
     <hint type="destinationlabel">
      <x>359</x>
@@ -659,5 +681,6 @@
   <slot>deleteClosedSearches()</slot>
   <slot>showClosedSearches()</slot>
   <slot>findAllGroup()</slot>
+  <slot>savedSearchesDialog()</slot>
  </slots>
 </ui>

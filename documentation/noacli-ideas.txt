@@ -16,17 +16,25 @@ V  documented in a video
 v  documented in a future video
 t  documented internally with tool tip
 
-  Bugs 
+  Bugs
+    fix all dialogs to not reopen, but instead reraise the old window
+    "resetting timer" print message when autorefresh is not enabled
     new group search is undocumented
     find previous highlights feature is not documented
     autoersize width on new dock works and then reverts!?
-
+    job window state column gets silly wide with crashed process state
+       should use tooltip and max width
+       should make less verbose
     Group search dock not fully implemented:
       highlights?
       resize columns on doubleclick
       hide/show columns
+    save/restore geometry needs to save dock geom and visibility too probably
 
  -Things to implement soon:
+ ! cli initial size hint for qtail window
+ ! add ability to refresh searches when the document is refreshed
+ ! add live tracking between search docks and the document scrolling
  ! track highlight: update searchdocs to highlight before cursor (context)
  ? Implement settings modules
      menu to scan dir and show potential modules to import

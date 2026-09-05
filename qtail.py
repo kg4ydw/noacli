@@ -29,6 +29,7 @@ from lib.qtail_ui import Ui_QtTail
 from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
 from lib.searchdock import searchDock, searchDockGroup
+from lib.saved_searches import saved_searches
 
 # XXX some options not implemented yet
 # XXX no option editor for stand alone qtail
@@ -154,6 +155,7 @@ class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
     want_read_more = pyqtSignal(str)
+    suggest_command = pyqtSignal(str, bool) # cmd, immediate
 
     def __init__(self, options=None, parent=None):
         super().__init__()
@@ -274,6 +276,14 @@ class QtTail(QtWidgets.QMainWindow):
         # disable since there's nothing hidden anymore...
         self.ui.actionDeleteClosedSearches.setVisible(False)
 
+    def savedSearchesDialog(self):
+        self.ssd = saved_searches(self)
+        self.ssd.finished.connect(self.closeSSearches)
+
+    def closeSSearches(self, result):
+        self.ssd = None
+        # don't actually care about result
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.resizecount += 1
@@ -307,7 +317,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def tweakInterval(self):
         if not hasattr(self, 'reinterval'): self.reinterval=30
-        if self.reinterval<1: self.reinterval=1
+        self.reinterval = max(self.reinterval, 1)
         if self.runcount < 3: return
         dutycycle = 0.5
         if self.reinterval<10 and self.runtime<10:

@@ -1,5 +1,5 @@
 
-UI= lib/qtail_ui.py lib/noacli_ui.py lib/settingsdialog_ui.py lib/tableviewer_ui.py lib/searchdock_ui.py lib/colorlisteditor_ui.py
+UI= lib/qtail_ui.py lib/noacli_ui.py lib/settingsdialog_ui.py lib/tableviewer_ui.py lib/searchdock_ui.py lib/colorlisteditor_ui.py lib/saved_searches_ui.py
 SRCFILES=$(shell git ls-files | grep -v gitignore)
 DISTFILES=$(SRCFILES) $(UI) $(RESOURCES)
 

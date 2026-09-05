@@ -31,8 +31,10 @@ class myBrowser(QTextBrowser):
             m.addAction("Save selection as highlight", self.saveHighlight.emit)
         else:
             m.addAction("Convert to table",self.allToTable)
+        # XXX only if there are highlights?
         m.addAction("Clear highlights", self.clearHighlights.emit)
-        m.addAction("Find previous highlights", lambda: self.findPreviousHilights.emit(event.pos()))
+        # XXX only if there are search results visible?
+        m.addAction("Find in search results", lambda: self.findPreviousHilights.emit(event.pos()))
         if self.ui.followCheck.isChecked():
             m.addAction("stop following tail",self.contextFollowToggle)
         else:

@@ -559,12 +559,13 @@ class noacli(QtWidgets.QMainWindow):
             self.myRestoreGeometry()
         ## fix up the menu
         m = ui.menuSettings
-        if False:  # XXX test for MacOS or SETTING
-            # Add a lineEdit to create new profiles: MacOS hates this
+        if False:  # sys.platform != 'darwin':  # XX test for MacOS or SETTING
+            # Add a lineEdit to create new profiles; MacOS hates this
             # this might be too clever for its own good XXX
             le = menuLineEdit(m, "(New geometry profile)")
             le.returnPressed.connect(lambda: self.mySaveGeometry(le.wa()))
             textAndClear = QWidgetAction(m)
+            wa = QWidgetAction(m)
             wa.setDefaultWidget(le)
             m.addAction(wa)
         else:
@@ -572,6 +573,7 @@ class noacli(QtWidgets.QMainWindow):
             newprofile = QAction("New profile", m)
             newprofile.triggered.connect(self.newProfile)
             m.addAction(newprofile)
+            m.addSeparator()
         # browse QSettings to add a list of profiles
         qs = QSettings()
         qs.beginGroup('Geometry')
@@ -580,6 +582,11 @@ class noacli(QtWidgets.QMainWindow):
         #print('Profiles: '+str(g)) # DEBUG
         gm = QActionGroup(m)
         self.ui.profileMenuGroup = gm
+        if len (g) > 5:
+            sm = QMenu("Geometry profiles", m)
+            m.addMenu(sm)
+        else:
+            sm = m
         for p in g:
             mm = gm.addAction(p)
             mm.setData(p)
@@ -587,7 +594,7 @@ class noacli(QtWidgets.QMainWindow):
             #redundant and wrong# mm.triggered.connect(lambda: self.myRestoreGeometry(p))
             mm.setCheckable(True)
             if p=='default': mm.setChecked(True)
-            m.addAction(mm)
+            sm.addAction(mm)
         gm.triggered.connect(self.actionRestoreGeomAct)
         qs.endGroup()
 

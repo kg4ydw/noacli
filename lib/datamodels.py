@@ -227,7 +227,7 @@ class itemListModel(QAbstractTableModel):
         if not self.validateIndex(index): return False
         row = index.row()
         self._data[row] = item
-        self.dataChanged.emit(self.index(row, 0), self.index(row, self.columnCount()-1, None))
+        self.dataChanged.emit(self.index(row, 0), self.index(row, self.columnCount(None)-1))
         return True
 
     # most added items are added at the end...

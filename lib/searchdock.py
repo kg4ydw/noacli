@@ -5,6 +5,7 @@ __copyright__ = '2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 # handle search results and bookmarks
 
 from functools import partial
+from bisect import bisect_left
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6 import QtCore, QtGui, QtWidgets
@@ -15,7 +16,6 @@ from lib.searchdock_ui import Ui_searchDock
 from lib.datamodels import itemListModel
 
 from lib.colorpicker import ColorPicker
-from bisect import bisect_left
 
 colorpicker = ColorPicker()
 
@@ -288,11 +288,11 @@ class searchDockGroup(QDockWidget):
 class groupItem():
     # data comes in as ((line, instance), (whole match, groups...))
     def __init__(self, item):
-        if not item: return None
+        if not item: return None  # XXXX check this error some other way
         try:
             self.text = item[1][0]
         except Exception as e:
-            print(e)
+            print(e)  # EXCEPT
         (self.line, self.offcount) = item[0]
         self.groups = item[1]
         # don't bother with context, if the user wants that they should put a group for it in the regex
@@ -365,4 +365,3 @@ class groupList(itemListModel):
     # implement fetchmore if an iterator is used
     #def fetchMore(self, parent):
     #def canFetchMore(): --> True/False
-
