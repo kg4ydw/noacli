@@ -152,6 +152,7 @@ class smallOutput(QTextBrowser):
             else:
                 title = 'dead'  # pull default? SETTING
         qt = QtTail(self.settings.qtail)
+        qt.suggest_command.connect(self.settings.runOrEdit)
         qt.openPretext(self.jobitem, self.textstream, pretext=text, title=title)
         self.jobitem = None
         self.clearproc()

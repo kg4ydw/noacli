@@ -150,14 +150,15 @@ class jobItem():
             index = self.index.model().sibling(self.index.row(),0,QModelIndex())
             self.index.model().dataChanged.emit(index,index)
         self.timestart = time.monotonic()
+        self.status = ''  # don't let this accumulate too much
 
     def collectError(self, err):
-        self.status += 'E'+str(err)+' '
+        self.status += 'E'+str(err.name)+' '
         self.setStatus(self.status)
 
     def collectFinish(self, exitCode, estatus):
         self.finished = True
-        self.setStatus(self.status+'F'+str(exitCode)+':'+str(estatus),exitCode)
+        self.setStatus(self.status+'F'+str(exitCode)+':'+str(estatus.name),exitCode)
         self.timestop = time.monotonic()
         # calculate running average
         t = self.timestop-self.timestart
@@ -195,18 +196,16 @@ class jobItem():
         return self.jcommand
 
     def getStatus(self):
-        # had to restructure this to delete Qt6's stupid enum
-        status = ''
-        if self.fullstatus: status = self.fullstatus
-        elif self.status: status = self.status
-        else: # make something up
-            status = str(self.process.state())
-        return status.replace('ExitStatus.','',1)
+        if self.fullstatus: return self.fullstatus
+        if self.status: return self.status
+        # make something up
+        return str(self.process.state().name)
 
     def startOutwin(self, file, settings):
         outwin = self.mode
         if outwin==OutWin.QTail:
             self.setWindow(QtTail(settings.qtail))
+            self.window.suggest_command.connect(settings.runOrEdit)
         elif outwin==OutWin.Table:
             self.setWindow(TableViewer())
             self.window.app = settings.app  # XXX redundant?
@@ -229,10 +228,12 @@ class jobItem():
         if outwin==OutWin.QTail:
             #print("start qtail") # DEBUG
             self.setWindow(QtTail(settings.qtail))
+            self.window.jobitem = self
             title = self.title()
             if not title or len(title)==0:
                 title = typedQSettings().value('QTailDefaultTitle','subprocess')
             if self.outwinArgs: self.window.simpleargs(self.outwinArgs)
+            self.window.suggest_command.connect(settings.runOrEdit)
             self.window.openProcess(title, self.process)
         elif outwin==OutWin.Log:
             #print("start log") # DEBUG
@@ -313,7 +314,7 @@ class jobTableModel(itemListModel):
         if role==Qt.ItemDataRole.ToolTipRole:
             if col==0 and job.pid: return str(job.pid)
             if col==1 and job.runtime:
-                return "{:2.2f}s".format(job.runtime)
+                return f"{job.runtime:2.2f}s {job.getStatus()}"
                 # wish I could get process cpu time too
             elif col==4: return job.command()
         if role==Qt.ItemDataRole.BackgroundRole and col==3:
@@ -325,7 +326,11 @@ class jobTableModel(itemListModel):
             # if you update these, also udpate noacli.jobDoubleClicked
             # also in jobitem emits above
             if col==0 and job.process: return job.process.processId()
-            if col==1: return job.getStatus()
+            if col==1:
+                st= job.getStatus()
+                #if len(st)>15: # make sure this isn't crazy long
+                #    st = st[:15]+"…"
+                return st
             if col==2:
                 if job.mode: return job.mode.name
                 else: return None

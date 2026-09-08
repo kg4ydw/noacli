@@ -19,6 +19,15 @@ from lib.colorpicker import ColorPicker
 
 colorpicker = ColorPicker()
 
+# reused in both search docks
+def hideCols(tv, hide):
+    if not hide: return
+    for si in hide.split():
+        try:
+            i = int(si)
+            tv.setColumnHidden(i,True)
+        except:
+            pass # whatever
 
 class selItem():
     def __init__(self, cursor, context=True):
@@ -113,19 +122,21 @@ class selList(itemListModel):
 
 class searchDock(QDockWidget):
     showSel = pyqtSignal(list)
+    showSelDelayed = pyqtSignal()
     hideSel = pyqtSignal(list)
     gotoSel = pyqtSignal(QTextCursor)
 
-    def __init__(self, parent, title=None, selections=None, searchterm=None, findflags=None):
+    def __init__(self, parent, title=None, selections=None, searchterm=None, findflags=None, saved=None, auto=False):
         super().__init__(parent)
         self.ui = Ui_searchDock()
         self.ui.setupUi(self)
         self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.searchterm = searchterm  # XXX use these later
         self.findflags = findflags
+        self.saved = saved
 
-        # stuff this in a corner of the parent QMainWindow
-        parent.addSearchDock(self)
+        # stuff this in a corner of the parent QMainWindow (or don't)
+        parent.addSearchDock(self, auto and saved and not saved.findshow)
 
         # XX alternate: check parent for existing docks, and add this as a tab SETTINGS
         # XX alternate: check parent for existing docks and shrink them vertically after inserting ourselves
@@ -134,13 +145,19 @@ class searchDock(QDockWidget):
         self.color = QtGui.QBrush(QColor(color))
         self.model = selList()
         self.ui.tableView.setModel(self.model)
+        # set up delayed emit
+        self.showSelDelayed.connect(self.doDelayShowSel, Qt.ConnectionType.QueuedConnection)
         # set up connections before the data is loaded
         self.ui.showButton.clicked.connect(partial(self.emitExtraSelections, self.showSel))
         self.ui.hideButton.clicked.connect(partial(self.emitExtraSelections, self.hideSel))
         self.ui.tableView.clicked.connect(self.gotoIndex)
+        if saved and saved.name and (not title or title==saved.sexp):
+            title = saved.name
         if title:
             self.setWindowTitle(title)
         self.favcol = 1  # item to scroll to (possibly only visible column)
+        if saved:
+            hideCols(self.ui.tableView, saved.hideCols)
         if selections:
             self.setSel(selections)
             if title and title!='Highlights':
@@ -153,6 +170,14 @@ class searchDock(QDockWidget):
                     else: self.favcol = 2
                 if not self.model.haspost: tv.setColumnHidden(2,True)
         self.model.setColor(self.color)
+        if saved and auto and saved.findhighlight:
+            #self.emitExtraSelections(self.showSel) # this doesn't work, too soon
+            self.showSelDelayed.emit()
+
+    @QtCore.pyqtSlot()
+    def doDelayShowSel(self):
+        # have to delay this because our creator connects after this event
+        self.emitExtraSelections(self.showSel)
 
     def gotoIndex(self, index):
         item = self.model.getItem(index)
@@ -244,7 +269,7 @@ class searchDockGroup(QDockWidget):
     # loosely duplicate searchDock but with major differences (and stuff left out
     gotoLine = pyqtSignal(int)
     
-    def __init__(self, parent, title=None, grouphits=None, searchexp=None):
+    def __init__(self, parent, title=None, grouphits=None, searchexp=None, saved=None, auto=False):
         # XXX convert searchexp to searchterm and findflags later
         super().__init__(parent)
         self.ui = Ui_searchDock()
@@ -253,6 +278,9 @@ class searchDockGroup(QDockWidget):
         self.ui.showButton.hide()
         self.ui.hideButton.hide()
         self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        self.saved = saved
+        if saved and saved.name and (not title or title==saved.sexp):
+            title = saved.name
         if title:
             self.setWindowTitle(title)
         self.searchexp = searchexp  # XXX use these later
@@ -260,10 +288,12 @@ class searchDockGroup(QDockWidget):
         self.ui.tableView.setModel(self.model)
         # stuff this in a corner of the parent QMainWindow
         self.ui.tableView.resizeColumnsToContents()
-        parent.addSearchDock(self)
+        parent.addSearchDock(self, auto and saved and not saved.findshow)
         self.ui.tableView.clicked.connect(self.gotoIndex)
         # XX highlight color picker setup
         # XX adjust columns
+        if saved:
+            hideCols(self.ui.tableView, saved.hideCols)
 
     def gotoIndex(self, index):
         item = self.model.getItem(index)
@@ -297,10 +327,6 @@ class groupItem():
         self.groups = item[1]
         # don't bother with context, if the user wants that they should put a group for it in the regex
 
-# XXXXX unfinished group stuff
-# add clear function and call it in the ui
-# look at abstract item data model and add signals for clear / reset
-
 # this is a bit of a ducktype of selList
 class groupList(itemListModel):
     def __init__(self, hits=None):
@@ -322,7 +348,7 @@ class groupList(itemListModel):
         if self._cols<2:
             # first inserted row?
             self.beginResetModel()
-            self._cols  = len(i.groups) # XXXXX cols changed signal?
+            self._cols  = len(i.groups) # XX cols changed signal instead of full reset?
             self.endResetModel()
 
     def headerData(self, col, orientation, role):

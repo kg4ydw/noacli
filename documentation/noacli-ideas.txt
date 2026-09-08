@@ -17,6 +17,7 @@ v  documented in a future video
 t  documented internally with tool tip
 
   Bugs
+    qtail --title messes up setting window title
     fix all dialogs to not reopen, but instead reraise the old window
     "resetting timer" print message when autorefresh is not enabled
     new group search is undocumented

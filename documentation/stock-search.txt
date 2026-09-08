@@ -1,0 +1,42 @@
+These are fodder for predefined settings for a feature not yet implemented.
+
+name / command
+  regex
+  new command with place holders
+  description
+
+apt search
+  ^([^/]+)/
+  apt show {1}
+
+apt show
+ ^(Depends|Recommends):([ ,]+([^ ,]+))*  
+ apt show {3*}
+ too messy, not gonna find it in context unless iterate over group and add each separately
+
+apt show
+selection -> (\w[^, ]+)
+apt-show {1}
+
+man options / man
+^\s*(-+\w+)
+--
+option TOC
+
+man headings / man
+^((\S+\s?))+$
+excludes multiple spaces
+
+man ref / man
+(\S+)\(([0-9]\w*)\)
+# {0}
+man -s {2} {1}
+
+man -k
+# {0}
+(\S+)\s\(([0-9]\w*)\)
+man -s {2} {1}
+
+git diff
+  diff --git a/(\S+)\s
+  group

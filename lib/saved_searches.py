@@ -25,7 +25,7 @@ from lib.datamodels import itemListModel
 
 
 class search_entry():
-    def __init__(self, *, name, sexp, cfilter, ctemplate, imaction=0, findshow, findhighlight, ccontext=0, hideCols):
+    def __init__(self, *, name, sexp, cfilter, ctemplate, imaction=0, findshow, findhighlight, ccontext=0, hideCols, runImmediate=False):
         def fixint(val, fallback=0):
             try:
                 return int(val)
@@ -47,6 +47,7 @@ class search_entry():
         self.findhighlight = fixbool(findhighlight)
         self.ccontext = fixint(ccontext)
         self.hideCols = hideCols
+        self.runImmediate = fixbool(runImmediate)
 
     def validate(self):
         # cursory check to see if this is a good entry
@@ -80,6 +81,7 @@ class searchModel(itemListModel):
 
     @classmethod
     def resetDefaultSearchModel(cls):
+        # print("reset searches") # DEBUG
         # force a reload from scratch
         cls.defaultSearchModel = searchModel()
         cls.defaultSearchModel.loadFromSettings()
@@ -96,6 +98,7 @@ class searchModel(itemListModel):
                 cfilter=qs.value('cfilter'), ctemplate=qs.value("ctemplate"),
                 imaction=qs.value('imaction'),
                 findshow=qs.value('findshow'),
+                runImmediate=qs.value('runImmediate'),
                 findhighlight=qs.value('findhighlight'),
                 ccontext=qs.value('ccontext'), hideCols=qs.value('hideCols'))
             #if entry.validate(): # XXXX
@@ -115,6 +118,7 @@ class searchModel(itemListModel):
             qs.setValue("ctemplate", entry.ctemplate)
             qs.setValue("imaction", entry.imaction)
             qs.setValue("findshow", entry.findshow)
+            qs.setValue("runImmediate", entry.runImmediate)
             qs.setValue("findhighlight", entry.findhighlight)
             qs.setValue("ccontext", entry.ccontext)
             qs.setValue("hideCols", entry.hideCols)
@@ -158,6 +162,7 @@ class saved_searches(QDialog):
         self.ui.disableAll.clicked.connect(partial(self.ui.findShowHighlights.setChecked,False))
         self.ui.disableAll.clicked.connect(partial(self.ui.immediate_action.setCurrentIndex,0))
         self.ui.disableAll.clicked.connect(partial(self.ui.ccontext.setCurrentIndex,0))
+        self.ui.disableAll.clicked.connect(partial(self.ui.runImmediate.setChecked, False))
         #
         self.valid = False # XX use this somewhere
         apply = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply)
@@ -183,7 +188,8 @@ class saved_searches(QDialog):
     @pyqtSlot()
     def saveNew(self):
         try:
-            entry = self.saveEntry(append=True)
+            self.saveEntry(append=True)
+            # XXXX scroll to new entry
         except re.PatternError as e:
             self.ui.sresult.setPlaintText(f"{e.msg}\nat {e.pos}")
 
@@ -232,6 +238,7 @@ class saved_searches(QDialog):
         self.ui.hideCols.clear()
         self.ui.immediate_action.setCurrentIndex(0)
         self.ui.findShow.setChecked(False)
+        self.ui.runImmediate.setChecked(False)
         self.ui.findShowHighlights.setChecked(False)
         self.ui.ccontext.setCurrentIndex(0)
         self.ui.ctemplate.clear()
@@ -251,6 +258,7 @@ class saved_searches(QDialog):
         self.ui.hideCols.setText(entry.hideCols)
         self.ui.immediate_action.setCurrentIndex(entry.imaction)
         self.ui.findShow.setChecked(entry.findshow)
+        self.ui.runImmediate.setChecked(entry.runImmediate)
         self.ui.findShowHighlights.setChecked(entry.findhighlight)
         self.ui.ctemplate.setPlainText(entry.ctemplate)
         self.ui.sresult.clear()
@@ -266,7 +274,8 @@ class saved_searches(QDialog):
             ctemplate=self.ui.ctemplate.toPlainText(),
             imaction=self.ui.immediate_action.currentIndex(),
             findshow=self.ui.findShow.checkState()==Qt.CheckState.Checked, 
-            findhighlight=self.ui.findShowHighlights.checkState()==Qt.CheckState.Checked, 
+            findhighlight=self.ui.findShowHighlights.checkState()==Qt.CheckState.Checked,
+            runImmediate=self.ui.runImmediate.checkState()==Qt.CheckState.Checked,
             ccontext=self.ui.ccontext.currentIndex(),
             hideCols=self.ui.hideCols.text()
         )

@@ -209,5 +209,5 @@ class Ui_QtTail(object):
         self.actionDeleteClosedSearches.setText(_translate("QtTail", "Delete closed searches"))
         self.actionShowClosedSearches.setText(_translate("QtTail", "Show and tabify all searches"))
         self.actionFind_all_groups.setText(_translate("QtTail", "Find all groups"))
-        self.actionSaved_searches.setText(_translate("QtTail", "Saved searches"))
+        self.actionSaved_searches.setText(_translate("QtTail", "Edit saved searches"))
 from lib.qtailbrowser import myBrowser

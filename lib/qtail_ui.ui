@@ -304,7 +304,7 @@
   </action>
   <action name="actionSaved_searches">
    <property name="text">
-    <string>Saved searches</string>
+    <string>Edit saved searches</string>
    </property>
   </action>
  </widget>
@@ -651,8 +651,8 @@
    <slot>savedSearchesDialog()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>359</x>
-     <y>253</y>
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>359</x>

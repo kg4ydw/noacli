@@ -29,7 +29,7 @@ clobber: clean
 
 tags: TAGS
 TAGS: $(SRCFILES)
-	etags --regex '/.*ETAGS: \(\w+\)/\1/' lib/datamodels.py lib/logoutput.py noacli.py lib/qtailbrowser.py qtail.py lib/smalloutput.py lib/typedqsettings.py lib/commandparser.py lib/envdatamodel.py lib/noajobs.py tableviewer.py lib/mydock.py lib/buttondock.py lib/favorites.py
+	etags --regex '/.*ETAGS: \(\w+\)/\1/' lib/datamodels.py lib/logoutput.py noacli.py lib/qtailbrowser.py qtail.py lib/smalloutput.py lib/typedqsettings.py lib/commandparser.py lib/envdatamodel.py lib/noajobs.py tableviewer.py lib/mydock.py lib/buttondock.py lib/favorites.py lib/searchdock.py lib/saved_searches.py
 
 
 # How much of brainstormed features are implemented? (this is a bit silly)
@@ -54,7 +54,7 @@ findxxx:
 	grep --color -nH -e XXX *.py lib/*.py 
 findxxxx:
 	grep --color -nH -e XXXX *.py lib/*.py 
-findxxxxxx:
+findxxxxx:
 	grep --color -nH -e XXXXX *.py lib/*.py 
 finddebug:
 	grep --color -nH -e '^ *[^ #].*DEBUG' *.py lib/*.py 

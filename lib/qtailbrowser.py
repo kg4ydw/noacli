@@ -9,7 +9,7 @@ from functools import partial
 
 from PyQt6.QtCore import pyqtSignal, QPoint
 from PyQt6 import QtCore
-from PyQt6.QtWidgets import QTextBrowser, QFontDialog
+from PyQt6.QtWidgets import QTextBrowser, QFontDialog, QMenu
 from PyQt6.QtGui import QTextCursor
 
 
@@ -18,6 +18,7 @@ class myBrowser(QTextBrowser):
     saveHighlight = pyqtSignal()
     clearHighlights = pyqtSignal()
     findPreviousHilights = pyqtSignal(QPoint)
+    suggest_command = pyqtSignal(str, bool) # cmd, immediate
 
     def __init__(self, parent):
         super().__init__(parent)
@@ -47,7 +48,43 @@ class myBrowser(QTextBrowser):
         # but reload might make this necsesary so always offer it anyway
         m.addAction("View as html", self.makeHtml)
         m.addAction("View as markdown", self.makeMarkdown)
+        ss = self.contextSearches(event.pos(), m)
+        if ss:
+            m.addMenu(ss)
         m.exec(event.globalPos())
+
+    def contextSearches(self,pos,parent):
+        #p = self.parent()
+        #if p.receivers(p.suggest_command) <=0 : return None
+        context = [None, False, False, False] # fill in as needed
+        menu = QMenu("found commands",parent)
+        for cs in filter(lambda s: s.ccontext and s.ctemplate, self.savedsearches):
+        #self.savedsearches:
+            # print(f"testing context {cs.name} {cs.ccontext} {len(cs.ctemplate)}")  # DEBUG
+            if context[cs.ccontext] is False:
+                match cs.ccontext: # fill in contexts as needed only
+                    case 1: # selection
+                        context[1] = self.textCursor().selectedText()
+                        #print(f"found selection {len(context[1])}") # DEBUG
+                        # XXX what if there's none?
+                    case 2: # line
+                        context[2] = self.cursorForPosition(pos).block().text()
+                    case 3: # word
+                        cursor = self.cursorForPosition(pos)
+                        cursor.movePosition(QTextCursor.MoveOperation.StartOfWord)
+                        cursor.movePosition(QTextCursor.MoveOperation.NextWord, QTextCursor.MoveMode.KeepAnchor)
+                        context[3] = cursor.selectedText()
+                        # print(f"found word {len(context[3])}") DEBUG
+            if context[cs.ccontext]:
+                regex = re.compile(cs.sexp)
+                for rmatch  in regex.finditer(context[cs.ccontext]):
+                    try:
+                        text = cs.ctemplate.format(rmatch.group(0), *rmatch.groups())
+                    except:
+                        text = False
+                    if text:
+                        menu.addAction(text, partial(self.suggest_command.emit, text, cs.runImmediate))
+        return None if menu.isEmpty() else menu
 
     def makeHtml(self):
         self.setHtml(self.document().toRawText())

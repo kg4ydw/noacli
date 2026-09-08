@@ -18,9 +18,13 @@ import os, re, sys, time, argparse, copy, math
 from functools import partial
 from math import ceil
 
+# imports for debug
+from inspect import getframeinfo, stack
+
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtGui import QTextCursor, QFont, QTextDocument, QActionGroup, QShortcut, QAction
-from PyQt6.QtWidgets import QTextEdit, QSizePolicy, QLineEdit,  QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle, QDockWidget, QInputDialog
+from PyQt6.QtWidgets import *
+# QTextEdit, QSizePolicy, QLineEdit,  QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle, QDockWidget, QInputDialog, QMenu
 from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt6.QtCore import Qt, pyqtSignal
 #from PyQt6.QtCore import QRegularExpression
@@ -29,7 +33,7 @@ from lib.qtail_ui import Ui_QtTail
 from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
 from lib.searchdock import searchDock, searchDockGroup
-from lib.saved_searches import saved_searches
+from lib.saved_searches import saved_searches, searchModel
 
 # XXX some options not implemented yet
 # XXX no option editor for stand alone qtail
@@ -135,7 +139,7 @@ class myOptions():
         if self.whole:
             self.maxLines = 0
             args.nowrap = True
-        if args.title: self.title=args.title  # XX late apply?
+        if args.title: self.title=args.title  # XXXX late apply?
         if args.format:
             if args.format=='html': self.format='h'
             elif args.format in ('markdown', 'md', 'm'): self.format='m'  # XX
@@ -151,11 +155,12 @@ class myOptions():
         return self.args
 
 
+# entrypoints: openfile openstdin openProcess openPretext
 class QtTail(QtWidgets.QMainWindow):
     window_close_signal = pyqtSignal()
     want_resize = pyqtSignal()
     want_read_more = pyqtSignal(str)
-    suggest_command = pyqtSignal(str, bool) # cmd, immediate
+    suggest_command = pyqtSignal(str, bool)
 
     def __init__(self, options=None, parent=None):
         super().__init__()
@@ -167,6 +172,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.eof = 0            # hack
         self.buttonCon = None
         self.highlightDock = None
+        self.triggerSavedSearchMenu = None
+        self.savedSearchMenu = None
         dir = os.path.dirname(os.path.realpath(__file__))
         icon = QtGui.QIcon(os.path.join(dir,'icons', 'qtail.png'))
         if icon.isNull() or len(icon.availableSizes())<1:  # try again
@@ -188,6 +195,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
         self.textbody = self.ui.textBrowser
+        self.textbody.suggest_command.connect(self.runEmit)
         if self.opt.maxLines>0:
             self.textbody.document().setMaximumBlockCount(self.opt.maxLines)
         else:
@@ -215,9 +223,6 @@ class QtTail(QtWidgets.QMainWindow):
             wa = QWidgetAction(m)
             wa.setDefaultWidget(line)
             m.addAction(wa)
-        ### can't do this yet XXXX
-        #if type(self.file)!=QProcess: # can't watch a non-process
-        #    self.ui.actionWatch.setEnabled(False)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.reloadOrRerun)
         self.findTimer = QTimer(self)
@@ -238,6 +243,46 @@ class QtTail(QtWidgets.QMainWindow):
         secondary = self.getFontSetting('QTailSecondaryFont')
         if secondary:
             m.addAction(secondary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, secondary))
+        self.savedsearches = None # fix this later
+
+    def checkStuff(self):
+        # debug: check if our caller initialized needed stuff
+        if not typedQSettings().value('DEBUG',False): return
+        e = False
+        if not hasattr(self, 'jobitem'):
+            print("no jobitem") # DEBUG
+            e=True
+        if self.receivers(self.suggest_command) <=0 :
+            print("not connected suggest_command") # DEBUG
+            e=True
+        if e:
+            caller = getframeinfo(stack()[1][0])
+            caller2 = getframeinfo(stack()[2][0])
+            print(f" at {caller.filename}:{caller.lineno}:{caller.function}") # DEBUG
+            print(f"   at {caller2.filename}:{caller2.lineno}:{caller2.function}") # DEBUG
+
+    def runEmit(self, cmd, run):
+        self.suggest_command.emit(cmd,run)
+
+    def startSavedSearch(self, ss):
+        if ss.imaction in (0,1):
+            self.findAll(ss.sexp,ss)
+        elif ss.imaction==2: # findallgroup
+            self.findAllGroup(ss.sexp, ss)
+
+    def triggerSearches(self):
+        # to trigger here, a search must:
+        #   match this window with cfilter
+        #   have either findshow or findhighlight checked
+        #   have imaction set
+        #   imaction must be findall for highlights XXXX
+        if not self.savedsearches: return
+        for ss in filter(lambda e: e.cfilter and (e.findshow or e.findhighlight) and e.imaction, self.savedsearches):
+            if ss.imaction == 1:
+                self.findAll(ss.sexp, ss, True)
+            elif ss.imaction==2: # findallgroup
+                self.findAllGroup(ss.sexp, ss, True)
+        pass
 
     def autorefreshDialog(self):
         val = math.floor(self.reinterval+0.5) # could use a float dialog I guess
@@ -281,6 +326,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.ssd.finished.connect(self.closeSSearches)
 
     def closeSSearches(self, result):
+        if result:
+            self.setupSavedSearch(True)
         self.ssd = None
         # don't actually care about result
 
@@ -593,14 +640,65 @@ class QtTail(QtWidgets.QMainWindow):
                 print("parsed: "+repr(self.opt.argparse)) # ifDEBUG
         return
 
+    def setupSavedSearch(self, reset=False):
+        # do this as late as possible, otherwise jobitem isn't set yet
+        # but also allow this to be called again to refresh searches
+        # filter saved searches by command and peel them out of the model into a regular list
+        if reset:
+            dsm = searchModel.resetDefaultSearchModel()
+        else:
+            dsm = searchModel.getDefaultSearchModel()
+        if hasattr(self,'jobitem') and self.jobitem.history:
+            cmd = self.jobitem.command()
+            #print(f"found command {cmd}") # DEBUG
+            self.savedsearches = list(
+                filter(lambda e: not e.cfilter or len(e.cfilter)==0 or re.search(e.cfilter, cmd, re.M), (dsm.getItem(ei) for ei in dsm)))
+            # print(f"  found {len(self.savedsearches)} search commands") # DEBUG
+        else:  # no command to match, just get the default ones
+            self.savedsearches = list(
+                filter(lambda e: not e.cfilter or len(e.cfilter)==0, (dsm.getItem(ei) for ei in dsm)))
+        if len(self.savedsearches)==0: self.savedsearches=None
+        # XXX for now, only initiate saved searches at the end or manually
+        # add to search menu if there are any
+        # XXXX refilter for automatic searches?
+        if self.savedsearches:
+            m = self.ui.menuSearch
+            # how many searches are triggerable?
+            t = filter(lambda e: e.cfilter and (e.findshow or e.findhighlight) and e.imaction, self.savedsearches)
+            tl = len(list(t))
+            if self.triggerSavedSearchMenu:
+                self.triggerSavedSearchMenu.setText(f"Trigger Searches ({tl})")
+            elif tl>0:
+                self.triggerSavedSearchMenu = m.addAction(f"Trigger Searches ({tl})", self.triggerSearches)
+            # XXXX also list each search separately in a submenu?
+            if self.savedSearchMenu:
+                sm = self.savedSearchMenu
+                sm.clear()
+            else:
+                sm = QMenu("Use saved searches",m)
+            for s in self.savedsearches:
+                n = s.name or s.sexp
+                if s.cfilter and s.ccontext and s.ctemplate:
+                    n += '*'  # mark context searches
+                sm.addAction(n, partial(self.startSavedSearch, s))
+            if not self.savedSearchMenu and not sm.isEmpty():
+                m.addMenu(sm)
+                self.savedSearchMenu = sm
+        # also save these in the browser object for contextSearches
+        self.ui.textBrowser.savedsearches = self.savedsearches
+
     def openfile(self,filename):
+        self.checkStuff()
         self.filename = filename # reuse later?
         self.start()
         #print(f"openfile {filename}") # DEBUG
         if not self.opt.title:
             title=filename
             if len(title)>30: title=os.path.basename(title)
-            self.setWindowTitle(title)
+        else:
+            title = self.opt.title
+        self.setWindowTitle(title)
+        self.setupSavedSearch()
         # html, markdown don't work well with partial reads
         if self.opt.format in ('m', 'h'):  # XXX or self.whole:
             self.openWholeFile(filename)
@@ -636,6 +734,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody.setTextCursor(self.endcursor)
 
     def openWholeFile(self, filename):
+        self.checkStuff()
         #print(f"whole file {filename}")  # DEBUG
         # Qt textBrowser doesn't support appending to markdown or html so...
         # we break all the rules for this one
@@ -660,10 +759,13 @@ class QtTail(QtWidgets.QMainWindow):
         self.setButtonMode()
 
     def openstdin(self):
+        self.checkStuff()
         self.start()
         self.setButtonMode()
         if not self.opt.title:
             self.setWindowTitle('qtail: stdin')
+        else:
+            self.setWindowTitle(self.opt.title)
         # QFile doesn't work with readyRead, use QSocketNotifier instead for pipes
         f = QtCore.QFile()
         self.file = f
@@ -681,12 +783,16 @@ class QtTail(QtWidgets.QMainWindow):
         self.opt.file = False  # XX sometimes this might be a file
         #if typedQSettings().value('DEBUG',False):print("stdin") # DEBUG
         #self.reload();  # socket notifier makes this redundant
+        self.setupSavedSearch()
 
     def openProcess(self, title, process):
+        self.checkStuff()
         self.start()
         self.file = process
         if not self.opt.title:
             self.setWindowTitle(title)
+        else:
+            self.setWindowTitle(self.opt.title)
         self.opt.file = False
         self.setupProc()
 
@@ -699,6 +805,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.statusIconLabel = QLabel("",self)
         self.statusBar().addPermanentWidget(self.statusIconLabel)
         self.updateStatusIcon()
+        self.setupSavedSearch()
 
     def updateStatusIcon(self):
         if not hasattr(self,'statusIconLabel'): return
@@ -732,6 +839,7 @@ class QtTail(QtWidgets.QMainWindow):
         # someone else already initialized stuff, just handing it over
         # pretend like we did it
         self.jobitem = jobitem # take ownership
+        self.checkStuff()
         jobitem.setWindow(self)
         self.file = jobitem.process
         # get a window title from somewhere
@@ -961,9 +1069,9 @@ class QtTail(QtWidgets.QMainWindow):
                 pass
         self.textbody.setExtraSelections(es)
 
-    def searchDock(self, title, selections, searchterm=None, findflags=None):
+    def searchDock(self, title, selections, searchterm=None, findflags=None, saved=None, auto=False):
         if not selections: return # don't make empty dock
-        dock = searchDock(self, title, selections, searchterm, findflags)
+        dock = searchDock(self, title, selections, searchterm, findflags, saved, auto)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
         dock.showSel.connect(self.mergeSelections)
@@ -997,7 +1105,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.highlightDock.setSel(selections)
             self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), 'Highlights'), -1)
 
-    def findAll(self, text=None):
+    def findAll(self, text=None, saved=None, auto=False):
         if not text:
             text = self.ui.searchTerm.text()
         if not text: return
@@ -1031,7 +1139,7 @@ class QtTail(QtWidgets.QMainWindow):
             QtCore.QCoreApplication.processEvents()
             #if typedQSettings().value('DEBUG',False): print(".",end='',flush=True)
         if finds:
-            self.searchDock(text, finds, searchterm, findflags)
+            self.searchDock(text, finds, searchterm, findflags, saved, auto)
         QtCore.QCoreApplication.processEvents() # for good luck
         #if typedQSettings().value('DEBUG',False):print(len(finds))
 
@@ -1061,25 +1169,29 @@ class QtTail(QtWidgets.QMainWindow):
         cursor.setPosition(block.position())
         self.textbody.setTextCursor(cursor)
 
-    def findAllGroup(self, restr=None, title=None):
+    def findAllGroup(self, restr=None, saved=None, auto=False):
         if not restr:
             restr = self.ui.searchTerm.text()
         if not restr: return
-        if not title: title=restr
         QtCore.QCoreApplication.processEvents()
         # XXX this could get built incrementally instead of all at once sometimes
         finds = list(self.findAllGroupIter(restr))
         # build a dock and connect it
-        dock = searchDockGroup(self, title, finds, restr)
+        dock = searchDockGroup(self, None, finds, restr,saved, auto)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
         dock.gotoLine.connect(self.gotoLineNumber)
 
     # callback from search dock creation to place the dock
-    def addSearchDock(self, dock):
+    def addSearchDock(self, dock, hide=False):
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock)
+        if hide:
+            # this didn't work -- invalid area argument
+            #self.addDockWidget(Qt.DockWidgetArea.NoDockWidgetArea, dock)
+            dock.hide()
+            return
         dg = dock.geometry()
-        # find all the docks above this, and resize them all
+        # find all the docks above this, and resize them all vertically
         docks = []
         sizes = []
         for odock in self.findChildren(QDockWidget):
@@ -1097,7 +1209,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.want_resize.emit()
             return
         self.resizeDocks(docks, sizes, Qt.Orientation.Vertical)
-          
+
 
 ##### end QtTail end
 

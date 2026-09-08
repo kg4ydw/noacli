@@ -37,7 +37,7 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 
-__version__ = '2.2.2'
+__version__ = '2.3 beta'
 
 
 # Some settings have been moved to relevant modules
@@ -469,7 +469,7 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.smallOutputView = self.ui.smallOutputView
         self.settings.statusBar = self.statusBar()
         self.settings.mainwin = self
-
+        self.settings.runOrEdit = self.runOrEdit
         self.historypos = 1
         dir = os.path.dirname(os.path.realpath(__file__))
         p = os.path.join(dir,'icons', 'noacli.png')
@@ -524,7 +524,7 @@ class noacli(QtWidgets.QMainWindow):
         # mess with job manager corner button (is this even visible?)
         cb = ui.jobTableView.findChild(QtWidgets.QAbstractButton)
         if cb:
-            cb.disconnect()
+            cb.disconnect() # XX warning on macos?
             cb.clicked.connect(self.settings.jobs.cleanup)
 
         self.ui.jobTableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeJobHheader)
@@ -1003,7 +1003,7 @@ class noacli(QtWidgets.QMainWindow):
         # ok, we have a window to open, could be internal or external
         (title,outwin,args) = cmdargs
         if outwinArgs and ('--files' in outwinArgs or '--file' in outwinArgs):
-            # handle internal qtail and tableview
+            # handle internal qtail and tableview of files (no command)
             if not title: title=''
             if isinstance(args, str): args=[args]  # --file
             for f in args:
@@ -1129,6 +1129,16 @@ class noacli(QtWidgets.QMainWindow):
             mm.setChecked(True)
             self.ui.menuSettings.addAction(mm)
 
+    # slot to trigger from qtailbrosser
+    @QtCore.pyqtSlot(str, bool)
+    def runOrEdit(self, cmd, run):
+        #print(f"run {run} {cmd}")  # DEBUG
+        if run:
+            self.runCommand(cmd, None, None)
+        else:
+            #print(f"edit {run} {cmd}") # DEBUG
+            self.ui.commandEdit.acceptCommand(cmd)
+
     def myDeleteProfile(self):
         a = self.ui.profileMenuGroup.checkedAction()
         if a:
@@ -1173,9 +1183,11 @@ class noacli(QtWidgets.QMainWindow):
         qs = QSettings()
         qs.beginGroup('Geometry/'+name)
         if qs.contains('mainGeo'):
+            self.hide() # wayland doesn't resize correclty without this
             self.restoreGeometry(qs.value('mainGeo',None))
             self.restoreState(qs.value('mainState',None))
             self.restoreGeometry(qs.value('mainGeo',None))
+            self.show()
         else:
             #if typedQSettings().value('DEBUG',False):print('No profile for {} found'.format(name)) # DEBUG EXCEPTION this can't happen
             pass
