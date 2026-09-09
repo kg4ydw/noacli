@@ -191,7 +191,7 @@ class saved_searches(QDialog):
             self.saveEntry(append=True)
             # XXXX scroll to new entry
         except re.PatternError as e:
-            self.ui.sresult.setPlaintText(f"{e.msg}\nat {e.pos}")
+            self.ui.sresult.setPlainText(f"{e.msg} at position {e.pos}\n{e.pattern[:e.pos]}😠{e.pattern[e.pos:]}")
 
     @pyqtSlot()
     def deleteEntry(self):
@@ -208,7 +208,12 @@ class saved_searches(QDialog):
     def saveEntry(self, append=False):
         self.somethingChanged()
         entry = self.makenewentry()
-        if not entry or  not entry.validate(): return
+        try:
+            if not entry or  not entry.validate():
+                return
+        except re.error as e:
+            self.ui.sresult.setPlainText(f"{e.msg} at position {e.pos}\n{e.pattern[:e.pos]}😠{e.pattern[e.pos:]}")
+            return
         # XXX validate ctemplate for bad references?
         # if not valid, run test and check valid again
 
@@ -306,12 +311,19 @@ class saved_searches(QDialog):
         template = self.ui.ctemplate.toPlainText()
         if not template: return
         if not searchitem or not searchitem.groups: return
+        self.valid = True
         try:
             text = template.format(*searchitem.groups)
-        except Exception as e:
-            text = "Template failed: "+str(e)
+        except KeyError:
+            text = "Templates don't support keys yet" # XX
+            self.valid = False
+        except (ValueError, IndexError) as e:
+            text = f"Template failed:\n{str(e)}"
+            self.valid = False
+        except Exception as e: # dunno what this was
+            text = f"Template failed:\n{repr(e)}"
+            self.valid = False
         self.ui.sresult.setPlainText(text)
-        self.valid = True
     
     @pyqtSlot()
     def newSearch(self):

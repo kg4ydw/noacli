@@ -307,7 +307,7 @@ class searchDockGroup(QDockWidget):
         if not index: return
         # if not exact and line doesn't match, pick the previous line XXXX BUG
         self.ui.tableView.setCurrentIndex(index)
-        self.ui.tableView.scrollTo(index)
+        self.ui.tableView.scrollTo(index.siblingAtColumn(1))
 
     def findLastSelectionBefore(self, cursor):
         self.findSelection(cursor,exact=False)
