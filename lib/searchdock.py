@@ -28,6 +28,15 @@ def hideCols(tv, hide):
             tv.setColumnHidden(i,True)
         except:
             pass # whatever
+    # find a visible column
+    fav = 0
+    try:
+        while tv.isColumnHidden(fav):
+            fav +=1
+        return fav
+    except:
+        return 0  # XXX whatever
+
 
 class selItem():
     def __init__(self, cursor, context=True):
@@ -279,6 +288,7 @@ class searchDockGroup(QDockWidget):
         self.ui.hideButton.hide()
         self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.saved = saved
+        self.favcol = 0  # item to scroll to (possibly only visible column)
         if saved and saved.name and (not title or title==saved.sexp):
             title = saved.name
         if title:
@@ -293,7 +303,7 @@ class searchDockGroup(QDockWidget):
         # XX highlight color picker setup
         # XX adjust columns
         if saved:
-            hideCols(self.ui.tableView, saved.hideCols)
+            self.favcol = hideCols(self.ui.tableView, saved.hideCols)
 
     def gotoIndex(self, index):
         item = self.model.getItem(index)
@@ -307,7 +317,7 @@ class searchDockGroup(QDockWidget):
         if not index: return
         # if not exact and line doesn't match, pick the previous line XXXX BUG
         self.ui.tableView.setCurrentIndex(index)
-        self.ui.tableView.scrollTo(index.siblingAtColumn(1))
+        self.ui.tableView.scrollTo(index.siblingAtColumn(self.favcol))
 
     def findLastSelectionBefore(self, cursor):
         self.findSelection(cursor,exact=False)
