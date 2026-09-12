@@ -117,12 +117,17 @@ class baseSearchDock(QDockWidget):
         self.ui = Ui_searchDock()
         self.ui.setupUi(self)
         self.saved = saved
-        self.favcol = favcol
+        self.deffav = self.favcol = favcol
+        self.model = None  # set this in subclass
         tv = self.ui.tableView
         tv.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         tv.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-        tv.horizontalHeader().sectionDoubleClicked.connect(tv.resizeColumnToContents)
-        tv.horizontalHeader().sectionClicked.connect(self.setFav)
+        tvh = tv.horizontalHeader()
+        tvh.sectionDoubleClicked.connect(tv.resizeColumnToContents)
+        tvh.sectionClicked.connect(self.setFav)
+        tvh.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        tvh.customContextMenuRequested.connect(self.headerContextMenu)
+
         
         if saved and saved.name and (not title or title==saved.sexp):
             title = saved.name
@@ -133,6 +138,7 @@ class baseSearchDock(QDockWidget):
 
     def hideCols(self):
         # note: might not work if model or headings aren't set
+        # if not self.model: return  # don't call before setting model!
         tv = self.ui.tableView
         if self.saved and self.saved.hideCols:
             for si in self.saved.hideCols.split():
@@ -149,12 +155,14 @@ class baseSearchDock(QDockWidget):
             return # nothing to fix
         # try to find a visible column
         fav = 0
-        try:
-            while tv.isColumnHidden(fav):
-                fav +=1
-            self.favcol = fav
-        except:
-            self.favcol = 0  # XXX whatever
+        while tv.isColumnHidden(fav):
+            fav +=1
+        # Qt6 column after last is never hidden and doesn't cause error
+        if fav >= self.model.columnCount(None):
+            # everything was hidden, fix it
+            fav = self.deffav
+            tv.setColumnHidden(fav,False)
+        self.favcol = fav
 
     def closeEvent(self, event):
         # if a search dock is closed, make visible the menu entry to delete them
@@ -169,10 +177,30 @@ class baseSearchDock(QDockWidget):
     def setFav(self, i):
         # clicked
         self.favcol = i
+        # change default too?
 
-    #def contextMenuEvent(self, event):
-    #  hide/show columns
+    def headerContextMenu(self, point):
+        m = QMenu()
+        t = self.ui.tableView
+        hh = self.ui.tableView.horizontalHeader()
+        col = t.columnAt(point.x())
+        m.addAction(f"Hide column {col}",partial(self.hideColumn,col))
+        # list what's hidden
+        hiddencols = [ col for col in range(hh.count())
+                  if t.isColumnHidden(col)]
+        # XX if there's too many, just show surrounding ones?
+        # but only crazy people would make a regex with huge numbers of groups
+        for col in hiddencols:
+            m.addAction(f"Show column {col}", partial(self.showColumn, col))
+        action = m.exec(t.mapToGlobal(point))
 
+    # context menu triggered
+    def hideColumn(self, col):
+        self.ui.tableView.setColumnHidden(col, True)
+        self.fixFav()
+
+    def showColumn(self, col):
+        self.ui.tableView.setColumnHidden(col, False)
 
 class searchDock(baseSearchDock):
     showSel = pyqtSignal(list)
@@ -344,7 +372,6 @@ class groupItem():
         self.groups = item[1]
         # don't bother with context, if the user wants that they should put a group for it in the regex
 
-# this is a bit of a ducktype of selList
 class groupList(itemListModel):
     def __init__(self, hits=None):
         # note: can't set headers properly until first data item
@@ -357,7 +384,6 @@ class groupList(itemListModel):
             for item in hits:
                 self.addMatch(item) # XX not the most efficent way ...
         # XX color?
-        self.haspre = self.hasitem = self.haspost = False # not gonna use this but quack!
 
     def addMatch(self, itemdata):
         i=groupItem(itemdata)
