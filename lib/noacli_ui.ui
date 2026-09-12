@@ -54,7 +54,7 @@
      <x>0</x>
      <y>0</y>
      <width>612</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="historyMenu">
@@ -87,9 +87,10 @@
     <addaction name="actionGsettings"/>
     <addaction name="actionEnvironment_Variables"/>
     <addaction name="actionButtonDockEditor"/>
+    <addaction name="actionEdit_saved_searches"/>
+    <addaction name="actionEditor_font"/>
     <addaction name="actionHelp"/>
     <addaction name="separator"/>
-    <addaction name="actionEditor_font"/>
     <addaction name="actionSync_settings"/>
     <addaction name="separator"/>
     <addaction name="actionGeoSave"/>
@@ -198,7 +199,7 @@
    <property name="minimumSize">
     <size>
      <width>88</width>
-     <height>108</height>
+     <height>109</height>
     </size>
    </property>
    <property name="windowTitle">
@@ -484,6 +485,11 @@
   <action name="actionButtonDockEditor">
    <property name="text">
     <string>Button dock editor</string>
+   </property>
+  </action>
+  <action name="actionEdit_saved_searches">
+   <property name="text">
+    <string>Edit saved searches</string>
    </property>
   </action>
  </widget>

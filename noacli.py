@@ -36,6 +36,7 @@ from lib.commandparser import OutWin, commandParser
 from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
+from lib.saved_searches import saved_searches
 
 __version__ = '2.3.1'
 
@@ -527,7 +528,9 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.menuJobs.aboutToShow.connect(self.buildJobMenu)
 
         self.ui.historyView.scrollToBottom()
+
         self.ui.actionFavorites_editor.triggered.connect(partial(self.settings.favorites.editFavorites, self))
+        self.ui.actionEdit_saved_searches.triggered.connect(self.savedSearchesDialog)
 
         # file browser shortcut
         self.fileShortcut = QShortcut(QKeySequence('ctrl+f'), self)
@@ -802,7 +805,6 @@ class noacli(QtWidgets.QMainWindow):
 
     # I hate modal dialog boxes.  Rather do this the hard way,
     # and get live font changes too!
-
     @QtCore.pyqtSlot()
     def pickDefaultFont(self):
         startfont = self.ui.commandEdit.document().defaultFont()
@@ -839,6 +841,17 @@ class noacli(QtWidgets.QMainWindow):
         # tear it down
         self.fontdialog.deleteLater()  # possibly still delivering signals
         self.fontdialog = None
+
+    @QtCore.pyqtSlot()
+    def savedSearchesDialog(self):
+        self.ssd = saved_searches(None)
+        self.ssd.finished.connect(self.closeSSearches)
+
+    def closeSSearches(self, result):
+        if result:
+            self.setupSavedSearch(True)
+        self.ssd = None
+
 
     @QtCore.pyqtSlot()
     def syncSettings(self):

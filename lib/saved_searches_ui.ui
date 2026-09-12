@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>930</width>
-    <height>431</height>
+    <height>441</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -31,7 +31,7 @@
      <property name="childrenCollapsible">
       <bool>false</bool>
      </property>
-     <widget class="QSplitter" name="splitter">
+     <widget class="QSplitter" name="tsplitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>

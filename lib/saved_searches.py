@@ -149,7 +149,14 @@ class saved_searches(QDialog):
         self.ui = Ui_saved_searches()
         self.ui.setupUi(self)
         self.qtail = tail
-        self.ui.sexp.setText(self.qtail.ui.searchTerm.text())
+        if self.qtail:  # prefill
+            self.ui.sexp.setText(self.qtail.ui.searchTerm.text())
+        else:
+            # no model to search
+            self.ui.smatches.setDisabled(True)
+            self.ui.tsplitter.setCollapsible(1,True)
+            self.ui.tsplitter.setSizes([1,0])
+            #self.ui.smatches.hide()
         self.samples = groupList()
         self.old_sexp = ''
         self.extmodel = False
@@ -167,6 +174,8 @@ class saved_searches(QDialog):
         self.ui.disableAll.clicked.connect(partial(self.ui.immediate_action.setCurrentIndex,0))
         self.ui.disableAll.clicked.connect(partial(self.ui.ccontext.setCurrentIndex,0))
         self.ui.disableAll.clicked.connect(partial(self.ui.runImmediate.setChecked, False))
+        for tv in (self.ui.ssearches, self.ui.smatches):
+            tv.horizontalHeader().sectionDoubleClicked.connect(tv.resizeColumnToContents)
         #
         self.valid = False # XX use this somewhere
         apply = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply)
@@ -335,6 +344,9 @@ class saved_searches(QDialog):
         # anything else need done here?
 
     def searchSamples(self):
+        if not self.qtail:
+            # no model to search
+            return
         sexp = self.ui.sexp.text()
         if not sexp:
             self.ui.sresult.append("Empty search")
