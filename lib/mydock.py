@@ -83,13 +83,3 @@ class myDock(QDockWidget):
             super().setWindowTitle("{} [{}]".format(self.basetitle, self.newlines))
         else:
             super().setWindowTitle("{} ({})".format(self.basetitle, self.newlines))
-
-    # bug workaround for QTBUG-74606 Oct 2021, fixed in Qt 6.11+? buggy in 5.15.3
-    # XXX test if this bug fix is still needed
-    def closeEvent(self, event):
-        if self.isFloating():  # pylint: disable R0801
-            self.setFloating(False)
-            self.hide()
-            event.ignore()
-        else:
-            super().closeEvent(event)

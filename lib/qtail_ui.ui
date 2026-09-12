@@ -94,7 +94,7 @@
      <x>0</x>
      <y>0</y>
      <width>719</width>
-     <height>23</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuView">
@@ -126,12 +126,15 @@
     <addaction name="actionCaseInsensitive"/>
     <addaction name="actionUnicode"/>
     <addaction name="actionWholeWords"/>
+    <addaction name="separator"/>
     <addaction name="actionClearFinds"/>
     <addaction name="actionListHighlights"/>
+    <addaction name="separator"/>
     <addaction name="actionFind_all"/>
-    <addaction name="actionDeleteClosedSearches"/>
-    <addaction name="actionShowClosedSearches"/>
     <addaction name="actionFind_all_groups"/>
+    <addaction name="actionShowClosedSearches"/>
+    <addaction name="actionDeleteClosedSearches"/>
+    <addaction name="separator"/>
     <addaction name="actionSaved_searches"/>
    </widget>
    <addaction name="menuView"/>
@@ -290,6 +293,9 @@
    </property>
   </action>
   <action name="actionShowClosedSearches">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Show and tabify all searches</string>
    </property>

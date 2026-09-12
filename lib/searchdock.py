@@ -19,24 +19,6 @@ from lib.colorpicker import ColorPicker
 
 colorpicker = ColorPicker()
 
-# reused in both search docks
-def hideCols(tv, hide):
-    if not hide: return
-    for si in hide.split():
-        try:
-            i = int(si)
-            tv.setColumnHidden(i,True)
-        except:
-            pass # whatever
-    # find a visible column
-    fav = 0
-    try:
-        while tv.isColumnHidden(fav):
-            fav +=1
-        return fav
-    except:
-        return 0  # XXX whatever
-
 
 class selItem():
     def __init__(self, cursor, context=True):
@@ -128,48 +110,98 @@ class selList(itemListModel):
         elif col==2: return item.posttext
         else: return None
 
+# common search dock functionality
+class baseSearchDock(QDockWidget):
+    def __init__(self, parent, title, favcol, saved, auto):
+        super().__init__(parent)
+        self.ui = Ui_searchDock()
+        self.ui.setupUi(self)
+        self.saved = saved
+        self.favcol = favcol
+        tv = self.ui.tableView
+        tv.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        tv.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        tv.horizontalHeader().sectionDoubleClicked.connect(tv.resizeColumnToContents)
+        tv.horizontalHeader().sectionClicked.connect(self.setFav)
+        
+        if saved and saved.name and (not title or title==saved.sexp):
+            title = saved.name
+        if title:
+            self.setWindowTitle(title)
+        parent.addSearchDock(self, auto and saved and not saved.findshow)
+        # self.hideCols()  # do this in subclass after model is set
 
-class searchDock(QDockWidget):
+    def hideCols(self):
+        # note: might not work if model or headings aren't set
+        tv = self.ui.tableView
+        if self.saved and self.saved.hideCols:
+            for si in self.saved.hideCols.split():
+                try:
+                    i = int(si)
+                    tv.setColumnHidden(i,True)
+                except:
+                    pass # whatever, ignore bad input
+            self.fixFav()
+
+    def fixFav(self):
+        tv = self.ui.tableView
+        if not tv.isColumnHidden(self.favcol):
+            return # nothing to fix
+        # try to find a visible column
+        fav = 0
+        try:
+            while tv.isColumnHidden(fav):
+                fav +=1
+            self.favcol = fav
+        except:
+            self.favcol = 0  # XXX whatever
+
+    def closeEvent(self, event):
+        # if a search dock is closed, make visible the menu entry to delete them
+        # XXX test if this bug fix is still needed and see if removing it changes functionsality
+        super().closeEvent(event)
+        p = self.parent()
+        if p:
+            p.ui.actionDeleteClosedSearches.setVisible(True)
+            p.ui.actionDeleteClosedSearches.setEnabled(True)
+
+    @QtCore.pyqtSlot(int)
+    def setFav(self, i):
+        # clicked
+        self.favcol = i
+
+    #def contextMenuEvent(self, event):
+    #  hide/show columns
+
+
+class searchDock(baseSearchDock):
     showSel = pyqtSignal(list)
     showSelDelayed = pyqtSignal()
     hideSel = pyqtSignal(list)
     gotoSel = pyqtSignal(QTextCursor)
 
     def __init__(self, parent, title=None, selections=None, searchterm=None, findflags=None, saved=None, auto=False):
-        super().__init__(parent)
-        self.ui = Ui_searchDock()
-        self.ui.setupUi(self)
-        tv = self.ui.tableView
-        tv.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        super().__init__(parent, title, 1, saved, auto)
+
         self.searchterm = searchterm  # XXX use these later
         self.findflags = findflags
-        self.saved = saved
 
-        # stuff this in a corner of the parent QMainWindow (or don't)
-        parent.addSearchDock(self, auto and saved and not saved.findshow)
-
-        # XX alternate: check parent for existing docks, and add this as a tab SETTINGS
-        # XX alternate: check parent for existing docks and shrink them vertically after inserting ourselves
         global colorpicker
         color = colorpicker.nextColor()
         self.color = QtGui.QBrush(QColor(color))
         self.model = selList()
+
+        tv = self.ui.tableView
         tv.setModel(self.model)
+        self.hideCols()
+        tv.clicked.connect(self.gotoIndex)
+
         # set up delayed emit
         self.showSelDelayed.connect(self.doDelayShowSel, Qt.ConnectionType.QueuedConnection)
         # set up connections before the data is loaded
         self.ui.showButton.clicked.connect(partial(self.emitExtraSelections, self.showSel))
         self.ui.hideButton.clicked.connect(partial(self.emitExtraSelections, self.hideSel))
-        tv.clicked.connect(self.gotoIndex)
-        if saved and saved.name and (not title or title==saved.sexp):
-            title = saved.name
-        if title:
-            self.setWindowTitle(title)
-        self.favcol = 1  # item to scroll to (possibly only visible column)
-        if saved:
-            f = hideCols(tv, saved.hideCols)
-            if tv.isColumnHidden(self.favcol): self.favcol = f
-        tv.horizontalHeader().sectionDoubleClicked.connect(tv.resizeColumnToContents)
+
         if selections:
             self.setSel(selections)
             if title and title!='Highlights':
@@ -181,6 +213,7 @@ class searchDock(QDockWidget):
                     else: self.favcol = 2
                 if not self.model.haspost: tv.setColumnHidden(2,True)
         self.model.setColor(self.color)
+
         if saved and auto and saved.findhighlight:
             #self.emitExtraSelections(self.showSel) # this doesn't work, too soon
             self.showSelDelayed.emit()
@@ -258,57 +291,28 @@ class searchDock(QDockWidget):
         #print(color) # DEBUG
         if color: self.setColor(color)
 
-    def closeEvent(self, event):
-        # if a search dock is closed, make visible the menu entry to delete them
-        # XXX test if this bug fix is still needed and see if removing it changes functionsality
-        p = self.parent()
-        if p:
-            p.ui.actionDeleteClosedSearches.setVisible(True)
-            p.ui.actionDeleteClosedSearches.setEnabled(True)
-
-        # bug workaround for QTBUG-74606 Oct 2021, fixed in Qt 6.11+? buggy in 5.15.3
-        if self.isFloating():
-            self.setFloating(False)
-            self.hide()
-            event.ignore()
-        else:
-            super().closeEvent(event)
 
 
-class searchDockGroup(QDockWidget):
+class searchDockGroup(baseSearchDock):
     # show groups from regex searches
     # loosely duplicate searchDock but with major differences (and stuff left out
     gotoLine = pyqtSignal(int)
 
     def __init__(self, parent, title=None, grouphits=None, searchexp=None, saved=None, auto=False):
         # XXX convert searchexp to searchterm and findflags later
-        super().__init__(parent)
-        self.ui = Ui_searchDock()
-        self.ui.setupUi(self)
+        super().__init__(parent, title, 0, saved, auto)
         # higlights are expensive for this, so disable it
         self.ui.showButton.hide()
         self.ui.hideButton.hide()
-        self.saved = saved
-        self.favcol = 0  # item to scroll to (possibly only visible column)
-        if saved and saved.name and (not title or title==saved.sexp):
-            title = saved.name
-        if title:
-            self.setWindowTitle(title)
+
         self.searchexp = searchexp  # XXX use these later
         self.model = groupList(grouphits)
         tv = self.ui.tableView
         tv.setModel(self.model)
-        tv.resizeColumnsToContents()
+        tv.resizeColumnsToContents()  # XXX refactor to base?
         tv.clicked.connect(self.gotoIndex)
-        tv.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
-        tv.horizontalHeader().sectionDoubleClicked.connect(tv.resizeColumnToContents)
-        tv.horizontalHeader().sectionClicked.connect(self.setFav)
-        # stuff this in a corner of the parent QMainWindow
-        parent.addSearchDock(self, auto and saved and not saved.findshow)
+        self.hideCols() # now that model is set
         # XX highlight color picker setup
-        # XX adjust columns
-        if saved:
-            self.favcol = hideCols(self.ui.tableView, saved.hideCols)
 
     def gotoIndex(self, index):
         item = self.model.getItem(index)
@@ -327,15 +331,6 @@ class searchDockGroup(QDockWidget):
 
     def findLastSelectionBefore(self, cursor):
         self.findSelection(cursor,exact=False)
-
-    @QtCore.pyqtSlot(int)
-    def setFav(i):
-        # clicked
-        self.favcol = i
-
-    #def contextMenuEvent(self, event):
-    #  hide/show columns
-
 
 class groupItem():
     # data comes in as ((line, instance), (whole match, groups...))
