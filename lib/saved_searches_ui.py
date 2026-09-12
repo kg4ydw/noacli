@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_saved_searches(object):
     def setupUi(self, saved_searches):
         saved_searches.setObjectName("saved_searches")
-        saved_searches.resize(914, 431)
+        saved_searches.resize(930, 431)
         saved_searches.setMinimumSize(QtCore.QSize(0, 0))
         saved_searches.setSizeGripEnabled(True)
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(saved_searches)
@@ -42,9 +42,9 @@ class Ui_saved_searches(object):
         self.ssearches.setMinimumSize(QtCore.QSize(0, 100))
         self.ssearches.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
         self.ssearches.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
-        self.ssearches.setSortingEnabled(True)
+        self.ssearches.setSortingEnabled(False)
         self.ssearches.setObjectName("ssearches")
-        self.ssearches.horizontalHeader().setSortIndicatorShown(True)
+        self.ssearches.horizontalHeader().setSortIndicatorShown(False)
         self.ssearches.verticalHeader().setVisible(True)
         self.ssearches.verticalHeader().setSortIndicatorShown(False)
         self.verticalLayout1Searches.addWidget(self.ssearches)

@@ -245,8 +245,8 @@ class TableViewer(QtWidgets.QMainWindow):
         self.ui.colPicker.customContextMenuRequested.connect(self.colPickerContext)
         hh = self.ui.tableView.horizontalHeader()
         hh.setSectionsMovable(True)
-        hh.sectionDoubleClicked.connect(self.resizeHheader)
-        self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
+        hh.sectionDoubleClicked.connect(self.ui.tableView.resizeColumnToContents)
+        self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.ui.tableView.resizeRowToContents)
         self.want_readmore.connect(self.readmore, Qt.ConnectionType.QueuedConnection)  # for delayed reads
         self.ui.tableView.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.ui.tableView.customContextMenuRequested.connect(self.tableContextMenu)
@@ -457,12 +457,6 @@ class TableViewer(QtWidgets.QMainWindow):
         if text:
             self.app.clipboard().setText(text)
             self.app.clipboard().setText(text, QtGui.QClipboard.Mode.Selection)
-
-    def resizeHheader(self, logical):
-        self.ui.tableView.resizeColumnToContents(logical)
-
-    def resizeVheader(self, logical):
-        self.ui.tableView.resizeRowToContents(logical)
 
     def tableContextMenu(self, point):
         m=QMenu()

@@ -373,9 +373,10 @@ class QtTail(QtWidgets.QMainWindow):
         if self.reinterval < mininterval:
             self.reinterval = mininterval
             msg = "Resetting timer to {:1.3f}s (runtime={:1.3f}s)".format(self.reinterval, self.runtime)
-            if typedQSettings().value('DEBUG',False): print(msg)  # reset interval
+            # XXX should this message be posted if not t?
             self.statusBar().showMessage(msg, math.floor(mininterval*10))
-            self.actionAutoRefresh()
+            t = self.actionAutoRefresh()
+            if t and typedQSettings().value('DEBUG',False): print(msg)  # reset interval
             if hasattr(self.ui, 'intervalLine'):
                 self.ui.intervalLine.setValue(math.floor(mininterval+0.5))
         if hasattr(self.ui, 'intervalLine'):
@@ -406,6 +407,7 @@ class QtTail(QtWidgets.QMainWindow):
         else:
             self.timer.stop()
         self.updateStatusIcon()
+        return checked
 
     def reloadOrRerun(self):
         # XX reset and restart timer if this was user triggered?
@@ -686,6 +688,23 @@ class QtTail(QtWidgets.QMainWindow):
                 self.savedSearchMenu = sm
         # also save these in the browser object for contextSearches
         self.ui.textBrowser.savedsearches = self.savedsearches
+        self.ui.searchTerm.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.ui.searchTerm.customContextMenuRequested.connect(self.searchTermContext)
+        
+    def searchTermContext(self, pos):
+        menu = self.ui.searchTerm.createStandardContextMenu()
+        if self.savedsearches:
+            sm = QMenu("Copy saved searches", menu)
+            sm.aboutToShow.connect(partial(self.searchTermSavedContext,sm))
+            menu.addMenu(sm)
+        menu.exec(self.ui.searchTerm.mapToGlobal(pos))
+
+    # build menu on demand only
+    def searchTermSavedContext(self, sm):
+        if not sm.isEmpty(): return # already did this
+        # sort by name
+        for ss in sorted(self.savedsearches, key=lambda i: i.name):
+            sm.addAction(ss.name, partial(self.ui.searchTerm.setText, ss.sexp))
 
     def openfile(self,filename):
         self.checkStuff()

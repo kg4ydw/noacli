@@ -330,14 +330,14 @@ class settingsDialog(QtWidgets.QDialog):
         else:
             ui.label.setText(title)
         ui.tableView.resizeColumnsToContents()
-        #XX not without reset function ### self.ui.tableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
-        self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
+        #XX not without reset function ### self.ui.tableView.horizontalHeader().sectionDoubleClicked.connect(self.ui.tableView.resizeColumnToContents)
+        self.ui.tableView.verticalHeader().sectionDoubleClicked.connect(self.ui.tableView.resizeRowToContents)
         # replace corner
         cb = self.ui.tableView.findChild(QtWidgets.QAbstractButton)
         if cb:
             cb.disconnect()
             cb.clicked.connect(self.adjustSize)
-
+            cb.setToolTip("adjust size")
         # resize top window too?
         self.want_resize.emit()
         self.show()
@@ -361,12 +361,6 @@ class settingsDialog(QtWidgets.QDialog):
             #print("resize {}".format(size.width())) # DEBUG
             # XX minimum vertical hight relative to header height?
             self.resize(size)
-
-    def resizeHheader(self, logical):
-        self.ui.tableView.resizeColumnToContents(logical)
-
-    def resizeVheader(self, logical):
-        self.ui.tableView.resizeRowToContents(logical)
 
     @classmethod
     def registerType(cls, typec, delegate):

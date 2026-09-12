@@ -284,8 +284,9 @@ class historyView(QTableView):
         if cb:
             cb.disconnect()
             cb.clicked.connect(partial(self.resetHistorySort,True))
-        self.horizontalHeader().sectionDoubleClicked.connect(self.resizeHheader)
-        self.verticalHeader().sectionDoubleClicked.connect(self.resizeVheader)
+            cb.setToolTip("Reset sort")
+        self.horizontalHeader().sectionDoubleClicked.connect(self.resizeColumnToContents)
+        self.verticalHeader().sectionDoubleClicked.connect(self.resizeRowToContents)
         self.delayedScroll.connect(self.doDelayedScroll, Qt.ConnectionType.QueuedConnection)
         vh = self.verticalHeader()
         vh.customContextMenuRequested.connect(self.buildContextMenu)
@@ -373,10 +374,6 @@ class historyView(QTableView):
         action = m.exec(self.mapToGlobal(point))  # event.globalPos())
         #print(action) # DEBUG
 
-    # XXX duplicate function
-    #def resizeVheader(self, logical):
-    #    self.ui.tableView.resizeRowToContents(logical)
-
     def resetView(self, index=None):
         #print('start {},{}'.format(index.row(),index.column())) # DEBUG resetView
         row = None
@@ -411,12 +408,6 @@ class historyView(QTableView):
             self.scrollTo(index, QAbstractItemView.ScrollHint.EnsureVisible )
         else:
             self.scrollToBottom()
-
-    def resizeHheader(self, logical):
-        self.resizeColumnToContents(logical)
-
-    def resizeVheader(self, logical):
-        self.resizeRowToContents(logical)
 
 
 # thanks to https://stackoverflow.com/questions/18475870/qt-menu-with-qlinedit-action (gct)
@@ -526,6 +517,7 @@ class noacli(QtWidgets.QMainWindow):
         if cb:
             cb.disconnect() # XX warning on macos?
             cb.clicked.connect(self.settings.jobs.cleanup)
+            cb.setToolTip("Clean up finished jobs")
 
         self.ui.jobTableView.horizontalHeader().sectionDoubleClicked.connect(self.resizeJobHheader)
         self.ui.jobTableView.verticalHeader().sectionDoubleClicked.connect(self.resizeJobVheader)

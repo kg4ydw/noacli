@@ -83,6 +83,10 @@ class jobItem():
         self.window = None
         if hasattr(self, 'process') and self.process:
             self.process.setParent(None)
+            try:  # make sure it's dead
+                self.process.close()
+            except:
+                pass # already knew it was gone, don't care about errors
         self.process=None
 
     def getpid(self):
@@ -145,6 +149,8 @@ class jobItem():
 
     # private slots
     def collectPid(self):
+        # detected race condition: started process after it was cleaned up!?
+        # might be fixed
         self.pid = self.process.processId()
         if self.index and self.index.model():
             index = self.index.model().sibling(self.index.row(),0,QModelIndex())

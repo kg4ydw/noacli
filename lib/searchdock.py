@@ -139,7 +139,8 @@ class searchDock(QDockWidget):
         super().__init__(parent)
         self.ui = Ui_searchDock()
         self.ui.setupUi(self)
-        self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        tv = self.ui.tableView
+        tv.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.searchterm = searchterm  # XXX use these later
         self.findflags = findflags
         self.saved = saved
@@ -153,24 +154,25 @@ class searchDock(QDockWidget):
         color = colorpicker.nextColor()
         self.color = QtGui.QBrush(QColor(color))
         self.model = selList()
-        self.ui.tableView.setModel(self.model)
+        tv.setModel(self.model)
         # set up delayed emit
         self.showSelDelayed.connect(self.doDelayShowSel, Qt.ConnectionType.QueuedConnection)
         # set up connections before the data is loaded
         self.ui.showButton.clicked.connect(partial(self.emitExtraSelections, self.showSel))
         self.ui.hideButton.clicked.connect(partial(self.emitExtraSelections, self.hideSel))
-        self.ui.tableView.clicked.connect(self.gotoIndex)
+        tv.clicked.connect(self.gotoIndex)
         if saved and saved.name and (not title or title==saved.sexp):
             title = saved.name
         if title:
             self.setWindowTitle(title)
         self.favcol = 1  # item to scroll to (possibly only visible column)
         if saved:
-            hideCols(self.ui.tableView, saved.hideCols)
+            f = hideCols(tv, saved.hideCols)
+            if tv.isColumnHidden(self.favcol): self.favcol = f
+        tv.horizontalHeader().sectionDoubleClicked.connect(tv.resizeColumnToContents)
         if selections:
             self.setSel(selections)
             if title and title!='Highlights':
-                tv = self.ui.tableView
                 # hide empty columns
                 if not self.model.haspre: tv.setColumnHidden(0,True)
                 if not self.model.hasitem:
@@ -277,7 +279,7 @@ class searchDockGroup(QDockWidget):
     # show groups from regex searches
     # loosely duplicate searchDock but with major differences (and stuff left out
     gotoLine = pyqtSignal(int)
-    
+
     def __init__(self, parent, title=None, grouphits=None, searchexp=None, saved=None, auto=False):
         # XXX convert searchexp to searchterm and findflags later
         super().__init__(parent)
@@ -286,7 +288,6 @@ class searchDockGroup(QDockWidget):
         # higlights are expensive for this, so disable it
         self.ui.showButton.hide()
         self.ui.hideButton.hide()
-        self.ui.tableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self.saved = saved
         self.favcol = 0  # item to scroll to (possibly only visible column)
         if saved and saved.name and (not title or title==saved.sexp):
@@ -295,11 +296,15 @@ class searchDockGroup(QDockWidget):
             self.setWindowTitle(title)
         self.searchexp = searchexp  # XXX use these later
         self.model = groupList(grouphits)
-        self.ui.tableView.setModel(self.model)
+        tv = self.ui.tableView
+        tv.setModel(self.model)
+        tv.resizeColumnsToContents()
+        tv.clicked.connect(self.gotoIndex)
+        tv.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        tv.horizontalHeader().sectionDoubleClicked.connect(tv.resizeColumnToContents)
+        tv.horizontalHeader().sectionClicked.connect(self.setFav)
         # stuff this in a corner of the parent QMainWindow
-        self.ui.tableView.resizeColumnsToContents()
         parent.addSearchDock(self, auto and saved and not saved.findshow)
-        self.ui.tableView.clicked.connect(self.gotoIndex)
         # XX highlight color picker setup
         # XX adjust columns
         if saved:
@@ -314,7 +319,8 @@ class searchDockGroup(QDockWidget):
         # extract block number from cursor, search for that in the data
         line = cursor.blockNumber()
         index = self.model.findLine(line, exact)
-        if not index: return
+        if not index:
+            return
         # if not exact and line doesn't match, pick the previous line XXXX BUG
         self.ui.tableView.setCurrentIndex(index)
         self.ui.tableView.scrollTo(index.siblingAtColumn(self.favcol))
@@ -322,9 +328,15 @@ class searchDockGroup(QDockWidget):
     def findLastSelectionBefore(self, cursor):
         self.findSelection(cursor,exact=False)
 
+    @QtCore.pyqtSlot(int)
+    def setFav(i):
+        # clicked
+        self.favcol = i
+
     #def contextMenuEvent(self, event):
     #  hide/show columns
-    
+
+
 class groupItem():
     # data comes in as ((line, instance), (whole match, groups...))
     def __init__(self, item):
@@ -389,9 +401,9 @@ class groupList(itemListModel):
 
     def findLine(self, line, exact=False):
         i = bisect_left(self._data, line, key=lambda d: d.line)
-        if not 0 <= i < len(self._data):
+        if not 0 <= i <= len(self._data):
             return None # XXX
-        if self._data[i].line != line:
+        if i>=len(self._data) or self._data[i].line != line:
             if exact:
                 return None
             elif i>0:

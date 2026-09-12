@@ -104,12 +104,15 @@ class searchModel(itemListModel):
             #if entry.validate(): # XXXX
             self.appendItem(entry)
         qs.endArray()
+
     def saveToSettings(self):
         qs = QSettings()
         size = self.rowCount(None)
         qs.beginWriteArray("savedsearch", size )
-        for row in range(size):
-            qs.setArrayIndex(row)
+        # write them out in sorted order
+        rowi = 0
+        for row in sorted(range(size), key=lambda i: self.getItem(self.index(i,0)).name):
+            qs.setArrayIndex(rowi)
             index = self.index(row,0)
             entry = self.getItem(index)
             qs.setValue("name", entry.name)
@@ -122,6 +125,7 @@ class searchModel(itemListModel):
             qs.setValue("findhighlight", entry.findhighlight)
             qs.setValue("ccontext", entry.ccontext)
             qs.setValue("hideCols", entry.hideCols)
+            rowi += 1
         qs.endArray()
         # XXXX handle delete
 
