@@ -10,6 +10,7 @@ __copyright__ = '2022, 2023, 2026, Steven Dick <kg4ydw@gmail.com>'
 from PyQt6 import QtCore
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QDockWidget, QAbstractScrollArea, QWidget
+from lib.wayland_fixes import resize_window
 
 
 class myDock(QDockWidget):
@@ -37,7 +38,7 @@ class myDock(QDockWidget):
             if hsbv and w==nw:  # hint wasn't enough to get rid of HScrollBar
                 nw += 20
             if nw>w and hsbv:
-                self.resize(QtCore.QSize(nw, self.size().height()))
+                resize_window(self, nw, self.size().height())
         else:
             # alternately, resize by height if it doesn't have a scroll bar
             # but dock doesn't inherit widget's layout policy so calculate
@@ -51,7 +52,7 @@ class myDock(QDockWidget):
             if hh<10 or hs.height() < hh:
                 hh = hs.height()
             if s.height() < hh:
-                self.resize(QtCore.QSize(s.width(), hh)+diff)
+                resize_window(self, QtCore.QSize(s.width(), hh)+diff)
 
     @QtCore.pyqtSlot(str)
     def setWindowTitle(self, title):

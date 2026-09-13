@@ -21,7 +21,7 @@ from statistics import stdev, mean, median
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QTextEdit, QSizePolicy, QMenu
-from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QModelIndex, QItemSelectionModel, QProcess
+from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QModelIndex, QItemSelectionModel, QProcess, QSize
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from lib.betterio import betterQProcess, betterTextIOWrapper
@@ -29,6 +29,7 @@ from lib.tableviewer_ui import Ui_TableViewer
 from lib.datamodels import simpleTable
 from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
+from lib.wayland_fixes import resize_window
 
 typedQSettings().registerOptions({
     'TableviewerResizeRows': [ False, 'Resize rows automatically to fit contents', bool],
@@ -418,9 +419,9 @@ class TableViewer(QtWidgets.QMainWindow):
         vh = self.ui.tableView.verticalHeader()
         hh = self.ui.tableView.horizontalHeader()
         # calculate max size based on header sizes and add other decorations
-        size = QtCore.QSize(hh.length(), vh.length())
-        size += QtCore.QSize(vh.size().width(), hh.size().height())
-        size += frame + QtCore.QSize(30, 100)
+        size = QSize(hh.length(), vh.length())
+        size += QSize(vh.size().width(), hh.size().height())
+        size += frame + QSize(30, 100)
         # check V and H separately
         # don't resize if ratio is exceeded
         if useratio:
@@ -428,7 +429,12 @@ class TableViewer(QtWidgets.QMainWindow):
                 size.setHeight(oldsize.height())
             if oldsize.width()*ratio < size.width():
                 size.setWidth(oldsize.width())
-        self.resize(size)
+        # never resize bigger than the screen
+        sh = self.screen().geometry().height()
+        sw = self.screen().geometry().width()
+        if size.height() > sh or size.width() > sw:
+            size = size.boundedTo(QSize(floor(sw*0.75), floor(sh*0.75))) # XXX SETTING
+        resize_window(self, size)
 
     def tableSelectFix(self):
         sm = self.ui.tableView.selectionModel()
@@ -728,7 +734,7 @@ class TableViewer(QtWidgets.QMainWindow):
                 col = self.headers.index(col)
             # if nothing above failed...
             self.proxymodel.setFilterKeyColumn(col)
-        except:
+        except:  # parse error, index error
             # search by whole table, class default is col 1
             self.proxymodel.setFilterKeyColumn(-1)
         try:
@@ -736,7 +742,7 @@ class TableViewer(QtWidgets.QMainWindow):
             if filter:
                 self.proxymodel.setFilterFixedString(filter)
                 self.ui.filterEdit.setText(filter)
-        except:
+        except: # key error
             pass
         self.resetTableSort() # default is col 1
         self.headermodel = QtCore.QStringListModel(headers, self)

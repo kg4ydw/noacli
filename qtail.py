@@ -34,6 +34,7 @@ from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
 from lib.searchdock import searchDock, searchDockGroup
 from lib.saved_searches import saved_searches, searchModel
+from lib.wayland_fixes import resize_window
 
 # XXX some options not implemented yet
 # XXX no option editor for stand alone qtail
@@ -275,7 +276,7 @@ class QtTail(QtWidgets.QMainWindow):
         #   match this window with cfilter
         #   have either findshow or findhighlight checked
         #   have imaction set
-        #   imaction must be findall for highlights XXXX
+        #   imaction must be findall for highlights XXXX (ignore)
         if not self.savedsearches: return
         for ss in filter(lambda e: e.cfilter and (e.findshow or e.findhighlight) and e.imaction, self.savedsearches):
             if ss.imaction == 1:
@@ -663,7 +664,6 @@ class QtTail(QtWidgets.QMainWindow):
         if len(self.savedsearches)==0: self.savedsearches=None
         # XXX for now, only initiate saved searches at the end or manually
         # add to search menu if there are any
-        # XXXX refilter for automatic searches?
         if self.savedsearches:
             m = self.ui.menuSearch
             # how many searches are triggerable?
@@ -1001,7 +1001,7 @@ class QtTail(QtWidgets.QMainWindow):
         rect= self.size()
         framedx = rect.width() - docrect.width()
         framedy = rect.height() - docrect.height()
-        #print("ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
+        #print(f"ideal={doc.idealWidth()} width={doc.textWidth()}") # DEBUG
         # time this expensive function and don't do it again if it's bad
         # also disable it if --whole is used
         if not self.disableAdjustSize and not self.opt.whole:
@@ -1009,12 +1009,13 @@ class QtTail(QtWidgets.QMainWindow):
             doc.adjustSize()
             interval = time.time()-start
             blocks = doc.blockCount()
-            #print('adjustSize took {}s for {} blocks'.format(interval, blocks)) # DEBUG
-            if interval > 0.5 or blocks>1000:  # SETTING time and maxline threshold for resize
+            if interval > 0.75: # XXX or blocks>1000:  # SETTING time and maxline threshold for resize
                 # don't need to do this again if we have enough samples
                 # or if it took too long this time
                 self.disableAdjustSize=True
                 self.ui.actionAdjust.setEnabled(False)
+                if  typedQSettings().value('DEBUG',False):
+                    print(f"DISABLE adjustSize took {interval}s for {blocks} blocks")  # DEBUG
         #print(" ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
         newsize = doc.size()
         #print(' docsize='+str(newsize)) # DEBUG
@@ -1058,7 +1059,10 @@ class QtTail(QtWidgets.QMainWindow):
             #print(f"height keep: {height=} {rect.height()=}") # DEBUG
             height = rect.height()  # don't resize
         #print(' newsize='+str(width)+','+str(height)) # DEBUG
-        self.resize(ceil(width), ceil(height))
+        sh = self.screen().geometry().height()
+        # never resize larger than screen
+        if height > sh: height = sh*0.75 # XXX SETTING
+        resize_window(self, ceil(width), ceil(height))
 
     def mergeSelections(self, selections):
         es = sorted(self.textbody.extraSelections(), key=lambda x: x.cursor.position())
@@ -1160,6 +1164,8 @@ class QtTail(QtWidgets.QMainWindow):
             #if typedQSettings().value('DEBUG',False): print(".",end='',flush=True)
         if finds:
             self.searchDock(text, finds, searchterm, findflags, saved, auto)
+        else:
+            self.statusBar().showMessage("Nothing found",-1)
         QtCore.QCoreApplication.processEvents() # for good luck
         #if typedQSettings().value('DEBUG',False):print(len(finds))
 
@@ -1197,8 +1203,13 @@ class QtTail(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.processEvents()
         # XXX this could get built incrementally instead of all at once sometimes
         finds = list(self.findAllGroupIter(restr))
+        if not finds:
+            self.statusBar().showMessage("Nothing found",-1)
+            return
         # build a dock and connect it
-        dock = searchDockGroup(self, None, finds, restr,saved, auto)
+        title = None
+        if not saved: title=restr
+        dock = searchDockGroup(self, title, finds, restr,saved, auto)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
         dock.gotoLine.connect(self.gotoLineNumber)

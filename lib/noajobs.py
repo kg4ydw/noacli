@@ -192,7 +192,9 @@ class jobItem():
                 self.history.model().setStatus(self.history, exitStatus)
             else:
                 self.history.model().setStatus(self.history, status)
-        except:
+        except Exception as e:
+            if typedQSettings().value('DEBUG',False):
+                print(f"setstatus: {repr(e)}") # DEBUG
             pass  # XXX broken
 
     # public interfaces

@@ -10,6 +10,7 @@ from PyQt6.QtCore import Qt, QObject, QModelIndex, QPersistentModelIndex,QAbstra
 from PyQt6.QtGui import QBrush
 from PyQt6 import QtWidgets
 from lib.settingsdialog_ui import Ui_settingsDialog
+from lib.wayland_fixes import resize_window
 
 
 class simpleTable(QAbstractTableModel):
@@ -55,7 +56,7 @@ class simpleTable(QAbstractTableModel):
         if role in [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole]:
             try:  # ignore messy tables
                 return self.mydata[row][col]
-            except:
+            except IndexError:
                 return None
         return None
 
@@ -360,7 +361,7 @@ class settingsDialog(QtWidgets.QDialog):
             size = QtCore.QSize(newtw+frame+30, self.size().height())
             #print("resize {}".format(size.width())) # DEBUG
             # XX minimum vertical hight relative to header height?
-            self.resize(size)
+            resize_window(window, size)
 
     @classmethod
     def registerType(cls, typec, delegate):

@@ -8,7 +8,7 @@ __copyright__ = '2026 Steven Dick <kg4ydw@gmail.com>'
 from functools import partial
 import re
 
-from PyQt6.QtCore import Qt, QSettings, pyqtSlot, QModelIndex, pyqtSignal
+from PyQt6.QtCore import Qt, QSettings, pyqtSlot, QModelIndex, pyqtSignal, QPersistentModelIndex
 from PyQt6.QtWidgets import QDialog, QDialogButtonBox
 from lib.saved_searches_ui import Ui_saved_searches
 from lib.datamodels import simpleTable
@@ -54,7 +54,7 @@ class search_entry():
         # manditory field
         if not self.sexp: return False
         if not re.compile(self.sexp): return False
-        # exception    re.PatternError
+        # exception    re.error
         # optional fields, but they still need to be valid
         if self.cfilter and not re.compile(self.cfilter): return False
         # template is invalid if it references bad columns, but thats too hard to check
@@ -69,7 +69,6 @@ class searchModel(itemListModel):
 
     def __init__(self):
         super().__init__(['Name','RegEx','filter cmd', 'ctemplate' ])
-        # XXXXX
         
     @classmethod
     def getDefaultSearchModel(cls):
@@ -132,7 +131,6 @@ class searchModel(itemListModel):
             qs.setValue("hideCols", entry.hideCols)
             rowi += 1
         qs.endArray()
-        # XXXX handle delete
 
     def data(self, index, role):
         if not self.validateIndex(index): return None
@@ -149,6 +147,7 @@ class searchModel(itemListModel):
 
 class saved_searches(QDialog):
     # XXXX self.valid = False when anything is updated?
+    # note: non-default search model is not used yet (import/export?)
     def __init__(self, tail, searchmodel=None):
         super().__init__()
         self.ui = Ui_saved_searches()
@@ -174,7 +173,6 @@ class saved_searches(QDialog):
             self.searchmodel.defaultReset.connect(self.replaceSearchModel, Qt.ConnectionType.QueuedConnection)
         self.ui.ssearches.setModel(self.searchmodel)
         # don't set smatches model until later
-        # XXXX set ssearches model
         # these connections were too messy to do in designer
         self.ui.disableAll.clicked.connect(partial(self.ui.findShow.setChecked,False))
         self.ui.disableAll.clicked.connect(partial(self.ui.findShowHighlights.setChecked,False))
@@ -207,11 +205,7 @@ class saved_searches(QDialog):
 
     @pyqtSlot()
     def saveNew(self):
-        try:
-            self.saveEntry(append=True)
-            # XXXX scroll to new entry
-        except re.PatternError as e:
-            self.ui.sresult.setPlainText(f"{e.msg} at position {e.pos}\n{e.pattern[:e.pos]}😠{e.pattern[e.pos:]}")
+        self.saveEntry(append=True)
 
     @pyqtSlot()
     def deleteEntry(self):
@@ -224,19 +218,22 @@ class saved_searches(QDialog):
         # XXXX delete from qsettings too?
         # delete entry from model and qsettings?
 
-    @pyqtSlot()
-    def saveEntry(self, append=False):
-        self.somethingChanged()
+    def validateEntry(self):
         entry = self.makenewentry()
         try:
             if not entry or  not entry.validate():
-                return
+                return None
         except re.error as e:
-            self.ui.sresult.setPlainText(f"{e.msg} at position {e.pos}\n{e.pattern[:e.pos]}😠{e.pattern[e.pos:]}")
-            return
-        # XXX validate ctemplate for bad references?
-        # if not valid, run test and check valid again
-
+            self.ui.sresult.setPlainText(f"{e.msg} at position {e.pos}\n{e.pattern[:e.pos]}❌{e.pattern[e.pos:]}") # unicode 274c cross
+            return None
+        # more testing is done in testTemplateRow when we have search results
+        return entry
+        
+    @pyqtSlot()
+    def saveEntry(self, append=False):
+        self.somethingChanged()
+        entry = self.validateEntry()
+        if not entry: return
         # get index of current selection and replace the data there
         sel = self.ui.ssearches.selectionModel().selectedRows()
         if append or not sel:  # save new item
@@ -247,11 +244,14 @@ class saved_searches(QDialog):
         else:
             index = sel[0]
         if not index:
-            self.searchmodel.appendItem(entry)
-            # XX and select new row?
+            index = self.searchmodel.appendItem(entry)
         else:
             # assume view row corresponds to model row
             self.searchmodel.setItem(index, entry)
+        if index:
+            if isinstance(index, QPersistentModelIndex): # wtf
+                index = QModelIndex(index)
+            self.ui.ssearches.scrollTo(index) # XXX and select it?
 
     @pyqtSlot()
     def clearEntry(self):
@@ -313,6 +313,7 @@ class saved_searches(QDialog):
     @pyqtSlot()
     def testTemplate(self):
         self.ui.sresult.clear()
+        self.validateEntry()
         self.searchSamples()
         if not self.samples:
             self.ui.sresult.append("No matches found")
@@ -340,6 +341,8 @@ class saved_searches(QDialog):
         except (ValueError, IndexError) as e:
             text = f"Template failed:\n{str(e)}"
             self.valid = False
+        except re.error as e:
+            text=f"{e.msg} at position {e.pos}\n{e.pattern[:e.pos]}❌{e.pattern[e.pos:]}"  # unicode 274c cross
         except Exception as e: # dunno what this was
             text = f"Template failed:\n{repr(e)}"
             self.valid = False
@@ -373,8 +376,10 @@ class saved_searches(QDialog):
                i-=1
                if i<0: break
             pass
+        except re.error as e:
+            self.ui.sresult.setPlainText(f"{e.msg} at position {e.pos}\n{e.pattern[:e.pos]}❌{e.pattern[e.pos:]}") # unicode 274c cross
         except Exception as e:
-            self.ui.sresult.setPlainText(str(e))
+            self.ui.sresult.setPlainText(f"{type(e)} {e}")
             # XXXX reraise so sresult doesn't get clobbered?
  
     def somethingChanged(self):

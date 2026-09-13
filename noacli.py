@@ -886,7 +886,6 @@ class noacli(QtWidgets.QMainWindow):
             iswayland = app.platformName().startswith("wayland")  # XXX only do this in wayland
             job.windowOpen = True
             if iswayland:
-                #XXX need to move to qt6 and use xdg-activation tokens?
                 # close and reopen the window get attention
                 # works better than just show if the window is actually lost
                 #job.window.hide()  # XXXX make this an option or a tripple click?
@@ -900,6 +899,7 @@ class noacli(QtWidgets.QMainWindow):
             job.window.showNormal()  # restore if minimized XXX redundant?
             job.window.raise_()
             # XXX could also try input_field.setfocus()
+            # XXXX show/hide also helps in wayland especially for lost windows
             if not iswayland:
                 # also try moving the mouse to the window
                 QtGui.QCursor().setPos(job.window.pos()+QtCore.QPoint(100,100))
@@ -1186,7 +1186,9 @@ class noacli(QtWidgets.QMainWindow):
         qs = QSettings()
         qs.beginGroup('Geometry/'+name)
         if qs.contains('mainGeo'):
-            self.hide() # wayland doesn't resize correclty without this
+            # wayland doesn't resize correclty without show/hide
+            # could use wayland_fixes.resize_window but blinking is ok here
+            self.hide()
             self.restoreGeometry(qs.value('mainGeo',None))
             self.restoreState(qs.value('mainState',None))
             self.restoreGeometry(qs.value('mainGeo',None))

@@ -80,7 +80,7 @@ class myBrowser(QTextBrowser):
                 for rmatch  in regex.finditer(context[cs.ccontext]):
                     try:
                         text = cs.ctemplate.format(rmatch.group(0), *rmatch.groups())
-                    except:
+                    except: # format errors? catch those in seaarch editor dialog
                         text = False
                     if text:
                         menu.addAction(text, partial(self.suggest_command.emit, text, cs.runImmediate))
