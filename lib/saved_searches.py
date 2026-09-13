@@ -8,7 +8,7 @@ __copyright__ = '2026 Steven Dick <kg4ydw@gmail.com>'
 from functools import partial
 import re
 
-from PyQt6.QtCore import Qt, QSettings, pyqtSlot, QModelIndex
+from PyQt6.QtCore import Qt, QSettings, pyqtSlot, QModelIndex, pyqtSignal
 from PyQt6.QtWidgets import QDialog, QDialogButtonBox
 from lib.saved_searches_ui import Ui_saved_searches
 from lib.datamodels import simpleTable
@@ -65,6 +65,7 @@ class search_entry():
         
 class searchModel(itemListModel):
     defaultSearchModel=None
+    defaultReset = pyqtSignal() # always use Qt.ConnectionType.QueuedConnection
 
     def __init__(self):
         super().__init__(['Name','RegEx','filter cmd', 'ctemplate' ])
@@ -83,8 +84,12 @@ class searchModel(itemListModel):
     def resetDefaultSearchModel(cls):
         # print("reset searches") # DEBUG
         # force a reload from scratch
+        oldmodel = cls.defaultSearchModel # save for later
         cls.defaultSearchModel = searchModel()
         cls.defaultSearchModel.loadFromSettings()
+        if oldmodel:
+            # emit from the old model before destroying it
+            oldmodel.defaultReset.emit()
         return cls.defaultSearchModel
 
     def loadFromSettings(self):
@@ -156,15 +161,17 @@ class saved_searches(QDialog):
             self.ui.smatches.setDisabled(True)
             self.ui.tsplitter.setCollapsible(1,True)
             self.ui.tsplitter.setSizes([1,0])
-            #self.ui.smatches.hide()
         self.samples = groupList()
         self.old_sexp = ''
         self.extmodel = False
         if searchmodel:
             self.searchmodel = searchmodel
             self.extmodel = True
+            # XXX connect to updates?
         else:
             self.searchmodel = searchModel.getDefaultSearchModel()
+            # get notifications if other instances update defaults
+            self.searchmodel.defaultReset.connect(self.replaceSearchModel, Qt.ConnectionType.QueuedConnection)
         self.ui.ssearches.setModel(self.searchmodel)
         # don't set smatches model until later
         # XXXX set ssearches model
@@ -373,6 +380,13 @@ class saved_searches(QDialog):
     def somethingChanged(self):
         apply = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply)
         apply.setEnabled(True)
+
+    @pyqtSlot()
+    def replaceSearchModel(self):
+        #print("ss: replace search model") # DEBUG
+        if self.extmodel: return  # can't get here, but just in case
+        self.searchmodel = searchModel.getDefaultSearchModel()
+        self.ui.ssearches.setModel(self.searchmodel)
         
     def resetSearches(self):
         if self.extmodel: return  # don't reset non-default
@@ -380,12 +394,18 @@ class saved_searches(QDialog):
         self.ui.ssearches.setModel(self.searchmodel)
 
     def apply(self):
+        #print("apply") # DEBUG
         apply = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply)
         if not self.extmodel: 
             self.searchmodel.saveToSettings()
+            self.resetSearches()
+            # XXX should we try to reselect the current entry or clear it?
         apply.setEnabled(False)
 
     def accept(self):
+        #print("accept") # DEBUG
         if not self.extmodel: 
             self.searchmodel.saveToSettings()
+            # self.resetSearches() # this does more than necessary
+            self.searchmodel = searchModel.resetDefaultSearchModel()
         super().accept()

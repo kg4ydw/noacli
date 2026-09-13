@@ -329,7 +329,6 @@ class QtTail(QtWidgets.QMainWindow):
         if result:
             self.setupSavedSearch(True)
         self.ssd = None
-        # don't actually care about result
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -646,10 +645,12 @@ class QtTail(QtWidgets.QMainWindow):
         # do this as late as possible, otherwise jobitem isn't set yet
         # but also allow this to be called again to refresh searches
         # filter saved searches by command and peel them out of the model into a regular list
+        #print(f"qt: load ss reset={reset}") # DEBUG
         if reset:
             dsm = searchModel.resetDefaultSearchModel()
         else:
             dsm = searchModel.getDefaultSearchModel()
+        dsm.defaultReset.connect(self.setupSavedSearch, Qt.ConnectionType.QueuedConnection)
         if hasattr(self,'jobitem') and self.jobitem.history:
             cmd = self.jobitem.command()
             #print(f"found command {cmd}") # DEBUG
@@ -1170,7 +1171,7 @@ class QtTail(QtWidgets.QMainWindow):
         # XX replace XX searchterm = buildSearch(text, self.ui)
         regex = re.compile(restr)  # XX flags  # can throw exception!
         # assume regex is valid or exception thrown
-        
+
         block = self.textbody.document().firstBlock()
         while block.isValid():
             QtCore.QCoreApplication.processEvents()
@@ -1189,6 +1190,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody.setTextCursor(cursor)
 
     def findAllGroup(self, restr=None, saved=None, auto=False):
+        # XXX this doesn't use any of the find flags and it should
         if not restr:
             restr = self.ui.searchTerm.text()
         if not restr: return

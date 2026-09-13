@@ -848,9 +848,7 @@ class noacli(QtWidgets.QMainWindow):
         self.ssd.finished.connect(self.closeSSearches)
 
     def closeSSearches(self, result):
-        if result:
-            self.setupSavedSearch(True)
-        self.ssd = None
+        self.ssd = None # delete dialog
 
 
     @QtCore.pyqtSlot()
