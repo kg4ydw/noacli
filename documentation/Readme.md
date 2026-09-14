@@ -14,11 +14,11 @@ There's more stuff discoverable in the shell via tool tips, pull down menus, and
 This uses Python and Qt, which are dependencies.  To install these:
 
 Mac: (pick one)
-* sudo pip3 install PyQt6
-* pip3 install --user PyQt6
+* sudo pip3 install pyqt6
+* pip3 install --user pyqt6
 
 Ubuntu:
-* sudo apt install python3-pyqt6
+* sudo apt install python3-PyQt6
 
 This has been tested with Python 3.8, 3.11 and Qt 6.4, 6.11
 
@@ -116,7 +116,8 @@ By default, within the shell, qtail is followed by possible options
 and a command.  There is no space between the option and its
 parameter.  Options are either a single dash followed by a single
 letter and possibly a parameter, or a double dash followed by an
-option word and possibly and equal sign (=) and the parameter.
+option word and possibly and equal sign (=) and the parameter.  The
+equal sign is required to specify parameters within the shell.
 
 Within the shell, the table command takes the `--file` and `--files` options
 to indicate the following are filenames rather than a command.
@@ -155,7 +156,7 @@ Qtail supports the following options:
     when the pipe is done.  (But this still works well on files.)
 
 `--url`  
-    Treat filename as a URL, autodetect format.  Note: doesn't work with remote urls
+    Treat filename as a URL, autodetect format.  Note: doesn't work with remote URLs
 
 `--autorefresh`  or `--autorefresh=seconds`  (or `--auto`)
     Enable autorefresh (default = 30 seconds); only works on files outside noacli; in noacli,  commands will rerun like "watch"
@@ -166,6 +167,107 @@ Qtail supports the following options:
 `--watch`  
    Check the 'watch' checkbox which adjusts the default button action
 
+
+## === Advanced searching in qtail
+
+You can start a search using the search box at the top of the qtail
+window.  Once you've found one occurrence, you can then select `Find all`
+or `Find all groups` and a list will be made of every occurrence of the
+search expression in the document.
+
+The Find all search can optionally highlight the matched text using
+the show and hide buttons.  If you right click in the results table,
+you can change the highlight color.  In addition to the matched text,
+a bit of text before and after the matched text is also shown to give
+context.
+
+Clicking on matched text either in the text or in the results list
+will select the text and scroll to it in the other pane.
+
+The Find all groups search does not highlight text, but will extract
+matched regular expression groups with `()` and show them in table
+columns.  Clicking on a matched line in the text will scroll to the
+first match in the line in the results window and vice versa.  Column
+0 is always the full match.  Group searches do not support context
+directly, but you can include groups in the search expression to add
+context columns.
+
+In both searches, right clicking on column headings will allow hiding
+and showing table columns.  Clicking on the table column header will
+make it a favorite column and when scrolling, that column will be
+centered.
+
+## === Saved searches
+
+Saved searches are used in the following ways:
+* Triggered searches
+* Context searches
+* Saved searches in the QTail Search menu
+* Copy saved searches in the search input line
+
+The saved search editor can be accessed from either the main noacli
+window or from any qtail window.  Accessing from a qtail window is
+preferred as it allows pulling sample matches for testing.
+
+The left top pane shows all saved searches.  Selecting a row copies
+that search to the editing fields below.
+
+The search name does not need to be unique and is only used for
+labeling the searches in windows and menus.
+
+If the `Filter commands` line is blank, the search applies to all qtail
+windows but can't be used in automatic actions.  If the filter is not
+blank, then the search will only be applied to windows whose command
+matches the filter.
+
+At the bottom left quarter of the saved search editor are a few settings
+grouped around two pull down menus.
+
+The left pull down menu (Action menu), `show results`, `highlight
+results`, and `Hide` apply to triggered searches.  If a filter command
+is matched, either find all or find groups is selected, and either of
+highlight results or show results is checked, then this search will be
+used as a triggered search, which may be automatically triggered when
+a matching command is run or the triggered searches item is selected
+from the search menu.  The `Hide` field can contain a space separated
+list of integer column indexes of uninteresting columns that will not be
+displayed by default when the search is triggered.
+
+Note that if either `Find all` or `Find groups` is selected, the saved
+search will appear in the `Use saved searches` menu in qtail.
+
+The right pull down menu (Context menu item), and `run immediate`
+apply to context searches.  Context searches are triggered when the
+context menu (right click) is used in the qtail text.  If the given
+context is matched (`selection`, `line`, `word`), then a context menu
+entry will be listed. Context searches can apply both to matched and
+unmatched commands.  Context searches always use group searches, and
+the groups are applied to the command template.  If run immediate is
+checked, the command will be run when the item is selected, otherwise
+it will be dropped into the noacli editor window for editing and
+further actions.
+
+When editing a search, the `Test` button will apply the search and
+apply the selected `sample match` to the template and if there are no
+errors, display the result in the `Sample result` window.
+
+Note that when editing saved searches, they are not saved until either
+the `Save entry` or `Save new` buttons are pushed, and the group of
+searches is not saved permanently until either `Apply` or `OK` is
+pushed.  The `Reset` button will clear saved searches and reload them
+from previously saved settings.
+
+## === Security of saved searches
+
+Extracting text using regular expressions is one of the safest ways of
+selecting text without creating command injection security issues.
+However, it is your responsibility to form regular expressions that
+extract text that is safe to inject into a command.
+
+If you are uncertain of the safety, either don't check the `run
+immediate` box and carefully inspect (and modify) the command in the
+edit window, or check it and carefully inspect the constructed command
+in the context menu.
 
 ## == table viewer
 
@@ -197,7 +299,7 @@ following options:
     force fixed width parsing instead of csv parsing with delimiters
 
 `--mask` or `--mask=nlines`  
-    Forces --fixed; Read the whole table (or just nlines) up front and use a mask algorithm to split fixed width tables, looking for columns with only whitespace (or delimiters if specified, e.g. --delimiters=-=+: ) and merge in any extra columns with --columns= (negative values to remove column seperations)
+    Forces --fixed; Read the whole table (or just nlines) up front and use a mask algorithm to split fixed width tables, looking for columns with only white space (or delimiters if specified, e.g. --delimiters=-=+: ) and merge in any extra columns with --columns= (negative values to remove column separations)
 
 
 The following options change defaults that can be changed in the GUI.
@@ -212,7 +314,7 @@ These are especially useful in favorites.
     There is no header in the data, use numbered headers instead of the first line
 
 `--nopick`  `--pick`  
-    Don't show (or show) the colum picker at start (default: show if more than 10 columns)
+    Don't show (or show) the column picker at start (default: show if more than 10 columns)
 
 
 Like qtail, table also accepts the --file and --files options when used inside noacli.
@@ -231,7 +333,7 @@ finishes, it gets transferred to the large scrolling qtail window.
 If a command finishes and you run another command, normally the output
 from the first is cleared, but you can check the 'keep' box if you
 want to retain it for a short while (about two window fulls,
-adjustable).  If you want to retain the output longer, press the dup
+adjustable).  If you want to retain the output longer, press the `dup`
 button to pop the output to a qtail window, whether or not the process
 has exited.
 
@@ -312,7 +414,7 @@ Named favorites not assigned to a dock will be assigned to the
 automatically deleted on next start.
 
 Button order can be changed from the dock context menu, but this is
-not (currently) savd.
+not (currently) saved.
 
 ## == main command edit
 The command edit box allows typing of commands.
@@ -412,7 +514,7 @@ It is also possible to use ssh as a wrapper, sending the command to an
 external host for parsing and execution.  A wrapper for each host
 would be needed.
 
-Wrappers can be trivially created on the fly with the addwrap command.
+Wrappers can be trivially created on the fly with the `addwrap` command.
 (An editor for wrappers may be added later.)
 
 Note that wrappers are special in that the command buffer remnant is
@@ -505,7 +607,7 @@ The history menu shows the last 10 unique commands run.
 Select one of them to re-edit it.
 
 The job menu shows a quick status of recently run and currently
-running jobs.  Select one to rase or open its window if there was one.
+running jobs.  Select one to raise or open its window if there was one.
 
 The view menu allows fast opening and closing of the various dock
 windows.  Once visible, dock windows can be dragged, popped out,
@@ -580,7 +682,7 @@ can't exit until all of them exit on their own and will hang around
 
 ## == Titles
 Window titles, job names, and button names can all be edited.
-You can force the default window title or name of a command by putting the title on the first line preceeded with a #
+You can force the default window title or name of a command by putting the title on the first line preceded with a #
 
 ## == Using ssh as a wrapper
 
@@ -588,7 +690,7 @@ To use noacli with ssh to remote hosts, it needs to work without asking for
 a password.  There are two ways to do this.
 
 ### === Permanent authorization
-1) create a local ssh key (e.g, ssh-keygen -t rsa )
+1) create a local ssh key (e.g, `ssh-keygen -t rsa` )
 2) copy the public key to the remote host in the file `authorized_keys`
    (the permissions have to be exactly right for it to work, must not be
    group or world writable)
@@ -689,5 +791,5 @@ please suggest them!! If you find bugs, (or documented bugs annoy
 you), let us know!
 
 This project (and this file) are Copyright (C) 2022, 2023, 2024 Steven Dick
-and may be used under the terms of the GNU General Public LIcense v3
+and may be used under the terms of the GNU General Public License v3
 which should have been included with this project in the file license.txt

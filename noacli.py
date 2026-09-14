@@ -38,7 +38,7 @@ from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 from lib.saved_searches import saved_searches
 
-__version__ = '2.3.1'
+__version__ = '2.4'
 
 
 # Some settings have been moved to relevant modules

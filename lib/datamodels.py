@@ -361,7 +361,7 @@ class settingsDialog(QtWidgets.QDialog):
             size = QtCore.QSize(newtw+frame+30, self.size().height())
             #print("resize {}".format(size.width())) # DEBUG
             # XX minimum vertical hight relative to header height?
-            resize_window(window, size)
+            resize_window(self, size)
 
     @classmethod
     def registerType(cls, typec, delegate):
