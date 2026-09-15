@@ -51,7 +51,7 @@ class Ui_QtTail(object):
         self.verticalLayout.addWidget(self.textBrowser)
         QtTail.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(parent=QtTail)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 719, 24))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 719, 23))
         self.menubar.setObjectName("menubar")
         self.menuView = QtWidgets.QMenu(parent=self.menubar)
         self.menuView.setObjectName("menuView")
@@ -116,17 +116,19 @@ class Ui_QtTail(object):
         self.actionFind_all = QtGui.QAction(parent=QtTail)
         self.actionFind_all.setObjectName("actionFind_all")
         self.actionDeleteClosedSearches = QtGui.QAction(parent=QtTail)
-        self.actionDeleteClosedSearches.setEnabled(False)
-        self.actionDeleteClosedSearches.setVisible(False)
+        self.actionDeleteClosedSearches.setEnabled(True)
+        self.actionDeleteClosedSearches.setVisible(True)
         self.actionDeleteClosedSearches.setObjectName("actionDeleteClosedSearches")
         self.actionShowClosedSearches = QtGui.QAction(parent=QtTail)
-        self.actionShowClosedSearches.setEnabled(False)
-        self.actionShowClosedSearches.setVisible(False)
+        self.actionShowClosedSearches.setEnabled(True)
+        self.actionShowClosedSearches.setVisible(True)
         self.actionShowClosedSearches.setObjectName("actionShowClosedSearches")
         self.actionFind_all_groups = QtGui.QAction(parent=QtTail)
         self.actionFind_all_groups.setObjectName("actionFind_all_groups")
         self.actionSaved_searches = QtGui.QAction(parent=QtTail)
         self.actionSaved_searches.setObjectName("actionSaved_searches")
+        self.actionDockFloatingSearches = QtGui.QAction(parent=QtTail)
+        self.actionDockFloatingSearches.setObjectName("actionDockFloatingSearches")
         self.menuView.addAction(self.actionShowToolbar)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionAdjust)
@@ -148,7 +150,9 @@ class Ui_QtTail(object):
         self.menuSearch.addSeparator()
         self.menuSearch.addAction(self.actionFind_all)
         self.menuSearch.addAction(self.actionFind_all_groups)
+        self.menuSearch.addSeparator()
         self.menuSearch.addAction(self.actionShowClosedSearches)
+        self.menuSearch.addAction(self.actionDockFloatingSearches)
         self.menuSearch.addAction(self.actionDeleteClosedSearches)
         self.menuSearch.addSeparator()
         self.menuSearch.addAction(self.actionSaved_searches)
@@ -178,6 +182,7 @@ class Ui_QtTail(object):
         self.actionShowClosedSearches.triggered.connect(QtTail.showClosedSearches) # type: ignore
         self.actionFind_all_groups.triggered.connect(QtTail.findAllGroup) # type: ignore
         self.actionSaved_searches.triggered.connect(QtTail.savedSearchesDialog) # type: ignore
+        self.actionDockFloatingSearches.triggered.connect(QtTail.dockAll) # type: ignore
         QtCore.QMetaObject.connectSlotsByName(QtTail)
 
     def retranslateUi(self, QtTail):
@@ -214,4 +219,5 @@ class Ui_QtTail(object):
         self.actionShowClosedSearches.setText(_translate("QtTail", "Show and tabify all searches"))
         self.actionFind_all_groups.setText(_translate("QtTail", "Find all groups"))
         self.actionSaved_searches.setText(_translate("QtTail", "Edit saved searches"))
+        self.actionDockFloatingSearches.setText(_translate("QtTail", "Dock floating searches"))
 from lib.qtailbrowser import myBrowser

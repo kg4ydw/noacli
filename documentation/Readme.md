@@ -86,6 +86,7 @@ The following settings dialog boxes allow editing settings:
 * Favorites editor
 * Environment variable editor
 * Button dock editor
+* Saved search editor
 
 ## == qtail
 The qtail window also works as a separate application from the shell,
@@ -168,18 +169,19 @@ Qtail supports the following options:
    Check the 'watch' checkbox which adjusts the default button action
 
 
-## === Advanced searching in qtail
+### === Advanced searching in qtail
 
 You can start a search using the search box at the top of the qtail
-window.  Once you've found one occurrence, you can then select `Find all`
-or `Find all groups` and a list will be made of every occurrence of the
+window.  Once you've found one match, you can then select `Find all`
+or `Find all groups` and a list will be made of every match of the
 search expression in the document.
 
 The Find all search can optionally highlight the matched text using
 the show and hide buttons.  If you right click in the results table,
 you can change the highlight color.  In addition to the matched text,
 a bit of text before and after the matched text is also shown to give
-context.
+context.  You can have multiple searches active at once, each with
+their own highlight color.
 
 Clicking on matched text either in the text or in the results list
 will select the text and scroll to it in the other pane.
@@ -190,14 +192,14 @@ columns.  Clicking on a matched line in the text will scroll to the
 first match in the line in the results window and vice versa.  Column
 0 is always the full match.  Group searches do not support context
 directly, but you can include groups in the search expression to add
-context columns.
+context columns.  For example `(.{0,15})` for 0-15 charcters of context.
 
 In both searches, right clicking on column headings will allow hiding
 and showing table columns.  Clicking on the table column header will
 make it a favorite column and when scrolling, that column will be
 centered.
 
-## === Saved searches
+### === Saved searches
 
 Saved searches are used in the following ways:
 * Triggered searches
@@ -257,7 +259,7 @@ searches is not saved permanently until either `Apply` or `OK` is
 pushed.  The `Reset` button will clear saved searches and reload them
 from previously saved settings.
 
-## === Security of saved searches
+### === Security of saved searches
 
 Extracting text using regular expressions is one of the safest ways of
 selecting text without creating command injection security issues.
@@ -284,7 +286,7 @@ following options:
     
  `--gap=`  
     Minimum number of spaces between columns if it is space delimited;
-    defaults to 2 or if headers are underlined (with = or -) then 1
+    defaults to 2 or if headers are underlined (with `=` or `-` ) then 1
     
  `--columns=` or `--cols`  
     If the fixed width parser can't guess column boundaries,
@@ -747,7 +749,7 @@ that the font picker in qtail doesn't save its settings permanently.
 ### === favorites examples
 These could be assigned to a button or a key binding.
 
-* man page with table of contents (uncheck immediate checkbox)
+* man page with table of contents (uncheck immediate checkbox) Note: this is better accomplished with a saved search, see man headings in the stock searches.
 
         # man {}
         tail --findall=^[a-z][^[(]+$ -w --no-wrap man {}

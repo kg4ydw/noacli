@@ -54,7 +54,7 @@
      <x>0</x>
      <y>0</y>
      <width>612</width>
-     <height>24</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="historyMenu">
@@ -72,6 +72,7 @@
     <addaction name="actionShowDocks"/>
     <addaction name="actionHideDocks"/>
     <addaction name="actionTabifyDocks"/>
+    <addaction name="actionDock_all"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuJobs">
@@ -490,6 +491,11 @@
   <action name="actionEdit_saved_searches">
    <property name="text">
     <string>Edit saved searches</string>
+   </property>
+  </action>
+  <action name="actionDock_all">
+   <property name="text">
+    <string>Dock all</string>
    </property>
   </action>
  </widget>

@@ -21,7 +21,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QTextCursor, QKeySequence, QTextOption, QClipboard, QFont, QAction, QShortcut, QActionGroup
 #from PyQt6.QtWidgets import *
-from PyQt6.QtWidgets import QMenu, QStyledItemDelegate, QTableView, QErrorMessage, QAbstractItemView, QLineEdit, QFileDialog, QMessageBox, QPlainTextEdit, QWidgetAction, QApplication, QFontDialog, QInputDialog
+from PyQt6.QtWidgets import QMenu, QStyledItemDelegate, QTableView, QErrorMessage, QAbstractItemView, QLineEdit, QFileDialog, QMessageBox, QPlainTextEdit, QWidgetAction, QApplication, QFontDialog, QInputDialog, QDockWidget
 from PyQt6.QtCore import QModelIndex, QPersistentModelIndex, QSettings, QProcess
 
 from lib.noacli_ui import Ui_noacli
@@ -37,8 +37,9 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 from lib.saved_searches import saved_searches
+from lib.wayland_fixes import resize_window
 
-__version__ = '2.4'
+__version__ = '2.4.1'
 
 
 # Some settings have been moved to relevant modules
@@ -480,6 +481,7 @@ class noacli(QtWidgets.QMainWindow):
         #self.hideAllDocks()  # if you want this, save a profile
 
         ui.actionTabifyDocks.triggered.connect(self.tabifyAll)
+        ui.actionDock_all.triggered.connect(self.dockAll)
 
         # must load button dock settings before favorites or all
         # buttons get reinserted into default dock
@@ -678,6 +680,16 @@ class noacli(QtWidgets.QMainWindow):
         self.tabifyDockWidget( self.ui.logDock, self.ui.smallOutputDock)
         self.tabifyDockWidget( self.ui.smallOutputDock, self.ui.buttons)
         ButtonDock.tabifyAll(self, self.ui.buttons)
+
+    @QtCore.pyqtSlot()
+    def dockAll(self):
+        DEBUG = typedQSettings().value('DEBUG',False)
+        for dock in self.findChildren(QDockWidget):
+            if dock.isFloating():
+                dock.setFloating(False)
+                #if DEBUG:
+                #    print(f"floater {dock.windowTitle()} window={dock.isWindow()}")
+        # this isn't 100% successful when docks get orphaned and lost
 
     def start(self):
         # nothing else to initialize yet
@@ -888,7 +900,7 @@ class noacli(QtWidgets.QMainWindow):
             if iswayland:
                 # close and reopen the window get attention
                 # works better than just show if the window is actually lost
-                #job.window.hide()  # XXXX make this an option or a tripple click?
+                job.window.hide()  # XXXX make this an option or a tripple click?
                 QApplication.processEvents()
                 # this mostly works in qt6?
                 job.window.setWindowState(job.window.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
@@ -899,7 +911,6 @@ class noacli(QtWidgets.QMainWindow):
             job.window.showNormal()  # restore if minimized XXX redundant?
             job.window.raise_()
             # XXX could also try input_field.setfocus()
-            # XXXX show/hide also helps in wayland especially for lost windows
             if not iswayland:
                 # also try moving the mouse to the window
                 QtGui.QCursor().setPos(job.window.pos()+QtCore.QPoint(100,100))
@@ -1187,12 +1198,13 @@ class noacli(QtWidgets.QMainWindow):
         qs.beginGroup('Geometry/'+name)
         if qs.contains('mainGeo'):
             # wayland doesn't resize correclty without show/hide
-            # could use wayland_fixes.resize_window but blinking is ok here
-            self.hide()
+            #self.hide()
             self.restoreGeometry(qs.value('mainGeo',None))
             self.restoreState(qs.value('mainState',None))
             self.restoreGeometry(qs.value('mainGeo',None))
-            self.show()
+            # force wayland to use the geometry we just set
+            resize_window(self, self.width(), self.height())
+            #self.show()
         else:
             #if typedQSettings().value('DEBUG',False):print('No profile for {} found'.format(name)) # DEBUG EXCEPTION this can't happen
             pass

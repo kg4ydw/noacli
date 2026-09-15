@@ -20,17 +20,17 @@ t  documented internally with tool tip
     qtail --title messes up setting window title
     fix all dialogs to not reopen, but instead reraise the old window
     "resetting timer" print message when autorefresh is not enabled
-    new group search is undocumented
+D   new group search is undocumented
     find previous highlights feature is not documented
-    autoersize width on new dock works and then reverts!?
-    job window state column gets silly wide with crashed process state
-       should use tooltip and max width
-       should make less verbose
-    Group search dock not fully implemented:
+ *  autoersize width on new dock works and then reverts!?
+ *  job window state column gets silly wide with crashed process state
+ *     should use tooltip and max width
+ *     should make less verbose
+D*  Group search dock not fully implemented:
       highlights?
-      resize columns on doubleclick
-      hide/show columns
-    save/restore geometry needs to save dock geom and visibility too probably
+ *    resize columns on doubleclick
+D*    hide/show columns
+ *  save/restore geometry needs to save dock geom and visibility too probably
 
  -Things to implement soon:
  ! cli initial size hint for qtail window
@@ -45,11 +45,11 @@ t  documented internally with tool tip
      predefined searches
      predefined context menu searches
 Dx tail --format=html needs to read the whole text at once
- *   too messy to fix, implemented work around (convert after reading as plain)
+D*   too messy to fix, implemented work around (convert after reading as plain)
  E  qtail -auto cli option doesn't initial trigger
  ! jobs: click on status column to hide/show lost windows in addtion to raise
  ? change where templates get data
-     regex groups?
+D*   regex groups? (via saved searches)
      try selected text first
      then whole edit buffer
      then clipboard
@@ -64,7 +64,7 @@ Dx tail --format=html needs to read the whole text at once
      numbered fonts in tail window
      table window??
  ? tail cli: --notoolbars --follow
- ? searchdock: detect previous searchdoc(s) and shrink it
+ * searchdock: detect previous searchdoc(s) and shrink it
  !  add QProgressBar to QStatusBar with addWidget or addPermanentWidget
  ?  pie graph QtCharts/QPieSeries or progress bar dock widget
       tail option -> context option, view option
@@ -72,19 +72,19 @@ Dx tail --format=html needs to read the whole text at once
       show on main window
       concentric? / colors
       pick panel
- ? qtail size hint / delay  cli option
- ? qtail: xlate \r \n
- ? qtail: translate ansi sequences
+D* qtail size hint / delay  cli option
+ ! qtail: xlate \r \n
+ ! qtail: translate ansi sequences
  ? tableviewer: recognize psql ascii table format
  ? qtail context menu: if selection, find more...
- ? qtail context actions from regex or use QTextBrowser.anchorClicked
- ! context regex commands (below)
+D* qtail context actions from regex or use ~~QTextBrowser.anchorClicked~~
+D* context regex commands (below)
  ? toc build using QTextFormat.HeadingLevel paragraph property
- ? rebuild visible searches on reload and follow tail
+ ! rebuild visible searches on reload and follow tail
  ? qtail detect text type automatically?
  ? file buffering large text like less
- ? QTextOption.WordWrap --> WrapAtWordBoundaryOrAnywhere
- ? qtail findallgroup: iterate blocks, column align (LCRH)
+ ! QTextOption.WordWrap --> WrapAtWordBoundaryOrAnywhere
+D! qtail findallgroup: iterate blocks, column align (LCRH)
  ? jump to line feature (with cli and gui support)
  ? https://pypi.org/project/pyqt-line-number-widget/ (how badly is ths wanted?)
  ! tableviewer search box in pull down
@@ -93,7 +93,7 @@ Dx tail --format=html needs to read the whole text at once
  ? button dock: editing a button moves it
    right click favorite (button or editor) for fav edit dialog
  ? right click favorite to add smart title
- ? edit favorite dialog
+ ! edit favorite dialog
      merging all preferences into one dialog
      separate title
      button dock selector
@@ -116,21 +116,21 @@ Dx tail --format=html needs to read the whole text at once
  - tableviewer: cli option to set show/hide columns initially
  ! search all incremental update
  ! search all rerun button
- . canned findall sets (toc searches)
-     set name
+D* canned findall sets (toc searches)
+D*   set name
      hot key
-     regex + color
-     multiple
-       fold level
-     trigger set from pull down
+ !   regex + color
+ x   multiple
+ x     fold level
+D*   trigger set from pull down
      trigger set from regex on command
-       command regex
-       enable
- . hyperlink regex on command regex match
-     assoc array of command regex
-     array of body regex + hyperlink action
-     hyperlink action: command with regex subst
- ? autoresize findall window height if a second window is opened underneath?
+D*     command regex
+D*     enable
+ x hyperlink regex on command regex match
+ x   assoc array of command regex
+ x   array of body regex + hyperlink action
+ x   hyperlink action: command with regex subst
+ * autoresize findall window height if a second window is opened underneath?
  ? add completion/status/window open  icons to jobs menu pulldown
    tableviewer: numberize selected/all cells that match ^\s*[+-]?\d+\s*$ (for sorting, formatting)
      same for floats?
@@ -140,24 +140,24 @@ Dx tail --format=html needs to read the whole text at once
  ? Bug: reload doesn't work on --file
    Bug: --format=md doesn't work on pipes? need to read all
  *   work around for format=md,html: convert from context menu after loading
-   preliminary ansi support
+ ! preliminary ansi support
       should be easy to directly implement in Qt text changes directly
       set ansi flag or input hook
       translate known ansi codes
       log untranslated ansi codes and request bug filing
       regex "\033[(\d*)m"
-      30-36: 
+      30-36:
        0: reset to default format
        1:  bold
        31: red
-       32: green 
+       32: green
        36: teal (cyan?)
    disable word wrap on line threshold?
  * on -w disable: word wrap, adjust size (prevent wordwrap hangs)
  ! test word wrap performance in Qt6
    qtail search dock: update search results if file grows (manual update?)
-   qtail search dock: save regex groups as extra columns?
-   qtail search dock: use regex groups? instead of context?
+D* qtail search dock: save regex groups as extra columns?
+D* qtail search dock: use regex groups? instead of context?
    general settings editor needs a search
    history could resize vertically on popout?
    window title: do a better job of eliding long commands
@@ -180,7 +180,7 @@ Dx tail --format=html needs to read the whole text at once
  ! --filter= doesn't support regex
    mac bugs
      history arrows don't work on mac
-     icons and app name don't work on mac
+ *   icons and app name don't work on mac
  ? fileDialog doesn't always trim prefix correctly
      doesn't work consistently if no prefix directory (./ doesn't work either)
  o   leaves junk before filename if prefix doesn't match
@@ -214,15 +214,10 @@ Dx tail --format=html needs to read the whole text at once
    qtable: sometimes splits lines (buffer doesn't join?)
    command buttons can be broken by setwrap (more testing needed)
    duplicate key bindings don't get background paint until dialog is reopened
- * empty dock container bug
- *   qt bug -- work around applied and commented
-     disable workaround for newer versions?  make workaround a setting??
  * favorites editor bugs
 DE    should warn on duplicate names? (color?)
 
  -Fixed bugs and finished features (delete these next version or document):
- * Qt6 bug: strip ExitStatus. from state in job view
- 
 
  -Bugs:
  ! refactor flowlayout to separate Qt code and noacli code (inherit)
@@ -239,7 +234,6 @@ DE    should warn on duplicate names? (color?)
  ! new env marked as 'inherit' but not in parent should be deleted on save
    (marked) OutWin commands with no external command do nothing (usage msg?)
  ! Trigger full usage msg for table/tail somehow
-   test Qt dock bug on Ubuntu 20
    test sibling markers
  o QFont styled item delegate
      displayed font name is ugly
@@ -305,9 +299,9 @@ D* button editor ("favorites")
 
    man page viewer
      qtail base
-     fixed with font?
-     regex replace cross references with links
-     links trigger reading other man pages
+ *   fixed width font?
+ *x  regex replace cross references with links
+ *   links trigger reading other man pages
      database
        detect new pages since last init / newly installed pages
        cross reference tree
@@ -327,63 +321,64 @@ D* button editor ("favorites")
          related
          filter by section
         clear database
-!  Context regex commands
-     on right click, generate a menu of context specific commands
-       use highlighted region as context
-       use current word as context
-       use current line as context
-       try each regex on context
+D* Context regex commands
+D*   on right click, generate a menu of context specific commands
+D*     use highlighted region as context
+D*     use current word as context
+D*     use current line as context
+D*     try each regex on context
      sources
-       qt settings
-       user configured files (deleteable)
-       noacli included config files
+ *     qt settings
+ !     user configured files (deleteable)
+ !     noacli included config files
        metadata:
-         name/source
-	 enabled
-     context set
-       from config file
+D*       name/source
+D*	 enabled
+ !   context set
+ !     from config file
          preconfigured
-	   OS specific, automatically enabled
-	   user selected sets (menu?)
-	 user imported
+ 	   OS specific, automatically enabled
+ !	   user selected sets (menu?)
+ !	 user imported
        from qt settings
      data structure
-       context set
-         source (config file, qt settings)
-	 name  (source,name) is unique
-	 description?
-	 enabled checkbox
-	 regex to match command to enable set (may be empty for global)
-	 list of rules
-       rule list
-         enabled checkbox (default on)
-	 document context (highlight, line, word)
-	 immediate checkbox
-	   run command immediately or
-	   dump command into command editor
-         regex match (using groups)
-	 display text (using group substituions), inserted into menu
-	 command (using group substitutions)
-     configuration
-	read sets from qt settings
-	rulesets from config files
- 	  get list of enabled config files from qt settings
- 	  auto-enable config files (if no settings lits)
-	    default enabled sets
-	    os specific sets
-	edit configs
-	  add user defined config file (directory?)
-	  noacli included ruleset directories
-	  enable/disable config files
-	  treeview editor?
-	    sources
+ x     context set
+ x       source (config file, qt settings)
+ *	 name  (source,name) is unique
+ x	 description?
+D*	 enabled checkbox
+D*	 regex to match command to enable set (may be empty for global)
+ -	 list of rules
+ -     rule list
+D*       enabled checkbox (default on)
+D*	 document context (highlight, line, word)
+D*	 immediate checkbox
+D*	   run command immediately or
+D*	   dump command into command editor
+D*       regex match (using groups)
+D*	 display text (using group substituions), inserted into menu
+D*	 command (using group substitutions)
+ -   configuration
+D*	read sets from qt settings
+ !	rulesets from config files
+ x	  get list of enabled config files from qt settings
+ x	  auto-enable config files (if no settings lits)
+ x	    default enabled sets
+ x	    os specific sets
+ 	edit configs
+ 	  add user defined config file (directory?)
+ !	  noacli included ruleset directories
+ x	  enable/disable config files
+ 	  treeview editor?
+ 	    sources
  	      context set
-	        rule list
-	  global edit in settings
-	  context menu: edit context sets that match current context (treeview)
-     noacli commands
-       {dis,en}ableset source setname
-       usable from buttons
+ 	        rule list
+D*	  global edit in settings
+ 	  context menu: edit context sets that match current context (treeview)
+ x   noacli commands
+ x     {dis,en}ableset source setname
+ x     usable from buttons
+
 ----E
 ## ispell put these here
 LocalWords:  settingsDialog tableview smalldup fileDialog smalloutput

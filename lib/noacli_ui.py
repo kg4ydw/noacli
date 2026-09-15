@@ -40,7 +40,7 @@ class Ui_noacli(object):
         self.verticalLayout_3.addWidget(self.commandEdit)
         noacli.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(parent=noacli)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 612, 24))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 612, 23))
         self.menubar.setObjectName("menubar")
         self.historyMenu = QtWidgets.QMenu(parent=self.menubar)
         self.historyMenu.setObjectName("historyMenu")
@@ -250,12 +250,15 @@ class Ui_noacli(object):
         self.actionButtonDockEditor.setObjectName("actionButtonDockEditor")
         self.actionEdit_saved_searches = QtGui.QAction(parent=noacli)
         self.actionEdit_saved_searches.setObjectName("actionEdit_saved_searches")
+        self.actionDock_all = QtGui.QAction(parent=noacli)
+        self.actionDock_all.setObjectName("actionDock_all")
         self.historyMenu.addAction(self.actionlastCommand)
         self.historyMenu.addAction(self.actionsave_history)
         self.historyMenu.addSeparator()
         self.menuViews.addAction(self.actionShowDocks)
         self.menuViews.addAction(self.actionHideDocks)
         self.menuViews.addAction(self.actionTabifyDocks)
+        self.menuViews.addAction(self.actionDock_all)
         self.menuViews.addSeparator()
         self.menuSettings.addAction(self.actionFavorites_editor)
         self.menuSettings.addAction(self.actionGsettings)
@@ -346,6 +349,7 @@ class Ui_noacli(object):
         self.actionHelp.setText(_translate("noacli", "Help"))
         self.actionButtonDockEditor.setText(_translate("noacli", "Button dock editor"))
         self.actionEdit_saved_searches.setText(_translate("noacli", "Edit saved searches"))
+        self.actionDock_all.setText(_translate("noacli", "Dock all"))
 from lib.logoutput import logOutput
 from lib.mydock import myDock
 from lib.smalloutput import smallOutput

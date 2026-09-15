@@ -195,6 +195,11 @@ class QtTail(QtWidgets.QMainWindow):
         self.opt = options
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
+        ### hide/disable stuff that should be disabled by default
+        self.ui.actionShowClosedSearches.setVisible(False)
+        self.ui.actionDeleteClosedSearches.setVisible(False)
+        self.ui.actionDockFloatingSearches.setVisible(False)
+        ###
         self.textbody = self.ui.textBrowser
         self.textbody.suggest_command.connect(self.runEmit)
         if self.opt.maxLines>0:
@@ -321,6 +326,12 @@ class QtTail(QtWidgets.QMainWindow):
             prev = dock
         # disable since there's nothing hidden anymore...
         self.ui.actionDeleteClosedSearches.setVisible(False)
+
+    @QtCore.pyqtSlot()
+    def dockAll(self):
+        for dock in self.findChildren(QDockWidget):
+            if dock.isFloating(): dock.setFloating(False)
+        self.ui.actionDockFloatingSearches.setVisible(False)
 
     def savedSearchesDialog(self):
         self.ssd = saved_searches(self)
@@ -1098,6 +1109,7 @@ class QtTail(QtWidgets.QMainWindow):
         dock = searchDock(self, title, selections, searchterm, findflags, saved, auto)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
+        self.ui.actionDockFloatingSearches.setVisible(True)
         dock.showSel.connect(self.mergeSelections)
         dock.hideSel.connect(self.removeSelections)
         dock.gotoSel.connect(self.textbody.setTextCursor) # XX make visible instead?
@@ -1212,6 +1224,7 @@ class QtTail(QtWidgets.QMainWindow):
         dock = searchDockGroup(self, title, finds, restr,saved, auto)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
+        self.ui.actionDockFloatingSearches.setVisible(True)
         dock.gotoLine.connect(self.gotoLineNumber)
 
     # callback from search dock creation to place the dock
@@ -1241,7 +1254,11 @@ class QtTail(QtWidgets.QMainWindow):
             self.want_resize.emit()
             return
         self.resizeDocks(docks, sizes, Qt.Orientation.Vertical)
+        dock.topLevelChanged.connect(self.enableUnfloat)
 
+    def enableUnfloat(self, float):
+        if float:
+            self.ui.actionDockFloatingSearches.setVisible(True)
 
 ##### end QtTail end
 
