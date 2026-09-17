@@ -337,9 +337,9 @@ class commandParser:
                     if not ok: fails += 1
                 continue
             # check external paths
-            for dir in pathdirs:
+            for pdir in pathdirs:
                 prefix='  '
-                f = os.path.join(dir,cmd)
+                f = os.path.join(pdir,cmd)
                 result = self.checkfile(f)
                 if not result:
                     continue  # don't say anything if it isn't found in this dir

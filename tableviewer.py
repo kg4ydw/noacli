@@ -21,7 +21,7 @@ from statistics import stdev, mean, median
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QTextEdit, QSizePolicy, QMenu
-from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QModelIndex, QItemSelectionModel, QProcess, QSize
+from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QModelIndex, QItemSelectionModel, QProcess
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from lib.betterio import betterQProcess, betterTextIOWrapper
@@ -527,13 +527,13 @@ class TableViewer(QtWidgets.QMainWindow):
             del slist[0:i+1]
             #if i==0: user only selected one sequental item -- reselect it?
 
-    def setFilterText(self, str):
+    def setFilterText(self, fstr):
         if self.ui.actionUseRegEx.isChecked():
-            s = buildSearch(str,self.ui)
+            s = buildSearch(fstr,self.ui)
             if s: self.proxymodel.setFilterRegularExpression(s)
             #else: warn error XXX
         else:
-            self.proxymodel.setFilterFixedString(str)
+            self.proxymodel.setFilterFixedString(fstr)
 
     def setFilterColumn(self):
         selcol = self.ui.colPicker.selectionModel().selectedIndexes()
@@ -741,10 +741,10 @@ class TableViewer(QtWidgets.QMainWindow):
             # search by whole table, class default is col 1
             self.proxymodel.setFilterKeyColumn(-1)
         try:
-            filter = self.argdict['filter']
-            if filter:
-                self.proxymodel.setFilterFixedString(filter)
-                self.ui.filterEdit.setText(filter)
+            fstr = self.argdict['filter']
+            if fstr:
+                self.proxymodel.setFilterFixedString(fstr)
+                self.ui.filterEdit.setText(fstr)
         except: # key error
             pass
         self.resetTableSort() # default is col 1

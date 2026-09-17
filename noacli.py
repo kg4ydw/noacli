@@ -24,6 +24,7 @@ from PyQt6.QtGui import QTextCursor, QKeySequence, QTextOption, QClipboard, QFon
 from PyQt6.QtWidgets import QMenu, QStyledItemDelegate, QTableView, QErrorMessage, QAbstractItemView, QLineEdit, QFileDialog, QMessageBox, QPlainTextEdit, QWidgetAction, QApplication, QFontDialog, QInputDialog, QDockWidget
 from PyQt6.QtCore import QModelIndex, QPersistentModelIndex, QSettings, QProcess
 
+from qtail import myOptions as qtailSettings
 from lib.noacli_ui import Ui_noacli
 from lib.typedqsettings import typedQSettings
 from lib.clipboardbug import SafeClipboardFilter
@@ -31,7 +32,6 @@ from lib.clipboardbug import SafeClipboardFilter
 from lib.datamodels import simpleTable, settingsDataModel, settingsDialog
 from lib.noajobs import jobItem, jobTableModel, History
 from lib.smalloutput import smallOutput
-from qtail import myOptions as qtailSettings
 from lib.commandparser import OutWin, commandParser
 from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
@@ -464,8 +464,8 @@ class noacli(QtWidgets.QMainWindow):
         self.settings.mainwin = self
         self.settings.runOrEdit = self.runOrEdit
         self.historypos = 1
-        dir = os.path.dirname(os.path.realpath(__file__))
-        p = os.path.join(dir,'icons', 'noacli.png')
+        mydir = os.path.dirname(os.path.realpath(__file__))
+        p = os.path.join(mydir,'icons', 'noacli.png')
         icon = QtGui.QIcon(p)
         if icon.isNull() or len(icon.availableSizes())<1:  # try again
             if typedQSettings().value('DEBUG',False):print('icon {} failed trying again'.format(p))  # DEBUG
@@ -741,12 +741,12 @@ class noacli(QtWidgets.QMainWindow):
             c.removeSelectedText()
         if not cursor.hasSelection() and not os.path.isdir(startdir):
             # maybe user didn't highlight trailing pattern?
-            (dir,tail) = os.path.split(startdir)
+            (dirpfx,tail) = os.path.split(startdir)
             # XXX this breaks slighlty if it doesn't have a directory prefix
-            if os.path.isdir(dir):  # put back just the dirctory piece
+            if os.path.isdir(dirpfx):  # put back just the dirctory piece
                 c.removeSelectedText()
-                c.insertText(dir)
-                startdir=dir
+                c.insertText(dirpfx)
+                startdir=dirpfx
                 # and use the remainder as a wildcard pattern
                 if '*' not in tail:  # XX maybe this was suppose to be a prefix?
                     tail+='*'
@@ -887,7 +887,7 @@ class noacli(QtWidgets.QMainWindow):
             self.settings.app.clipboard().setText(text)
             self.settings.app.clipboard().setText(text, QClipboard.Mode.Selection)
         elif col==1: index.model().cleanupJob(index)  # job status
-        elif col==2 or col==3: self.windowShowRaise(index)
+        elif col in (2, 3): self.windowShowRaise(index)
         elif col==4: self.ui.commandEdit.acceptCommand(index.model().getItem(index).command())
 
     # in: jobView out: jobModel
@@ -969,8 +969,8 @@ class noacli(QtWidgets.QMainWindow):
         j.setTitle('Readme.md')
         j.setMode('QTail')
         # find our readme
-        dir = os.path.dirname(os.path.realpath(__file__))
-        p = os.path.join(dir, 'documentation', 'Readme.md')  # XX test path?
+        mydir = os.path.dirname(os.path.realpath(__file__))
+        p = os.path.join(mydir, 'documentation', 'Readme.md')  # XX test path?
         j.outwinArgs = ['--url', '--findall=^=+']
         self.settings.jobs.newjob(j)
         j.startOutwin(p,self.settings)
@@ -1461,7 +1461,7 @@ class commandEditor(QPlainTextEdit):
         self.histindex = None
         super().clear()
 
-    def acceptCommand(self, str, title=None):
+    def acceptCommand(self, cmd, title=None):
         # XX do something with title
         # get current selected text before clearing it
         cursor = self.textCursor()
@@ -1470,11 +1470,11 @@ class commandEditor(QPlainTextEdit):
         else:
             oldsel = None
         self.clear()
-        if title and str[0]!='#':
-            str = '# '+title + '\n' + str
+        if title and cmd[0]!='#':
+            cmd = '# '+title + '\n' + cmd
         self.setFocus()
         self.histindex = None
-        self.setPlainText(str)
+        self.setPlainText(cmd)
         # XX is there any use of acceptCommand for which this would be inconvenient?
         mark = typedQSettings().value('TemplateMark',None)
         if mark and len(mark):
@@ -1490,8 +1490,8 @@ class commandEditor(QPlainTextEdit):
         self.histindex = idx
         if not idx: return  # None when wrapping, leave editor blank.
         # unwrap QPeristentIndex and QSortProxy
-        str = idx.model().index(idx.row(),1).data(Qt.ItemDataRole.EditRole)
-        self.setPlainText(str)
+        cmd = idx.model().index(idx.row(),1).data(Qt.ItemDataRole.EditRole)
+        self.setPlainText(cmd)
         c = self.textCursor()
         c.movePosition(QTextCursor.MoveOperation.End)
         self.setTextCursor(c)

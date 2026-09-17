@@ -175,8 +175,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.highlightDock = None
         self.triggerSavedSearchMenu = None
         self.savedSearchMenu = None
-        dir = os.path.dirname(os.path.realpath(__file__))
-        icon = QtGui.QIcon(os.path.join(dir,'icons', 'qtail.png'))
+        mydir = os.path.dirname(os.path.realpath(__file__))
+        icon = QtGui.QIcon(os.path.join(mydir,'icons', 'qtail.png'))
         if icon.isNull() or len(icon.availableSizes())<1:  # try again
             icon = QtGui.QIcon('qtail.png')
         self.setWindowIcon(icon)
@@ -1256,8 +1256,8 @@ class QtTail(QtWidgets.QMainWindow):
         self.resizeDocks(docks, sizes, Qt.Orientation.Vertical)
         dock.topLevelChanged.connect(self.enableUnfloat)
 
-    def enableUnfloat(self, float):
-        if float:
+    def enableUnfloat(self, floating):
+        if floating:
             self.ui.actionDockFloatingSearches.setVisible(True)
 
 ##### end QtTail end
