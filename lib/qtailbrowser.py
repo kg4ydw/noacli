@@ -55,7 +55,10 @@ class myBrowser(QTextBrowser):
 
     def contextSearches(self,pos,parent):
         #p = self.parent()
+        # Don't bother with this if nobody's listening
         #if p.receivers(p.suggest_command) <=0 : return None
+        if not self.savedsearches:
+            return  # nothing to do
         context = [None, False, False, False] # fill in as needed
         menu = QMenu("found commands",parent)
         for cs in filter(lambda s: s.ccontext and s.ctemplate, self.savedsearches):

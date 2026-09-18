@@ -714,6 +714,7 @@ class QtTail(QtWidgets.QMainWindow):
     # build menu on demand only
     def searchTermSavedContext(self, sm):
         if not sm.isEmpty(): return # already did this
+        if not self.savedsearches: return # empty so far
         # sort by name
         for ss in sorted(self.savedsearches, key=lambda i: i.name):
             sm.addAction(ss.name, partial(self.ui.searchTerm.setText, ss.sexp))
