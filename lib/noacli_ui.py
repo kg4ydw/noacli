@@ -120,6 +120,7 @@ class Ui_noacli(object):
         self.jobTableView.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.jobTableView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.jobTableView.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.AnyKeyPressed|QtWidgets.QAbstractItemView.EditTrigger.DoubleClicked|QtWidgets.QAbstractItemView.EditTrigger.EditKeyPressed|QtWidgets.QAbstractItemView.EditTrigger.SelectedClicked)
+        self.jobTableView.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
         self.jobTableView.setTextElideMode(QtCore.Qt.TextElideMode.ElideMiddle)
         self.jobTableView.setSortingEnabled(False)
         self.jobTableView.setObjectName("jobTableView")

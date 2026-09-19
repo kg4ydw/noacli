@@ -231,6 +231,9 @@
        <property name="editTriggers">
         <set>QAbstractItemView::AnyKeyPressed|QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::SelectedClicked</set>
        </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SingleSelection</enum>
+       </property>
        <property name="textElideMode">
         <enum>Qt::ElideMiddle</enum>
        </property>
@@ -629,8 +632,8 @@
    <slot>jobDoubleClicked(QModelIndex)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>191</x>
-     <y>94</y>
+     <x>187</x>
+     <y>117</y>
     </hint>
     <hint type="destinationlabel">
      <x>308</x>
@@ -741,12 +744,12 @@
    <slot>smallDup()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>261</x>
-     <y>55</y>
+     <x>252</x>
+     <y>77</y>
     </hint>
     <hint type="destinationlabel">
-     <x>405</x>
-     <y>80</y>
+     <x>399</x>
+     <y>127</y>
     </hint>
    </hints>
   </connection>
@@ -757,12 +760,12 @@
    <slot>smallKeepToggle(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>349</x>
-     <y>52</y>
+     <x>398</x>
+     <y>76</y>
     </hint>
     <hint type="destinationlabel">
-     <x>395</x>
-     <y>75</y>
+     <x>399</x>
+     <y>122</y>
     </hint>
    </hints>
   </connection>
@@ -825,8 +828,8 @@
      <y>56</y>
     </hint>
     <hint type="destinationlabel">
-     <x>496</x>
-     <y>80</y>
+     <x>602</x>
+     <y>128</y>
     </hint>
    </hints>
   </connection>
@@ -841,8 +844,8 @@
      <y>58</y>
     </hint>
     <hint type="destinationlabel">
-     <x>539</x>
-     <y>80</y>
+     <x>602</x>
+     <y>128</y>
     </hint>
    </hints>
   </connection>
@@ -857,8 +860,8 @@
      <y>60</y>
     </hint>
     <hint type="destinationlabel">
-     <x>578</x>
-     <y>80</y>
+     <x>602</x>
+     <y>128</y>
     </hint>
    </hints>
   </connection>
@@ -873,8 +876,8 @@
      <y>59</y>
     </hint>
     <hint type="destinationlabel">
-     <x>343</x>
-     <y>81</y>
+     <x>399</x>
+     <y>128</y>
     </hint>
    </hints>
   </connection>

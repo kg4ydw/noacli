@@ -687,8 +687,6 @@ class noacli(QtWidgets.QMainWindow):
         for dock in self.findChildren(QDockWidget):
             if dock.isFloating():
                 dock.setFloating(False)
-                #if DEBUG:
-                #    print(f"floater {dock.windowTitle()} window={dock.isWindow()}")
         # this isn't 100% successful when docks get orphaned and lost
 
     def start(self):
@@ -898,14 +896,18 @@ class noacli(QtWidgets.QMainWindow):
             iswayland = app.platformName().startswith("wayland")  # XXX only do this in wayland
             job.windowOpen = True
             if iswayland:
+                c=1
+                if index:
+                    c = index.column()
                 # close and reopen the window get attention
                 # works better than just show if the window is actually lost
-                job.window.hide()  # XXXX make this an option or a tripple click?
+                if c in (0, 3):  # job menu? or window column
+                    job.window.hide()
                 QApplication.processEvents()
                 # this mostly works in qt6?
                 job.window.setWindowState(job.window.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
             job.window.show()
-            QApplication.processEvents()
+            #QApplication.processEvents()
             job.window.activateWindow()
             job.window.windowHandle().requestActivate()
             job.window.showNormal()  # restore if minimized XXX redundant?

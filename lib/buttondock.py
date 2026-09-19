@@ -78,7 +78,7 @@ class ButtonDock(myDock):
         child = self.childAt(event.pos())
         if child and not hasattr(child, 'text'): child=None
         m = QtWidgets.QMenu()
-        m.addAction("Edit buttons", partial(EditButtonDocks,self))
+        m.addAction("Edit buttons", partial(EditButtonDocks,self, target=child.text(), dock=self.basetitle ))
         ##XXX need class instance#  m.addAction("Edit favorites", partial(Favorites.editFavorites,None))
         m.addAction("Unconstrained order", self.mylayout.unsorted)
         m.addAction("Alphabetize", self.mylayout.alphasort)
@@ -87,11 +87,19 @@ class ButtonDock(myDock):
         if child:
             # XXX copy command to commandEditor ?
             m.addAction("Delete button " + child.text(), partial(self.delButton, child.text()))
+            mm = m.addMenu(f"Copy {child.text()} to")
+            mm.aboutToShow.connect(partial(self.copyButtonMenu, mm, child.text()))
         if self != self.defaultDock[0]:
             m.addAction("Set as default dock", self.setDefaultDock)
             if not self.mybuttons and not hasattr(self, 'firstDock'):
                 m.addAction("Delete this dock", self.delDock)
         m.exec(event.globalPos())
+
+    def copyButtonMenu(self, menu, button):
+        if not menu.isEmpty(): return
+        for title,d in sorted(self.docklist.items()):
+            # XXX but not if it's already there
+            menu.addAction(title, partial(d.addButton, button))
 
     def doButton(self, name, clicked=None):
         c = self.favoritelist[name]
@@ -253,7 +261,7 @@ class ButtonDock(myDock):
 
 
 class EditButtonDocks(settingsDialog):
-    def __init__(self, parent, doneFunc=None):
+    def __init__(self, parent, doneFunc=None, target=None, dock=None):
         self.doneFunc = doneFunc
         data = []
         # put the default dock first
@@ -280,7 +288,17 @@ class EditButtonDocks(settingsDialog):
         tv = self.ui.tableView
         tv.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tv.customContextMenuRequested.connect(self.contextMenu)
-
+        if target:  # find and select the row containing target
+            rowi = buttons.index(target)
+            if rowi:
+                col = 0
+                if dock:
+                    col = docks.index(dock) or 0
+                index = model.index(rowi,col)
+                tv = self.ui.tableView
+                tv.setCurrentIndex(index)
+                tv.scrollTo(index)
+ 
     def selectionSetCheck(self, state):
         # XX make sure index is from base model not proxy
         selected = self.ui.tableView.selectionModel().selection().indexes()

@@ -370,7 +370,9 @@ manually cleared or will automatically clear after a timeout.
 
 If you double click on the window name or mode in the job manager, it
 will raise the window if there is one and move the mouse to it, and
-you can also rename the window by editing its name in the window column.
+you can also rename the window by editing its name in the window
+column.  If you doubleclick on a value in the pid column, it will copy
+it to the clipboard.
 
 Commands shown in both the job window and the history window can be
 clicked on to copy them to the command edit window for further editing
@@ -414,6 +416,9 @@ added to the default button dock (which can be set from the context menu).
 Named favorites not assigned to a dock will be assigned to the
 (hidden) orphan dock on next shell start.  Empty docks will be
 automatically deleted on next start.
+
+If you right click on a button, you can also delete it from the dock or
+copy it to other docks.
 
 Button order can be changed from the dock context menu, but this is
 not (currently) saved.
