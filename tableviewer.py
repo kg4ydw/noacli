@@ -241,6 +241,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.want_resize.connect(self.actionAdjust, Qt.ConnectionType.QueuedConnection)
         self.ui = Ui_TableViewer()
         self.ui.setupUi(self)
+        self.setMaximumSize(self.screen().size())
         #self.ui.menuView.addAction(self.ui.colPickerDock.toggleViewAction())
         t = self.ui.colPickerDock.toggleViewAction()
         t.triggered.connect(lambda trig, ui=self.ui: ui.colPickerDock.setFloating(False))
@@ -416,6 +417,8 @@ class TableViewer(QtWidgets.QMainWindow):
             #    head.resizeSection(i,target)
 
     def resizeWindowToTable(self, useratio=False):
+        # reset max size in case we changed screens
+        self.setMaximumSize(self.screen().size())
         oldsize = self.size()
         ratio = typedQSettings().value('TableviewerResizeRatio', 2)
         frame = oldsize - self.ui.tableView.size()

@@ -195,6 +195,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.opt = options
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
+        self.setMaximumSize(self.screen().size())
         ### hide/disable stuff that should be disabled by default
         self.ui.actionShowClosedSearches.setVisible(False)
         self.ui.actionDeleteClosedSearches.setVisible(False)
@@ -1007,6 +1008,8 @@ class QtTail(QtWidgets.QMainWindow):
     ### menu action slots
     @QtCore.pyqtSlot()
     def actionAdjust(self):
+        # reset max size in case we changed screens
+        self.setMaximumSize(self.screen().size())
         DEBUG= typedQSettings().value('DEBUG',False)
         doc = self.textbody.document()
         docrect = doc.size() # QsizeF
