@@ -9,6 +9,8 @@ import sys
 from enum import Enum
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtCore import QSettings, QT_VERSION_STR, PYQT_VERSION_STR
+from PyQt6.QtWidgets import QApplication
+
 
 # This is a very primitive command parser, but it should be sufficent for the
 # kinds of things this shell needs.
@@ -283,7 +285,7 @@ class commandParser:
     def cmd_version(self, title, outwin, rest):
         '''What version is am I?'''
         from noacli import __version__
-        return 'Versions: noacli '+__version__ +', Qt '+ QT_VERSION_STR + ', PyQt '+ PYQT_VERSION_STR+ ', Python '+sys.version
+        return f"Versions: noacli {__version__}, Qt {QT_VERSION_STR} PyQt {PYQT_VERSION_STR}, Python {sys.version}, Platform {QApplication.platformName()}\n"
 
     def checkfile(self, f):
         # XX doesn't check if f is a non-file

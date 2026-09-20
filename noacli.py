@@ -39,7 +39,7 @@ from lib.favorites import Favorites
 from lib.saved_searches import saved_searches
 from lib.wayland_fixes import resize_window
 
-__version__ = '2.4.2'
+__version__ = '2.5'
 
 
 # Some settings have been moved to relevant modules
@@ -596,7 +596,7 @@ class noacli(QtWidgets.QMainWindow):
         qs.endGroup()
 
         self.showMessage('Version '+__version__)
-        self.ui.smallOutputView.append('Version '+__version__+"\n")
+        self.ui.smallOutputView.append(f"Version {__version__}\n")
         # connect slots QtCreator coudln't find
         self.ui.smallOutputView.buttonState.connect(self.ui.logOutputButton.setEnabled)
         self.ui.smallOutputView.buttonState.connect(self.setTerminateButton)
