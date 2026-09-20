@@ -8,6 +8,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, pyqtSignal
 dwf = QtWidgets.QDockWidget.DockWidgetFeature
 
+
 from lib.mydock import myDock
 from lib.flowlayout import FlowLayout
 from lib.datamodels import settingsDialog, simpleTable
@@ -76,9 +77,14 @@ class ButtonDock(myDock):
 
     def contextMenuEvent(self, event):
         child = self.childAt(event.pos())
-        if child and not hasattr(child, 'text'): child=None
+        if child and not hasattr(child, 'text'):
+            child=None
+        if child:
+            childname = child.text()
+        else:
+            childname = None
         m = QtWidgets.QMenu()
-        m.addAction("Edit buttons", partial(EditButtonDocks,self, target=child.text(), dock=self.basetitle ))
+        m.addAction("Edit buttons", partial(EditButtonDocks,self, target=childname, dock=self.basetitle ))
         ##XXX need class instance#  m.addAction("Edit favorites", partial(Favorites.editFavorites,None))
         m.addAction("Unconstrained order", self.mylayout.unsorted)
         m.addAction("Alphabetize", self.mylayout.alphasort)
@@ -259,6 +265,18 @@ class ButtonDock(myDock):
             qs.setValue('orphans',sorted(orphans))
         qs.endGroup()
 
+    def closeEvent(self, event):
+        if not self.mybuttons:
+            # no buttons, delete myself
+            name = self.windowTitle()
+            if name:
+                del self.docklist[name]
+                qs = QtCore.QSettings()
+                qs.beginGroup('buttondocks')
+                qs.remove(name)
+            self.setParent(None)
+            self.deleteLater()
+        return super().closeEvent(event)
 
 class EditButtonDocks(settingsDialog):
     def __init__(self, parent, doneFunc=None, target=None, dock=None):
@@ -286,6 +304,8 @@ class EditButtonDocks(settingsDialog):
         newdia = buttonbox.addButton("New dock", QtWidgets.QDialogButtonBox.ButtonRole.ActionRole)
         newdia.clicked.connect(self.addDock)
         tv = self.ui.tableView
+        # enable multiselect for use in context menu
+        tv.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.MultiSelection)
         tv.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tv.customContextMenuRequested.connect(self.contextMenu)
         if target:  # find and select the row containing target
@@ -323,6 +343,7 @@ class EditButtonDocks(settingsDialog):
             m.addAction("Check selected", partial(self.selectionSetCheck, True))
             m.addAction("Clear selected", partial(self.selectionSetCheck, False))
             m.addAction("Toggle selected", partial(self.selectionSetCheck, None))
+            m.addAction("Select none",t.clearSelection)
         # XXXX buttondock context menu
         # delete dock (confirm?)
         # set default dock
@@ -352,6 +373,17 @@ class EditButtonDocks(settingsDialog):
                             dock.delButton(button)
                         else:
                             dock.addButton(button)
+            # close / delete empty button docks
+            closeme = []
+            for name, dock in ButtonDock.docklist.items():
+                if not dock.mybuttons:
+                    closeme.append(name) # don't close while iterating
+            qs = QtCore.QSettings()
+            qs.beginGroup('buttondocks')
+            for name in closeme:
+                if name in ButtonDock.docklist:
+                    ButtonDock.docklist[name].close()
+                qs.remove(name)
             ButtonDock.saveSettings()
         # release resources
         self.edata = None

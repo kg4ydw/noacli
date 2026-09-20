@@ -1464,13 +1464,13 @@ class commandEditor(QPlainTextEdit):
         super().clear()
 
     def acceptCommand(self, cmd, title=None):
-        # XX do something with title
         # get current selected text before clearing it
         cursor = self.textCursor()
         if cursor.hasSelection():
             oldsel = cursor.selectedText()
         else:
-            oldsel = None
+            #oldsel = None
+            oldsel = self.toPlainText() # XXX SETTING to turn this off?
         self.clear()
         if title and cmd[0]!='#':
             cmd = '# '+title + '\n' + cmd
@@ -1480,7 +1480,9 @@ class commandEditor(QPlainTextEdit):
         # XX is there any use of acceptCommand for which this would be inconvenient?
         mark = typedQSettings().value('TemplateMark',None)
         if mark and len(mark):
-            while self.find(mark) and oldsel:  # repaste selection on top of mark
+            # run find at least once even if oldsel is empty
+            while self.find(mark) and oldsel:
+                # repaste selection on top of mark
                 cursor = self.textCursor()
                 cursor.insertText(oldsel)
 

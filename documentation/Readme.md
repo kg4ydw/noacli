@@ -412,6 +412,7 @@ In settings, there is a button dock editor that allows creation of new
 button docks and selecting which docks get which buttons, so that task
 specific favorites can be grouped.  Newly named favorites are initially
 added to the default button dock (which can be set from the context menu).
+The button dock context menu can operate on all selected items.
 
 Named favorites not assigned to a dock will be assigned to the
 (hidden) orphan dock on next shell start.  Empty docks will be
