@@ -7,7 +7,7 @@ __copyright__ = '2022, 2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 import re
 from functools import partial
 
-from PyQt6.QtCore import pyqtSignal, QPoint
+from PyQt6.QtCore import pyqtSignal, QPoint, QProcess
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QTextBrowser, QFontDialog, QMenu
 from PyQt6.QtGui import QTextCursor
@@ -22,6 +22,7 @@ class myBrowser(QTextBrowser):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self.tail = parent.parent()
         self.ui = parent.parent().ui
         self.showBars = True
 
@@ -44,10 +45,12 @@ class myBrowser(QTextBrowser):
             m.addAction("Hide bars",self.toggleBars)
         else:
             m.addAction("Show bars",self.toggleBars)
-        # converting html to html is probably not good
+        # converting html to html is probably not good, but qt doesn't keep track
         # but reload might make this necsesary so always offer it anyway
-        m.addAction("View as html", self.makeHtml)
-        m.addAction("View as markdown", self.makeMarkdown)
+        # can't convert until process completes
+        if not hasattr(self.tail, 'file') or not isinstance(self.tail.file, QProcess) or self.tail.file.state()==QProcess.ProcessState.NotRunning:
+            m.addAction("View as html", self.makeHtml)
+            m.addAction("View as markdown", self.makeMarkdown)
         ss = self.contextSearches(event.pos(), m)
         if ss:
             m.addMenu(ss)
