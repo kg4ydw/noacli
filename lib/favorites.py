@@ -149,8 +149,7 @@ class Favorites():
             c.shortcuto.setParent(None)
             c.shortcuto = None
 
-    def editFavorites(self, parent):
-        data = []
+    def populateFavEditor(self, data):
         # save this so the validator can get it
         self.data = data
         qs = typedQSettings()
@@ -160,8 +159,8 @@ class Favorites():
         (_, count) = self.settings.history.countHistory()
 
         #### collect commands from favorites
-        f = sorted(self.cmds.keys())
-        data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, (c in count and count[c]) or 0, c] for c in f]
+        f = sorted(self.cmds.keys(), key=lambda c: self.cmds[c].buttonName or c)
+        data+=[ [True, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate, (c in count and count[c]) or '?', c] for c in f]
         # only remember previously saved favorites, and in order
         self.oldcmds = [ data[x][5] for x in range(len(data))]
         cmdlist = set(f)  # don't put dup commands in
@@ -184,8 +183,15 @@ class Favorites():
         data += [ [False, None, None, True, count[k], k] for k in freq[0:nfreq]]
         cmdlist |= set(freq[0:nfreq])
 
-        #### done collecting favorite candidates
-
+    def editFavorites(self, parent):
+        data = []
+        try:
+            self.populateFavEditor(data)
+        except Exception as e:
+            if typedQSettings().value('DEBUG',False):
+                print("fav collection failed: ",repr(e)) # DEBUG
+        # XXXX this should do something if favorites is not empty
+        # XXXX this should return a message if both favorites and history are empty
         datatypes = [bool, str, QKeySequence, bool, None, str]
         model = favoritesModel(data,
             ['keep', 'name',  'key', 'Immediate',  'count', 'command'], datatypesrow=datatypes,

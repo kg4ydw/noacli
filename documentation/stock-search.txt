@@ -24,7 +24,7 @@ man options / man
 option TOC
 
 man headings / man
-^((\S+\s?))+$
+^(\S+\s?)+$
 excludes multiple spaces
 
 man ref / man

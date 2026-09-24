@@ -45,6 +45,8 @@ class myBrowser(QTextBrowser):
             m.addAction("Hide bars",self.toggleBars)
         else:
             m.addAction("Show bars",self.toggleBars)
+            rb = self.ui.reloadButton
+            m.addAction(rb.text(), rb.clicked.emit)
         # converting html to html is probably not good, but qt doesn't keep track
         # but reload might make this necsesary so always offer it anyway
         # can't convert until process completes

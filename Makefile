@@ -10,9 +10,18 @@ all: $(UI)
 	pyuic6 -o $@ $<
 	sed -i 's/QMainWindow\.\(Allow\|Animated\|Grouped\|AllowNestedDocks\)/QMainWindow.DockOption.\1/g' $@
 
+ubuntu-setup:
+	sudo apt-get install python3-pyqt6
+
+ubuntu-user-
+	sed -Ee "/Icon|Exec/s,=,=$$PWD/," noacli.desktop > .local/share/applications/noacli.desktop
+#cp noacli.desktop .local/share/applications/
+#cp noacli.png qtail.png .local/share/icons/
+# .local/share/icons/hicolor/128x128/noacli.png
+
 macos-setup:
-	python3 -m pip install pyqt6 pillow
-	python3 -m pipx install pyinstaller
+	python3 -m pip install pyqt6 pillow pyinstaller
+#python3 -m pipx install pyinstaller ## doesn't work, needs env
 
 macos:
 	rm -rf dist
