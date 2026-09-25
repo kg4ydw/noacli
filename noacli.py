@@ -18,10 +18,10 @@ from functools import partial
 #import signal
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QSize
 from PyQt6.QtGui import QTextCursor, QKeySequence, QTextOption, QClipboard, QFont, QAction, QShortcut, QActionGroup
 #from PyQt6.QtWidgets import *
-from PyQt6.QtWidgets import QMenu, QStyledItemDelegate, QTableView, QErrorMessage, QAbstractItemView, QLineEdit, QFileDialog, QMessageBox, QPlainTextEdit, QWidgetAction, QApplication, QFontDialog, QInputDialog, QDockWidget
+from PyQt6.QtWidgets import QMenu, QStyledItemDelegate, QTableView, QErrorMessage, QAbstractItemView, QLineEdit, QFileDialog, QMessageBox, QPlainTextEdit, QWidgetAction, QApplication, QFontDialog, QInputDialog, QDockWidget, QToolButton, QStyle
 from PyQt6.QtCore import QModelIndex, QPersistentModelIndex, QSettings, QProcess
 
 from qtail import myOptions as qtailSettings
@@ -39,7 +39,7 @@ from lib.favorites import Favorites
 from lib.saved_searches import saved_searches
 from lib.wayland_fixes import resize_window
 
-__version__ = '2.5.1'
+__version__ = '2.5.2'
 
 
 # Some settings have been moved to relevant modules
@@ -444,6 +444,7 @@ class noacli(QtWidgets.QMainWindow):
         super().__init__()
         self.ui = Ui_noacli()
         self.ui.setupUi(self)
+        self.setDockNestingEnabled(True)
         # patch to fix Qt 6.4.2 segfaulting on empty paste buffer
         self.clipboardfilter = SafeClipboardFilter(self)
         self.ui.buttons = ButtonDock(self, 'Buttons')  # make default button dock
@@ -480,6 +481,8 @@ class noacli(QtWidgets.QMainWindow):
         # most obvious UI for new users is for all docks to be shown
         #self.hideAllDocks()  # if you want this, save a profile
 
+        self.makeToolBar()
+
         ui.actionTabifyDocks.triggered.connect(self.tabifyAll)
         ui.actionDock_all.triggered.connect(self.dockAll)
 
@@ -509,7 +512,7 @@ class noacli(QtWidgets.QMainWindow):
         # connect the command editor to the history data model
         # XX this should be a connect historySave->saveItem
         ui.commandEdit.setHistory(self.settings.history)
-
+        
         ui.jobTableView.setModel(self.settings.jobs)
         ui.jobManager.keeplines = True
         self.settings.jobs.rowsInserted.connect(self.jobsChanged)
@@ -609,7 +612,7 @@ class noacli(QtWidgets.QMainWindow):
         self.autoSaveTimer.timeout.connect(self.autoSaveAll)
         self.setAutoSave()
         self.settings.apply_settings.connect(self.setAutoSave)
-
+        
         ##### install signal handlers XXX
         #try:  # in case anything here is unportable
         #    signal.signal(signal.SIGINT, self.ouch)
@@ -623,6 +626,47 @@ class noacli(QtWidgets.QMainWindow):
 
     ## end __init__
 
+    def makeToolBar(self):
+        # cheat a bit to insert the toolbar into the central widget
+        t = self.ui.toolbar = QtWidgets.QToolBar(self.ui.centralwidget)
+        t.setObjectName("toolbar")
+        self.ui.verticalLayout_3.insertWidget(0,t) # XX label this permaently?
+        if sys.platform != 'darwin': # need toolbar on macos, hide elsewhere
+            t.hide()
+        t.setIconSize(QSize(16,16))
+        style = self.settings.app.style()
+        ce = self.ui.commandEdit
+        a = QToolButton(t)
+        a.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_ArrowUp))
+        a.pressed.connect(ce.historyUp)
+        a.setToolTip("previous history hitem")
+        t.addWidget(a)
+        a = QToolButton(t)
+        a.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_ArrowDown))
+        a.pressed.connect(ce.historyDown)
+        a.setToolTip("next history hitem")
+        t.addWidget(a)
+        a = QToolButton(t)
+        a.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_DialogDiscardButton))
+        a.setToolTip("clear")
+        a.pressed.connect(ce.clear)
+        t.addWidget(a)
+        a = QToolButton(t)
+        a.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_MediaPlay))
+        a.pressed.connect(ce.runCommand)
+        a.setToolTip("run")
+        t.addWidget(a)
+        a = QToolButton(t)
+        a.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_BrowserReload))
+        a.pressed.connect(self.runLastCommand)
+        a.setToolTip("rerun last")
+        t.addWidget(a)
+        a = QToolButton(t)
+        a.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_DirIcon))
+        a.pressed.connect(self.pickFile)
+        a.setToolTip("pick files")
+        t.addWidget(a)
+        
     def newProfile(self):
         name, ok = QInputDialog.getText(self, "New profile", "Enter new profile name:")
         if ok and name:
@@ -1420,6 +1464,10 @@ class commandEditor(QPlainTextEdit):
         m.addAction("Save to history and clear", self.clear)
         m.addAction("Clear", super().clear)
         m.addAction("Add to favorites",self.addFav)
+        if self.ui.toolbar.isVisible():
+            m.addAction("Hide toolbar", self.ui.toolbar.hide)
+        else:
+            m.addAction("Show toolbar", self.ui.toolbar.show)
         #return m
         action = m.exec(event.globalPos())
         # don't need to use action here

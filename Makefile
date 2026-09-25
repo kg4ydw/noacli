@@ -1,5 +1,5 @@
 
-UI= lib/qtail_ui.py lib/noacli_ui.py lib/settingsdialog_ui.py lib/tableviewer_ui.py lib/searchdock_ui.py lib/colorlisteditor_ui.py lib/saved_searches_ui.py
+UI= lib/qtail_ui.py lib/noacli_ui.py lib/settingsdialog_ui.py lib/tableviewer_ui.py lib/searchdock_ui.py lib/colorlisteditor_ui.py lib/saved_searches_ui.py lib/progress_ui.py
 SRCFILES=$(shell git ls-files | grep -v gitignore)
 DISTFILES=$(SRCFILES) $(UI) $(RESOURCES)
 
@@ -13,9 +13,8 @@ all: $(UI)
 ubuntu-setup:
 	sudo apt-get install python3-pyqt6
 
-ubuntu-user-
-	sed -Ee "/Icon|Exec/s,=,=$$PWD/," noacli.desktop > .local/share/applications/noacli.desktop
-#cp noacli.desktop .local/share/applications/
+ubuntu-user-install:
+	sed -Ee "/Icon|Exec/s,=,=$$PWD/," noacli.desktop > ${HOME}/.local/share/applications/noacli.desktop
 #cp noacli.png qtail.png .local/share/icons/
 # .local/share/icons/hicolor/128x128/noacli.png
 

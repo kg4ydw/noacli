@@ -4,7 +4,7 @@
 Version=1.0
 Type=Application
 Terminal=false
-Icon=icons/noacli
+Icon=icons/noacli.png
 Exec=noacli.py
 Name=noacli
 StartupWMClass=org.kg4ydw.noacli
