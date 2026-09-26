@@ -128,7 +128,7 @@ class envSettings(QProcessEnvironment):
             # ignore session vars
         qs.endGroup()
 
-    def envDialog(self, parent):
+    def envDialog(self):
         # make an editable table of environment settings and add some blanks
         self.envset = set(self.modes.keys())  # remember what we started with
         self.origenv = QProcessEnvironment.systemEnvironment()
@@ -145,7 +145,7 @@ class envSettings(QProcessEnvironment):
         #self.envdata += [['',envModes.Session, ''],['', envModes.Session,'']]
         model = simpleTable(self.envdata, ['Env Var','Mode', 'Value'], editmask=[False, True, True], datatypesrow=[str, envModes, str], validator=self.validator)
         self.model = model
-        self.envDia = settingsDialog(parent,'Environment variables', model)
+        self.envDia = settingsDialog('Environment variables', model)
         self.envDia.finished.connect(self.finishEnv)
         self.envDia.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.envDia.customContextMenuRequested.connect(self.envContextMenu)
@@ -197,7 +197,6 @@ class envSettings(QProcessEnvironment):
                 print("Missing env: "+(" ".join(self.envset)))  # EXCEPT
         self.envset = None
         self.envdata = None
-        self.envDia.setParent(None)
         self.envDia = None
         self.origenv = None
         self.model = None

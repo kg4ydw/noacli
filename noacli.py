@@ -159,7 +159,7 @@ class settings():
         typedata = [ [None, self.settingsDirectory[i][2] ] for i in rows ]
         # open dialog box
         model = settingsDataModel(self.settingsDirectory, data, typedata)
-        self.dialog = settingsDialog(parent, 'Settings', model, 'noacli settings')
+        self.dialog = settingsDialog('Settings', model, 'noacli settings')
         self.dialog.finished.connect(self.acceptOrReject)
         tv = self.dialog.ui.tableView
         tv.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -1003,7 +1003,8 @@ class noacli(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def actionEsettings(self):
-        self.settings.environment.envDialog(self)
+        # self contained, no cleanup needed
+        self.settings.environment.envDialog()
 
     @QtCore.pyqtSlot(str)
     def runSimpleCommand(self, cmd, title):
@@ -1424,7 +1425,12 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.jobTableView.resizeRowToContents(logical)
 
     def editButtonDocks(self):
-        EditButtonDocks(self)
+        # delete and recreate if the user re-invokes this
+        self.ebdd = EditButtonDocks(None)
+        self.ebdd.finished.connect(self.destroyEBD)
+    def destroyEBD(self):
+        self.ebdd = None
+        # note: doesn't catch things if it is closed without accept/reject
 
 ################ end noacli end
 

@@ -304,9 +304,9 @@ class settingsDialog(QtWidgets.QDialog):
     typedelegates = {}
     want_resize = pyqtSignal()
 
-    def __init__(self, parent, title, model, doc=None):
-        # need parent so that this isn't persistent in window close
-        super().__init__(parent)
+    def __init__(self, title, model, doc=None):
+        # don't use parent, make the calling class save it so this isn't reentrant
+        super().__init__()
         ui = Ui_settingsDialog()
         self.model = model
         # XX proxy model?  search?

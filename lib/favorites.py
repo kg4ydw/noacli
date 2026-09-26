@@ -200,7 +200,7 @@ class Favorites():
         # extra features
 
         # if anything is checked or edited (not blanked), check keep
-        self.dialog = settingsDialog(parent, 'Favorites editor', model, 'Favorites, shortcuts, and buttons')
+        self.dialog = settingsDialog('Favorites editor', model, 'Favorites, shortcuts, and buttons')
         self.dialog.finished.connect(self.doneFavs)
         buttonbox = self.dialog.ui.buttonBox
         buttonbox.setStandardButtons(buttonbox.standardButtons()| QDialogButtonBox.StandardButton.Save)

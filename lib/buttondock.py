@@ -295,7 +295,7 @@ class EditButtonDocks(settingsDialog):
         self.ebuttons = buttons
         self.edata = data
         self.edocks = docks
-        super().__init__(parent, "Button dock editor", model)
+        super().__init__("Button dock editor", model)
         self.ui.tableView.horizontalHeader().setStretchLastSection(False)
         self.ui.tableView.resizeColumnsToContents()
         self.finished.connect(self.finishEdit)

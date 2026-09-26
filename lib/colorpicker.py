@@ -59,6 +59,7 @@ class ColorPicker():
         return m
 
     def editColors(self):
+        # XX this can open multiple editors, dunno why
         self.ecDialog = colorListEditor(self)
         # connect and destroy when done
         self.ecDialog.finished.connect(self.doneEditColors)
