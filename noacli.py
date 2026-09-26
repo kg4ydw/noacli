@@ -639,12 +639,12 @@ class noacli(QtWidgets.QMainWindow):
         a = QToolButton(t)
         a.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_ArrowUp))
         a.pressed.connect(ce.historyUp)
-        a.setToolTip("previous history hitem")
+        a.setToolTip("previous history item")
         t.addWidget(a)
         a = QToolButton(t)
         a.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_ArrowDown))
         a.pressed.connect(ce.historyDown)
-        a.setToolTip("next history hitem")
+        a.setToolTip("next history item")
         t.addWidget(a)
         a = QToolButton(t)
         a.setIcon(style.standardIcon(QStyle.StandardPixmap.SP_DialogDiscardButton))
@@ -1383,6 +1383,7 @@ class noacli(QtWidgets.QMainWindow):
         if index.isValid():
             job = index.model().getItem(index)
         if job:
+            m.addSeparator()
             if job.process and job.process.state()!=QProcess.ProcessState.NotRunning:
                 m.addAction("Terminate "+job.title(), job.process.terminate)
                 m.addAction("Kill "+job.title(), job.process.kill)
@@ -1401,6 +1402,7 @@ class noacli(QtWidgets.QMainWindow):
             # XXX unnecessary if hiddenJobs gets its own dock
             m.addAction("Unhide hidden jobs",partial(self.settings.hiddenJobs.moveall,self.settings.jobs))
         if job:
+            m.addSeparator()
             if job.process and job.process.state()!=QProcess.ProcessState.NotRunning:
                 currun = time.monotonic()-job.timestart
                 m.addAction("runtime: {:1.3f}s".format(currun))

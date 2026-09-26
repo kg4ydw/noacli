@@ -125,7 +125,7 @@ class jobItem():
             # or this could be a Qt 6.4 bug
             if self.index:
                 # QPersistentIndex doesn't have sibling
-                i = self.index.model().index(self.index.row(),3)
+                i = QModelIndex(self.index).siblingAtColumn(3)
                 if i and i.model():
                     i.model().dataChanged.emit(i,i)
 
@@ -138,7 +138,7 @@ class jobItem():
             if newmode:
                 self.mode = OutWin[mode]
                 if self.index:
-                    i = self.index.model().index(self.index.row(),2)
+                    i = QModelIndex(self.index).siblingAtColumn(2)
                     i.model().dataChanged.emit(i,i)
             else:
                 #if typedQSettings().value('DEBUG',False): print("Failed to convert winmode "+mode) # DEBUG
@@ -151,9 +151,11 @@ class jobItem():
     def collectPid(self):
         # detected race condition: started process after it was cleaned up!?
         # might be fixed
-        self.pid = self.process.processId()
+        if self.process:
+            self.pid = self.process.processId()
+        # else: # process has exited?  intentionally don't clear pid here
         if self.index and self.index.model():
-            index = self.index.model().sibling(self.index.row(),0,QModelIndex())
+            index = QModelIndex(self.index).siblingAtColumn(0)
             self.index.model().dataChanged.emit(index,index)
         self.timestart = time.monotonic()
         self.status = ''  # don't let this accumulate too much
@@ -184,7 +186,7 @@ class jobItem():
         # XXXXX PersistentModelIndex and QSortFilterProxyModel contamination
         try:
             if self.index and self.index.model():
-                index = self.index.model().sibling(self.index.row(),1,QModelIndex())
+                index = QModelIndex(self.index).siblingAtColumn(1)
                 self.index.model().dataChanged.emit(index,index)
             if not self.history or not self.history.model():  # not a real job
                 pass
@@ -272,7 +274,7 @@ class jobItem():
     def windowClosed(self):
         self.windowOpen = False
         if self.index:
-            index = self.index.model().index(self.index.row(),2)
+            index = QModelIndex(self.index).siblingAtColumn(2)
             self.index.model().dataChanged.emit(index,index)
         # XXX trigger cleanup?  maybe on a timer
         # self.index.model().cleanupJob(self.index)

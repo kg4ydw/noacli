@@ -717,7 +717,7 @@ world writable, or ssh will ignore the files.
 
 Then when you are ready to connect, authorize to the host once with
 ~~~
-  ssh -fnN -O 'ControlPersist 2h' user@hostname
+  ssh -fnN -o 'ControlPersist 2h' user@hostname
 ~~~
 (Adjust time to your preference.)  This command makes a nice template button if you replace hostname with {} and you can check the link status with
 ~~~

@@ -29,11 +29,10 @@ class ButtonDock(myDock):
 
     def __init__(self, parent, title):
         ## mostly UI code
-        super().__init__(parent)
+        super().__init__(parent,title)
         # each button dock remembers what buttons it wants
         self.mybuttons = {}
         self.setWindowTitle(title)
-        self.setObjectName(title)
         self.docklist[title] = self
         if len(self.defaultDock) == 0:  # make the first the default
             self.defaultDock.append(self)

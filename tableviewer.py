@@ -241,8 +241,9 @@ class TableViewer(QtWidgets.QMainWindow):
         self.want_resize.connect(self.actionAdjust, Qt.ConnectionType.QueuedConnection)
         self.ui = Ui_TableViewer()
         self.ui.setupUi(self)
-        self.setMaximumSize(self.screen().size())
+        self.setMaximumSize(self.screen().availableGeometry().size())
         #self.ui.menuView.addAction(self.ui.colPickerDock.toggleViewAction())
+        self.closekey = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Close,self, self.close) ### MacOS because we don't have a close menu item
         t = self.ui.colPickerDock.toggleViewAction()
         t.triggered.connect(lambda trig, ui=self.ui: ui.colPickerDock.setFloating(False))
         self.ui.menuView.addAction(t)
@@ -418,7 +419,7 @@ class TableViewer(QtWidgets.QMainWindow):
 
     def resizeWindowToTable(self, useratio=False):
         # reset max size in case we changed screens
-        self.setMaximumSize(self.screen().size())
+        self.setMaximumSize(self.screen().availableGeometry().size())
         oldsize = self.size()
         ratio = typedQSettings().value('TableviewerResizeRatio', 2)
         frame = oldsize - self.ui.tableView.size()
@@ -436,8 +437,8 @@ class TableViewer(QtWidgets.QMainWindow):
             if oldsize.width()*ratio < size.width():
                 size.setWidth(oldsize.width())
         # never resize bigger than the screen
-        sh = self.screen().geometry().height()
-        sw = self.screen().geometry().width()
+        sh = self.screen().availableGeometry().height()
+        sw = self.screen().availableGeometry().width()
         if size.height() > sh or size.width() > sw:
             size = size.boundedTo(QSize(floor(sw*0.75), floor(sh*0.75))) # XXX SETTING
         resize_window(self, size)

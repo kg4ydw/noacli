@@ -195,7 +195,9 @@ class QtTail(QtWidgets.QMainWindow):
         self.opt = options
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
-        self.setMaximumSize(self.screen().size())
+        self.setMaximumSize(self.screen().availableGeometry().size())
+        self.closekey = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Close,self, self.close) ### MacOS because we don't have a close menu item
+        self.refreshkey = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Refresh,self, self.reloadOrRerun)
         ### hide/disable stuff that should be disabled by default
         self.ui.actionShowClosedSearches.setVisible(False)
         self.ui.actionDeleteClosedSearches.setVisible(False)
@@ -238,8 +240,8 @@ class QtTail(QtWidgets.QMainWindow):
         # note: this intentionally doesn't refresh on settings change
         self.reinterval = typedQSettings().value('QTailWatchInterval',20)
         # find
-        self.editorShortcut = QShortcut(QtGui.QKeySequence('ctrl+f'), self)
-        self.editorShortcut.activated.connect(self.ui.searchTerm.setFocus)
+        self.editorShortcut = QShortcut(QtGui.QKeySequence('ctrl+f'), self ,self.ui.searchTerm.setFocus)
+        self.findNextShortcut = QShortcut(QtGui.QKeySequence.StandardKey.FindNext, self, self.simpleFind2)
 
         m = self.ui.menuView
         primary = self.getFontSetting('QTailPrimaryFont')
@@ -1009,7 +1011,7 @@ class QtTail(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def actionAdjust(self):
         # reset max size in case we changed screens
-        self.setMaximumSize(self.screen().size())
+        self.setMaximumSize(self.screen().availableGeometry().size())
         DEBUG= typedQSettings().value('DEBUG',False)
         doc = self.textbody.document()
         docrect = doc.size() # QsizeF
@@ -1054,7 +1056,7 @@ class QtTail(QtWidgets.QMainWindow):
         ## this was worse
         #if type(self.file)==QProcess and self.file.state()==QProcess.ProcessState.NotRunning:
         #    heightadjust = 0 # don't leave extra space if it is already dead
-        screenheight = self.screen().geometry().height()
+        screenheight = self.screen().availableGeometry().height()
         maxheight = screenheight*0.75  # SETTING max window height 75% desktop height
         maxheight2 = rect.height()*1.1 # SETTING max window height growth 10%
         if maxheight2>maxheight:
@@ -1074,7 +1076,7 @@ class QtTail(QtWidgets.QMainWindow):
             #print(f"height keep: {height=} {rect.height()=}") # DEBUG
             height = rect.height()  # don't resize
         #print(' newsize='+str(width)+','+str(height)) # DEBUG
-        sh = self.screen().geometry().height()
+        sh = self.screen().availableGeometry().height()
         # never resize larger than screen
         if height > sh: height = sh*0.75 # XXX SETTING
         resize_window(self, ceil(width), ceil(height))

@@ -20,11 +20,11 @@ def resize_window(window, w, h=None):
         QTimer.singleShot(500, partial(release_constraints, window))
     else:
         # reset max size in case we changed screens
-        window.setMaximumSize(window.screen().size())
+        window.setMaximumSize(window.screen().availableGeometry().size())
     window.resize(w,h)
 
 def release_constraints(window):
     window.setMinimumSize(window.origMinSize)
     #window.setMaximumSize(16777215, 16777215)
     # don't ever want a window bigger than the screen in this app
-    window.setMaximumSize(window.screen().size())
+    window.setMaximumSize(window.screen().availableGeometry().size())

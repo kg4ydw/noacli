@@ -33,7 +33,7 @@ D*    hide/show columns
  *  save/restore geometry needs to save dock geom and visibility too probably
 
  -Things to implement soon:
- ! cli initial size hint for qtail window
+ ! cli initial size hint for qtail window (doesn't work on wayland scaled)
  ! add ability to refresh searches when the document is refreshed
  ! add live tracking between search docks and the document scrolling
  ! track highlight: update searchdocs to highlight before cursor (context)
@@ -47,7 +47,7 @@ D*    hide/show columns
 Dx tail --format=html needs to read the whole text at once
 D*   too messy to fix, implemented work around (convert after reading as plain)
  E  qtail -auto cli option doesn't initial trigger
- ! jobs: click on status column to hide/show lost windows in addtion to raise
+ * jobs: click on status column to hide/show lost windows in addtion to raise
  ? change where templates get data
 D*   regex groups? (via saved searches)
      try selected text first
@@ -83,7 +83,7 @@ D* context regex commands (below)
  ! rebuild visible searches on reload and follow tail
  ? qtail detect text type automatically?
  ? file buffering large text like less
- ! QTextOption.WordWrap --> WrapAtWordBoundaryOrAnywhere
+ * QTextOption.WordWrap --> WrapAtWordBoundaryOrAnywhere
 D! qtail findallgroup: iterate blocks, column align (LCRH)
  ? jump to line feature (with cli and gui support)
  ? https://pypi.org/project/pyqt-line-number-widget/ (how badly is ths wanted?)
@@ -107,6 +107,7 @@ D! qtail findallgroup: iterate blocks, column align (LCRH)
  ? detect headings (in search/toc) for markdown
  ? Add hiddenJobs as its own dock
  ? qtail findall: mark scrollbar with finds (custom painter)
+   QKeySequence.StandardKey implementations: HelpContents Preferences About (Close) Refresh (Find?)
 
  x folding TOC view
      tree view (try again in qt6?)

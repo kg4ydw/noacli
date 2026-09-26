@@ -5,7 +5,6 @@ __copyright__ = '2022, 2023, 2026, Steven Dick <kg4ydw@gmail.com>'
 # Add a few features to QDockWidget to
 # * make activity in log windows obvious.
 # * resize to use available space
-# * work around a dock close bug in Qt5
 
 from PyQt6 import QtCore
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -14,11 +13,12 @@ from lib.wayland_fixes import resize_window
 
 
 class myDock(QDockWidget):
-    def __init__(self, parent):
+    def __init__(self, parent, name='dock'):
         super().__init__(parent)
+        self.setObjectName(name)
+        self.basetitle = name
         self.keeplines = False
         self.newlines = 0
-        self.basetitle = 'dock'
         self.visibilityChanged.connect(self.adjustTitle)
         self.topLevelChanged.connect(self.resizeOnFloat)
 
