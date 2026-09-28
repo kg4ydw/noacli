@@ -16,7 +16,7 @@ def resize_window(window, w, h=None):
         window.setMinimumSize(w,h)
         window.setMaximumSize(w,h)
         # XXX this time is arbitrary, tableviwer needs 500, rest is <200
-        QCoreApplication.processEvents()
+        #QCoreApplication.processEvents() # this breaks shit !?
         QTimer.singleShot(500, partial(release_constraints, window))
     else:
         # reset max size in case we changed screens
