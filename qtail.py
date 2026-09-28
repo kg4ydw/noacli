@@ -234,6 +234,7 @@ class QtTail(QtWidgets.QMainWindow):
             m.addAction(wa)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.reloadOrRerun)
+        # don't activate live search until user is done typing
         self.findTimer = QTimer(self)
         self.findTimer.timeout.connect(self.simpleFindNewTimer)
         self.findTimer.setSingleShot(True)
@@ -286,6 +287,15 @@ class QtTail(QtWidgets.QMainWindow):
         #   have imaction set
         #   imaction must be findall for highlights XXXX (ignore)
         if not self.savedsearches: return
+
+        # close previous triggered searches if any
+        # split making the list from deleting from it
+        docks = self.findChildren(QtWidgets.QDockWidget)
+        for dock in docks:
+            if getattr(dock, 'autotriggered', False):
+                # delete what we're about to rebuild
+                dock.setParent(None)
+                dock.deleteLater()
         for ss in filter(lambda e: e.cfilter and (e.findshow or e.findhighlight) and e.imaction, self.savedsearches):
             if ss.imaction == 1:
                 self.findAll(ss.sexp, ss, True)
@@ -301,6 +311,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def deleteClosedSearches(self):
         skip = 0
+        # split making the list from deleting from it
         docks = self.findChildren(QtWidgets.QDockWidget)
         for dock in docks:
             if dock.isVisible():
@@ -360,7 +371,7 @@ class QtTail(QtWidgets.QMainWindow):
             return None
 
     def setButtonMode(self):
-        if hasattr(self,'file') and isinstance(self.file, QProcess):
+        if isinstance(getattr(self,'file', False), QProcess):
             if self.file.state()!=QProcess.ProcessState.NotRunning:
                 self.rebutton('Kill', self.terminateProcess)
             elif self.ui.actionWatch.isChecked():
@@ -553,7 +564,7 @@ class QtTail(QtWidgets.QMainWindow):
             t = b.decode('utf-8', errors='backslashreplace')
             # self.textbody.append(t)  # append adds an extra paragraph separator
             #self.endcursor.insertText(t)
-            if self.opt.format=='h':  e.insertHtml(t)
+            if self.opt.format=='h':  e.insertHtml(t) # XX this doesn't work well
             #WTF# elif self.opt.format=='m': e.insertMarkdown(t)
             else: e.insertText(t)
             if self.ui.followCheck.isChecked():
@@ -573,7 +584,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.showsize(False)
 
     # @QtCore.pyqtSlot(str)
-    def filechanged(self, path):
+    def filechanged(self, path):  # XXXX reset if file shrunk or was replaced?
         self.readtext('changed')
 
     # @QtCore.pyqtSlot(QSocketDescriptor, QsocketNotifier.Type)
@@ -855,10 +866,10 @@ class QtTail(QtWidgets.QMainWindow):
             icon = QStyle.StandardPixmap.SP_MediaPause
         elif hasattr(self, 'exitcode') and not self.exitcode:
             icon = QStyle.StandardPixmap.SP_DialogYesButton
-        if not running and hasattr(self, 'exitcode') and self.exitcode:
+        if not running and getattr(self, 'exitcode', False):
             tooltip = " exit {}".format(self.exitcode)
             icon = QStyle.StandardPixmap.SP_MessageBoxWarning
-        if hasattr(self,'runtime') and self.runtime:
+        if getattr(self,'runtime', False):
             if tooltip: tooltip += ', '
             tooltip += 'runtime={:1.2f}'.format(self.runtime)
         h = self.statusBar().height()
@@ -922,9 +933,10 @@ class QtTail(QtWidgets.QMainWindow):
         self.tweakInterval()
         #if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
         self.updateStatusIcon()
-        if hasattr(self,'findallConnection') and self.findallConnection:
+        if getattr(self,'findallConnection', False):
             # this was never triggered, trigger now
             self.triggerFindAll(None)
+        self.triggerSearches() # trigger saved searches
         if self.ui.textBrowser.document().isEmpty() and not (self.ui.actionAutorefresh.isChecked() or self.ui.actionWatch.isChecked()):
             self.close()
 

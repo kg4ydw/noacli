@@ -114,6 +114,7 @@ class selList(itemListModel):
 class baseSearchDock(QDockWidget):
     def __init__(self, parent, title, favcol, saved, auto):
         super().__init__(parent)
+        self.autotriggered = auto
         self.ui = Ui_searchDock()
         self.ui.setupUi(self)
         self.saved = saved
