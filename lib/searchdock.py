@@ -128,7 +128,7 @@ class baseSearchDock(QDockWidget):
         tvh.sectionClicked.connect(self.setFav)
         tvh.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tvh.customContextMenuRequested.connect(self.headerContextMenu)
-
+        self.topLevelChanged.connect(self.resizeOnFloat)
         
         if saved and saved.name and (not title or title==saved.sexp):
             title = saved.name
@@ -136,6 +136,11 @@ class baseSearchDock(QDockWidget):
             self.setWindowTitle(title)
         parent.addSearchDock(self, auto and saved and not saved.findshow)
         # self.hideCols()  # do this in subclass after model is set
+
+    def resizeOnFloat(self, floatw):
+        if floatw:
+            self.adjustSize()
+            # XXX could do better
 
     def hideCols(self):
         # note: might not work if model or headings aren't set

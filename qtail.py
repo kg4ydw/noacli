@@ -34,7 +34,7 @@ from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
 from lib.searchdock import searchDock, searchDockGroup
 from lib.saved_searches import saved_searches, searchModel
-from lib.wayland_fixes import resize_window
+from lib.wayland_fixes import resize_window, release_constraints
 
 # XXX some options not implemented yet
 # XXX no option editor for stand alone qtail
@@ -356,12 +356,14 @@ class QtTail(QtWidgets.QMainWindow):
             self.setupSavedSearch(True)
         self.ssd = None
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
+    def resizeEvent(self, ev):
+        super().resizeEvent(ev)
+        #print(f"resize {ev.oldSize().width()},{ev.oldSize().height()} -> {ev.size().width()},{ev.size().height()}") # DEBUG
         self.resizecount += 1
         # don't autoresize if the user resized, ignore first resize
         if self.resizecount>1:
             self.firstRead = False
+        release_constraints(self, ev)
 
     def getFontSetting(self, name):
         font = typedQSettings().value(name, None)

@@ -29,7 +29,7 @@ from lib.tableviewer_ui import Ui_TableViewer
 from lib.datamodels import simpleTable
 from lib.typedqsettings import typedQSettings
 from lib.buildsearch import buildSearch
-from lib.wayland_fixes import resize_window
+from lib.wayland_fixes import resize_window, release_constraints
 
 typedQSettings().registerOptions({
     'TableviewerResizeRows': [ False, 'Resize rows automatically to fit contents', bool],
@@ -249,6 +249,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.ui.menuView.addAction(t)
         self.ui.colPicker.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.ui.colPicker.customContextMenuRequested.connect(self.colPickerContext)
+        self.ui.colPickerDock.topLevelChanged.connect(self.resizeOnFloat)
         hh = self.ui.tableView.horizontalHeader()
         hh.setSectionsMovable(True)
         hh.sectionDoubleClicked.connect(self.ui.tableView.resizeColumnToContents)
@@ -263,6 +264,11 @@ class TableViewer(QtWidgets.QMainWindow):
 
         self.ui.actionCaseInsensitive.toggled.connect(self.setSearchCaseInsensitive)
         # set model after opening file
+
+    def resizeOnFloat(self, floatw):
+        window = self.ui.colPickerDock
+        if floatw:
+            window.adjustSize()
 
     def setSearchCaseInsensitive(self, checked):
         if checked:
@@ -442,6 +448,10 @@ class TableViewer(QtWidgets.QMainWindow):
         if size.height() > sh or size.width() > sw:
             size = size.boundedTo(QSize(floor(sw*0.75), floor(sh*0.75))) # XXX SETTING
         resize_window(self, size)
+ 
+    def resizeEvent(self, ev):
+        super().resizeEvent(ev)
+        release_constraints(self, ev)
 
     def tableSelectFix(self):
         sm = self.ui.tableView.selectionModel()

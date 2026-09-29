@@ -10,7 +10,7 @@ from PyQt6.QtCore import Qt, QObject, QModelIndex, QPersistentModelIndex,QAbstra
 from PyQt6.QtGui import QBrush
 from PyQt6 import QtWidgets
 from lib.settingsdialog_ui import Ui_settingsDialog
-from lib.wayland_fixes import resize_window
+from lib.wayland_fixes import resize_window, release_constraints
 
 
 class simpleTable(QAbstractTableModel):
@@ -362,6 +362,10 @@ class settingsDialog(QtWidgets.QDialog):
             #print("resize {}".format(size.width())) # DEBUG
             # XX minimum vertical hight relative to header height?
             resize_window(self, size)
+
+    def resizeEvent(self, ev):
+        super().resizeEvent(ev)
+        release_constraints(self, ev)
 
     @classmethod
     def registerType(cls, typec, delegate):

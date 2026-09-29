@@ -9,7 +9,7 @@ __copyright__ = '2022, 2023, 2026, Steven Dick <kg4ydw@gmail.com>'
 from PyQt6 import QtCore
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import QDockWidget, QAbstractScrollArea, QWidget
-from lib.wayland_fixes import resize_window
+from lib.wayland_fixes import resize_window, release_constraints, adjustWindowSize, QSF
 
 
 class myDock(QDockWidget):
@@ -23,13 +23,26 @@ class myDock(QDockWidget):
         self.topLevelChanged.connect(self.resizeOnFloat)
 
     def resizeOnFloat(self, floatw):
-        if not floatw: return
+        scrsz = self.screen().availableGeometry().size()
+        if not floatw:
+            # reset size limits in case we fixed them previously
+            self.setMinimumSize(100,100)
+            #self.setMinimumSize(self.minimumSizeHint()) # seems to be too big
+            self.setMaximumSize(scrsz)
+            # and cancel the resize timer if there is one
+            if hasattr(self, 'fixResizeTimer'):
+                self.fixResizeTimer.stop()
+            return
         # resize the dock when it floats to get rid of horizontal scrollbar
         # but try to not grow every time we are floated
         # XXX should this resize height too?
         o = self.findChild(QAbstractScrollArea)
+        scrh = scrsz.height()//2
         if o:
+            #print(f"dock {self.windowTitle()} size={QSF(self.size())} min={QSF(self.minimumSizeHint())} hint={QSF(self.sizeHint())}") # DEBUG
             hw = o.sizeHint().width()
+            hh = min(o.sizeHint().height(), scrh)
+            # print(f"  sub early=({hw},{hh}) size={QSF(o.size())} min={QSF(o.minimumSizeHint())} hint={QSF(o.sizeHint())}") # DEBUG
             w = self.size().width()
             frame = w - o.viewport().size().width()
             nw = hw+frame       # + 50  # XX 50 is a guess
@@ -37,8 +50,8 @@ class myDock(QDockWidget):
             #print('sbv={} w={} hw={} ow={} vsw={} nw={}'.format(hsbv, w, hw ,o.size().width(),  o.viewport().size().width(),nw)) # DEBUG
             if hsbv and w==nw:  # hint wasn't enough to get rid of HScrollBar
                 nw += 20
-            if nw>w and hsbv:
-                resize_window(self, nw, self.size().height())
+            if nw>w and hsbv or hh>self.size().height():
+                resize_window(self, nw, hh)  # hh: self.size().height())
         else:
             # alternately, resize by height if it doesn't have a scroll bar
             # but dock doesn't inherit widget's layout policy so calculate
@@ -53,6 +66,14 @@ class myDock(QDockWidget):
                 hh = hs.height()
             if s.height() < hh:
                 resize_window(self, QtCore.QSize(s.width(), hh)+diff)
+
+    def resizeEvent(self, ev):
+        super().resizeEvent(ev)
+        if self.isFloating():
+            release_constraints(self,ev)
+        else:
+            self.setMinimumSize(self.minimumSizeHint())
+            self.setMaximumSize(self.screen().availableGeometry().size())
 
     @QtCore.pyqtSlot(str)
     def setWindowTitle(self, title):

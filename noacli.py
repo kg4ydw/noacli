@@ -37,9 +37,9 @@ from lib.envdatamodel import envSettings
 from lib.buttondock import ButtonDock, EditButtonDocks
 from lib.favorites import Favorites
 from lib.saved_searches import saved_searches
-from lib.wayland_fixes import resize_window
+from lib.wayland_fixes import resize_window, release_constraints
 
-__version__ = '2.6.1'
+__version__ = '2.7'
 
 
 # Some settings have been moved to relevant modules
@@ -1174,6 +1174,8 @@ class noacli(QtWidgets.QMainWindow):
         qs.beginGroup('Geometry/'+name)
         qs.setValue('mainGeo', self.saveGeometry())
         qs.setValue('mainState', self.saveState())
+        qs.setValue('width', self.width())
+        qs.setValue('height', self.height())
         qs.endGroup()
         # check if this is already in the menu, and if not, add it
         gm = self.ui.profileMenuGroup
@@ -1244,18 +1246,31 @@ class noacli(QtWidgets.QMainWindow):
         qs = QSettings()
         qs.beginGroup('Geometry/'+name)
         if qs.contains('mainGeo'):
-            # wayland doesn't resize correclty without show/hide
-            #self.hide()
             self.restoreGeometry(qs.value('mainGeo',None))
             self.restoreState(qs.value('mainState',None))
+            #QtCore.QCoreApplication.processEvents()
             self.restoreGeometry(qs.value('mainGeo',None))
             # force wayland to use the geometry we just set
-            resize_window(self, self.width(), self.height())
-            #self.show()
+            # except width and height aren't reliable so we save those separate
+            w = qs.value('width', self.width())
+            h = qs.value('height',self.height())
+            try:  # no, pyqt6 still gets this wrong
+                w = int(w)
+                h = int(h)
+            except:
+                # XX wtf did qs.value give us!?
+                w = self.width()
+                h = self.height()
+            resize_window(self, w,h, force=True)
         else:
             #if typedQSettings().value('DEBUG',False):print('No profile for {} found'.format(name)) # DEBUG EXCEPTION this can't happen
             pass
         qs.endGroup()
+
+    def resizeEvent(self, ev):
+        super().resizeEvent(ev)
+        print(f"resized main to {ev.size()}")
+        release_constraints(self, ev)
 
     @QtCore.pyqtSlot(str)
     def showMessage(self, msg):
