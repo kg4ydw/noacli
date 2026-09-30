@@ -85,7 +85,7 @@ For example, given these three searches:
 * man opts: ^\s*(-+\w+)
 * man ref: (\S+)\(([0-9]\w*)\)
 
-[documentation/saved-searches-man.png "Saved searches for man pages"]
+![Saved searches for man pages](documentation/saved-searches-man.png)
 
 The man headings will extract heading lines from the man page that do
 not contain multiple consective spaces, run a find all search and display
@@ -99,4 +99,4 @@ the results, and also if a line is right clicked (as below), the group
 results from the search can be used to fill in a template to generate
 a commands to follow the references on the line.
 
-[documentation/man-man.png "man manual page with references"]
+![man manual page with references](documentation/man-man.png)
