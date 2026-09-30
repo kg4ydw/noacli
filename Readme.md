@@ -85,7 +85,7 @@ For example, given these three searches:
 * man opts: ^\s*(-+\w+)
 * man ref: (\S+)\(([0-9]\w*)\)
 
-![Saved searches for man pages](documentation/saved-searches-man.png)
+![Saved searches for man pages](documentation/saved-search-man.png)
 
 The man headings will extract heading lines from the man page that do
 not contain multiple consective spaces, run a find all search and display
