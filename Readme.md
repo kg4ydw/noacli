@@ -53,6 +53,7 @@ The settings editor dialog boxes are:
 * Favorites editor
 * Environment variable editor
 * Button dock editor
+* Saved search editor
 
 For a a longer list of features and details of the above features,
 see [documentation/Readme.md](documentation/Readme.md)
@@ -71,3 +72,31 @@ commands marked as favorites.
 
 If you want to see where this project is going or want to influence it,
 look at [Readme-feedback.md](documentation/Readme-feedback.md) and documentation/noacli-ideas.txt
+
+
+The saved search editor allows creation of searches that automatically
+run on output of matched commands.  This could be used to find, for
+instance, interesting output in a frequently visited debug log, or to
+build a table of contents from a structured text file, or to run
+commands to view related documents.
+
+For example, given these three searches:
+* man headings: ^(\S|\S\s)+$
+* man opts: ^\s*(-+\w+)
+* man ref: (\S+)\(([0-9]\w*)\)
+
+[documentation/saved-searches-man.png "Saved searches for man pages"]
+
+The man headings will extract heading lines from the man page that do
+not contain multiple consective spaces, run a find all search and display
+the results.
+
+The man options will similarly display the list of lines that look
+like option descriptions.
+
+The man ref line is set to not show the results, but instead highlight
+the results, and also if a line is right clicked (as below), the group
+results from the search can be used to fill in a template to generate
+a commands to follow the references on the line.
+
+[documentation/man-man.png "man manual page with references"]

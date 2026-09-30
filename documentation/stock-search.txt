@@ -32,11 +32,6 @@ man ref / man
 # {0}
 man -s {2} {1}
 
-man -k
-# {0}
-(\S+)\s\(([0-9]\w*)\)
-man -s {2} {1}
-
 git diff
   diff --git a/(\S+)\s
   group
