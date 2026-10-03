@@ -110,6 +110,7 @@ class selList(itemListModel):
         elif col==2: return item.posttext
         else: return None
 
+
 # common search dock functionality
 class baseSearchDock(QDockWidget):
     def __init__(self, parent, title, favcol, saved, auto):
@@ -207,6 +208,7 @@ class baseSearchDock(QDockWidget):
 
     def showColumn(self, col):
         self.ui.tableView.setColumnHidden(col, False)
+
 
 class searchDock(baseSearchDock):
     showSel = pyqtSignal(list)
@@ -326,7 +328,6 @@ class searchDock(baseSearchDock):
         if color: self.setColor(color)
 
 
-
 class searchDockGroup(baseSearchDock):
     # show groups from regex searches
     # loosely duplicate searchDock but with major differences (and stuff left out
@@ -366,10 +367,12 @@ class searchDockGroup(baseSearchDock):
     def findLastSelectionBefore(self, cursor):
         self.findSelection(cursor,exact=False)
 
+
 class groupItem():
     # data comes in as ((line, instance), (whole match, groups...))
     def __init__(self, item):
-        if not item: return None  # XXXX check this error some other way
+        if not item:
+            return None  # XXXX check this error some other way
         try:
             self.text = item[1][0]
         except Exception as e:
@@ -377,6 +380,7 @@ class groupItem():
         (self.line, self.offcount) = item[0]
         self.groups = item[1]
         # don't bother with context, if the user wants that they should put a group for it in the regex
+
 
 class groupList(itemListModel):
     def __init__(self, hits=None):
@@ -397,7 +401,7 @@ class groupList(itemListModel):
         if self._cols<2:
             # first inserted row?
             self.beginResetModel()
-            self._cols  = len(i.groups) # XX cols changed signal instead of full reset?
+            self._cols = len(i.groups) # XX cols changed signal instead of full reset?
             self.endResetModel()
 
     def headerData(self, col, orientation, role):

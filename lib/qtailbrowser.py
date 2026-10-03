@@ -63,11 +63,10 @@ class myBrowser(QTextBrowser):
         # Don't bother with this if nobody's listening
         #if p.receivers(p.suggest_command) <=0 : return None
         if not self.savedsearches:
-            return  # nothing to do
+            return None  # nothing to do
         context = [None, False, False, False] # fill in as needed
         menu = QMenu("found commands",parent)
         for cs in filter(lambda s: s.ccontext and s.ctemplate, self.savedsearches):
-        #self.savedsearches:
             # print(f"testing context {cs.name} {cs.ccontext} {len(cs.ctemplate)}")  # DEBUG
             if context[cs.ccontext] is False:
                 match cs.ccontext: # fill in contexts as needed only
@@ -85,7 +84,7 @@ class myBrowser(QTextBrowser):
                         # print(f"found word {len(context[3])}") DEBUG
             if context[cs.ccontext]:
                 regex = re.compile(cs.sexp)
-                for rmatch  in regex.finditer(context[cs.ccontext]):
+                for rmatch in regex.finditer(context[cs.ccontext]):
                     try:
                         text = cs.ctemplate.format(rmatch.group(0), *rmatch.groups())
                     except: # format errors? catch those in seaarch editor dialog

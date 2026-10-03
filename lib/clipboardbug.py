@@ -7,10 +7,12 @@ from PyQt6.QtGui import QClipboard
 from PyQt6.QtCore import QEvent
 from PyQt6.QtWidgets import QApplication
 
+
 class SafeClipboardFilter(QtCore.QObject):
     def __init__(self, editor):
         super().__init__()
         editor.installEventFilter(self)
+
     def eventFilter(self, watched: QtCore.QObject, event: QtCore.QEvent) -> bool:
         if isinstance(event, QtGui.QKeyEvent):
             if event.matches(QtGui.QKeySequence.StandardKey.Paste) and self.is_clipboard_invalid(QClipboard.Mode.Selection):

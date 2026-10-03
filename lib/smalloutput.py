@@ -47,7 +47,7 @@ class smallOutput(QTextBrowser):
     gotNewLines = pyqtSignal(int)
 
     def __init__(self, parent):
-        super(smallOutput,self).__init__(parent)
+        super().__init__(parent)
         self.keepState = False
         self.clearproc()  # zero out status stuff
         self.procCursor = None  # cursor

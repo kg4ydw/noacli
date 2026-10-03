@@ -32,7 +32,7 @@ class ColorPicker():
     # so call it only when first needed
     def initColors(self):
         if self.colorlist: return
-        c = QSettings().value('colorlist',None)
+        c = QSettings().value('colorlist', None)
         if c=='None': c=None
         if c:
             self.colorlist = c.split()
@@ -55,8 +55,8 @@ class ColorPicker():
             a = m.addAction(self.colorIcon(c), c)
             a.setData(c)
         cm = m.addMenu("more...")
-        cm.aboutToShow.connect(partial(self.allColorMenu,cm))
-        m.addAction("Edit colors",self.editColors)
+        cm.aboutToShow.connect(partial(self.allColorMenu, cm))
+        m.addAction("Edit colors", self.editColors)
         return m
 
     def editColors(self):
@@ -68,7 +68,7 @@ class ColorPicker():
         used = set(self.colorlist)
         if not m:
             m = QMenu("more...")
-        if not m.isEmpty(): return  # don't rebuild it
+        if not m.isEmpty(): return m  # don't rebuild it
         #m.clear() # or rebuild it every time
         for c in QtGui.QColor.colorNames():
             if c not in used:
@@ -115,13 +115,14 @@ class ColorPicker():
         #pixmap.fill((QColor(color)))
         #pixmap.setMask(mask)
         #return QIcon(pixmap)
-        pixmap = QPixmap(50,50)      # XXX hardcoded size, does it matter?
+        pixmap = QPixmap(50, 50)      # XXX hardcoded size, does it matter?
         pixmap.fill(QColor(color))
         return QIcon(pixmap)
 
 
 class colorListEditor(QDialog):
     onlyOne = []
+
     def __init__(self, colorpicker):
         super().__init__()
         try:
@@ -134,8 +135,8 @@ class colorListEditor(QDialog):
         self.ui = Ui_colorListEditor()
         self.ui.setupUi(self)
         buttonbox = self.ui.buttonBox
-        buttonDefault = buttonbox.addButton("Reset Defaults",QtWidgets.QDialogButtonBox.ButtonRole.ActionRole)
-        buttonDefault.clicked.connect(partial(self.selectColorSet,self.colorpicker.defcolorlist))
+        buttonDefault = buttonbox.addButton("Reset Defaults", QtWidgets.QDialogButtonBox.ButtonRole.ActionRole)
+        buttonDefault.clicked.connect(partial(self.selectColorSet, self.colorpicker.defcolorlist))
         self.accepted.connect(self.saveColors)
         self.finished.connect(self.done)
         self.buildlist()
@@ -168,7 +169,7 @@ class colorListEditor(QDialog):
         m = wl.model()
         sm = QItemSelectionModel(m)
         for row in range(m.rowCount()):
-            i = m.index(row,0)
+            i = m.index(row, 0)
             if i.data() in colorset:
                 sm.select(i, QItemSelectionModel.SelectionFlag.Select)
         wl.setSelectionModel(sm)

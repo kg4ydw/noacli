@@ -381,7 +381,8 @@ class jobTableModel(itemListModel):
         other.newjob(d)
 
     def cleanupJob(self, index):
-        if not self.validateIndex(index): return None
+        if not self.validateIndex(index):
+            return
         row = index.row()
         job = self.data[row]
         if job.finished and not job.windowOpen:
@@ -444,7 +445,7 @@ class History(itemListModel):
         if role==Qt.ItemDataRole.BackgroundRole and col==0:
             st = item.status
             if st is None: return QBrush(Qt.GlobalColor.gray)
-            if st in (0,  'F0:0', '0:NormalExit'):
+            if st in (0, 'F0:0', '0:NormalExit'):
                 return QBrush(Qt.GlobalColor.green)
             elif isinstance(st,str) and len(st)>1:
                 if st[1]=='1': return QBrush(Qt.GlobalColor.red)  # XX or any number?

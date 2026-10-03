@@ -101,7 +101,7 @@ class commandParser:
         qs.beginGroup('Wrappers')
         for key in qs.childKeys():
             # probably unnecessary sanity checks
-            v = qs.value(key,None)
+            v = qs.value(key, None)
             if not v or len(v)<2: continue
             if not isinstance(v[0], OutWin): continue
             # not gonna verify the rest
@@ -127,7 +127,7 @@ class commandParser:
             (title, sep, rest) = cmd[1:].strip().partition('\n')
             cmd = rest
         while cmd:
-            sa = cmd.split(None,1)
+            sa = cmd.split(None, 1)
             word = sa[0]
             if len(sa)>1:
                 rest=sa[1]
@@ -149,7 +149,7 @@ class commandParser:
                         outwinArgs=[]
                         while len(cmd)>0 and cmd[0]=='-':
                             # dumb arg parser, all args must be -something or -something=something
-                            sa = cmd.split(None,1)
+                            sa = cmd.split(None, 1)
                             outwinArgs.append(sa[0])
                             if len(sa)>1:
                                 cmd=sa[1]
@@ -184,8 +184,8 @@ class commandParser:
                 else:
                     return [title, outwin, self.wrappers[word][1:] + [rest]]
             print('iloop: This cant happen')    # EXCEPT
-        pass  # XXX only get here if OutWin with options with no command
-
+        return None  # XXX only get here if OutWin with options with no command
+    
     @builtin('cd')
     @builtin('chdir')
     def cmd_chdir(self, title, outwin, rest):
@@ -198,7 +198,7 @@ class commandParser:
             os.chdir(rest)
         except OSError as e:
             return (e.strerror, e.errno)
-        return (os.getcwd(),0)
+        return (os.getcwd(), 0)
 
     @builtin('setwrapper')              # how do you spell this again?
     @builtin('setwrap')
@@ -225,7 +225,7 @@ class commandParser:
         elif len(words)==1:
             w = words[0]
             if w in self.wrappers:
-                return ' '.join(['addwrap',w,'= (', self.wrappers[w][0].name,')']+ self.wrappers[w][1:])
+                return ' '.join(['addwrap', w, '= (', self.wrappers[w][0].name, ')']+ self.wrappers[w][1:])
             else:
                 return ('addwrap {} not found'.format(w), 1)
         self.wrappers[words[0]] = [outwin] + words[1:]
@@ -274,7 +274,7 @@ class commandParser:
         text = ''
         for word in words:
             if word in builtinCommands:
-                if hasattr(builtinCommands[word],'__doc__'):
+                if hasattr(builtinCommands[word], '__doc__'):
                     text += "{}: {}\n".format(word, builtinCommands[word].__doc__)
                 else:
                     text += "{}: no documentation\n".format(word)
@@ -285,7 +285,7 @@ class commandParser:
     @builtin('version')
     def cmd_version(self, title, outwin, rest):
         '''What version is am I?'''
-        from noacli import __version__
+        from noacli import __version__ # pylint: disable=C0415
         v = f"Versions: noacli {__version__}, Qt {QT_VERSION_STR} PyQt {PYQT_VERSION_STR}, Python {sys.version}\n"
         # get some environment stuff
         v+= f"Platform {QApplication.platformName()}\n"
@@ -333,7 +333,7 @@ class commandParser:
                 foundit = True
             # check wrappers
             if cmd in self.wrappers:
-                t += '  wrapper: '+(' '.join(['(', self.wrappers[cmd][0].name,')']+ self.wrappers[cmd][1:]))+"\n"
+                t += '  wrapper: '+(' '.join(['(', self.wrappers[cmd][0].name, ')']+ self.wrappers[cmd][1:]))+"\n"
                 foundit = True
             if cmd[0]=='/':
                 result = self.checkfile(cmd)
@@ -347,7 +347,7 @@ class commandParser:
             # check external paths
             for pdir in pathdirs:
                 prefix='  '
-                f = os.path.join(pdir,cmd)
+                f = os.path.join(pdir, cmd)
                 result = self.checkfile(f)
                 if not result:
                     continue  # don't say anything if it isn't found in this dir

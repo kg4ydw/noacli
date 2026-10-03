@@ -5,7 +5,7 @@ __copyright__ = '2022, 2023, 2026, Steven Dick <kg4ydw@gmail.com>'
 # Receiver for output from multiple processes
 # Manage the output and the processes generating it.
 
-import os,  sys, re, time
+import os, sys, re, time
 from functools import partial
 
 from PyQt6 import QtCore, QtWidgets
@@ -57,7 +57,7 @@ class logOutput(QTextBrowser):
 
     def applySettings(self):
         qs = typedQSettings()
-        maxv = qs.value('LogMaxLines',10000)
+        maxv = qs.value('LogMaxLines', 10000)
         self.document().setMaximumBlockCount(maxv)
 
     ######## process and I/O handling stuff
@@ -83,7 +83,7 @@ class logOutput(QTextBrowser):
         if p==0:   # instead of logging start, schedule this for later
             c.insertHtml('Early: <b>Start log</b> ')
             c.insertText("\n")
-            jobitem.process.started.connect(partial(self.processStarted,jobitem))
+            jobitem.process.started.connect(partial(self.processStarted, jobitem))
         else:
             c.insertHtml(str(jobitem.getpid())+': <b>Start log</b> <br/>')
             c.insertText((jobitem.title() or jobitem.command())+'\n')
@@ -115,19 +115,19 @@ class logOutput(QTextBrowser):
         jobitem.lc2 = jobitem.process.finished.connect(partial(self.procFinished, jobitem))
 
     def disconnectProcess(self, jobitem):
-        if not getattr(jobitem,'process', False): return
+        if not getattr(jobitem, 'process', False): return
         self.disconnect(jobitem.lc1)
         self.disconnect(jobitem.lc2)
         #p = jobitem.process
-        #p.readyRead.disconnect(partial(self.readLines,jobitem))
-        #p.finished.disconnect(partial(self.procFinished,jobitem))
+        #p.readyRead.disconnect(partial(self.readLines, jobitem))
+        #p.finished.disconnect(partial(self.procFinished, jobitem))
 
     def readLines(self, jobitem):
         # For now, this will read up to 10 lines and then move on,
         # so one process can't cause performance issues.  Also, high
         # volume procs should probably be throttled or moved out of
         # the log window.
-        lines = typedQSettings().value('LogBatchLines',5)
+        lines = typedQSettings().value('LogBatchLines', 5)
         e = self.endCursor()
         e.beginEditBlock()
         jobitem.hasmore = True
@@ -161,7 +161,7 @@ class logOutput(QTextBrowser):
             c = self.endCursor()
             c.insertText("{} paused with {} bytes available\n".format(jobitem.pid, bytec))
 
-    def resumeJob(self,jobitem):
+    def resumeJob(self, jobitem):
         jobitem.paused = False
         self.connectProcess(jobitem)
         self.readmore.emit(jobitem)
@@ -170,7 +170,7 @@ class logOutput(QTextBrowser):
         c = self.endCursor()
         runtime = ''
         if hasattr(jobitem, 'timestart'):
-            if hasattr(jobitem,'timestop'):
+            if hasattr(jobitem, 'timestop'):
                 t = jobitem.timestop-jobitem.timestart
             else:
                 t = time.monotonic() - jobitem.timestart
@@ -277,34 +277,33 @@ class logOutput(QTextBrowser):
                 c = job.command()
                 sma = sm.addAction(c)  # XX and do what? just view for now
         if job and job.process and job.process.state()==QProcess.ProcessState.Running:
-            m.addAction("Kill pid "+pidT, partial(self.termJob,job))
-            m.addAction("Kill pid {} hard".format(pidT),partial(self.killJob,job))
+            m.addAction("Kill pid "+pidT, partial(self.termJob, job))
+            m.addAction("Kill pid {} hard".format(pidT), partial(self.killJob, job))
         elif pidT:
-            m.addAction("Delete log for pid "+pidT, partial(self.delLog,pidT))
+            m.addAction("Delete log for pid "+pidT, partial(self.delLog, pidT))
         #if job and job.process!=None: # DEBUG
-        #    print("bytes={} paused={} textstream={}".format(job.process.bytesAvailable(),job.paused, job.textstream.status())) # DEBUG
+        #    print("bytes={} paused={} textstream={}".format(job.process.bytesAvailable(), job.paused, job.textstream.status())) # DEBUG
         if job and job.textstream:
             if job.paused:
                 try:
                     status = str(job.process.bytesAvailable())+' bytes'
                 except:
                     status = ''
-                m.addAction("Resume this pid "+status, partial(self.resumeJob,job))
+                m.addAction("Resume this pid "+status, partial(self.resumeJob, job))
             else:
-                m.addAction("Pause this pid",partial(self.pauseJob,job))
+                m.addAction("Pause this pid", partial(self.pauseJob, job))
         if job is not None:
             skipjob = job.pid
         else:
             skipjob = 0
-        deadjobs = set()
         for job in self.joblist:
             if not job.paused or job.pid==skipjob: continue
-            m.addAction("Resume pid {} at {} bytes".format(job.pid, job.process.bytesAvailable()), partial(self.resumeJob,job))
+            m.addAction("Resume pid {} at {} bytes".format(job.pid, job.process.bytesAvailable()), partial(self.resumeJob, job))
 
             # XXX autopause if bytes waiting > threshold
-        m.addAction("Clear finished jobs from log",self.clearDead)
+        m.addAction("Clear finished jobs from log", self.clearDead)
         if self.joblist:
-            m.addAction("Check status of log jobs",self.checkStatus)
+            m.addAction("Check status of log jobs", self.checkStatus)
         # XXX log context menu missing items
         # search options
         # Unfortuantely as of Qt 5.15 QTextBrowser.block.setVisibility doesn't do anything useful so can't filter log
@@ -315,7 +314,7 @@ class logOutput(QTextBrowser):
     def termJob(self, job):
         job.process.terminate()
 
-    def killJob(self,job):
+    def killJob(self, job):
         job.process.kill()
 
     def delLog(self, pidT):
@@ -340,7 +339,7 @@ class logOutput(QTextBrowser):
         c.movePosition(QTextCursor.MoveOperation.Start)
         c.beginEditBlock()
         while not c.atEnd():
-            (start,_,_) = c.block().text().partition(':')
+            (start, _, _) = c.block().text().partition(':')
             if start not in okjobs:
                 c.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.KeepAnchor)
                 c.removeSelectedText()

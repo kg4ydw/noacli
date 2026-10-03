@@ -125,7 +125,7 @@ class lineBuffer():
         # turn off nonblocking
         try:
             os.set_blocking(sys.stdin.fileno(),True)
-        except Exception as e:
+        except:
             pass
         # read all the lines, return None until EOF
         self.peekLines(False)
@@ -243,7 +243,7 @@ class TableViewer(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.setMaximumSize(self.screen().availableGeometry().size())
         #self.ui.menuView.addAction(self.ui.colPickerDock.toggleViewAction())
-        self.closekey = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Close,self, self.close) ### MacOS because we don't have a close menu item
+        self.closekey = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Close,self, self.close) # MacOS because we don't have a close menu item
         t = self.ui.colPickerDock.toggleViewAction()
         t.triggered.connect(lambda trig, ui=self.ui: ui.colPickerDock.setFloating(False))
         self.ui.menuView.addAction(t)
@@ -357,6 +357,7 @@ class TableViewer(QtWidgets.QMainWindow):
                 print('except: '+msg) # EXCEPT
                 # we intend to swallow this exception after printing
                 return (msg, -1) # pylint: disable=W0134,W0150
+        return None
 
     def start(self):
         # apply settings after UI is set up
@@ -402,7 +403,7 @@ class TableViewer(QtWidgets.QMainWindow):
         wmin = [ widths[i] for i in range(len(widths)) if widths[i]<target]
         tmin = sum(wmin)
         nwide = len(widths)-len(wmin)
-        tavg = tmin + m*nwide
+        #tavg = tmin + m*nwide
         tmid = tmin + target*nwide
         tmax = sum(widths)
         if nwide>0:

@@ -23,8 +23,9 @@ from inspect import getframeinfo, stack
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtGui import QTextCursor, QFont, QTextDocument, QActionGroup, QShortcut, QAction
-from PyQt6.QtWidgets import *
-# QTextEdit, QSizePolicy, QLineEdit,  QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle, QDockWidget, QInputDialog, QMenu
+## there's just too many of these and there's always one more and fixing this doesn't improve flake8!?
+from PyQt6.QtWidgets import * # pylint: disable=W0401
+# QTextEdit, QSizePolicy, QLineEdit, QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle, QDockWidget, QInputDialog, QMenu
 from PyQt6.QtCore import QCommandLineParser, QCommandLineOption, QIODevice, QSocketNotifier, QSize, QTimer, QProcess
 from PyQt6.QtCore import Qt, pyqtSignal
 #from PyQt6.QtCore import QRegularExpression
@@ -196,7 +197,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.ui = Ui_QtTail()
         self.ui.setupUi(self)
         self.setMaximumSize(self.screen().availableGeometry().size())
-        self.closekey = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Close,self, self.close) ### MacOS because we don't have a close menu item
+        self.closekey = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Close,self, self.close) # MacOS because we don't have a close menu item
         self.refreshkey = QtGui.QShortcut(QtGui.QKeySequence.StandardKey.Refresh,self, self.reloadOrRerun)
         ### hide/disable stuff that should be disabled by default
         self.ui.actionShowClosedSearches.setVisible(False)
@@ -241,7 +242,7 @@ class QtTail(QtWidgets.QMainWindow):
         # note: this intentionally doesn't refresh on settings change
         self.reinterval = typedQSettings().value('QTailWatchInterval',20)
         # find
-        self.editorShortcut = QShortcut(QtGui.QKeySequence('ctrl+f'), self ,self.ui.searchTerm.setFocus)
+        self.editorShortcut = QShortcut(QtGui.QKeySequence('ctrl+f'), self, self.ui.searchTerm.setFocus)
         self.findNextShortcut = QShortcut(QtGui.QKeySequence.StandardKey.FindNext, self, self.simpleFind2)
 
         m = self.ui.menuView
@@ -262,7 +263,7 @@ class QtTail(QtWidgets.QMainWindow):
         if not hasattr(self, 'jobitem'):
             print("no jobitem") # DEBUG
             e=True
-        if self.receivers(self.suggest_command) <=0 :
+        if self.receivers(self.suggest_command) <=0:
             print("not connected suggest_command") # DEBUG
             e=True
         if e:
@@ -305,7 +306,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def autorefreshDialog(self):
         val = math.floor(self.reinterval+0.5) # could use a float dialog I guess
-        delay, ok = QInputDialog.getInt(self, "Autorefresh Delay", "Set autorefresh delay",value = val, min=0, max=86400, step=10 )
+        delay, ok=QInputDialog.getInt(self, "Autorefresh Delay", "Set autorefresh delay",value=val, min=0, max=86400, step=10 )
         if ok:
             self.setWatchInterval(delay)
 
@@ -662,12 +663,11 @@ class QtTail(QtWidgets.QMainWindow):
                 print('except: '+msg)  # EXCEPT
                 # we intend to swallow this exception after printing
                 return (msg, -1)  # pylint: disable=W0134,W0150
-
         if typedQSettings().value('DEBUG',False) and hasattr(self.opt,'rest') and len(self.opt.rest)>1:
             print('Unparsed options: '+repr(self.opt.rest))  # ifDEBUG
             if '--rest' in self.opt.rest:  # debug the debug
                 print("parsed: "+repr(self.opt.argparse)) # ifDEBUG
-        return
+        return None
 
     def setupSavedSearch(self, reset=False):
         # do this as late as possible, otherwise jobitem isn't set yet
@@ -952,7 +952,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def rebutton(self, label, slot, why=''):
         title = 'unknown'
-        if hasattr(self,'jobitem'): title=self.jobitem.title()
+        #if hasattr(self,'jobitem'): title=self.jobitem.title()
         #print("rebutton {} = {} {}".format(title, label,why)) # DEBUG
         button = self.ui.reloadButton
         if self.buttonCon:
@@ -969,8 +969,9 @@ class QtTail(QtWidgets.QMainWindow):
         if not self.file and hasattr(self, 'filename'):
             # try to reopen it
             self.textbody.clear()
-            return self.openfile(self.filename)
-        if self.file and self.opt.file:
+            self.openfile(self.filename) # should this be returned? unused?
+            return
+        if self.file:  # and self.opt.file:
             # back up 1M if we can (default)
             tailoff = self.opt.tailFrag
             # XX whole is slow and eats memory if the file is too big!
@@ -985,6 +986,7 @@ class QtTail(QtWidgets.QMainWindow):
         else: # not a file, can't seek
             self.showsize()
         self.readtext('reload')
+        self.setButtonMode()
 
     # this can take either QAction or QCheckBox
     # checkbox was removed from UI main panel and moved into a menu
@@ -1045,7 +1047,7 @@ class QtTail(QtWidgets.QMainWindow):
                 # or if it took too long this time
                 self.disableAdjustSize=True
                 self.ui.actionAdjust.setEnabled(False)
-                if  typedQSettings().value('DEBUG',False):
+                if typedQSettings().value('DEBUG',False):
                     print(f"DISABLE adjustSize took {interval}s for {blocks} blocks")  # DEBUG
         #print(" ideal="+str(doc.idealWidth())+" width="+str(doc.textWidth())) # DEBUG
         newsize = doc.size()
@@ -1125,7 +1127,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.textbody.setExtraSelections(es)
 
     def searchDock(self, title, selections, searchterm=None, findflags=None, saved=None, auto=False):
-        if not selections: return # don't make empty dock
+        if not selections: return None # don't make empty dock
         dock = searchDock(self, title, selections, searchterm, findflags, saved, auto)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)

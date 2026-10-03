@@ -7,6 +7,7 @@ from PyQt6.QtCore import QSettings
 
 from lib.typedqsettings import typedQSettings
 
+
 # this replaces  self.resize(...)
 def resize_window(window, w, h=None, *, force=False):
     if isinstance(w, QSize):
@@ -14,7 +15,7 @@ def resize_window(window, w, h=None, *, force=False):
         w = w.width()
     window.wantsize = QSize(w,h)
     if typedQSettings().value('DEBUG',False):
-        print(f"want resize [{window.windowTitle()}] to ({w},{h})  prev={QSF(window.size())}")
+        if typedQSettings().value('DEBUG',False): print(f"want resize [{window.windowTitle()}] to ({w},{h})  prev={QSF(window.size())}")
     if QApplication.platformName().startswith("wayland"):
         # for every platform except wayland, window.resize is enough!
         window.setFixedSize(w,h)
@@ -26,8 +27,10 @@ def resize_window(window, w, h=None, *, force=False):
         window.setMaximumSize(window.screen().availableGeometry().size())
     window.resize(w,h)
 
+
 def QSF(qs):
     return f"({qs.width()},{qs.height()})"
+
 
 def adjustWindowSize(window):
     window.updateGeometry()
@@ -35,10 +38,12 @@ def adjustWindowSize(window):
     window.setMaximumSize(window.screen().availableGeometry().size())
     window.setMinimumSize(window.minimumSizeHint())
     
+
 ### every window that calls resize_window needs something like the following
 #    def resizeEvent(self,ev):
 #        super().resizeEvent(ev)
 #        release_constraints(self,ev)
+
 
 def setTimer(window, msec):
     if not hasattr(window, 'fixResizeTimer'):
@@ -49,6 +54,7 @@ def setTimer(window, msec):
     if typedQSettings().value('DEBUG',False):
         print(f"  start timer {msec} {window.windowTitle()}") # DEBUG
     
+
 # call this from window's resizeEvent slot
 def release_constraints(window,ev=None):
     if not QApplication.platformName().startswith("wayland"):
@@ -62,9 +68,10 @@ def release_constraints(window,ev=None):
     # release constraints too soon and wayland screws it up
     setTimer(window, 200)
 
+
 def delay_release_constraints(window):
     if typedQSettings().value('DEBUG',False):
-        print(f"release {window.windowTitle()} to sz={QSF(window.size())} max={QSF(window.screen().availableGeometry().size())}")
+        print(f"release {window.windowTitle()} to sz={QSF(window.size())} max={QSF(window.screen().availableGeometry().size())}") # DEBUG
     window.startResizeWait = False
     window.setMinimumSize(window.minimumSizeHint())
     # don't ever want a window bigger than the screen in this app

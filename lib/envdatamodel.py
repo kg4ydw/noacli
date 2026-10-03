@@ -30,13 +30,13 @@ envModes.Mask.__doc__ = "Masked from use in this and future sessions"
 
 
 class envModeModel(QAbstractListModel):
-    def __init__(self,parent):
+    def __init__(self, parent):
         super().__init__(parent)
 
-    def rowCount(self,parent):
+    def rowCount(self, parent):
         return len(envModes)
 
-    def data(self,index, role):
+    def data(self, index, role):
         i = index.row()
         try:
             v = envModes(i)
@@ -56,7 +56,7 @@ class envModesDelegate(QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
 
-    def createEditor(self,parent,option,index):
+    def createEditor(self, parent, option, index):
         # XXX do something with option? set background?
         w = QComboBox(parent)
         w.setModel(envModeModel(parent))
@@ -73,7 +73,7 @@ class envModesDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         val = editor.currentIndex()
-        index.model().setData(index,envModes(val), Qt.ItemDataRole.EditRole)
+        index.model().setData(index, envModes(val), Qt.ItemDataRole.EditRole)
 
     def paint(self, painter, option, index):
         d = index.data(Qt.ItemDataRole.DisplayRole)
@@ -100,7 +100,7 @@ class envSettings(QProcessEnvironment):
         qs = QSettings()
         qs.beginGroup('environment')
         for key in qs.childGroups():
-            mode = qs.value(key+'/mode',None)
+            mode = qs.value(key+'/mode', None)
             if mode=='save':
                 self.modes[key] = envModes.Save
                 self.insert(key, qs.value(key+'/val', None))
@@ -111,13 +111,13 @@ class envSettings(QProcessEnvironment):
     def saveEnvironment(self):
         qs = QSettings()
         qs.beginGroup('environment')
-        for key,val in self.modes.items():
+        for key, val in self.modes.items():
             if val==envModes.Save:
-                qs.setValue(key+'/mode','save')
+                qs.setValue(key+'/mode', 'save')
                 qs.setValue(key+'/val', self.value(key))
                 #oldvals.discard(key)
             elif val==envModes.Mask:
-                qs.setValue(key+'/mode','mask')
+                qs.setValue(key+'/mode', 'mask')
                 #oldvals.discard(key)
             elif val==envModes.Inherit and (
                     qs.contains(key) or qs.contains(key+'/mode')):
@@ -139,11 +139,11 @@ class envSettings(QProcessEnvironment):
                 val = self.value(key)
             else:
                 val=''
-            self.envdata.append( [key,  self.modes[key].name, val])
+            self.envdata.append( [key, self.modes[key].name, val])
         # add empty entries for editing in custom values
         # this is wrong, key isn't editable, use context menu instead
         #self.envdata += [['',envModes.Session, ''],['', envModes.Session,'']]
-        model = simpleTable(self.envdata, ['Env Var','Mode', 'Value'], editmask=[False, True, True], datatypesrow=[str, envModes, str], validator=self.validator)
+        model = simpleTable(self.envdata, ['Env Var', 'Mode', 'Value'], editmask=[False, True, True], datatypesrow=[str, envModes, str], validator=self.validator)
         self.model = model
         try:
             self.envDia.close()
@@ -163,10 +163,10 @@ class envSettings(QProcessEnvironment):
         row = index.row()
         key = self.envdata[row][0]
         if col==1:              # changing mode
-            if isinstance(old,str): old=envModes[old]
+            if isinstance(old, str): old=envModes[old]
             if value==old: return True
             if value==envModes.Inherit:
-                index.model().setData(index.siblingAtColumn(2), self.origenv.value(key,''), Qt.ItemDataRole.EditRole)  # XX sibling
+                index.model().setData(index.siblingAtColumn(2), self.origenv.value(key, ''), Qt.ItemDataRole.EditRole)  # XX sibling
         elif col==2:
             if old==value: return True
             mode = self.envdata[row][1]
@@ -180,7 +180,7 @@ class envSettings(QProcessEnvironment):
     def finishEnv(self, result):
         if result:
             for i in range(len(self.envdata)):
-                (key,mode,value) = self.envdata[i][0:3]
+                (key, mode, value) = self.envdata[i][0:3]
                 ## if mode is str, then row is unchanged
                 if isinstance(mode, str):  # no changes
                     self.envset.discard(key)
@@ -226,7 +226,7 @@ class envSettings(QProcessEnvironment):
                 # cheat and search our local copy XX breaks if QSortFilterProxy
                 row = next((i for i in range(len(self.envdata))
                             if self.envdata[i][0]==name))
-                index = self.model.index(row,0)
+                index = self.model.index(row, 0)
             table = self.envDia.ui.tableView
             table.scrollTo(index)
             sm = table.selectionModel()

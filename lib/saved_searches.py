@@ -31,6 +31,7 @@ class search_entry():
                 return int(val)
             except (ValueError, TypeError):
                 return fallback
+
         def fixbool(val):
             if isinstance(val, bool): return val
             if val is None: return False
@@ -38,6 +39,7 @@ class search_entry():
                 return val.strip().lower()=="true"
             except (ValueError, TypeError):
                 return False
+
         self.name = name or ""
         self.sexp = sexp
         self.cfilter = cfilter
@@ -63,12 +65,13 @@ class search_entry():
         # XXXX maybe reset it to 0 rather than marking invalid?
         return True
         
+
 class searchModel(itemListModel):
     defaultSearchModel=None
     defaultReset = pyqtSignal() # always use Qt.ConnectionType.QueuedConnection
 
     def __init__(self):
-        super().__init__(['Name','RegEx','filter cmd', 'ctemplate' ])
+        super().__init__(['Name', 'RegEx', 'filter cmd', 'ctemplate' ])
         
     @classmethod
     def getDefaultSearchModel(cls):
@@ -93,12 +96,12 @@ class searchModel(itemListModel):
 
     def loadFromSettings(self):
         qs = QSettings()
-        sz = qs.value("savedsettings/size")
+        # sz = qs.value("savedsettings/size") # XX not used? is it saved?
         size = qs.beginReadArray("savedsearch")
         for i in range(size):
             qs.setArrayIndex(i)
             entry = search_entry(
-                name=qs.value("name",""), sexp=qs.value("sexp"),
+                name=qs.value("name", ""), sexp=qs.value("sexp"),
                 cfilter=qs.value('cfilter'), ctemplate=qs.value("ctemplate"),
                 imaction=qs.value('imaction'),
                 findshow=qs.value('findshow'),
@@ -115,7 +118,7 @@ class searchModel(itemListModel):
         qs.beginWriteArray("savedsearch", size )
         # write them out in sorted order
         rowi = 0
-        for row in sorted(range(size), key=lambda i: self.getItem(self.index(i,0)).name):
+        for row in sorted(range(size), key=lambda i: self.getItem(self.index(i, 0)).name):
             qs.setArrayIndex(rowi)
             index = self.index(row,0)
             entry = self.getItem(index)
@@ -221,7 +224,7 @@ class saved_searches(QDialog):
     def validateEntry(self):
         entry = self.makenewentry()
         try:
-            if not entry or  not entry.validate():
+            if not entry or not entry.validate():
                 return None
         except re.error as e:
             self.ui.sresult.setPlainText(f"{e.msg} at position {e.pos}\n{e.pattern[:e.pos]}❌{e.pattern[e.pos:]}") # unicode 274c cross
@@ -298,7 +301,7 @@ class saved_searches(QDialog):
             name=self.ui.sname.text(), sexp=sexp, cfilter=self.ui.fcmd.text(),
             ctemplate=self.ui.ctemplate.toPlainText(),
             imaction=self.ui.immediate_action.currentIndex(),
-            findshow=self.ui.findShow.checkState()==Qt.CheckState.Checked, 
+            findshow=self.ui.findShow.checkState()==Qt.CheckState.Checked,
             findhighlight=self.ui.findShowHighlights.checkState()==Qt.CheckState.Checked,
             runImmediate=self.ui.runImmediate.checkState()==Qt.CheckState.Checked,
             ccontext=self.ui.ccontext.currentIndex(),
@@ -401,7 +404,7 @@ class saved_searches(QDialog):
     def apply(self):
         #print("apply") # DEBUG
         apply = self.ui.buttonBox.button(QDialogButtonBox.StandardButton.Apply)
-        if not self.extmodel: 
+        if not self.extmodel:
             self.searchmodel.saveToSettings()
             self.resetSearches()
             # XXX should we try to reselect the current entry or clear it?
@@ -409,7 +412,7 @@ class saved_searches(QDialog):
 
     def accept(self):
         #print("accept") # DEBUG
-        if not self.extmodel: 
+        if not self.extmodel:
             self.searchmodel.saveToSettings()
             # self.resetSearches() # this does more than necessary
             self.searchmodel = searchModel.resetDefaultSearchModel()

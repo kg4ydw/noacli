@@ -258,7 +258,6 @@ class fontDelegate(QStyledItemDelegate):
         # this tries to cover up an error where setModelData
         # is called before fontSelected is generated and selectedFont set,
         # so the wrong font is used without this
-        DEBUG = typedQSettings().value('DEBUG',False)
         if hasattr(self, 'lastmodel'):
             self.setModelData(self.fd, self.lastmodel, self.lastindex)
 
@@ -586,7 +585,7 @@ class noacli(QtWidgets.QMainWindow):
         #print('Profiles: '+str(g)) # DEBUG
         gm = QActionGroup(m)
         self.ui.profileMenuGroup = gm
-        if len (g) > 5:
+        if len(g) > 5:
             sm = QMenu("Geometry profiles", m)
             m.addMenu(sm)
         else:
@@ -724,14 +723,13 @@ class noacli(QtWidgets.QMainWindow):
         self.ui.history.setFloating(False)
         self.ui.smallOutputDock.setFloating(False)
         self.tabifyDockWidget( self.ui.jobManager, self.ui.history)
-        self.tabifyDockWidget( self.ui.history,   self.ui.logDock)
+        self.tabifyDockWidget( self.ui.history, self.ui.logDock)
         self.tabifyDockWidget( self.ui.logDock, self.ui.smallOutputDock)
         self.tabifyDockWidget( self.ui.smallOutputDock, self.ui.buttons)
         ButtonDock.tabifyAll(self, self.ui.buttons)
 
     @QtCore.pyqtSlot()
     def dockAll(self):
-        DEBUG = typedQSettings().value('DEBUG',False)
         for dock in self.findChildren(QDockWidget):
             if dock.isFloating():
                 dock.setFloating(False)
@@ -765,7 +763,7 @@ class noacli(QtWidgets.QMainWindow):
         c = editor.textCursor()  # get a fresh cursor
         c.clearSelection()
         c.movePosition(QTextCursor.MoveOperation.StartOfWord, QTextCursor.MoveMode.KeepAnchor)
-        while (c.positionInBlock()>0):
+        while c.positionInBlock()>0:
             d = QTextCursor(c)  # don't mess with previous one yet
             d.movePosition(QTextCursor.MoveOperation.PreviousCharacter,QTextCursor.MoveMode.KeepAnchor)
             ch = d.selectedText()[0]
@@ -1072,7 +1070,7 @@ class noacli(QtWidgets.QMainWindow):
                 fn = f
                 if len(fn)>30:
                     fn = os.path.basename(fn)  # try shortening it
-                if (title):
+                if title:
                     j.setTitle(title+' '+fn)
                 else:
                     j.setTitle(fn)
@@ -1152,7 +1150,7 @@ class noacli(QtWidgets.QMainWindow):
         jobs = self.settings.jobs
         for j in jobs:
             s = str(j.model().getItem(j))
-            act = QAction(s,  self)
+            act = QAction(s, self)
             act.setData(j)
             jm.addAction(act)
             act.triggered.connect(partial(self.windowShowRaise,act))
@@ -1268,7 +1266,7 @@ class noacli(QtWidgets.QMainWindow):
 
     def resizeEvent(self, ev):
         super().resizeEvent(ev)
-        print(f"resized main to {ev.size()}")
+        if typedQSettings().value('DEBUG',False): print(f"resized main to {ev.size()}")
         release_constraints(self, ev)
 
     @QtCore.pyqtSlot(str)
@@ -1276,7 +1274,7 @@ class noacli(QtWidgets.QMainWindow):
         qs = typedQSettings()
         delay = qs.value('MessageDelay',10)
         # append short messages!
-        if (len(msg)<10):       # arbitrary SETTING?
+        if len(msg)<10:       # arbitrary SETTING?
             msg = self.statusBar().currentMessage()+' | ' + msg
         self.statusBar().showMessage(msg, int(delay*1000))
 
@@ -1338,7 +1336,7 @@ class noacli(QtWidgets.QMainWindow):
         if delay:
             self.autoSaveTimer.start(delay*1000)
 
-    def delaycheck(self,  dialog, button):
+    def delaycheck(self, dialog, button):
         if self.firstKill:
             self.firstKill = False
             self.settings.jobs.killAllProcs(False)

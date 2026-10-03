@@ -43,7 +43,7 @@ class betterQProcess():
 
     def __getattr__(self, name):
         f = getattr(self.qio, name)    # next time get it direct
-        setattr(self,name, f)
+        setattr(self, name, f)
         return f
 
 

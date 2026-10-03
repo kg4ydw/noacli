@@ -17,11 +17,11 @@ from lib.buttondock import ButtonDock
 # data model for favorites to apply validator
 # and add tooltip for command
 class favoritesModel(simpleTable):
-    def __init__(self,data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):
+    def __init__(self, data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):
         super().__init__(data, headers, datatypes, datatypesrow, editmask, validator)
         # build validator dictionaries
         self.vdata = {}
-        for col in [1,2,5]:
+        for col in [1, 2, 5]:
             self.vdata[col] = {}
             for row in range(len(data)):
                 if data[row][col]:
@@ -38,45 +38,45 @@ class favoritesModel(simpleTable):
         row = index.row()
         if col==5 and role==Qt.ItemDataRole.ToolTipRole and self.mydata[row][col]:
             return self.mydata[row][col]
-        if role!=Qt.ItemDataRole.BackgroundRole or col not in [1,2,5] or not self.mydata[row][col]:
-            return super().data(index,role)
+        if role!=Qt.ItemDataRole.BackgroundRole or col not in [1, 2, 5] or not self.mydata[row][col]:
+            return super().data(index, role)
         d = self.mydata[row][col]
         if d in self.vdata[col] and len(self.vdata[col][d])>1:
             if col==5:          # XXX is key critical too?
                 return QBrush(Qt.GlobalColor.red)
             else:
                 return QBrush(Qt.GlobalColor.yellow)
-        return super().data(index,role)
+        return super().data(index, role)
 
     # update background of related rows, don't emit for this one
-    def setData(self,index,value,role):
+    def setData(self, index, value, role):
         if not self.validateIndex(index): return None
         col = index.column()
         row = index.row()
-        if col not in [1,2,5] or self.mydata[row][col]==value:
-            return super().setData(index,value,role)
+        if col not in [1, 2, 5] or self.mydata[row][col]==value:
+            return super().setData(index, value, role)
         oldval = self.mydata[row][col]
         if oldval and oldval in self.vdata[col]:
             self.vdata[col][oldval].discard(row)
             if len(self.vdata[col][oldval])==1:  # update oldval if it's ok now
                 remaining = next(iter(self.vdata[col][oldval]))
                 i = self.index(remaining, col, QModelIndex())
-                self.dataChanged.emit(i,i)
+                self.dataChanged.emit(i, i)
         if value and value in self.vdata[col]:
             if len(self.vdata[col][value])==1:  # update newval if it's now dup
                 remaining = next(iter(self.vdata[col][value]))
                 i = self.index(remaining, col, QModelIndex())
-                self.dataChanged.emit(i,i)
+                self.dataChanged.emit(i, i)
             self.vdata[col][value].add(row)
         else:
             self.vdata[col][value] = set([row])
-        return super().setData(index,value,role)
+        return super().setData(index, value, role)
 
 
 class favoriteItem():
     functors = [None, None]     # fill this in later
 
-    def __init__(self,  command, buttonName=None, shortcut=None, immediate=True):
+    def __init__(self, command, buttonName=None, shortcut=None, immediate=True):
         self.buttonName = buttonName
         self.shortcut = shortcut
         self.immediate = immediate
@@ -85,15 +85,15 @@ class favoriteItem():
         if not buttonName and command:
             # XX This sets button name but doesn't create the button until edited.
             # XX Is this too aggressive on setting title or not aggressive enough in not creating the button immediately?
-            if isinstance(command,str):
-                m = re.match(r"^#\s*(\S[^\n]+)\n", self.command,re.MULTILINE)
+            if isinstance(command, str):
+                m = re.match(r"^#\s*(\S[^\n]+)\n", self.command, re.MULTILINE)
                 if m and m.group(1):
                     self.buttonName = m.group(1)
             else:  # XXX can this happen?
                 t = self.command.title()
                 if t:
                     self.buttonName = t
-                    if typedQSettings().value('DEBUG',False): print("Found button title from cmd")
+                    if typedQSettings().value('DEBUG', False): print("Found button title from cmd")
 
     @classmethod
     def setFunctors(cls, funcs):
@@ -103,10 +103,12 @@ class favoriteItem():
     def runme(self):
         name = self.buttonName
         if not name: name=self.command  # XXXX not ideal
+        # pylint: disable=E1102 # pylint is wrong here
         if self.immediate:
             self.functors[0](self.command, name)
         else:
             self.functors[1](self.command, name)
+        # pylint: enable=E1102
 
 
 class Favorites():
@@ -122,7 +124,7 @@ class Favorites():
         self.runfuncs=runfuncs
         favoriteItem.setFunctors(runfuncs)
 
-    def addFavorite(self, command,  buttonName=None, keybinding=None, immediate=True):
+    def addFavorite(self, command, buttonName=None, keybinding=None, immediate=True):
         fav = favoriteItem(command, buttonName, keybinding, immediate)
         self.addShortcut(fav)
         self.cmds[command] = fav
@@ -166,7 +168,7 @@ class Favorites():
         cmdlist = set(f)  # don't put dup commands in
 
         #### collect commands from recent history
-        nh = int(qs.value('FavRecent',10))
+        nh = int(qs.value('FavRecent', 10))
         h = self.settings.history.last()
         while nh>0 and h:
             c = str(h.data())
@@ -179,7 +181,7 @@ class Favorites():
         #### add frequent history commands
         freq = sorted([k for k in count.keys() if k not in cmdlist], key=lambda k: count[k])
         freq.reverse()
-        nfreq = int(qs.value('FavFrequent',10))
+        nfreq = int(qs.value('FavFrequent', 10))
         data += [ [False, None, None, True, count[k], k] for k in freq[0:nfreq]]
         cmdlist |= set(freq[0:nfreq])
 
@@ -188,20 +190,20 @@ class Favorites():
         try:
             self.populateFavEditor(data)
         except Exception as e:
-            if typedQSettings().value('DEBUG',False):
-                print("fav collection failed: ",repr(e)) # DEBUG
+            if typedQSettings().value('DEBUG', False):
+                print("fav collection failed: ", repr(e)) # DEBUG
         # XXXX this should do something if favorites is not empty
         # XXXX this should return a message if both favorites and history are empty
         datatypes = [bool, str, QKeySequence, bool, None, str]
         model = favoritesModel(data,
-            ['keep', 'name',  'key', 'Immediate',  'count', 'command'], datatypesrow=datatypes,
+            ['keep', 'name', 'key', 'Immediate', 'count', 'command'], datatypesrow=datatypes,
           editmask=[True, True, True, True, False, True],
                                validator=self.validateData)
         # extra features
 
         # if anything is checked or edited (not blanked), check keep
         try: # is it initialized, deleted, or active?
-            self.dialog.close()
+            self.dialog.close()  # pylint: disable=E0203
         except:
             pass # don't care!
         self.dialog = settingsDialog('Favorites editor', model, 'Favorites, shortcuts, and buttons')
@@ -211,7 +213,7 @@ class Favorites():
         savebutton = buttonbox.button(QDialogButtonBox.StandardButton.Save).clicked.connect(self.saveSettings)
 
     #@QtCore.pyqtSlot(bool)
-    def saveFavs(self,checked):
+    def saveFavs(self, checked):
         # repopulate favorites and buttons
         # purge deleted and changed stuff and build a dict for buttonDock
         buttons = {}
@@ -254,7 +256,7 @@ class Favorites():
         self.saveSettings()
 
     #@QtCore.pyqtSlot(int)
-    def doneFavs(self,result):
+    def doneFavs(self, result):
         #print('done') # DEBUG
         if result:
             self.saveFavs(False)
@@ -268,14 +270,14 @@ class Favorites():
         if index.column()==0: return True  # also prevents recursion
         # if anything else is edited and not blanked, check keep
         if val and self.data and self.data[index.row()] and val!=self.data[index.row()][index.column()]:
-            index.model().setData(index.siblingAtColumn(0),True, Qt.ItemDataRole.EditRole)  # XXXX sibling
+            index.model().setData(index.siblingAtColumn(0), True, Qt.ItemDataRole.EditRole)  # XXXX sibling
         return True
 
     def saveSettings(self):
         qs = QSettings()
         qs.beginGroup('Favorites')
         # how much will QSettings hate me if I dump stuff on it
-        val = [ [ c, self.cmds[c].buttonName,  self.cmds[c].shortcut, self.cmds[c].immediate] for c in self.cmds]
+        val = [ [ c, self.cmds[c].buttonName, self.cmds[c].shortcut, self.cmds[c].immediate] for c in self.cmds]
         #print(str(val)) # DEBUG
         qs.setValue('favorites', val)
         qs.endGroup()
@@ -300,7 +302,7 @@ class keySequenceDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
 
-    def createEditor(self,parent,option,index):
+    def createEditor(self, parent, option, index):
         # XXX do something with option? set background?
         w = QKeySequenceEdit(parent)
         ## well this didn't work
@@ -326,4 +328,6 @@ class keySequenceDelegate(QtWidgets.QStyledItemDelegate):
         else:
             model.setData(index, k.toString(), Qt.ItemDataRole.EditRole)
     ####
+
+
 settingsDialog.registerType(QKeySequence, keySequenceDelegate)

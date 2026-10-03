@@ -55,14 +55,23 @@ featureprogress:
 #  DEBUG debug print
 #  EXCEPT print if something unexpected went wrong
 findprint:
-	grep --color -nH -e 'print(' *.py lib/*.py |egrep -av 'DEBUG|EXCEPT'
+	-grep --color -nH -e 'print(' *.py lib/*.py |egrep -av 'DEBUG|EXCEPT'
 findxx:
-	grep --color -nH -e XX *.py lib/*.py 
+	-grep --color -nH -e XX *.py lib/*.py 
 findxxx:
-	grep --color -nH -e XXX *.py lib/*.py 
+	-grep --color -nH -e XXX *.py lib/*.py 
 findxxxx:
-	grep --color -nH -e XXXX *.py lib/*.py 
+	-grep --color -nH -e XXXX *.py lib/*.py 
 findxxxxx:
-	grep --color -nH -e XXXXX *.py lib/*.py 
+	-grep --color -nH -e XXXXX *.py lib/*.py 
 finddebug:
-	grep --color -nH -e '^ *[^ #].*DEBUG' *.py lib/*.py 
+	-grep --color -nH -e '^ *[^ #].*DEBUG' *.py lib/*.py 
+copyright:
+	-find . -name '*.py' -newer newyear | xargs grep _copyright /dev/null | grep -v `date +%Y`
+
+# ~/.pylint
+pylint:
+	pylint $(SRCFILES)
+# tox.ini
+pylint2:
+	flake8 --format=pylint $(SRCFILES)

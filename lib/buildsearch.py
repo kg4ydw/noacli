@@ -12,8 +12,10 @@ def buildSearch(text, ui, auto=False):
     else:
         if not ui.actionUseRegEx.isChecked():
             return text  # plain text search
-        if ui.actionCaseInsensitive.isChecked(): opts |= QRE.PatternOption.CaseInsensitiveOption
-        if ui.actionUnicode.isChecked(): opts |= QRE.PatternOption.UseUnicodePropertiesOption
+        if ui.actionCaseInsensitive.isChecked():
+            opts |= QRE.PatternOption.CaseInsensitiveOption
+        if ui.actionUnicode.isChecked():
+            opts |= QRE.PatternOption.UseUnicodePropertiesOption
     re = QRE(text, opts)
     if not re.isValid():
         return None

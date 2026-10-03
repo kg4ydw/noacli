@@ -46,8 +46,8 @@ class typedQSettings(QSettings):
             if self.warnmissing:      # XX this is probably obsolete anyway
                 print("Warn: typedQSettings.value called before dict set: "+str(frame.f_code)+"\n"+str(e))  # EXCEPT
             # frame.f_code.co_name
-            return super(typedQSettings,self).value(key,default)
-        v = super(typedQSettings,self).value(key,default)
+            return super().value(key,default)
+        v = super().value(key,default)
         if key not in self.setdict:   # return what we have
             if self.warnmissing:
                 print("Warning: setting {} missing from settings dictionary.".format(key))  # DEBUG EXCEPT
