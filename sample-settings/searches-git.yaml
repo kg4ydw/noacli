@@ -1,0 +1,7 @@
+searches:
+  - git diff
+    filter: git diff
+    regex: 'diff --git a/(\S+)\s'
+    find: groups
+    hide: 0
+    show: true

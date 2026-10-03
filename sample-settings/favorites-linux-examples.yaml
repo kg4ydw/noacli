@@ -1,0 +1,17 @@
+# silly things
+
+# Note:
+#  If it has a name, it gets a button.
+#  If you don't give it a named button dock, it will go to the default.
+
+favorites:
+  - fortune
+    command: tail --watch fortune
+    dock: games
+  - git diff
+    dock: dev
+    command: |
+      # git diff
+      tail --watch (git status  ;  git diff --color)| aha
+    # right click -> view as html (until I get ansi working in qtail)
+ 

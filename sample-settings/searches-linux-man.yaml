@@ -1,0 +1,24 @@
+searches:
+  - man headings
+    # build a TOC from headings
+    filter: 'man '
+    # try to ignore error messages and headings with multiple consecutive spaces
+    regex: '^[A-Z](\S|\S\s)+$'
+    find: all
+    show: true
+  - man opts
+    filter: 'man '
+    regex: '^\s*(-+\w+)'
+    find: all
+    show: true
+  - man ref
+    filter: 'man '
+    regex: '([a-zA-Z]\S+)\s?\(([0-9]\w*)\)'
+    show: false  # or maybe you want to see it
+    highlight: true
+    color: grey  # not implemented yet!
+    context: line
+    immediate: true
+    command: |
+      # {0}
+      man -s {2} {1}

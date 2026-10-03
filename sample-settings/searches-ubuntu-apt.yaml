@@ -1,0 +1,16 @@
+# probably works in any debian variant but haven't tested them there
+
+searches:
+  - apt anyshow
+    regex: '(\w[\w:.-]+)'
+    context: selection
+    command: |
+      # {1}
+      apt show {1}
+  - apt show
+    regex: '(\w[^, ]+)'
+    filter: apt (show|search)
+    context: selection
+    command: |
+      # {1}
+      apt-show {1}

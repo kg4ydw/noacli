@@ -1,0 +1,10 @@
+# Adapt the linux saved searches and buttons for macos
+# most of the rest of linux should work on mac too
+
+favorites:
+  - man
+    immediate: no
+    command: |
+      # man {}
+      man {} | col -b
+ 

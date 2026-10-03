@@ -1,0 +1,16 @@
+
+## The following several examples are defaults built into noacli.
+
+addwrap:
+  - bash
+    output: small
+    command: bash -c
+  - sh
+    command: bash -c
+  - xterm
+    output: log
+    command: xterm -e
+  - gterm
+    output: log
+    command: gnome-terminal --window -- bash -c
+   

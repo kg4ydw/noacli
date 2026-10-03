@@ -1,0 +1,10 @@
+# saved searches useful in linux
+
+searches:
+  - url
+    regex: '(https?://[^' ]+)'
+    context: line
+    immediate: true
+    # note: quotes needed to pass to shell unless you make a firefox wrapper
+    command: log firefox '{1}'
+    

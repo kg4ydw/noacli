@@ -1,0 +1,21 @@
+# These are silly examples you should adopt for your own use.
+
+addwrap:
+  - dc
+    # use dc postfix calculator with 3 digits of precision
+    command: dc -e 3k -e
+  - dc0
+    # dc with default precision
+    command: dc -e
+  - somehost
+    command: ssh user@somehost.fqdn
+  - somehostx
+    output: log
+    command: ssh -X user@somehost.fqdn
+  - sudo
+    # there are other ways to do this too
+    command: xterm -e sudo
+  - x11
+    # force qt apps to run in xwayland
+    output: log
+    command: env QT_QPA_PLATFORM=xcb

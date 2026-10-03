@@ -752,6 +752,8 @@ Note that font changes in general settings only affect new qtail windows and
 that the font picker in qtail doesn't save its settings permanently.
 
 ## == Examples
+Please also look at the examples in sample-settings/
+
 ### === favorites examples
 These could be assigned to a button or a key binding.
 
