@@ -1165,7 +1165,7 @@ class QtTail(QtWidgets.QMainWindow):
         if not text:
             text = self.ui.searchTerm.text()
         if not text: return
-        searchterm = buildSearch(text, self.ui)
+        searchterm = buildSearch(text, self.ui, auto)
         if not searchterm: return
         findflags = QTextDocument.FindFlag(0)
         if not self.ui.actionCaseInsensitive.isChecked():

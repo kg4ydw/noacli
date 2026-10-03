@@ -307,6 +307,7 @@ class settingsDialog(QtWidgets.QDialog):
     def __init__(self, title, model, doc=None):
         # don't use parent, make the calling class save it so this isn't reentrant
         super().__init__()
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         ui = Ui_settingsDialog()
         self.model = model
         # XX proxy model?  search?

@@ -200,6 +200,10 @@ class Favorites():
         # extra features
 
         # if anything is checked or edited (not blanked), check keep
+        try: # is it initialized, deleted, or active?
+            self.dialog.close()
+        except:
+            pass # don't care!
         self.dialog = settingsDialog('Favorites editor', model, 'Favorites, shortcuts, and buttons')
         self.dialog.finished.connect(self.doneFavs)
         buttonbox = self.dialog.ui.buttonBox

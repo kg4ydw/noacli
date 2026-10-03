@@ -83,7 +83,7 @@ class ButtonDock(myDock):
         else:
             childname = None
         m = QtWidgets.QMenu()
-        m.addAction("Edit buttons", partial(EditButtonDocks,self, target=childname, dock=self.basetitle ))
+        m.addAction("Edit buttons", partial(self.editButtonDocks, target=childname, dock=self.basetitle ))
         ##XXX need class instance#  m.addAction("Edit favorites", partial(Favorites.editFavorites,None))
         m.addAction("Unconstrained order", self.mylayout.unsorted)
         m.addAction("Alphabetize", self.mylayout.alphasort)
@@ -100,6 +100,12 @@ class ButtonDock(myDock):
                 m.addAction("Delete this dock", self.delDock)
         m.exec(event.globalPos())
 
+    def editButtonDocks(self, target, dock):
+        # delete and recreate if the user re-invokes this
+        if getattr(self, 'ebdd', False):
+            self.ebdd.close()
+        self.ebdd = EditButtonDocks(None, target=target, dock=dock)
+        
     def copyButtonMenu(self, menu, button):
         if not menu.isEmpty(): return
         for title,d in sorted(self.docklist.items()):
@@ -278,7 +284,13 @@ class ButtonDock(myDock):
         return super().closeEvent(event)
 
 class EditButtonDocks(settingsDialog):
+    onlyOne = []
     def __init__(self, parent, doneFunc=None, target=None, dock=None):
+        try:
+            self.onlyOne.pop().close()
+        except:
+            pass
+        self.onlyOne.append(self)
         self.doneFunc = doneFunc
         data = []
         # put the default dock first

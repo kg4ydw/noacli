@@ -159,6 +159,10 @@ class settings():
         typedata = [ [None, self.settingsDirectory[i][2] ] for i in rows ]
         # open dialog box
         model = settingsDataModel(self.settingsDirectory, data, typedata)
+        try:
+            self.dialog.close()
+        except:
+            pass
         self.dialog = settingsDialog('Settings', model, 'noacli settings')
         self.dialog.finished.connect(self.acceptOrReject)
         tv = self.dialog.ui.tableView
@@ -899,11 +903,6 @@ class noacli(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def savedSearchesDialog(self):
         self.ssd = saved_searches(None)
-        self.ssd.finished.connect(self.closeSSearches)
-
-    def closeSSearches(self, result):
-        self.ssd = None # delete dialog
-
 
     @QtCore.pyqtSlot()
     def syncSettings(self):
@@ -1042,7 +1041,7 @@ class noacli(QtWidgets.QMainWindow):
         if not command:
             return  # still no command!  Don't set status.
         self.ui.historyView.resetHistorySort(False)  # likely invalidates QModelIndex
-        cmdargs = self.settings.commandParser.parseCommand(command)
+        cmdargs = self.settings.commandParser.parseCommand(command, title)
         #print("parsed: {} = {}".format(type(cmdargs),cmdargs)) # DEBUG
         if cmdargs is None:
             return              # nothing was done, don't set status
@@ -1442,10 +1441,6 @@ class noacli(QtWidgets.QMainWindow):
     def editButtonDocks(self):
         # delete and recreate if the user re-invokes this
         self.ebdd = EditButtonDocks(None)
-        self.ebdd.finished.connect(self.destroyEBD)
-    def destroyEBD(self):
-        self.ebdd = None
-        # note: doesn't catch things if it is closed without accept/reject
 
 ################ end noacli end
 

@@ -9,6 +9,7 @@ import sys
 from enum import Enum
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtCore import QSettings, QT_VERSION_STR, PYQT_VERSION_STR
+from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import QApplication
 
 
@@ -106,7 +107,7 @@ class commandParser:
             # not gonna verify the rest
             self.wrappers[key] = v
 
-    def parseCommand(self, cmd):
+    def parseCommand(self, cmd, title=None):
         # returns one of
         #  None if nothing was done
         #  str  display info, command incomplete (internal)
@@ -120,7 +121,7 @@ class commandParser:
         cmd = cmd.strip()
         outwin = OutWin.Default
         gotoutwin = False
-        title = None
+        # embedded title overrides supplied title
         outwinArgs = None
         if cmd[0]=='#':  # strip out the first line but keep for title
             (title, sep, rest) = cmd[1:].strip().partition('\n')
@@ -285,7 +286,12 @@ class commandParser:
     def cmd_version(self, title, outwin, rest):
         '''What version is am I?'''
         from noacli import __version__
-        return f"Versions: noacli {__version__}, Qt {QT_VERSION_STR} PyQt {PYQT_VERSION_STR}, Python {sys.version}, Platform {QApplication.platformName()}\n"
+        v = f"Versions: noacli {__version__}, Qt {QT_VERSION_STR} PyQt {PYQT_VERSION_STR}, Python {sys.version}\n"
+        # get some environment stuff
+        v+= f"Platform {QApplication.platformName()}\n"
+        # XX tray icon: future feature
+        #v+= f"Tray icon: {QtWidgets.QSystemTrayIcon.isSystemTrayAvailable()}\n"
+        return v
 
     def checkfile(self, f):
         # XX doesn't check if f is a non-file

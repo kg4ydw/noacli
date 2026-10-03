@@ -1,6 +1,6 @@
 
 UI= lib/qtail_ui.py lib/noacli_ui.py lib/settingsdialog_ui.py lib/tableviewer_ui.py lib/searchdock_ui.py lib/colorlisteditor_ui.py lib/saved_searches_ui.py lib/progress_ui.py
-SRCFILES=$(shell git ls-files | grep -v gitignore)
+SRCFILES=$(shell git ls-files | grep 'py$$' | grep -v '_ui.py')
 DISTFILES=$(SRCFILES) $(UI) $(RESOURCES)
 
 all: $(UI)
@@ -37,7 +37,7 @@ clobber: clean
 
 tags: TAGS
 TAGS: $(SRCFILES)
-	etags --regex '/.*ETAGS: \(\w+\)/\1/' lib/datamodels.py lib/logoutput.py noacli.py lib/qtailbrowser.py qtail.py lib/smalloutput.py lib/typedqsettings.py lib/commandparser.py lib/envdatamodel.py lib/noajobs.py tableviewer.py lib/mydock.py lib/buttondock.py lib/favorites.py lib/searchdock.py lib/saved_searches.py
+	etags --regex '/.*ETAGS: \(\w+\)/\1/' ${SRCFILES}
 
 
 # How much of brainstormed features are implemented? (this is a bit silly)

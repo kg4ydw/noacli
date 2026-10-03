@@ -145,6 +145,10 @@ class envSettings(QProcessEnvironment):
         #self.envdata += [['',envModes.Session, ''],['', envModes.Session,'']]
         model = simpleTable(self.envdata, ['Env Var','Mode', 'Value'], editmask=[False, True, True], datatypesrow=[str, envModes, str], validator=self.validator)
         self.model = model
+        try:
+            self.envDia.close()
+        except:
+            pass
         self.envDia = settingsDialog('Environment variables', model)
         self.envDia.finished.connect(self.finishEnv)
         self.envDia.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)

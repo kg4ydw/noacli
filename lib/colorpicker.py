@@ -46,6 +46,7 @@ class ColorPicker():
         #print(self.lastcolor, self.colorlist[self.lastcolor]) # DEBUG
         return self.colorlist[self.lastcolor]
 
+    # XXX these should all build on the fly with aboutToShow.connect
     def colorMenu(self, m=None):
         if not m:
             m = QMenu()
@@ -54,25 +55,21 @@ class ColorPicker():
             a = m.addAction(self.colorIcon(c), c)
             a.setData(c)
         cm = m.addMenu("more...")
-        self.allColorMenu(cm)
+        cm.aboutToShow.connect(partial(self.allColorMenu,cm))
         m.addAction("Edit colors",self.editColors)
         return m
 
     def editColors(self):
-        # XX this can open multiple editors, dunno why
         self.ecDialog = colorListEditor(self)
-        # connect and destroy when done
-        self.ecDialog.finished.connect(self.doneEditColors)
         self.ecDialog.show()
-
-    def doneEditColors(self):
-        self.ecDialog = None
 
     def allColorMenu(self, m=None):
         # delete colors already used?
         used = set(self.colorlist)
         if not m:
             m = QMenu("more...")
+        if not m.isEmpty(): return  # don't rebuild it
+        #m.clear() # or rebuild it every time
         for c in QtGui.QColor.colorNames():
             if c not in used:
                 # this didn't work and also had bad spacing
@@ -124,8 +121,15 @@ class ColorPicker():
 
 
 class colorListEditor(QDialog):
+    onlyOne = []
     def __init__(self, colorpicker):
         super().__init__()
+        try:
+            self.onlyOne.pop().close()
+        except:
+            pass
+        self.onlyOne.append(self)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         self.colorpicker = colorpicker
         self.ui = Ui_colorListEditor()
         self.ui.setupUi(self)
@@ -147,7 +151,7 @@ class colorListEditor(QDialog):
 
     def done(self, result):
         if result: self.saveColors()
-        self.deleteLater()
+        self.deleteLater() # XX redundant?
 
     def buildlist(self):
         self.colorpicker.initColors()   # XX or pull from QSettings unconditionally?

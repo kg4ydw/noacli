@@ -115,7 +115,7 @@ class logOutput(QTextBrowser):
         jobitem.lc2 = jobitem.process.finished.connect(partial(self.procFinished, jobitem))
 
     def disconnectProcess(self, jobitem):
-        if not hasattr(jobitem,'process') or not jobitem.process: return
+        if not getattr(jobitem,'process', False): return
         self.disconnect(jobitem.lc1)
         self.disconnect(jobitem.lc2)
         #p = jobitem.process

@@ -6,7 +6,7 @@
 # This would have inherited from either class, but neither support a
 # constructor that would allow initializing with an existing device.
 #
-# In particular, these implement methods needed to insure asyncrhonous
+# In particular, these implement methods needed to insure asynchronous
 # I/O will neither block, run into a premature end of file, or run
 # past EOF when there will be no more data, and the resulting types
 # pass the duck type test so they can be used with native python classes.
@@ -56,7 +56,7 @@ class betterTextIOWrapper():
         return self.tiow.buffer.peek(size).decode('utf-8')
 
     def canReadLine(self):
-        return '\n' in self.strpeek(1024)
+        return '\n' in self.strpeek(1024) # XX what if this is too small
 
     # can't copy these, they have to really exist
     def __iter__(self): return self.tiow.__iter__()
