@@ -99,8 +99,8 @@ class ProgressDock(QDockWidget):
     def regexContextMenu(self, point):
         m = QMenu(self)
         for regex in self.pro_regex_list:
-            m.addAction(self.pro_regex[regex][0],
-                        partial(self.setPattern, pro_regex[regex][1]))
+            m.addAction(f"{regex}: {self.pro_regex[regex][0]}",
+                        partial(self.setPattern, self.pro_regex[regex][1]))
         m.exec(self.ui.regex.mapToGlobal(point))
             
 

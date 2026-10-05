@@ -71,6 +71,7 @@ The graphical interface includes the following items as described below:
 * status message bar
 * "qtail" independent large scrolling output window
 * Table viewer (makes up for proportional fonts and removes the need for 80 column fixed text)
+* Progress meter
 
 The following dock windows can be rearranged, resized, and pulled off
 the main window.  The view menu lets you bring back any of these if
@@ -344,6 +345,24 @@ Programs that emit single lines and exit, or emit single lines slowly
 the main window.  Also, if the small output window is not visible when
 a command sends output or exits, a notification will show in the
 status bar temporarily. (Delay is settable.)
+
+## == Progress meter
+
+The progress meter output dock window lets you graphically monitor the
+progress of a task that outputs its progress as a percentage or ratio.
+It acts as an output viewer `progress` just like `tail` and `table` above.
+
+When you start a command in a progress meter, it opens a window with a
+pie chart showing the progress.  Multiple things can be monitored at once
+if a label accompanies the progress value and the regex setting is adjusted
+to recognize this.  Right click in the window to edit the settings, pick
+an appropriate regular expression from the regular expression context menu
+and adjust it to match the available output.
+
+The progress meter can continuously monitor output from a program, or it
+can run something periodically (like a scraper) to poll it if you set a delay.
+
+Current values can be examined by hovering over the window to see the tool tip.
 
 ## == history dock
 Like traditional cli shells, this shell keeps a history of your commands.

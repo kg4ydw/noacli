@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_progressDock(object):
     def setupUi(self, progressDock):
         progressDock.setObjectName("progressDock")
-        progressDock.resize(469, 202)
+        progressDock.resize(289, 310)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)

@@ -39,7 +39,7 @@ from lib.favorites import Favorites
 from lib.saved_searches import saved_searches
 from lib.wayland_fixes import resize_window, release_constraints
 
-__version__ = '2.8'
+__version__ = '2.8.1'
 
 
 # Some settings have been moved to relevant modules
