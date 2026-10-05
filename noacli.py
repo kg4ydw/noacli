@@ -39,7 +39,7 @@ from lib.favorites import Favorites
 from lib.saved_searches import saved_searches
 from lib.wayland_fixes import resize_window, release_constraints
 
-__version__ = '2.7'
+__version__ = '2.8'
 
 
 # Some settings have been moved to relevant modules
@@ -1402,6 +1402,7 @@ class noacli(QtWidgets.QMainWindow):
                 m.addAction("Kill "+job.title(), job.process.kill)
             elif not job.windowOpen:
                 m.addAction("clean dead: "+job.title(), partial(index.model().cleanupJob,index))
+                job.finished = True # force it out
             # XXX assume hiddenJobs doesn't have its own dock yet
             other = self.settings.hiddenJobs
             thismodel = self.settings.jobs

@@ -33,6 +33,7 @@ class OutWin(Enum):
     Tail = 2  # alias
     Log = 3
     Table = 4
+    Progress = 5
     Internal = 99  # only use internally as a status
 
 
@@ -41,6 +42,7 @@ OutWin.Small.__doc__ = "Send output to the small output dock window"
 OutWin.QTail.__doc__ = "View possibly growing output in a scrollable browser"
 OutWin.Log.__doc__ = "Merge output from this and other commands into the merged log dock window"
 OutWin.Table.__doc__="Parse file output as a table (delimiters autodetected)"
+OutWin.Progress.__doc__="Parse output to display a progress meter"
 
 builtinCommands = {
     #### output destinations
@@ -50,6 +52,7 @@ builtinCommands = {
     'qtail': OutWin.QTail,
     'small': OutWin.Small,      # default
     'table': OutWin.Table,
+    'progress': OutWin.Progress,
     ## actual commands will be added by @builtin('command')
 }
 
@@ -145,6 +148,7 @@ class commandParser:
                     if not cmd:
                         # XXX empty command -- print a usage or something?
                         return None
+                    # trivial option parser
                     if outwin in [OutWin.QTail, OutWin.Table] and cmd[0]=='-':
                         outwinArgs=[]
                         while len(cmd)>0 and cmd[0]=='-':
@@ -155,6 +159,9 @@ class commandParser:
                                 cmd=sa[1]
                             else:
                                 cmd=''
+                        if outwin==OutWin.Progress:
+                            # XXXXX
+                            continue
                         if '--file' in outwinArgs:
                             return [title, outwin, outwinArgs, cmd]
                         elif '--files' in outwinArgs:
@@ -364,8 +371,8 @@ class commandParser:
                 fails += 1
         return (t, fails)
 
+
     #### Other future built-in commands not implemented yet
     # 'pwd':  is this needed at all?  external pwd works fine
     # 'pushd':'popd': needs internal directory stack and probable parsing
     #  setenv -- bash or csh syntax? and this is already in GUI
-    #  qtail like command to open multiple files for viewing at once

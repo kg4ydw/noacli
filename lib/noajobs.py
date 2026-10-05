@@ -17,7 +17,7 @@ from lib.commandparser import OutWin
 
 from qtail import QtTail
 from tableviewer import TableViewer
-
+from progress import ProgressDock
 
 class mommie(QtCore.QObject):
     # be the parent of stuff that wants to outlive our main window
@@ -134,8 +134,7 @@ class jobItem():
             self.mode = mode
             return
         try:
-            newmode = OutWin[mode]
-            if newmode:
+            if OutWin[mode]:
                 self.mode = OutWin[mode]
                 if self.index:
                     i = QModelIndex(self.index).siblingAtColumn(2)
@@ -214,11 +213,13 @@ class jobItem():
     def startOutwin(self, file, settings):
         outwin = self.mode
         if outwin==OutWin.QTail:
-            self.setWindow(QtTail(settings.qtail))
+            self.setWindow(QtTail(settings.qtail, self))
             self.window.suggest_command.connect(settings.runOrEdit)
         elif outwin==OutWin.Table:
             self.setWindow(TableViewer())
             self.window.app = settings.app  # XXX redundant?
+        #elif outwin==OutWin.Progress:  # doesn't do files yet XXXX
+        #    self.setWindow(ProgressDock(title, self))
         else:
             # ??? can't get here, do nothing anyway
             return
@@ -237,8 +238,7 @@ class jobItem():
         #print('start mode: '+str(outwin)) # DEBUG
         if outwin==OutWin.QTail:
             #print("start qtail") # DEBUG
-            self.setWindow(QtTail(settings.qtail))
-            self.window.jobitem = self
+            self.setWindow(QtTail(settings.qtail, self))
             title = self.title()
             if not title or len(title)==0:
                 title = typedQSettings().value('QTailDefaultTitle','subprocess')
@@ -255,7 +255,14 @@ class jobItem():
             if not title or len(title)==0:
                 # does tableviewer get its own default title SETTING?
                 title = typedQSettings().value('QTailDefaultTitle','subprocess')
-            if self.outwinArgs: self.window.simpleargs(self.outwinArgs)
+            if self.outwinArgs:
+                self.window.simpleargs(self.outwinArgs)
+            self.window.openProcess(title, self.process)
+        elif outwin==OutWin.Progress:
+            title = self.title() or 'Progress'
+            self.setWindow(ProgressDock(title, self))
+            if self.outwinArgs:
+                self.window.simpleargs(self.outwinArgs)
             self.window.openProcess(title, self.process)
         else:
             self.setMode('Small')

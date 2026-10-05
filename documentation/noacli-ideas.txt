@@ -33,7 +33,7 @@ D*    hide/show columns
  *  save/restore geometry needs to save dock geom and visibility too probably
 
  -Things to implement soon:
- ! cli initial size hint for qtail window (doesn't work on wayland scaled)
+   cli initial size hint for qtail window (doesn't work on wayland scaled)
  ! add ability to refresh searches when the document is refreshed
  ! add live tracking between search docks and the document scrolling
  ! track highlight: update searchdocs to highlight before cursor (context)
@@ -50,8 +50,8 @@ D*   too messy to fix, implemented work around (convert after reading as plain)
  * jobs: click on status column to hide/show lost windows in addtion to raise
  ? change where templates get data
 D*   regex groups? (via saved searches)
-     try selected text first
-     then whole edit buffer
+ *   try selected text first
+ *   then whole edit buffer
      then clipboard
      setting to turn each of these on or off (and set order?)
  ? redo font mapping
@@ -66,7 +66,7 @@ D*   regex groups? (via saved searches)
  ? tail cli: --notoolbars --follow
  * searchdock: detect previous searchdoc(s) and shrink it
  !  add QProgressBar to QStatusBar with addWidget or addPermanentWidget
- ?  pie graph QtCharts/QPieSeries or progress bar dock widget
+ !  pie graph QtCharts/QPieSeries or progress bar dock widget
       tail option -> context option, view option
       percentage regex
       show on main window
@@ -81,7 +81,6 @@ D* qtail context actions from regex or use ~~QTextBrowser.anchorClicked~~
 D* context regex commands (below)
  ? toc build using QTextFormat.HeadingLevel paragraph property
  ! rebuild visible searches on reload and follow tail
- ? qtail detect text type automatically?
  ? file buffering large text like less
  * QTextOption.WordWrap --> WrapAtWordBoundaryOrAnywhere
 D! qtail findallgroup: iterate blocks, column align (LCRH)
@@ -138,7 +137,7 @@ D*     enable
  * qtable -> view menu: add sort/select checkbox from column picker
  * add setting and timer to sync settings and history (bug fix)
    QTextBrowser.searchPaths() to help find internal docs
- ? Bug: reload doesn't work on --file
+ * Bug: reload doesn't work on --file
    Bug: --format=md doesn't work on pipes? need to read all
  *   work around for format=md,html: convert from context menu after loading
  ! preliminary ansi support

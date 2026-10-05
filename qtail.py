@@ -164,8 +164,9 @@ class QtTail(QtWidgets.QMainWindow):
     want_read_more = pyqtSignal(str)
     suggest_command = pyqtSignal(str, bool)
 
-    def __init__(self, options=None, parent=None):
+    def __init__(self, options=None, jobitem=None ):
         super().__init__()
+        self.jobitem = jobitem
         self.runcount = 0
         self.findcount = 0
         self.timestart = time.monotonic()  # in case we miss the real start
