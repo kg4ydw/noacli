@@ -680,7 +680,7 @@ class QtTail(QtWidgets.QMainWindow):
         else:
             dsm = searchModel.getDefaultSearchModel()
         dsm.defaultReset.connect(self.setupSavedSearch, Qt.ConnectionType.QueuedConnection)
-        if hasattr(self,'jobitem') and self.jobitem.history:
+        if getattr(self,'jobitem') and self.jobitem.history:
             cmd = self.jobitem.command()
             #print(f"found command {cmd}") # DEBUG
             self.savedsearches = list(

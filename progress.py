@@ -18,6 +18,7 @@ from PyQt6.QtWidgets import QDockWidget, QMenu, QWidget, QSizePolicy
 from lib.progress_ui import Ui_progressDock
 from lib.colorpicker import ColorPicker
 from lib.typedqsettings import typedQSettings
+from lib.saved_searches import saved_searches, searchModel
 
 # replacement progress widgets:
 # * stacked progress bar
@@ -71,6 +72,8 @@ class ProgressDock(QDockWidget):
         self.ui.textBrowser.setWordWrapMode(QTextOption.WrapMode.WrapAtWordBoundaryOrAnywhere)
         self.setMinimumSize(10,10)  # designer won't set it small enough
         self.ui.regex.editingFinished.connect(self.patternEdited)
+        self.ui.regex.returnPressed.connect(self.readmore) # retrigger search
+        self.ui.regex.textEdited.connect(lambda t: self.ui.regex.setToolTip(''))
         self.setDelay(0)
         self.ui.delay.editingFinished.connect(self.delayEdited)
         self.ui.regex.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -101,12 +104,30 @@ class ProgressDock(QDockWidget):
         for regex in self.pro_regex_list:
             m.addAction(f"{regex}: {self.pro_regex[regex][0]}",
                         partial(self.setPattern, self.pro_regex[regex][1]))
+        # XXX ? m.addSeparator()
+        dsm = searchModel.getDefaultSearchModel()
+        # XXX sort before adding to menu?
+        for item in dsm:
+            ii = dsm.getItem(item)
+            if ii.useInProgress:
+                m.addAction(ii.name, partial(self.setPattern, ii.sexp))
+        text = self.ui.regex.text()
+        if text:
+            m.addSeparator()
+            m.addAction("Save as new", self.savedSearchesDialog)
         m.exec(self.ui.regex.mapToGlobal(point))
-            
+
+    def savedSearchesDialog(self):
+        text = self.ui.regex.text()
+        self.ssd = saved_searches(None, inputText=text)
 
     def setPattern(self, pattern):
         self.pattern = pattern
         self.patternre = re(pattern, re.PatternOption.MultilineOption|re.PatternOption.UseUnicodePropertiesOption)
+        if self.patternre.isValid():
+            self.ui.regex.setToolTip("OK")
+        else:
+            self.ui.regex.setToolTip(self.patternre.errorString())
         self.ui.regex.setText(pattern)
 
     def patternEdited(self):
@@ -133,6 +154,10 @@ class ProgressDock(QDockWidget):
         # XXXXX parse options
         # regex
         # stock regex index
+        # if ss: split
+        #  if integer, pull from table
+        #  if name, try table then saved searches
+        # direct regex on cli?
         # delay
         pass
 
@@ -181,6 +206,7 @@ class ProgressDock(QDockWidget):
             m.addAction("Hide settings", self.ui.progressSettings.hide )
         m.addAction("Refresh", self.refresh )
         m.addAction("Dismiss finished", self.pwidget.cleanFinished)
+        m.addAction("Reset graph", self.pwidget.resetGraph)
         return m
 
     def showsettings(self):
@@ -346,6 +372,12 @@ class concentricPieGraph(QWidget):
 
     def sizeHint(self):
         return QSize(100,100)
+
+    def resetGraph(self):
+        self.names = ['']  # delete 'em all, keep colors just in case
+        self.offsets = { '': 0}
+        self.values = {'': 0}
+        self.update()
 
     def setValue(self, val, name=''):
         if name not in self.names:

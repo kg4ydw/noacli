@@ -25,7 +25,7 @@ from lib.datamodels import itemListModel
 
 
 class search_entry():
-    def __init__(self, *, name, sexp, cfilter, ctemplate, imaction=0, findshow, findhighlight, ccontext=0, hideCols, runImmediate=False):
+    def __init__(self, *, name, sexp, cfilter, ctemplate, imaction=0, findshow, findhighlight, ccontext=0, hideCols, runImmediate=False, useInProgress=False):
         def fixint(val, fallback=0):
             try:
                 return int(val)
@@ -50,6 +50,7 @@ class search_entry():
         self.ccontext = fixint(ccontext)
         self.hideCols = hideCols
         self.runImmediate = fixbool(runImmediate)
+        self.useInProgress = fixbool(useInProgress)
 
     def validate(self):
         # cursory check to see if this is a good entry
@@ -106,6 +107,7 @@ class searchModel(itemListModel):
                 imaction=qs.value('imaction'),
                 findshow=qs.value('findshow'),
                 runImmediate=qs.value('runImmediate'),
+                useInProgress=qs.value('useInProgress', False),
                 findhighlight=qs.value('findhighlight'),
                 ccontext=qs.value('ccontext'), hideCols=qs.value('hideCols'))
             #if entry.validate(): # XXXX
@@ -129,6 +131,7 @@ class searchModel(itemListModel):
             qs.setValue("imaction", entry.imaction)
             qs.setValue("findshow", entry.findshow)
             qs.setValue("runImmediate", entry.runImmediate)
+            qs.setValue("useInProgress", entry.useInProgress)
             qs.setValue("findhighlight", entry.findhighlight)
             qs.setValue("ccontext", entry.ccontext)
             qs.setValue("hideCols", entry.hideCols)
@@ -151,11 +154,13 @@ class searchModel(itemListModel):
 class saved_searches(QDialog):
     # XXXX self.valid = False when anything is updated?
     # note: non-default search model is not used yet (import/export?)
-    def __init__(self, tail, searchmodel=None):
+    def __init__(self, tail, searchmodel=None, inputText=None):
         super().__init__()
         self.ui = Ui_saved_searches()
         self.ui.setupUi(self)
         self.qtail = tail
+        if inputText:
+            self.ui.sexp.setText(inputText)
         if self.qtail:  # prefill
             self.ui.sexp.setText(self.qtail.ui.searchTerm.text())
         else:
@@ -163,6 +168,7 @@ class saved_searches(QDialog):
             self.ui.smatches.setDisabled(True)
             self.ui.tsplitter.setCollapsible(1,True)
             self.ui.tsplitter.setSizes([1,0])
+        self.editEntry = None
         self.samples = groupList()
         self.old_sexp = ''
         self.extmodel = False
@@ -182,6 +188,7 @@ class saved_searches(QDialog):
         self.ui.disableAll.clicked.connect(partial(self.ui.immediate_action.setCurrentIndex,0))
         self.ui.disableAll.clicked.connect(partial(self.ui.ccontext.setCurrentIndex,0))
         self.ui.disableAll.clicked.connect(partial(self.ui.runImmediate.setChecked, False))
+        self.ui.disableAll.clicked.connect(partial(self.ui.useInProgress.setChecked, False))
         for tv in (self.ui.ssearches, self.ui.smatches):
             tv.horizontalHeader().sectionDoubleClicked.connect(tv.resizeColumnToContents)
         #
@@ -213,9 +220,9 @@ class saved_searches(QDialog):
     @pyqtSlot()
     def deleteEntry(self):
         # get index of current selection and delete that row
-        sel = self.ui.ssearches.selectionModel().selectedRows()
-        if not sel: return
-        i = sel[0].row()
+        if not self.editEntry or not self.editEntry.isValid():
+            return
+        i = self.editEntry.row()
         self.searchmodel.removeRows(i,1,None)
         self.somethingChanged()
         # XXXX delete from qsettings too?
@@ -237,28 +244,21 @@ class saved_searches(QDialog):
         self.somethingChanged()
         entry = self.validateEntry()
         if not entry: return
-        # get index of current selection and replace the data there
-        sel = self.ui.ssearches.selectionModel().selectedRows()
-        if append or not sel:  # save new item
-            index = None
-        elif len(sel) != 1:  # this can't happen but just in case...
-            self.ui.ssearches.clearSelection()
-            return
-        else:
-            index = sel[0]
+        index = None
+        if not append and self.editEntry and self.editEntry.isValid():
+            index = QModelIndex(self.editEntry)
         if not index:
             index = self.searchmodel.appendItem(entry)
         else:
             # assume view row corresponds to model row
             self.searchmodel.setItem(index, entry)
         if index:
-            if isinstance(index, QPersistentModelIndex): # wtf
-                index = QModelIndex(index)
-            self.ui.ssearches.scrollTo(index) # XXX and select it?
+            self.ui.ssearches.scrollTo(QModelIndex(index)) # XXX and select it?
 
     @pyqtSlot()
     def clearEntry(self):
         # XX prompt for accidental data loss?
+        if not self.setEntryEdit(None): return # abort change if requested
         self.ui.ssearches.clearSelection()
         self.ui.sname.clear()
         self.ui.sexp.clear()
@@ -267,6 +267,7 @@ class saved_searches(QDialog):
         self.ui.immediate_action.setCurrentIndex(0)
         self.ui.findShow.setChecked(False)
         self.ui.runImmediate.setChecked(False)
+        self.ui.useInProgress.setChecked(False)
         self.ui.findShowHighlights.setChecked(False)
         self.ui.ccontext.setCurrentIndex(0)
         self.ui.ctemplate.clear()
@@ -274,12 +275,27 @@ class saved_searches(QDialog):
         self.samples = None
         self.ui.smatches.setModel(None)
         self.valid = False
-        
+
+    def setEntryEdit(self, index):
+        if self.editEntry and self.editEntry.isValid():
+            # XXX if changes have been made, prompt before changing entry
+            pass
+        if index and index.isValid():
+            self.editEntry = QPersistentModelIndex(index) # XXX set a marker?
+            self.ui.entryButtonFrame.setToolTip(f"Editing entry {self.editEntry.row()+1}")
+            # also mark the entry in the view?
+        elif not self.editEntry or not self.editEntry.isValid():
+            self.editEntry = None
+            self.ui.entryButtonFrame.setToolTip('')
+        return True
+            
     @pyqtSlot(QModelIndex)
     def selectEntry(self, index):
         # copy selected entry to the form fields
+        if not self.setEntryEdit(index):
+            return # XXX select old entry (but don't recurse)
         self.resetMatches()
-        entry = index.model().getItem(index) # XXXX
+        entry = index.model().getItem(index)
         self.ui.sname.setText(entry.name)
         self.ui.sexp.setText(entry.sexp)
         self.ui.fcmd.setText(entry.cfilter)
@@ -287,6 +303,7 @@ class saved_searches(QDialog):
         self.ui.immediate_action.setCurrentIndex(entry.imaction)
         self.ui.findShow.setChecked(entry.findshow)
         self.ui.runImmediate.setChecked(entry.runImmediate)
+        self.ui.useInProgress.setChecked(entry.useInProgress)
         self.ui.findShowHighlights.setChecked(entry.findhighlight)
         self.ui.ctemplate.setPlainText(entry.ctemplate)
         self.ui.sresult.clear()
@@ -304,6 +321,7 @@ class saved_searches(QDialog):
             findshow=self.ui.findShow.checkState()==Qt.CheckState.Checked,
             findhighlight=self.ui.findShowHighlights.checkState()==Qt.CheckState.Checked,
             runImmediate=self.ui.runImmediate.checkState()==Qt.CheckState.Checked,
+            useInProgress=self.ui.useInProgress.checkState()==Qt.CheckState.Checked,
             ccontext=self.ui.ccontext.currentIndex(),
             hideCols=self.ui.hideCols.text()
         )
