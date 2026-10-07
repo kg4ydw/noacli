@@ -110,7 +110,7 @@ class ProgressDock(QDockWidget):
         for item in dsm:
             ii = dsm.getItem(item)
             if ii.useInProgress:
-                m.addAction(ii.name, partial(self.setPattern, ii.sexp))
+                m.addAction(ii.name or ii.sexp, partial(self.setPattern, ii.sexp))
         text = self.ui.regex.text()
         if text:
             m.addSeparator()
@@ -288,9 +288,6 @@ class ProgressDock(QDockWidget):
         # XXXX
         # XXX use compiled regex?
 
-        # find the last two matches
-        prev = None
-        last = None
         if not self.pattern or len(self.pattern)==0:
             self.buffer = b
             return
@@ -304,7 +301,6 @@ class ProgressDock(QDockWidget):
             label = None
             valstr = None
             # XX also support labeled groups?
-            #print(f"match {match.lastCapturedIndex()} = {match.captured(1)} / {match.captured(2)} / {match.captured(3)}") # DEBUG
             match match.lastCapturedIndex():
                 case 0:  # whole string, hope it's a integer percentage
                     valstr = match.captured(0)
@@ -325,6 +321,9 @@ class ProgressDock(QDockWidget):
                 except Exception as e:
                     if typedQSettings().value('DEBUG',False): print(repr(e))
                     pass
+            # XX for extra fun, refactor the data model out of the
+            # view and use the label color to highlight matched groups
+            # for each label
         if not label:  # only keep the last naked value
             try:
                 self.pwidget.setValue(int(valstr), '')

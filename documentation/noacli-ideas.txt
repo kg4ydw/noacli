@@ -66,11 +66,11 @@ D*   regex groups? (via saved searches)
  ? tail cli: --notoolbars --follow
  * searchdock: detect previous searchdoc(s) and shrink it
  !  add QProgressBar to QStatusBar with addWidget or addPermanentWidget
- !  pie graph QtCharts/QPieSeries or progress bar dock widget
+ *  pie graph QtCharts/QPieSeries or progress bar dock widget
       tail option -> context option, view option
-      percentage regex
-      show on main window
-      concentric? / colors
+ *    percentage regex
+ *    show on main window
+ *    concentric? / colors
       pick panel
 D* qtail size hint / delay  cli option
  ! qtail: xlate \r \n

@@ -39,7 +39,7 @@ from lib.favorites import Favorites
 from lib.saved_searches import saved_searches
 from lib.wayland_fixes import resize_window, release_constraints
 
-__version__ = '2.8.2'
+__version__ = '2.8.3'
 
 
 # Some settings have been moved to relevant modules
@@ -950,7 +950,8 @@ class noacli(QtWidgets.QMainWindow):
             job.window.show()
             #QApplication.processEvents()
             job.window.activateWindow()
-            job.window.windowHandle().requestActivate()
+            w = job.window.windowHandle() # not all docks have window handles
+            if w: w.requestActivate()
             job.window.showNormal()  # restore if minimized XXX redundant?
             job.window.raise_()
             # XXX could also try input_field.setfocus()
@@ -1266,7 +1267,6 @@ class noacli(QtWidgets.QMainWindow):
 
     def resizeEvent(self, ev):
         super().resizeEvent(ev)
-        if typedQSettings().value('DEBUG',False): print(f"resized main to {ev.size()}")
         release_constraints(self, ev)
 
     @QtCore.pyqtSlot(str)
@@ -1411,6 +1411,8 @@ class noacli(QtWidgets.QMainWindow):
                 m.addAction("Find window", partial(self.windowShowRaise,index))
             if job.window and job.windowOpen:
                 m.addAction("Close window",job.window.close)
+            if isinstance(job.window, QDockWidget):
+                m.addAction("Dock window", partial(self.settings.mainwin.addDockWidget, QtCore.Qt.DockWidgetArea.RightDockWidgetArea, job.window))
             ## add empty status items
         if not self.settings.hiddenJobs.isEmpty():
             # XXX unnecessary if hiddenJobs gets its own dock

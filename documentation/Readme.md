@@ -350,19 +350,29 @@ status bar temporarily. (Delay is settable.)
 
 The progress meter output dock window lets you graphically monitor the
 progress of a task that outputs its progress as a percentage or ratio.
-It acts as an output viewer `progress` just like `tail` and `table` above.
+It acts as an output viewer `progress` just like `tail` and `table` above,
+except that it retains and displays only enough of the output to match the
+regular expression that captures the completion values.
 
 When you start a command in a progress meter, it opens a window with a
-pie chart showing the progress.  Multiple things can be monitored at once
-if a label accompanies the progress value and the regex setting is adjusted
-to recognize this.  Right click in the window to edit the settings, pick
-an appropriate regular expression from the regular expression context menu
-and adjust it to match the available output.
+pie chart showing the progress.  Multiple things can be monitored at
+once if a label accompanies the progress value and the regex setting
+is adjusted to recognize this.  Right click in the window to edit the
+settings, pick an appropriate regular expression from the regular
+expression context menu and adjust it to match the available output.
+The context menu is populated with some example searches and anything
+checked for progress in saved searches.
 
 The progress meter can continuously monitor output from a program, or it
-can run something periodically (like a scraper) to poll it if you set a delay.
+can run something periodically (like a scraper) to poll it by setting a delay.
 
 Current values can be examined by hovering over the window to see the tool tip.
+
+Please note: if the job you use to drive the graph actually does
+something, be careful, because reopening or refreshing the progress meter
+after the job finishes may restart the job.
+
+The progress meter can be docked in the main window from the job context menu.
 
 ## == history dock
 Like traditional cli shells, this shell keeps a history of your commands.
