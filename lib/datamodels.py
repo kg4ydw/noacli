@@ -6,12 +6,13 @@ __copyright__ = '2022, 2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 # contaminated with app specific classes and GUI pieces
 
 from PyQt6 import QtCore
-from PyQt6.QtCore import Qt, QObject, QModelIndex, QPersistentModelIndex, QAbstractTableModel, pyqtSignal
+from PyQt6.QtCore import Qt, QObject, QModelIndex, QPersistentModelIndex, QAbstractTableModel, pyqtSignal, QTimer
 from PyQt6.QtGui import QBrush
 from PyQt6 import QtWidgets
 from lib.settingsdialog_ui import Ui_settingsDialog
 from lib.wayland_fixes import resize_window, release_constraints
 
+from functools import partial
 
 class simpleTable(QAbstractTableModel):
     def __init__(self, data, headers, datatypes=None, datatypesrow=None, editmask=None, validator=None ):
@@ -181,6 +182,8 @@ class itemListModel(QAbstractTableModel):
         self.data = [ ]
         self._data = self.data  # XXXX
         self.headers = headers
+        self.iterval = None
+        self.backgroundTimer = None
 
     # make this iterable
     def __getitem__(self, key):
@@ -265,6 +268,33 @@ class itemListModel(QAbstractTableModel):
         return True
 
     # def clearAllDAta:  don't do this, just drop and recreate the model
+
+    def canFetchMore(self, parent):
+        # list items don't have subelements
+        return not (parent and parent.isValid()) and bool(self.iterval)
+
+    def fetchMore(self, parent, more=5):
+        if parent and parent.isValid(): return
+        try:
+            for i in range(more):
+                self.appendItem(next(self.iterval))
+        except StopIteration:
+            self.iterval = None  # renitialize it somewhere else
+            if self.backgroundTimer: self.backgroundTimer.stop() # ran out
+
+    def finishInBackground(self):
+        if not self.iterval: return # nothing to do
+        if not self.backgroundTimer:
+            self.backgroundTimer = QTimer()
+            self.backgroundTimer.timeout.connect(partial(self.fetchMore, None,5))
+        self.backgroundTimer.start(100) # SETTING 0.1s enough?
+
+    def finishNow(self):
+        if not self.iterval: return # nothing to do
+        if self.backgroundTimer:  self.backgroundTimer.stop()
+        while self.iterval:
+            self.fetchMore(None)
+            QtCore.QCoreApplication.processEvents()
 
 
 class settingsDataModel(simpleTable):

@@ -32,12 +32,12 @@ def resize_window(window, w, h=None, *, force=False):
         #caller2 = getframeinfo(stack()[2][0])
         #print(f" at {caller.filename}:{caller.lineno}:{caller.function}") # DEBUG
     window.wantsize = QSize(w,h)
-    if window.wantsize==window.size():
-        if typedQSettings().value('DEBUG',False): print(f"want resize already got one [{window.windowTitle()}] to ({w},{h})  at {caller.filename}:{caller.lineno}:{caller.function}")
-        return
+    ## because two resizes in a row wont work if the first isn't forced
+    #if window.wantsize==window.size():
+    #    if typedQSettings().value('DEBUG',False): print(f"want resize already got one [{window.windowTitle()}] to ({w},{h})  at {caller.filename}:{caller.lineno}:{caller.function}")
+    #    return
     window.resizeCount = max(getattr(window,'resizeCount',0),0)+1
-    if typedQSettings().value('DEBUG',False):
-        if typedQSettings().value('DEBUG',False): print(f"want resize [{window.windowTitle()}] to ({w},{h})  prev={QSF(window.size())} at {caller.filename}:{caller.lineno}:{caller.function}")
+    #if typedQSettings().value('DEBUG',False): print(f"want resize [{window.windowTitle()}] to ({w},{h})  prev={QSF(window.size())} at {caller.filename}:{caller.lineno}:{caller.function}")
     if QApplication.platformName().startswith("wayland"):
         # for every platform except wayland, window.resize is enough!
         window.setFixedSize(w,h)
@@ -74,12 +74,12 @@ def setTimer(window, msec):
     else: # don't shorten timer if we had one
         rt =  window.fixResizeTimer.remainingTime()
         if rt > msec:
-            if typedQSettings().value('DEBUG',False):
-                print(f"  continue timer {rt} {window.windowTitle()}") # DEBUG
+            #if typedQSettings().value('DEBUG',False):
+            #    print(f"  continue timer {rt} {window.windowTitle()}") # DEBUG
             return
     window.fixResizeTimer.start(msec)
-    if typedQSettings().value('DEBUG',False):
-        print(f"  start timer {msec} {window.windowTitle()}") # DEBUG
+    #if typedQSettings().value('DEBUG',False):
+    #    print(f"  start timer {msec} {window.windowTitle()}") # DEBUG
     
 
 # call this from window's resizeEvent slot
@@ -95,12 +95,12 @@ def release_constraints(window,ev=None):
     if not hasattr(window,'wantsize'):
         return  # not currently trying to resize
     if ev and window.wantsize != ev.size():
-        if typedQSettings().value('DEBUG',False):
-            print(f"rEv wrong {QSF(ev.size())} want {QSF(window.wantsize)}") # DEBUG
-            # send another resize request
-            window.resize(window.wantsize)
-            window.resizeCount += 1
-            setTimer(window, 200)
+        #if typedQSettings().value('DEBUG',False):
+        #    print(f"rEv wrong {QSF(ev.size())} want {QSF(window.wantsize)}") # DEBUG
+        #    # send another resize request
+        #    window.resize(window.wantsize)
+        #    window.resizeCount += 1
+        #    setTimer(window, 200)
         return
     # release constraints too soon and wayland screws it up
     if hasattr(window,'fixResizeTimer'):
@@ -114,8 +114,8 @@ def release_constraints(window,ev=None):
 
 
 def delay_release_constraints(window):
-    if typedQSettings().value('DEBUG',False):
-        print(f"release {window.windowTitle()} {getattr(window,'resizeCount',False)} wanted {QSF(window.wantsize)} to sz={QSF(window.size())} max={QSF(window.screen().availableGeometry().size())} remaining={getattr(window,'rmtm',-2)}") # DEBUG
+    #if typedQSettings().value('DEBUG',False):
+    #    print(f"release {window.windowTitle()} {getattr(window,'resizeCount',False)} wanted {QSF(window.wantsize)} to sz={QSF(window.size())} max={QSF(window.screen().availableGeometry().size())} remaining={getattr(window,'rmtm',-2)}") # DEBUG
     window.setMinimumSize(window.minimumSizeHint())
     # don't ever want a window bigger than the screen in this app
     # on scaled screens, wayland gets this wrong too

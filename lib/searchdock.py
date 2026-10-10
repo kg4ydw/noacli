@@ -179,6 +179,13 @@ class baseSearchDock(QDockWidget):
         if p:
             p.ui.actionDeleteClosedSearches.setVisible(True)
             p.ui.actionDeleteClosedSearches.setEnabled(True)
+        if self.model and self.model.backgroundTimer:
+            self.model.backgroundTimer.stop()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self.model and self.model.backgroundTimer:
+            self.model.backgroundTimer.start()
 
     @QtCore.pyqtSlot(int)
     def setFav(self, i):
@@ -209,6 +216,11 @@ class baseSearchDock(QDockWidget):
     def showColumn(self, col):
         self.ui.tableView.setColumnHidden(col, False)
 
+    def setiter(self, iter):
+        self.model.iterval = iter
+        # do some autofill before starting timer
+        QtCore.QCoreApplication.processEvents()
+        self.model.finishInBackground()
 
 class searchDock(baseSearchDock):
     showSel = pyqtSignal(list)
@@ -395,13 +407,18 @@ class groupList(itemListModel):
                 self.addMatch(item) # XX not the most efficent way ...
         # XX color?
 
+    # oops this should have overriden appendItem, refactor later
     def addMatch(self, itemdata):
-        i=groupItem(itemdata)
-        self.appendItem(i)
-        if self._cols<2:
+        self.appendItem(itemdata)
+
+    def appendItem(self, itemdata):
+        # XX check if it's alreayd a groupItem ?
+        item = groupItem(itemdata)
+        super().appendItem(item)
+        if self._cols<2 and len(item.groups)>1:
             # first inserted row?
             self.beginResetModel()
-            self._cols = len(i.groups) # XX cols changed signal instead of full reset?
+            self._cols = len(item.groups) # XX cols changed signal instead of full reset?
             self.endResetModel()
 
     def headerData(self, col, orientation, role):

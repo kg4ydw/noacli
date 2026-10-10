@@ -391,15 +391,17 @@ class saved_searches(QDialog):
             # XXX do some searches
             self.samples = groupList()
             self.ui.smatches.setModel(self.samples)
-            i=5  # XXX SETTING or make this dynamic
-            for s in self.qtail.findAllGroupIter(sexp):
-               self.samples.addMatch(s)
-               i-=1
-               if i<0: break
-            pass
+            # bypass setiter() because we only need to find some, not all
+            self.samples.iterval = self.qtail.findAllGroupIter(sexp)
+            # need to do at least one item in case of error
+            self.samples.appendItem(next(self.samples.iterval))
+            # rest of list will dynamically build with fetchMore
+        except StopIteration:
+            self.ui.sresult.setPlainText("Nothing found")
+            self.samples.iterval = None
         except re.error as e:
             self.ui.sresult.setPlainText(f"{e.msg} at position {e.pos}\n{e.pattern[:e.pos]}❌{e.pattern[e.pos:]}") # unicode 274c cross
-        except Exception as e:
+        except Exception as e:  # XX unnecessary? debug?
             self.ui.sresult.setPlainText(f"{type(e)} {e}")
             # XXXX reraise so sresult doesn't get clobbered?
  

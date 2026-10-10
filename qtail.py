@@ -1204,7 +1204,7 @@ class QtTail(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.processEvents() # for good luck
         #if typedQSettings().value('DEBUG',False):print(len(finds))
 
-    def findAllGroupIter(self, restr):
+    def findAllGroupIter(self, restr, reentrant=False):
         ## return ((line, count), (whole, groups...))
         # use python regex instead to get groups
         # may as well since we can't apply QRegeularExpression to QDocument
@@ -1215,11 +1215,12 @@ class QtTail(QtWidgets.QMainWindow):
 
         block = self.textbody.document().firstBlock()
         while block.isValid():
-            QtCore.QCoreApplication.processEvents()
             i = 0
             for m in regex.finditer(block.text()):
                 if m: yield ((block.blockNumber(), i), (m.group(0), *m.groups()))
                 i+=1
+            # don't call processEvents unless recursusion is not possible
+            if reentrant: QtCore.QCoreApplication.processEvents()
             block = block.next()  # Move to the next block
 
     def gotoLineNumber(self, line):
@@ -1237,14 +1238,20 @@ class QtTail(QtWidgets.QMainWindow):
         if not restr: return
         QtCore.QCoreApplication.processEvents()
         # XXX this could get built incrementally instead of all at once sometimes
-        finds = list(self.findAllGroupIter(restr))
-        if not finds:
+        #finds = list(self.findAllGroupIter(restr, True)) # XXXXX
+        giter = self.findAllGroupIter(restr)
+        try:
+            onefind = next(giter)
+        except StopIteration:
+            onefind = None
+        if not onefind:
             self.statusBar().showMessage("Nothing found",-1)
             return
         # build a dock and connect it
         title = None
         if not saved: title=restr
-        dock = searchDockGroup(self, title, finds, restr,saved, auto)
+        dock = searchDockGroup(self, title, [onefind], restr,saved, auto)
+        dock.setiter(giter)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
         self.ui.actionDockFloatingSearches.setVisible(True)
