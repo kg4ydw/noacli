@@ -7,8 +7,8 @@ __copyright__ = '2023, 2026 Steven Dick <kg4ydw@gmail.com>'
 from functools import partial
 from bisect import bisect_left
 
-from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QTextCursor, QColor
 from PyQt6.QtWidgets import QDockWidget, QTextEdit, QMenu
 
@@ -19,6 +19,20 @@ from lib.colorpicker import ColorPicker
 
 colorpicker = ColorPicker()
 
+## class map
+# searchDock -> selList --> selItem
+# searchDockGroup -> groupList -> groupItem
+# baseSearchDock { searchDock, searchDockGroup }
+# itemListModel { selList, groupList }
+## duck type properties (reimplemented not inherited from base classes)
+# itemListModel:
+#   appendItem must accept output from interval and convert into the right item
+# baseSearchDock
+#   gotIndex (refactor this to always use cursors?) jump to loc in document
+#   findSelection: given a cursor, find the exact item
+#   findSelectionBefore: given a cursor, find the previous item
+#   resume helpers: iterval restart itemType, lastFound findMore
+# without itemType a slower non-batch algorithm is forced
 
 class selItem():
     def __init__(self, cursor, context=True):
@@ -63,6 +77,7 @@ class selList(itemListModel):
         super().__init__(['pre','item','post'])
         self.color = None
         self.haspre = self.hasitem = self.haspost = False
+        self.itemType = selItem
 
     def setSel(self, extraSelections):
         self.removeRows(0, len(self._data),None)  # XX always purge?
@@ -71,7 +86,7 @@ class selList(itemListModel):
         for sel in extraSelections:
             if sel.cursor.position() or sel.cursor.hasSelection():  # skip stale highlights
                 item = selItem(sel.cursor)
-                # self.appendItem(item)
+                # self.appendItem(item) # too slow, do this later in batch
                 rows.append(item)
                 if item.pretext: self.haspre = True
                 if item.text: self.hasitem = True
@@ -89,7 +104,6 @@ class selList(itemListModel):
             item = selItem(item)
         super().appendItem(item)
         # XXXXX also trigger highilghting if that's already enabled
-        # XXXXX set color??
 
     def headerData(self, col, orientation, role):
         if orientation==Qt.Orientation.Horizontal and col==1 and role==Qt.ItemDataRole.BackgroundRole and self.color:
@@ -139,6 +153,8 @@ class baseSearchDock(QDockWidget):
         tvh.sectionClicked.connect(self.setFav)
         tvh.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         tvh.customContextMenuRequested.connect(self.headerContextMenu)
+        tv.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        tv.customContextMenuRequested.connect(self.tableContextMenu)
         self.topLevelChanged.connect(self.resizeOnFloat)
         
         if saved and saved.name and (not title or title==saved.sexp):
@@ -147,11 +163,27 @@ class baseSearchDock(QDockWidget):
             self.setWindowTitle(title)
         parent.addSearchDock(self, auto and saved and not saved.findshow)
         # self.hideCols()  # do this in subclass after model is set
+        self.columnTimer = None  # set timer after model is set
+
+    def modelInit(self):
+        # call this after setting the model so the view resizes properly
+        # needed if you populate the module incrementally
+        if not self.columnTimer:  # initialize model and timer both XXX
+            self.columnTimer = QTimer()
+            self.columnTimer.setSingleShot(True)
+            self.columnTimer.timeout.connect(self.ui.tableView.resizeColumnsToContents)
+        self.columnTimer.start(1000)
+        # played with elaborite algorithms here but it just made
+        # things significantly slower just to check, without making it
+        # look significantly better.  So just resize once after a
+        # while.  If it still looks stupid, user can double click to fix it.
 
     def resizeOnFloat(self, floatw):
+        self.ui.tableView.resizeColumnsToContents()
         if floatw:
             self.adjustSize()
-            # XXX could do better
+            # this is broken in wayland of course XXX
+            # XXX could do better but not without bypassing wayland
 
     def hideCols(self):
         # note: might not work if model or headings aren't set
@@ -183,18 +215,21 @@ class baseSearchDock(QDockWidget):
 
     def closeEvent(self, event):
         # if a search dock is closed, make visible the menu entry to delete them
-        # XXX test if this bug fix is still needed and see if removing it changes functionsality
         super().closeEvent(event)
         p = self.parent()
         if p:
             p.ui.actionDeleteClosedSearches.setVisible(True)
             p.ui.actionDeleteClosedSearches.setEnabled(True)
-        if self.model and self.model.backgroundTimer:
-            self.model.backgroundTimer.stop()
+        self.stopSearch()
+
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        self.stopSearch()
 
     def showEvent(self, event):
         super().showEvent(event)
-        if self.model and self.model.backgroundTimer:
+        # continue building search results if not done
+        if self.model and self.model.iterval and self.model.backgroundTimer:
             self.model.backgroundTimer.start()
 
     @QtCore.pyqtSlot(int)
@@ -218,6 +253,27 @@ class baseSearchDock(QDockWidget):
             m.addAction(f"Show column {col}", partial(self.showColumn, col))
         action = m.exec(t.mapToGlobal(point))
 
+    def tableContextMenu(self, point):
+        # XXX subclass context menu!?
+        if not self.model or not self.model.iterval: return
+        m = QMenu()
+        if (self.model.backgroundTimer and self.model.backgroundTimer.isActive()) or self.model.finishingSearch:
+            m.addAction("Stop searching", self.stopSearch)
+        else:
+            m.addAction("Resume searching", self.model.backgroundTimer.start)
+        if self.model.finishingSearch:
+            m.addAction(f"{self.model.rowCount(None)}")  # XX document rows?
+            pass # XXXX calculate percentage left?
+        else:
+            m.addAction("Finish searching now", self.model.finishNow)
+        action = m.exec(self.ui.tableView.mapToGlobal(point))
+
+    def stopSearch(self):
+        if self.model:
+            self.model.finishingSearch = False
+            if self.model.backgroundTimer:
+                self.model.backgroundTimer.stop()
+
     # context menu triggered
     def hideColumn(self, col):
         self.ui.tableView.setColumnHidden(col, True)
@@ -232,13 +288,23 @@ class baseSearchDock(QDockWidget):
         QtCore.QCoreApplication.processEvents()
         self.model.finishInBackground()
 
+    def findMore(self):
+        # called by readmore after new data...
+        if not self.model or self.model.iterval:
+            # search still active, don't need to do much yet
+            return
+        if hasattr(self, 'restart') and hasattr(self.model, 'lastFound'):
+            self.model.iterval = self.restart(startcursor=self.model.lastFound())
+            self.model.finishInBackground()
+
+
 class searchDock(baseSearchDock):
     showSel = pyqtSignal(list)
     showSelDelayed = pyqtSignal()
     hideSel = pyqtSignal(list)
     gotoSel = pyqtSignal(QTextCursor)
 
-    def __init__(self, parent, title=None, selections=None, searchterm=None, findflags=None, saved=None, auto=False):
+    def __init__(self, parent, title=None, selections=None, searchterm=None, findflags=None, saved=None, auto=False, *, restart=None, iterval=None):
         super().__init__(parent, title, 1, saved, auto)
 
         self.searchterm = searchterm  # XXX use these later
@@ -248,11 +314,13 @@ class searchDock(baseSearchDock):
         color = colorpicker.nextColor()
         self.color = QtGui.QBrush(QColor(color))
         self.model = selList()
+        self.restart = restart  # lamdba function
 
         tv = self.ui.tableView
         tv.setModel(self.model)
         self.hideCols()
         tv.clicked.connect(self.gotoIndex)
+        self.modelInit()
 
         # set up delayed emit
         self.showSelDelayed.connect(self.doDelayShowSel, Qt.ConnectionType.QueuedConnection)
@@ -275,6 +343,8 @@ class searchDock(baseSearchDock):
         if saved and auto and saved.findhighlight:
             #self.emitExtraSelections(self.showSel) # this doesn't work, too soon
             self.showSelDelayed.emit()
+        if iterval:
+            self.setiter(iterval)
 
     @QtCore.pyqtSlot()
     def doDelayShowSel(self):
@@ -364,6 +434,7 @@ class searchDockGroup(baseSearchDock):
 
         self.searchexp = searchexp  # XXX use these later
         self.model = groupList(grouphits)
+        self.modelInit()
         tv = self.ui.tableView
         tv.setModel(self.model)
         tv.resizeColumnsToContents()  # XXX refactor to base?
@@ -408,6 +479,7 @@ class groupList(itemListModel):
     def __init__(self, hits=None):
         # note: can't set headers properly until first data item
         self._cols = 1
+        self.itemType = groupItem
         if not hits:
             super().__init__(['0'])
         else:
@@ -467,7 +539,3 @@ class groupList(itemListModel):
             elif i>0:
                 i -=1  # bisect_left returns the next value not prev
         return self.index(i,0)
-
-    # implement fetchmore if an iterator is used
-    #def fetchMore(self, parent):
-    #def canFetchMore(): --> True/False

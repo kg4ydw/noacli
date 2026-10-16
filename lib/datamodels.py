@@ -273,14 +273,34 @@ class itemListModel(QAbstractTableModel):
         # list items don't have subelements
         return not (parent and parent.isValid()) and bool(self.iterval)
 
-    def fetchMore(self, parent, more=5):
+    def fetchMoreByAppend(self, parent, more=5):
+        # this code shouldn't be used but is here as a (slow) fallback
         if parent and parent.isValid(): return
+        if not self.iterval: return
         try:
             for i in range(more):
                 self.appendItem(next(self.iterval))
         except StopIteration:
             self.iterval = None  # renitialize it somewhere else
-            if self.backgroundTimer: self.backgroundTimer.stop() # ran out
+        if not self.iterval and self.backgroundTimer:
+            self.backgroundTimer.stop() # ran out
+
+    def fetchMore(self, parent, more=5):
+        # do it in batch instead
+        if parent and parent.isValid(): return
+        if not self.iterval: return
+        if not hasattr(self, 'itemType'): # XXX issue debug warning for slow?
+            return self.fetchMoreByAppend(parent,more)
+        batch = []
+        try:
+            for i in range(more):
+                batch.append(self.itemType(next(self.iterval)))
+        except StopIteration:
+            self.iterval = None  # renitialize it somewhere else
+        if batch:
+            self.insertRowsAt(1,batch)
+        if not self.iterval and self.backgroundTimer:
+            self.backgroundTimer.stop() # ran out, stop timer.
 
     def finishInBackground(self):
         if not self.iterval: return # nothing to do
@@ -292,8 +312,9 @@ class itemListModel(QAbstractTableModel):
     def finishNow(self):
         if not self.iterval: return # nothing to do
         if self.backgroundTimer:  self.backgroundTimer.stop()
-        while self.iterval:
-            self.fetchMore(None)
+        self.finishingSearch = True
+        while self.iterval and self.finishingSearch:
+            self.fetchMore(None,more=200)
             QtCore.QCoreApplication.processEvents()
 
 

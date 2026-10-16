@@ -22,7 +22,7 @@ from math import ceil
 from inspect import getframeinfo, stack
 
 from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtGui import QTextCursor, QFont, QTextDocument, QActionGroup, QShortcut, QAction
+from PyQt6.QtGui import QTextCursor, QFont, QTextDocument, QActionGroup, QShortcut, QAction, QTextBlock
 ## there's just too many of these and there's always one more and fixing this doesn't improve flake8!?
 from PyQt6.QtWidgets import * # pylint: disable=W0401
 # QTextEdit, QSizePolicy, QLineEdit, QWidgetAction, QSpinBox, QAbstractSpinBox, QLabel, QStyle, QDockWidget, QInputDialog, QMenu
@@ -247,6 +247,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.findNextShortcut = QShortcut(QtGui.QKeySequence.StandardKey.FindNext, self, self.simpleFind2)
 
         m = self.ui.menuView
+        # XXXX rework this to allow more than 2 fonts
         primary = self.getFontSetting('QTailPrimaryFont')
         if primary:
             m.addAction(primary.toString(),partial(self.ui.textBrowser.document().setDefaultFont, primary))
@@ -567,7 +568,6 @@ class QtTail(QtWidgets.QMainWindow):
             self.eof = 0
             t = b.decode('utf-8', errors='backslashreplace')
             # self.textbody.append(t)  # append adds an extra paragraph separator
-            #self.endcursor.insertText(t)
             if self.opt.format=='h':  e.insertHtml(t) # XX this doesn't work well
             #WTF# elif self.opt.format=='m': e.insertMarkdown(t)
             else: e.insertText(t)
@@ -586,6 +586,11 @@ class QtTail(QtWidgets.QMainWindow):
                 #if typedQSettings().value('DEBUG',False):print("set timer to "+str(rdelay)) # DEBUG
                 QTimer.singleShot(int(rdelay)*1000, Qt.TimerType.VeryCoarseTimer, self.actionAdjust)
         self.showsize(False)
+        # update searches
+        docks = self.findChildren(QtWidgets.QDockWidget)
+        for dock in docks:
+            if hasattr(dock, 'findMore'):
+                dock.findMore()
 
     # @QtCore.pyqtSlot(str)
     def filechanged(self, path):  # XXXX reset if file shrunk or was replaced?
@@ -988,6 +993,7 @@ class QtTail(QtWidgets.QMainWindow):
             self.showsize()
         self.readtext('reload')
         self.setButtonMode()
+        # XXXX also reset searches
 
     # this can take either QAction or QCheckBox
     # checkbox was removed from UI main panel and moved into a menu
@@ -1102,6 +1108,8 @@ class QtTail(QtWidgets.QMainWindow):
         es = sorted(self.textbody.extraSelections(), key=lambda x: x.cursor.position())
         sel = sorted(selections, key=lambda x: x.cursor.position())
         newsel = []
+        # until this list is >10k this is good enough, but could use iterators
+        # simpler solutions don't fix dups
         while es and sel:
             ep = es[0].cursor.position()
             sp = sel[0].cursor.position()
@@ -1127,16 +1135,17 @@ class QtTail(QtWidgets.QMainWindow):
                 pass
         self.textbody.setExtraSelections(es)
 
-    def searchDock(self, title, selections, searchterm=None, findflags=None, saved=None, auto=False):
+    def searchDock(self, title, selections, searchterm=None, findflags=None, saved=None, auto=False, *, restart=None, iterval=None):
         if not selections: return None # don't make empty dock
-        dock = searchDock(self, title, selections, searchterm, findflags, saved, auto)
+        dock = searchDock(self, title, selections, searchterm, findflags, saved, auto, restart=restart, iterval=iterval)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
         self.ui.actionDockFloatingSearches.setVisible(True)
         dock.showSel.connect(self.mergeSelections)
         dock.hideSel.connect(self.removeSelections)
         dock.gotoSel.connect(self.textbody.setTextCursor) # XX make visible instead?
-        self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), title), -1) # maybe dock should do this directly so it can be seen after start
+        if len(selections)>1:
+            self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), title), -1) # maybe dock should do this directly so it can be seen after start
         return dock
 
     def findSelection(self):
@@ -1164,29 +1173,44 @@ class QtTail(QtWidgets.QMainWindow):
             self.highlightDock.setSel(selections)
             self.statusBar().showMessage("Found {} occurances of {}".format(len(selections), 'Highlights'), -1)
 
-    def findAll(self, text=None, saved=None, auto=False):
+    def findAll(self, text=None, saved=None, auto=False, *, startcursor=None):
         if not text:
             text = self.ui.searchTerm.text()
         if not text: return
         searchterm = buildSearch(text, self.ui, auto)
+        # XXXX check regex errors?
         if not searchterm: return
         findflags = QTextDocument.FindFlag(0)
-        if not self.ui.actionCaseInsensitive.isChecked():
-            findflags |= QTextDocument.FindFlag.FindCaseSensitively
-        if self.ui.actionWholeWords.isChecked():
-            findflags |= QTextDocument.FindFlag.FindWholeWords
+        ## this was done in buildSearch !? redundant?
+        if not auto:
+            if not self.ui.actionCaseInsensitive.isChecked():
+                findflags |= QTextDocument.FindFlag.FindCaseSensitively
+            if self.ui.actionWholeWords.isChecked():
+                findflags |= QTextDocument.FindFlag.FindWholeWords
+        restart = partial(self.findAllIter, searchterm, findflags)
+        iter = restart()
+        first = None
+        try:
+            first = next(iter)
+        except StopIteration:
+            self.statusBar().showMessage("Nothing found",-1)
+        if not first: return
+        es = QTextEdit.ExtraSelection() # make a blank entry
+        es.cursor = first
+        self.searchDock(text, [es], searchterm, findflags, saved, auto, restart=restart, iterval=iter)
 
-        finds = []
-        c = self.textbody.textCursor()
-        c.movePosition(QtGui.QTextCursor.MoveOperation.Start)
+    def findAllIter(self, searchterm, findflags, *, startcursor=None):
+        if startcursor:
+            c = startcursor
+        else:
+            c = self.textbody.textCursor()
+            c.movePosition(QtGui.QTextCursor.MoveOperation.Start)
         doc = self.textbody.document() # use this instead of QTextEdit.find()
         c = doc.find(searchterm, c, findflags)
         prev=0
-        QtCore.QCoreApplication.processEvents()
+        #XX reentrant QtCore.QCoreApplication.processEvents()
         while c and c.position()>=0:
-            es = QTextEdit.ExtraSelection() # make a blank entry
-            es.cursor = c       # save position, color it later
-            finds.append(es)
+            yield c
             if not c.hasSelection(): # zero size match
                 # skip to next word, multiple hits in one word is dumb here
                 c.movePosition(QtGui.QTextCursor.MoveOperation.NextWord,QtGui.QTextCursor.MoveMode.MoveAnchor, 1 )
@@ -1195,16 +1219,11 @@ class QtTail(QtWidgets.QMainWindow):
                     break # prevent infinite loop
             prev = c.position()
             c = doc.find(searchterm, c, findflags)
-            QtCore.QCoreApplication.processEvents()
+            #XX reentrant QtCore.QCoreApplication.processEvents()
             #if typedQSettings().value('DEBUG',False): print(".",end='',flush=True)
-        if finds:
-            self.searchDock(text, finds, searchterm, findflags, saved, auto)
-        else:
-            self.statusBar().showMessage("Nothing found",-1)
-        QtCore.QCoreApplication.processEvents() # for good luck
-        #if typedQSettings().value('DEBUG',False):print(len(finds))
+        pass
 
-    def findAllGroupIter(self, restr, reentrant=False):
+    def findAllGroupIter(self, restr,*, startcursor=None, reentrant=False):
         ## return ((line, count), (whole, groups...))
         # use python regex instead to get groups
         # may as well since we can't apply QRegeularExpression to QDocument
@@ -1212,8 +1231,12 @@ class QtTail(QtWidgets.QMainWindow):
         # XX replace XX searchterm = buildSearch(text, self.ui)
         regex = re.compile(restr)  # XX flags  # can throw exception!
         # assume regex is valid or exception thrown
-
-        block = self.textbody.document().firstBlock()
+        if isinstance(startcursor,QTextCursor):
+            block = block.block()
+        elif isinstance(startcursor,QTextBlock):
+            block = startcursor
+        else:
+            block = self.textbody.document().firstBlock()
         while block.isValid():
             i = 0
             for m in regex.finditer(block.text()):
@@ -1225,6 +1248,7 @@ class QtTail(QtWidgets.QMainWindow):
 
     def gotoLineNumber(self, line):
         # build a cursor for the target line number
+        # XXXX line numbers can drift, should save the cursor instead? TEST
         block = self.textbody.document().findBlockByNumber(line)
         if not block: return
         cursor = self.textbody.textCursor()
@@ -1238,7 +1262,7 @@ class QtTail(QtWidgets.QMainWindow):
         if not restr: return
         QtCore.QCoreApplication.processEvents()
         # XXX this could get built incrementally instead of all at once sometimes
-        #finds = list(self.findAllGroupIter(restr, True)) # XXXXX
+        #finds = list(self.findAllGroupIter(restr, reentrant=True)) # XXXXX only use of reentrant
         giter = self.findAllGroupIter(restr)
         try:
             onefind = next(giter)
