@@ -299,19 +299,19 @@ class jobTableModel(itemListModel):
         # count up left overs
         wins = 0
         procs = 0
-        for d in self.data:
+        for d in self._data:
             if d.windowOpen: wins += 1
             if not d.finished: procs += 1
         return wins, procs
 
     def closeAllWins(self):
-        for d in self.data:
+        for d in self._data:
             if d.windowOpen and d.window:
                 d.window.close()
 
     def killAllProcs(self, extreme):
         # should this be more gentle? terminate then kill?
-        for d in self.data:
+        for d in self._data:
             if not d.finished and d.process:
                 if extreme:
                     d.process.kill()
@@ -320,14 +320,14 @@ class jobTableModel(itemListModel):
 
     def ignoreJobsOnExit(self):
         # assume cleanup was already called
-        for d in self.data:
+        for d in self._data:
             if not d.finished and d.process:
                 d.process.setParent(mommie())
 
     def data(self, index, role):
         if not self.validateIndex(index): return None
         col = index.column()
-        job = self.data[index.row()]
+        job = self._data[index.row()]
         if role==Qt.ItemDataRole.ToolTipRole:
             if col==0 and job.pid: return str(job.pid)
             if col==1 and job.runtime:
@@ -359,7 +359,7 @@ class jobTableModel(itemListModel):
         if not self.validateIndex(index): return None
         col = index.column()
         if col!=3: return False  # only window title editable right now
-        self.data[index.row()].setTitle(value)
+        self._data[index.row()].setTitle(value)
         self.dataChanged.emit(index,index)
         return True
 
@@ -376,14 +376,14 @@ class jobTableModel(itemListModel):
     def deleteJob(self,row):
         # skip validation -- done elsewhere
         self.beginRemoveRows(QModelIndex(),row,row)
-        d = self.data.pop(row)
+        d = self._data.pop(row)
         d.cleanup()
         self.endRemoveRows()
 
     def moveJob(self, row,other):
         '''Move job to other job manager'''
         self.beginRemoveRows(QModelIndex(),row,row)
-        d = self.data.pop(row)
+        d = self._data.pop(row)
         self.endRemoveRows()
         other.newjob(d)
 
@@ -391,25 +391,25 @@ class jobTableModel(itemListModel):
         if not self.validateIndex(index):
             return
         row = index.row()
-        job = self.data[row]
+        job = self._data[row]
         if job.finished and not job.windowOpen:
             self.deleteJob(row)
 
     # unhide all jobs
     def moveall(self,other):
-        while self.data:
+        while self._data:
             self.moveJob(0,other)
 
     # delete all dead jobs
     def cleanup(self):
         #print('cleanup') # DEBUG
         i=0
-        while i<len(self.data):            # watch for infinite loops!
-            if self.data[i].finished and not self.data[i].windowOpen:
+        while i<len(self._data):            # watch for infinite loops!
+            if self._data[i].finished and not self._data[i].windowOpen:
                 self.deleteJob(i)
             else:
                 i +=1
-        if len(self.data)<1: self.cleanTime.stop()
+        if len(self._data)<1: self.cleanTime.stop()
 
     def newjob(self, jobitem):
         self.appendItem(jobitem)
@@ -476,12 +476,12 @@ class History(itemListModel):
         return self.index(0,1)
 
     def last(self):
-        return self.index(len(self.data)-1,1)
+        return self.index(len(self._data)-1,1)
 
     def next(self, idx):
         if not idx or not idx.isValid(): return self.first()
         row = idx.row()+1
-        if row>=len(self.data): return None  # row=0  # let it go invalid at the end
+        if row>=len(self._data): return None  # row=0  # let it go invalid at the end
         return self.index(row,1)
 
     def prev(self, idx):
@@ -518,19 +518,19 @@ class History(itemListModel):
         except Exception as e:
             print(str(e))                  # EXCEPT
             return
-        if len(self.data)>hsize:
+        if len(self._data)>hsize:
             # print("Deleting history overflow: "+str(d)) # DEBUG
             d = len(self.data)-hsize
             self.removeRows(0,d,QModelIndex())
 
     def getCommand(self, index):
         if not self.validateIndex(index): return None
-        return self.data[index.row()].command
+        return self._data[index.row()].command
 
     def setStatus(self, index, status):
         if not self.validateIndex(index): return
         row = index.row()
-        self.data[row].status = status
+        self._data[row].status = status
         i = index.model().index(index.row(),0)
         self.dataChanged.emit(i,i)
 
@@ -539,13 +539,13 @@ class History(itemListModel):
         i = 1
         start = 0
         while i<=len(self.data):
-            if i<len(self.data) and self.data[start].command == self.data[i].command:
+            if i<len(self.data) and self._data[start].command == self._data[i].command:
                 i +=1
             else:
                 if start<i-1:  # keep earliest duplicate
                     nc = i-start-1
                     for j in range(start+1,i):
-                        self.data[start].count += self.data[j].count
+                        self._data[start].count += self._data[j].count
                     #print('remove: ({},{})={}'.format(start,i,nc)) # DEBUG
                     self.removeRows(start+1, nc, QModelIndex())
                 start +=1
@@ -569,7 +569,7 @@ class History(itemListModel):
         i=0
         # and now delete entries
         while i<len(self.data):
-            c = self.data[i].command
+            c = self._data[i].command
             if c in f and f[c]>0:
                 f[c] -= 1
                 self.removeRow(i, QModelIndex())
@@ -631,15 +631,15 @@ class History(itemListModel):
         qs = typedQSettings()
         maxhf = int(qs.value('HISTFILESIZE', 1000))
         start = 0
-        if len(self.data)>maxhf:
-            start = len(self.data)-maxhf
+        if len(self._data)>maxhf:
+            start = len(self._data)-maxhf
         if filename:
             fname = filename
         else:
             fname = self.getHistfilename()
         with open(fname, 'w') as file:
-            for ii in range(start,len(self.data)):
-                i = self.data[ii]
+            for ii in range(start,len(self._data)):
+                i = self._data[ii]
                 st = i.status
                 if isinstance(st,int) or isinstance(st, str) and st.isnumeric():
                     # XXX this doesn't handle newlines!!!!

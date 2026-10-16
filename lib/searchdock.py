@@ -65,7 +65,7 @@ class selList(itemListModel):
         self.haspre = self.hasitem = self.haspost = False
 
     def setSel(self, extraSelections):
-        self.removeRows(0, len(self.data),None)  # XX always purge?
+        self.removeRows(0, len(self._data),None)  # XX always purge?
         # insert rows in batches for better performance
         rows = []
         for sel in extraSelections:
@@ -84,11 +84,18 @@ class selList(itemListModel):
         if rows:                # and the leftovers
             self.insertRowsAt(1,rows)
 
+    def appendItem(self, item):
+        if isinstance(item,QTextCursor):
+            item = selItem(item)
+        super().appendItem(item)
+        # XXXXX also trigger highilghting if that's already enabled
+        # XXXXX set color??
+
     def headerData(self, col, orientation, role):
         if orientation==Qt.Orientation.Horizontal and col==1 and role==Qt.ItemDataRole.BackgroundRole and self.color:
             return self.color
-        if role==Qt.ItemDataRole.DisplayRole and orientation==Qt.Orientation.Vertical and col<len(self.data):
-            return str(self.data[col].line+1)
+        if role==Qt.ItemDataRole.DisplayRole and orientation==Qt.Orientation.Vertical and col<len(self._data):
+            return str(self._data[col].line+1)
         else:
             return super().headerData(col, orientation, role)
 
@@ -110,6 +117,9 @@ class selList(itemListModel):
         elif col==2: return item.posttext
         else: return None
 
+    def lastFound(self):
+        if not self._data: return None
+        return self._data[-1].cursor
 
 # common search dock functionality
 class baseSearchDock(QDockWidget):
@@ -321,7 +331,7 @@ class searchDock(baseSearchDock):
 
     def emitExtraSelections(self, signal):
         es = []
-        for i in self.model.data:
+        for i in self.model._data:
             e = QTextEdit.ExtraSelection()
             e.cursor = i.cursor
             e.format.setBackground(self.color)

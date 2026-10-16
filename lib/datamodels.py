@@ -179,27 +179,27 @@ class itemListModel(QAbstractTableModel):
     # an array of items, where each item is a row
     def __init__(self, headers):
         QAbstractTableModel.__init__(self)
-        self.data = [ ]
-        self._data = self.data  # XXXX
+        self._data = [ ]
         self.headers = headers
         self.iterval = None
         self.backgroundTimer = None
+        self.finishingSearch = False
 
     # make this iterable
     def __getitem__(self, key):
         # note: this returns an index rather than returning the data
         if not isinstance(key, int): raise TypeError
-        if key<0 or key>=len(self.data): raise IndexError
+        if key<0 or key>=len(self._data): raise IndexError
         return self.index(key, 0)
         ### this could return the entry instead
-        #return self.data[key]
+        #return self._data[key]
 
     def isEmpty(self):
-        return len(self.data)==0
+        return len(self._data)==0
 
     # required functions rowCount columnCount data
     def rowCount(self, parent):
-        return len(self.data)
+        return len(self._data)
 
     def columnCount(self, parent):
         return len(self.headers)
@@ -208,7 +208,7 @@ class itemListModel(QAbstractTableModel):
     def validateIndex(self, index):
         if not index or not index.isValid(): return False
         row = index.row()
-        if row<0 or row>=len(self.data): return False
+        if row<0 or row>=len(self._data): return False
         # up to subclass to validate column
         return True
 
@@ -217,14 +217,14 @@ class itemListModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole:
             if orientation == Qt.Orientation.Horizontal and col<len(self.headers):
                 return self.headers[col]
-            elif orientation == Qt.Orientation.Vertical and col<len(self.data):
+            elif orientation == Qt.Orientation.Vertical and col<len(self._data):
                 # if you don't like veritcal headers, turn them off in designer
                 return str(col+1)
         return None
 
     def getItem(self, index):
         if not self.validateIndex(index): return None
-        return self.data[index.row()]
+        return self._data[index.row()]
 
     def setItem(self, index, item):
         if not self.validateIndex(index): return False
@@ -235,9 +235,9 @@ class itemListModel(QAbstractTableModel):
 
     # most added items are added at the end...
     def appendItem(self, item):
-        lastrow = len(self.data)
+        lastrow = len(self._data)
         self.beginInsertRows(QModelIndex(), lastrow, lastrow)
-        self.data.append(item)
+        self._data.append(item)
         self.endInsertRows()
         item.index = QPersistentModelIndex(self.index(lastrow, 1))  # and item remembers itself
         return item.index
@@ -247,22 +247,22 @@ class itemListModel(QAbstractTableModel):
         # where=0 at start, where=1 at end
         count = len(rows)
         if where:
-            start=len(self.data)
+            start=len(self._data)
         else:
             start=0
         self.beginInsertRows(QModelIndex(), start, start+count-1)
         if where:
-            self.data = self.data+rows
+            self._data = self._data+rows
         else:
-            self.data = rows + self.data
+            self._data = rows + self._data
         self.endInsertRows()
 
     # subclass needs to first verify these can be deleted
     def removeRows(self, start, count, parent):
-        if start<0 or start+count>len(self.data): return False
+        if start<0 or start+count>len(self._data): return False
         self.beginRemoveRows(QModelIndex(), start, start+count-1)
         for i in range(count):
-            d = self.data.pop(start)
+            d = self._data.pop(start)
             # clean up?  only some datatypes
         self.endRemoveRows()
         return True
