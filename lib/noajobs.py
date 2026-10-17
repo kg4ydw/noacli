@@ -520,7 +520,7 @@ class History(itemListModel):
             return
         if len(self._data)>hsize:
             # print("Deleting history overflow: "+str(d)) # DEBUG
-            d = len(self.data)-hsize
+            d = len(self._data)-hsize
             self.removeRows(0,d,QModelIndex())
 
     def getCommand(self, index):
@@ -538,8 +538,8 @@ class History(itemListModel):
     def collapseDups(self):
         i = 1
         start = 0
-        while i<=len(self.data):
-            if i<len(self.data) and self._data[start].command == self._data[i].command:
+        while i<=len(self._data):
+            if i<len(self._data) and self._data[start].command == self._data[i].command:
                 i +=1
             else:
                 if start<i-1:  # keep earliest duplicate
@@ -554,7 +554,7 @@ class History(itemListModel):
     def countHistory(self):
         f = { }
         counts = { }
-        for h in self.data:
+        for h in self._data:
             if h.command in f:
                 f[h.command]+=1
                 counts[h.command]+=h.count
@@ -568,7 +568,7 @@ class History(itemListModel):
         (f,counts) = self.countHistory()
         i=0
         # and now delete entries
-        while i<len(self.data):
+        while i<len(self._data):
             c = self._data[i].command
             if c in f and f[c]>0:
                 f[c] -= 1
@@ -576,7 +576,7 @@ class History(itemListModel):
             else:
                 i += 1
         # run through the whole list and update count of remaining entries
-        for h in self.data:
+        for h in self._data:
             if h.command in counts:
                 h.count = counts[h.command]
 
