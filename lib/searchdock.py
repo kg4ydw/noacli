@@ -349,7 +349,7 @@ class searchDock(baseSearchDock):
 
         if saved and auto and saved.findhighlight:
             #self.emitExtraSelections(self.showSel) # this doesn't work, too soon
-            self.showSelDelayed.emit() # XXXXXX redundant?
+            self.showSelDelayed.emit()
             self.doHighlight = True
         if iterval:
             self.setiter(iterval)

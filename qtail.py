@@ -99,7 +99,7 @@ class myOptions():
         parser.add_argument('-n', '--lines', help='keep the last NUM lines', metavar='NUM', type=int, default=self.maxLines)
         parser.add_argument('--whole', '-w', help='look at the whole file, not just the tail', action='store_true')
         parser.add_argument('-t','--title', help='set window title if a filename is not supplied',metavar='title')
-        parser.add_argument('--format', help='Pick a format (plaintext, html)', choices=['plaintext','html', 'markdown', 'md', 'p','h','m'], metavar='format', default='plaintext')
+        parser.add_argument('--format', help='Pick a format (plaintext, html, markdown)', choices=['plaintext','html', 'markdown', 'md', 'p','h','m'], metavar='format', default='plaintext')
         parser.add_argument('--url', help='Read input from a url or filename and autodetect format', action='store_true')
         parser.add_argument('--nowrap', help="Disable word wrap by default", action='store_true')  # set in start()
         parser.add_argument('--autorefresh', '--auto', nargs='?', type=int, metavar='autorefresh', const=0, help='Enable autorefresh and (optionally) set refresh interval')
@@ -143,7 +143,7 @@ class myOptions():
             args.nowrap = True
         if args.title: self.title=args.title  # XXXX late apply?
         if args.format:
-            if args.format=='html': self.format='h'
+            if args.format in ('html','h'): self.format='h'
             elif args.format in ('markdown', 'md', 'm'): self.format='m'  # XX
             elif args.format in ('ansi', 'a'): self.format='a'
             else: self.format=None
@@ -568,9 +568,13 @@ class QtTail(QtWidgets.QMainWindow):
             self.eof = 0
             t = b.decode('utf-8', errors='backslashreplace')
             # self.textbody.append(t)  # append adds an extra paragraph separator
-            if self.opt.format=='h':  e.insertHtml(t) # XX this doesn't work well
+            ## always insert as text because markdown doesn't support
+            ## incremental insertion and it doesn't work well for html
+            ## anyway, convert at end
+            #if self.opt.format=='h':  e.insertHtml(t) # XX this doesn't work well
             #WTF# elif self.opt.format=='m': e.insertMarkdown(t)
-            else: e.insertText(t)
+            #else:
+            e.insertText(t)
             if self.ui.followCheck.isChecked():
                 self.textbody.setTextCursor(e)
         if b and len(b)==blocksize and not self.file.atEnd():
@@ -941,6 +945,11 @@ class QtTail(QtWidgets.QMainWindow):
         self.tweakInterval()
         #if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
         self.updateStatusIcon()
+        # XXXXX trigger conversion
+        if self.opt.format=='h':
+            self.ui.textBrowser.makeHtml()
+        elif self.opt.format=='m':
+            self.ui.textBrowser.makeMarkdown()
         if getattr(self,'findallConnection', False):
             # this was never triggered, trigger now
             self.triggerFindAll(None)
@@ -1208,7 +1217,6 @@ class QtTail(QtWidgets.QMainWindow):
         doc = self.textbody.document() # use this instead of QTextEdit.find()
         c = doc.find(searchterm, c, findflags)
         prev=0
-        #XX reentrant QtCore.QCoreApplication.processEvents()
         while c and c.position()>=0:
             yield c
             if not c.hasSelection(): # zero size match
@@ -1219,11 +1227,10 @@ class QtTail(QtWidgets.QMainWindow):
                     break # prevent infinite loop
             prev = c.position()
             c = doc.find(searchterm, c, findflags)
-            #XX reentrant QtCore.QCoreApplication.processEvents()
             #if typedQSettings().value('DEBUG',False): print(".",end='',flush=True)
         pass
 
-    def findAllGroupIter(self, restr,*, startcursor=None, reentrant=False):
+    def findAllGroupIter(self, restr,*, startcursor=None):
         ## return ((line, count), (whole, groups...))
         # use python regex instead to get groups
         # may as well since we can't apply QRegeularExpression to QDocument
@@ -1243,7 +1250,6 @@ class QtTail(QtWidgets.QMainWindow):
                 if m: yield ((block.blockNumber(), i), (m.group(0), *m.groups()))
                 i+=1
             # don't call processEvents unless recursusion is not possible
-            if reentrant: QtCore.QCoreApplication.processEvents()
             block = block.next()  # Move to the next block
 
     def gotoLineNumber(self, line):
@@ -1261,8 +1267,6 @@ class QtTail(QtWidgets.QMainWindow):
             restr = self.ui.searchTerm.text()
         if not restr: return
         QtCore.QCoreApplication.processEvents()
-        # XXX this could get built incrementally instead of all at once sometimes
-        #finds = list(self.findAllGroupIter(restr, reentrant=True)) # XXXXX only use of reentrant
         giter = self.findAllGroupIter(restr)
         try:
             onefind = next(giter)
