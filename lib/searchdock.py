@@ -251,21 +251,26 @@ class baseSearchDock(QDockWidget):
         # but only crazy people would make a regex with huge numbers of groups
         for col in hiddencols:
             m.addAction(f"Show column {col}", partial(self.showColumn, col))
+        m.addMenu(colorpicker.futureColorMenu(parent=m, act=self.setColor))
         action = m.exec(t.mapToGlobal(point))
 
     def tableContextMenu(self, point):
-        # XXX subclass context menu!?
-        if not self.model or not self.model.iterval: return
         m = QMenu()
-        if (self.model.backgroundTimer and self.model.backgroundTimer.isActive()) or self.model.finishingSearch:
-            m.addAction("Stop searching", self.stopSearch)
+        if self.model and self.model.iterval:
+            if (self.model.backgroundTimer and self.model.backgroundTimer.isActive()) or self.model.finishingSearch:
+                m.addAction("Stop searching", self.stopSearch)
+            else:
+                m.addAction("Resume searching", self.model.backgroundTimer.start)
+            if self.model.finishingSearch:
+                m.addAction(f"{self.model.rowCount(None)}")  # XX document rows?
+                pass # XXXX calculate percentage left?
+            else:
+                m.addAction("Finish searching now", self.model.finishNow)
+        global colorpicker
+        if m.isEmpty():
+            colorpicker.futureColorMenu(m=m, act=self.setColor)
         else:
-            m.addAction("Resume searching", self.model.backgroundTimer.start)
-        if self.model.finishingSearch:
-            m.addAction(f"{self.model.rowCount(None)}")  # XX document rows?
-            pass # XXXX calculate percentage left?
-        else:
-            m.addAction("Finish searching now", self.model.finishNow)
+            m.addMenu(colorpicker.futureColorMenu(parent=m, act=self.setColor))
         action = m.exec(self.ui.tableView.mapToGlobal(point))
 
     def stopSearch(self):
@@ -309,11 +314,13 @@ class searchDock(baseSearchDock):
 
         self.searchterm = searchterm  # XXX use these later
         self.findflags = findflags
+        self.doHighlight = False
 
         global colorpicker
         color = colorpicker.nextColor()
         self.color = QtGui.QBrush(QColor(color))
         self.model = selList()
+        self.model.search_finished.connect(self.maybeHighlight)
         self.restart = restart  # lamdba function
 
         tv = self.ui.tableView
@@ -325,8 +332,8 @@ class searchDock(baseSearchDock):
         # set up delayed emit
         self.showSelDelayed.connect(self.doDelayShowSel, Qt.ConnectionType.QueuedConnection)
         # set up connections before the data is loaded
-        self.ui.showButton.clicked.connect(partial(self.emitExtraSelections, self.showSel))
-        self.ui.hideButton.clicked.connect(partial(self.emitExtraSelections, self.hideSel))
+        self.ui.showButton.clicked.connect(self.showHighlights)
+        self.ui.hideButton.clicked.connect(self.hideHighlights)
 
         if selections:
             self.setSel(selections)
@@ -342,7 +349,8 @@ class searchDock(baseSearchDock):
 
         if saved and auto and saved.findhighlight:
             #self.emitExtraSelections(self.showSel) # this doesn't work, too soon
-            self.showSelDelayed.emit()
+            self.showSelDelayed.emit() # XXXXXX redundant?
+            self.doHighlight = True
         if iterval:
             self.setiter(iterval)
 
@@ -398,6 +406,20 @@ class searchDock(baseSearchDock):
     def addSel(self, cursor):
         self.model.appendItem(selItem(cursor))
         self.ui.tableView.resizeColumnsToContents()
+
+    def showHighlights(self):
+        self.doHighlight = True
+        self.emitExtraSelections(self.showSel)
+
+    def hideHighlights(self):
+        self.doHighlight = False
+        self.emitExtraSelections(self.hideSel)
+
+    # XXX connect to rowsInserted instead of search_finished!?
+    # this isn't the most responsive way but it may be the most efficent
+    def maybeHighlight(self):
+        if self.doHighlight:
+            self.emitExtraSelections(self.showSel)
 
     def emitExtraSelections(self, signal):
         es = []

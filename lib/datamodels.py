@@ -177,6 +177,7 @@ class simpleTable(QAbstractTableModel):
 
 class itemListModel(QAbstractTableModel):
     # an array of items, where each item is a row
+    search_finished = pyqtSignal()
     def __init__(self, headers):
         QAbstractTableModel.__init__(self)
         self._data = [ ]
@@ -282,6 +283,8 @@ class itemListModel(QAbstractTableModel):
                 self.appendItem(next(self.iterval))
         except StopIteration:
             self.iterval = None  # renitialize it somewhere else
+        if not self.iterval:
+            self.search_finished.emit()
         if not self.iterval and self.backgroundTimer:
             self.backgroundTimer.stop() # ran out
 
@@ -299,6 +302,8 @@ class itemListModel(QAbstractTableModel):
             self.iterval = None  # renitialize it somewhere else
         if batch:
             self.insertRowsAt(1,batch)
+        if not self.iterval:
+            self.search_finished.emit()
         if not self.iterval and self.backgroundTimer:
             self.backgroundTimer.stop() # ran out, stop timer.
 
@@ -316,7 +321,6 @@ class itemListModel(QAbstractTableModel):
         while self.iterval and self.finishingSearch:
             self.fetchMore(None,more=200)
             QtCore.QCoreApplication.processEvents()
-
 
 class settingsDataModel(simpleTable):
     def __init__(self, docdict, data, typedata=None):

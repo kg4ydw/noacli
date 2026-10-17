@@ -46,10 +46,24 @@ class ColorPicker():
         #print(self.lastcolor, self.colorlist[self.lastcolor]) # DEBUG
         return self.colorlist[self.lastcolor]
 
-    # XXX these should all build on the fly with aboutToShow.connect
+    def futureColorMenu(self,*, parent=None, act=None, m=None):
+        if not m:
+            m = QMenu("Pick color", parent)
+        m.aboutToShow.connect(partial(self.colorMenu, m))
+        m.triggered.connect(partial(self.actColor, act))
+        return m
+
+    def actColor(self, f, act):
+        if not act: return
+        color = act.data()
+        if not color: return
+        f(color)
+
     def colorMenu(self, m=None):
         if not m:
             m = QMenu()
+        if not m.title():
+            m.setTitle("Pick color")
         self.initColors()
         for c in self.colorlist:
             a = m.addAction(self.colorIcon(c), c)
