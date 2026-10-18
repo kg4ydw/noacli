@@ -690,7 +690,7 @@ class TableViewer(QtWidgets.QMainWindow):
             try:
                 dialect = csv.Sniffer().sniff(peek, delimiters=self.delimiters)
                 self.csvreader = csv.reader(csvfile, dialect)
-                if DEBUG: print('got csv') # DEBUG
+                #if DEBUG: print('got csv') # DEBUG
             except csv.Error:
                 self.parser = FixedWidthParser(csvfile, self.fixedoptions)
                 # XX so what if it's a one column table?  better than raising.

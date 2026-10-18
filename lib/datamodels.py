@@ -268,7 +268,10 @@ class itemListModel(QAbstractTableModel):
         self.endRemoveRows()
         return True
 
-    # def clearAllDAta:  don't do this, just drop and recreate the model
+    def clear(self):
+        self.beginResetModel()
+        self._data = []
+        self.endResetModel()
 
     def canFetchMore(self, parent):
         # list items don't have subelements

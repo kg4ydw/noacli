@@ -39,7 +39,7 @@ from lib.favorites import Favorites
 from lib.saved_searches import saved_searches
 from lib.wayland_fixes import resize_window, release_constraints
 
-__version__ = '2.8.3'
+__version__ = '2.9'
 
 
 # Some settings have been moved to relevant modules
@@ -1581,7 +1581,9 @@ if __name__ == '__main__':
 
     mainwin = noacli(app)
     w = mainwin.ui
-
+    if len(sys.argv)>1:
+        mainwin.setWindowTitle("noacli "+sys.argv[1])
+        
     mainwin.show()
     mainwin.start()
 

@@ -133,7 +133,7 @@ class selList(itemListModel):
 
     def lastFound(self):
         if not self._data: return None
-        return self._data[-1].cursor
+        return self._data[-1].cursor  # this could be the block?
 
 # common search dock functionality
 class baseSearchDock(QDockWidget):
@@ -266,11 +266,12 @@ class baseSearchDock(QDockWidget):
                 pass # XXXX calculate percentage left?
             else:
                 m.addAction("Finish searching now", self.model.finishNow)
-        global colorpicker
-        if m.isEmpty():
-            colorpicker.futureColorMenu(m=m, act=self.setColor)
-        else:
-            m.addMenu(colorpicker.futureColorMenu(parent=m, act=self.setColor))
+        if hasattr(self, 'setColor'):
+            global colorpicker
+            if m.isEmpty():
+                colorpicker.futureColorMenu(m=m, act=self.setColor)
+            else:
+                m.addMenu(colorpicker.futureColorMenu(parent=m, act=self.setColor))
         action = m.exec(self.ui.tableView.mapToGlobal(point))
 
     def stopSearch(self):
@@ -287,8 +288,9 @@ class baseSearchDock(QDockWidget):
     def showColumn(self, col):
         self.ui.tableView.setColumnHidden(col, False)
 
-    def setiter(self, iter):
+    def setiter(self, iter, restart=None):
         self.model.iterval = iter
+        if restart: self.restart = restart
         # do some autofill before starting timer
         QtCore.QCoreApplication.processEvents()
         self.model.finishInBackground()
@@ -301,6 +303,17 @@ class baseSearchDock(QDockWidget):
         if hasattr(self, 'restart') and hasattr(self.model, 'lastFound'):
             self.model.iterval = self.restart(startcursor=self.model.lastFound())
             self.model.finishInBackground()
+
+    def reset(self):
+        if hasattr(self,'restart'):
+            self.stopSearch()
+            self.model.clear()
+            self.model.iterval = None
+            self.findMore()
+        else:
+            self.stopSearch()
+            self.close()
+            self.deleteLater()
 
 
 class searchDock(baseSearchDock):
@@ -492,7 +505,7 @@ class groupItem():
             self.text = item[1][0]
         except Exception as e:
             print(e)  # EXCEPT
-        (self.line, self.offcount) = item[0]
+        (self.line, self.offcount, self.cursor) = item[0]
         self.groups = item[1]
         # don't bother with context, if the user wants that they should put a group for it in the regex
 
@@ -561,3 +574,7 @@ class groupList(itemListModel):
             elif i>0:
                 i -=1  # bisect_left returns the next value not prev
         return self.index(i,0)
+
+    def lastFound(self):
+        if not self._data: return None
+        return self._data[-1].cursor

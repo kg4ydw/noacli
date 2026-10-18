@@ -453,6 +453,11 @@ class QtTail(QtWidgets.QMainWindow):
                 self.file.start()
         else:
             self.reload()
+        docks = self.findChildren(QtWidgets.QDockWidget)
+        for dock in docks:  # reset all searches
+            if hasattr(dock, 'reset'):
+                dock.reset()
+
 
     def closeEvent(self,event):
         self.timer.stop()  # restart this on reopen?
@@ -953,7 +958,9 @@ class QtTail(QtWidgets.QMainWindow):
         if getattr(self,'findallConnection', False):
             # this was never triggered, trigger now
             self.triggerFindAll(None)
-        self.triggerSearches() # trigger saved searches
+        if not getattr(self,'triggered',False):
+            self.triggerSearches()
+            self.triggered = True
         if self.ui.textBrowser.document().isEmpty() and not (self.ui.actionAutorefresh.isChecked() or self.ui.actionWatch.isChecked()):
             self.close()
 
@@ -1239,7 +1246,7 @@ class QtTail(QtWidgets.QMainWindow):
         regex = re.compile(restr)  # XX flags  # can throw exception!
         # assume regex is valid or exception thrown
         if isinstance(startcursor,QTextCursor):
-            block = block.block()
+            block = startcursor.block()
         elif isinstance(startcursor,QTextBlock):
             block = startcursor
         else:
@@ -1247,7 +1254,7 @@ class QtTail(QtWidgets.QMainWindow):
         while block.isValid():
             i = 0
             for m in regex.finditer(block.text()):
-                if m: yield ((block.blockNumber(), i), (m.group(0), *m.groups()))
+                if m: yield ((block.blockNumber(), i, QTextCursor(block)), (m.group(0), *m.groups()))
                 i+=1
             # don't call processEvents unless recursusion is not possible
             block = block.next()  # Move to the next block
@@ -1267,7 +1274,8 @@ class QtTail(QtWidgets.QMainWindow):
             restr = self.ui.searchTerm.text()
         if not restr: return
         QtCore.QCoreApplication.processEvents()
-        giter = self.findAllGroupIter(restr)
+        restart = partial(self.findAllGroupIter, restr)
+        giter = restart()
         try:
             onefind = next(giter)
         except StopIteration:
@@ -1279,7 +1287,7 @@ class QtTail(QtWidgets.QMainWindow):
         title = None
         if not saved: title=restr
         dock = searchDockGroup(self, title, [onefind], restr,saved, auto)
-        dock.setiter(giter)
+        dock.setiter(giter, restart)
         self.ui.actionShowClosedSearches.setVisible(True)
         self.ui.actionShowClosedSearches.setEnabled(True)
         self.ui.actionDockFloatingSearches.setVisible(True)
