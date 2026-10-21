@@ -182,17 +182,20 @@ class jobItem():
 
     def setStatus(self, status,exitStatus=None):
         self.fullstatus = status
-        # XXXXX PersistentModelIndex and QSortFilterProxyModel contamination
+        # XXfixed? PersistentModelIndex and QSortFilterProxyModel contamination
         try:
             if self.index and self.index.model():
                 index = QModelIndex(self.index).siblingAtColumn(1)
                 self.index.model().dataChanged.emit(index,index)
             if not self.history or not self.history.model():  # not a real job
-                pass
-            elif exitStatus is not None:
-                self.history.model().setStatus(self.history, exitStatus)
+                return
+            h = QModelIndex(self.history) # how many unwraps??
+            if not isinstance(h.model(),History): # XX test for QSortFilterProxyModel instead?
+                h = h.model().mapToSource(h)
+            if exitStatus is not None:
+                h.model().setStatus(h, exitStatus)
             else:
-                self.history.model().setStatus(self.history, status)
+                h.model().setStatus(h, status)
         except Exception as e:
             if typedQSettings().value('DEBUG',False):
                 print(f"setstatus: {repr(e)}") # DEBUG

@@ -442,6 +442,7 @@ class QtTail(QtWidgets.QMainWindow):
     def reloadOrRerun(self):
         # XX reset and restart timer if this was user triggered?
         self.firstRead = False  # don't trigger resize if button pushed
+        self.endtriggered = False
         # XX on reload maybe cancel resize timer too?
         if isinstance(self.file, QProcess):
             #print("proc state="+str(self.file.state())) # DEBUG
@@ -559,7 +560,9 @@ class QtTail(QtWidgets.QMainWindow):
         #print(type(b),len(b), self.file.atEnd()) # DEBUG
         e = self.textbody.textCursor()
         e.movePosition(QtGui.QTextCursor.MoveOperation.End)
-        #print('read {}: {}'.format(fromwhere,len(b))) # DEBUG
+        if typedQSettings().value('DEBUG',False):
+            if b: print('read {}: {}'.format(fromwhere,len(b))) # DEBUG
+            else: print(f"read none {b}") # DEBUG
         if b is None:           # already got EOF (probably?)
             #if typedQSettings().value('DEBUG',False):print("EOF from "+fromwhere)
             self.eof = 6
@@ -569,6 +572,7 @@ class QtTail(QtWidgets.QMainWindow):
                 # but seems to be OK with file and stdin
                 self.notifier.setEnabled(False)  # stop looking for more
                 self.rebutton('Close', self.close,'eof={}'.format(self.eof))
+            if typedQSettings().value('DEBUG',False): print("maybe eof")
         if b and len(b)>0:
             self.eof = 0
             t = b.decode('utf-8', errors='backslashreplace')
@@ -583,7 +587,10 @@ class QtTail(QtWidgets.QMainWindow):
             if self.ui.followCheck.isChecked():
                 self.textbody.setTextCursor(e)
         if b and len(b)==blocksize and not self.file.atEnd():
-            self.want_read_more.emit('more')
+            self.want_read_more.emit('more') # prob didn't empty it all
+        elif self.file and self.file.atEnd() and (not isinstance(self.file, QProcess) or self.file.state()==QProcess.ProcessState.NotRunning):
+            self.endTriggers()
+
         if self.firstRead and (self.eof>2 or e.position()>200 or self.textbody.document().blockCount()>10):  # SETTING threshold
             # if never resized, resize at eof or 200 bytes or 10 lines
             # XX but maybe not if there's more to read immediately??
@@ -939,6 +946,7 @@ class QtTail(QtWidgets.QMainWindow):
         self.updateStatusIcon()
 
     def procFinished(self, exitcode, estatus):
+        if typedQSettings().value('DEBUG',False): print(f"proc finished {self.file.atEnd()}")
         self.exitcode = exitcode
         if self.firstRead: self.actionAdjust()
         self.setButtonMode()
@@ -950,7 +958,15 @@ class QtTail(QtWidgets.QMainWindow):
         self.tweakInterval()
         #if typedQSettings().value('DEBUG',False): print('runtime={:1.2f}s'.format(self.runtime))
         self.updateStatusIcon()
-        # XXXXX trigger conversion
+        # not EOF unless buffer is also empty
+        if self.file and self.file.atEnd(): self.endTriggers()
+
+    def endTriggers(self): # XXXXX call me somewhere
+        # do all this stuff at EOF, but only once
+        if typedQSettings().value('DEBUG',False): print(f"endtrigger {getattr(self,'endtriggered',None)}")
+        if getattr(self,'endtriggered',False):
+            return
+        self.endtriggered = True # don't keep triggering after first false positive
         if self.opt.format=='h':
             self.ui.textBrowser.makeHtml()
         elif self.opt.format=='m':
