@@ -300,6 +300,7 @@ class ProgressDock(QDockWidget):
             match= reiter.next()
             label = None
             valstr = None
+            val = None
             # XX also support labeled groups?
             match match.lastCapturedIndex():
                 case 0:  # whole string, hope it's a integer percentage
@@ -312,14 +313,19 @@ class ProgressDock(QDockWidget):
                 case g if g>=3:  # 3: label, current, max, or WTF (ranged?)
                     label = match.captured(1)
                     try: # lots of things can go wrong here
-                        val = int(float(match.captured(2)) / float(match.captured(3)))
-                    except: # parse error, division by zero
-                        pass
+                        v1 = float(match.captured(2))
+                        v2 = float(match.captured(3))
+                        val = int(100*v1/v2)
+                        #print(f"{v1} / {v2} = {val}") # DEBUG
+                    except Exception as e: # parse error, division by zero
+                        if typedQSettings().value('DEBUG',False): print(f"percentage: {repr(e)}")
+
             if label:  # save each labeled value
                 try:
-                    self.pwidget.setValue(int(valstr), label)
+                    if val is None: val = int(valstr)
+                    self.pwidget.setValue(val, label)
                 except Exception as e:
-                    if typedQSettings().value('DEBUG',False): print(repr(e))
+                    if typedQSettings().value('DEBUG',False): print(f"label: {repr(e)}")
                     pass
             # XX for extra fun, refactor the data model out of the
             # view and use the label color to highlight matched groups
