@@ -43,6 +43,10 @@ OutWin.QTail.__doc__ = "View possibly growing output in a scrollable browser"
 OutWin.Log.__doc__ = "Merge output from this and other commands into the merged log dock window"
 OutWin.Table.__doc__="Parse file output as a table (delimiters autodetected)"
 OutWin.Progress.__doc__="Parse output to display a progress meter"
+# put this here rather than burried in command parser
+OutWin.QTail.args = True
+OutWin.Table.args = True
+OutWin.Progress.args = True
 
 builtinCommands = {
     #### output destinations
@@ -149,7 +153,7 @@ class commandParser:
                         # XXX empty command -- print a usage or something?
                         return None
                     # trivial option parser
-                    if outwin in [OutWin.QTail, OutWin.Table] and cmd[0]=='-':
+                    if outwin.args and cmd[0]=='-':
                         outwinArgs=[]
                         while len(cmd)>0 and cmd[0]=='-':
                             # dumb arg parser, all args must be -something or -something=something

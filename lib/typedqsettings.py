@@ -24,7 +24,7 @@
 # })
 #
 
-import sys
+import sys, argparse
 from PyQt6.QtCore import QSettings
 
 
@@ -78,3 +78,17 @@ class typedQSettings(QSettings):
                     print('Warning: conflicting option '+key)  # EXCEPT
             else:
                 cls.setdict[key] = val
+
+# bundle this in here for no particular reason
+# class to handle internal command line stuff without dying on parse errors
+
+class softArgumentParser(argparse.ArgumentParser):
+    exit_on_error=True
+
+    def exit(self, status=0, message=None):
+        if self.exit_on_error:
+            super().exit(status,message)
+        elif status:
+            print(message)           # EXCEPT
+            raise Exception(message)  # XX need to test error handling
+        #else: print('status={} message={}'.format(status,message)) #DEBUG

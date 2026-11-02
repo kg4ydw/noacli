@@ -374,6 +374,18 @@ after the job finishes may restart the job.
 
 The progress meter can be docked in the main window from the job context menu.
 
+progress supports the following options:
+
+`--delay`=N
+    Rerun the command in N seconds
+
+`--regex`
+    Select an alternate regular expiression, either by saved name or the name or index of one of the stock regular expressions or by specifying it (without spaces) (Check list from context menu)
+
+`--edit`
+    Open the edit pane by default
+
+
 ## == history dock
 Like traditional cli shells, this shell keeps a history of your commands.
 But unlike traditional shells, you view it in a graphical dock window

@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import QDockWidget, QMenu, QWidget, QSizePolicy
 
 from lib.progress_ui import Ui_progressDock
 from lib.colorpicker import ColorPicker
-from lib.typedqsettings import typedQSettings
+from lib.typedqsettings import typedQSettings, softArgumentParser
 from lib.saved_searches import saved_searches, searchModel
 
 # replacement progress widgets:
@@ -36,7 +36,6 @@ class ProgressDock(QDockWidget):
     want_read_more = pyqtSignal(str)
     window_close_signal = pyqtSignal()
 
-    # XXX make this configurable SETTINGS
     pro_regex_list = [ 'per', 'lp', 'lvt' ] # NOTE: 0 based! fix that below
     pro_regex = {
         # shortname: description, regex
@@ -47,6 +46,7 @@ class ProgressDock(QDockWidget):
     
     def __init__(self, title, jobitem):
         super().__init__(title)
+        self.opts = None
         self.started = False
         self.jobitem = jobitem # XX do we need this?
         self.ui = Ui_progressDock()
@@ -54,7 +54,10 @@ class ProgressDock(QDockWidget):
         ## stuff designer can't set or is messy to set properly
         refreshAction = QAction(self)
         icon = QtGui.QIcon.fromTheme("media-playback-start")
-        refreshAction.setIcon(icon)
+        if not icon:  # try again
+            icon = QApplication.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
+        if icon: # leave it unset if icon is missing
+            refreshAction.setIcon(icon)
         refreshAction.triggered.connect(self.refresh)
         self.ui.toolButton.setDefaultAction(refreshAction)
         #self.ui.toolButton.triggered.connect(self.refresh)
@@ -151,20 +154,43 @@ class ProgressDock(QDockWidget):
     ### common with OutWin for files
 
     def simpleargs(self, args):
-        # XXXXX parse options
-        # regex
-        # stock regex index
-        # if ss: split
-        #  if integer, pull from table
-        #  if name, try table then saved searches
-        # direct regex on cli?
-        # delay
-        pass
-
-    def start(self):
-        self.started = True
-        # XXXX called after show()
-        pass
+        self.opts = progressOpts()
+        msg = None
+        try:
+            self.opts.processOptions(None, args)
+        except argparse.ArgumentError as e:
+            msg = str(e)
+        finally:
+            if msg:
+                return(msg, -1)  # pylint: disable=W0134,W0150
+        if self.opts.delay:
+            self.setDelay(self.opts.delay)
+        if self.opts.regex:
+            regex = None
+            try: # try by index
+                i = int(self.opts.regex)  # ValueError
+                regex = self.pro_regex[self.pro_regex_list[i-1]][1] # IndexError
+            except Exception as e:
+                pass # retry, don't report
+            if  not regex: # try by name
+                if self.opts.regex in self.pro_regex:
+                    regex = self.pro_regex[self.opts.regex][1]
+                else:
+                    d = searchModel.getDefaultSearchModel()
+                    dl = (d.getItem(i) for i in d)
+                    first_match = next(
+                        (i for i in dl
+                         if i.name==self.opts.regex and i.useInProgress),
+                        None)
+                    if first_match:
+                        regex = first_match.sexp
+            if not regex and self.opts.regex: # try using it as is
+                regex = self.opts.regex
+            if regex:
+                self.setPattern(regex)
+        if self.opts.edit:
+            self.uncollapseSettings()
+        return None
 
     #def openfile(self, file): XX
     # openProcess below
@@ -287,6 +313,7 @@ class ProgressDock(QDockWidget):
         # self.file.atEnd()
         # XXXX
         # XXX use compiled regex?
+        # XXX increase splitter size and/or add error icon on exception
 
         if not self.pattern or len(self.pattern)==0:
             self.buffer = b
@@ -313,34 +340,43 @@ class ProgressDock(QDockWidget):
                 case g if g>=3:  # 3: label, current, max, or WTF (ranged?)
                     label = match.captured(1)
                     try: # lots of things can go wrong here
+                        v1=v2=None # make exception handler happy
                         v1 = float(match.captured(2))
                         v2 = float(match.captured(3))
                         val = int(100*v1/v2)
-                        #print(f"{v1} / {v2} = {val}") # DEBUG
                     except Exception as e: # parse error, division by zero
                         if typedQSettings().value('DEBUG',False): print(f"percentage: {repr(e)}")
+                        self.ui.textBrowser.append(f"values: {v1} / {v2}\n{e}")
 
             if label:  # save each labeled value
                 try:
-                    if val is None: val = int(valstr)
-                    self.pwidget.setValue(val, label)
+                    if valstr and val is None: val = int(valstr)
+                    if val is not None:
+                        self.pwidget.setValue(val, label)
                 except Exception as e:
                     if typedQSettings().value('DEBUG',False): print(f"label: {repr(e)}")
+                    self.ui.textBrowser.append(repr(e))
                     pass
             # XX for extra fun, refactor the data model out of the
             # view and use the label color to highlight matched groups
             # for each label
-        if not label:  # only keep the last naked value
+        if not label and valstr:  # only keep the last naked value
             try:
                 self.pwidget.setValue(int(valstr), '')
-            except:
+            except Exception as e:
                 if typedQSettings().value('DEBUG',False): print(repr(e))
+                self.ui.textBrowser.append(repr(e))
                 pass
         # only keep stuff after the last match
         self.buffer = b[match.capturedEnd():]
         # XXXX
         # if more to read, emit want_read_more
         # if process is finished and restartable (and not 100%), start timer
+
+    def start(self):
+        self.started = True
+        # XXXX called after show()
+        pass
 
 
 class stackedProgressBar(QWidget):
@@ -428,3 +464,22 @@ class concentricPieGraph(QWidget):
         painter.end()
         self.setToolTip(tooltip)
         # XX what about multi-value progress? is that a thing?
+
+
+class progressOpts():
+    def __init__(self):
+        self.delay = 0
+        self.regex = None
+        self.edit = False
+         
+    def processOptions(self, app, args=None):
+        parser = softArgumentParser(prog='progress', description="Display progress of a job that emits a progress number")
+        parser.add_argument("-d","--delay","--auto","--autorefresh",help="Seconds delay between refreshes", action='store', type=int, default=0 )
+        parser.add_argument("-r","--regex","--re", help="regular expression, index, or saved search name", action='store',dest='regex', default=None )
+        parser.add_argument("-e","--edit",action="store_true",dest='edit', default=False)
+        if args:
+            parser.exit_on_error = False
+            (args, rest) = parser.parse_known_args(args)
+        self.delay = args.delay
+        self.regex = args.regex
+        self.edit = args.edit

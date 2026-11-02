@@ -3,6 +3,11 @@
 # Note:
 #  If it has a name, it gets a button.
 #  If you don't give it a named button dock, it will go to the default.
+#  Docks are created just by assigning a button to them.
+#  A dock is deleted if you remove all its buttons and close it.
+#  Note that comments after a : |  are part of the command, and comments
+#  in the first line will end up as a title.
+
 
 favorites:
   - fortune

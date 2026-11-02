@@ -31,7 +31,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 #from PyQt6.QtCore import QRegularExpression
 
 from lib.qtail_ui import Ui_QtTail
-from lib.typedqsettings import typedQSettings
+from lib.typedqsettings import typedQSettings, softArgumentParser
 from lib.buildsearch import buildSearch
 from lib.searchdock import searchDock, searchDockGroup
 from lib.saved_searches import saved_searches, searchModel
@@ -58,18 +58,6 @@ typedQSettings().registerOptions({
     'QTailWatchInterval': [30, "Default automatic refresh interval for qtail in watch mode", int],
     'colorlist': [None, "Default list of colors to use for highlighting", str],
 })
-
-
-class softArgumentParser(argparse.ArgumentParser):
-    exit_on_error=True
-
-    def exit(self, status=0, message=None):
-        if self.exit_on_error:
-            super().exit(status,message)
-        elif status:
-            print(message)           # EXCEPT
-            raise Exception(message)  # XX need to test error handling
-        #else: print('status={} message={}'.format(status,message)) #DEBUG
 
 
 # options values -- set defaults

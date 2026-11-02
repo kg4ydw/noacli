@@ -251,7 +251,8 @@ class baseSearchDock(QDockWidget):
         # but only crazy people would make a regex with huge numbers of groups
         for col in hiddencols:
             m.addAction(f"Show column {col}", partial(self.showColumn, col))
-        m.addMenu(colorpicker.futureColorMenu(parent=m, act=self.setColor))
+        if hasattr(self,'setColor'):
+            m.addMenu(colorpicker.futureColorMenu(parent=m, act=self.setColor))
         action = m.exec(t.mapToGlobal(point))
 
     def tableContextMenu(self, point):

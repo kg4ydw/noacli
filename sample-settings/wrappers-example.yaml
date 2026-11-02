@@ -1,4 +1,4 @@
-# These are silly examples you should adopt for your own use.
+# These are silly examples you should adapt for your own use and not use as is.
 
 addwrap:
   - dc
