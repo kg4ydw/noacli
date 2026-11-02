@@ -44,9 +44,13 @@ OutWin.Log.__doc__ = "Merge output from this and other commands into the merged 
 OutWin.Table.__doc__="Parse file output as a table (delimiters autodetected)"
 OutWin.Progress.__doc__="Parse output to display a progress meter"
 # put this here rather than burried in command parser
+OutWin.Default.args = False
+OutWin.Small.args = False
 OutWin.QTail.args = True
+OutWin.Log.args = False
 OutWin.Table.args = True
 OutWin.Progress.args = True
+OutWin.Internal.args = False
 
 builtinCommands = {
     #### output destinations
