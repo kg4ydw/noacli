@@ -13,7 +13,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QRect, QSize, QProcess
 from PyQt6.QtCore import QRegularExpression as re
 from PyQt6.QtGui import QPainter, QPen, QBrush, QTextOption, QColor, QAction
-from PyQt6.QtWidgets import QDockWidget, QMenu, QWidget, QSizePolicy
+from PyQt6.QtWidgets import QDockWidget, QMenu, QWidget, QSizePolicy, QApplication, QStyle
 
 from lib.progress_ui import Ui_progressDock
 from lib.colorpicker import ColorPicker
@@ -53,11 +53,8 @@ class ProgressDock(QDockWidget):
         self.ui.setupUi(self)
         ## stuff designer can't set or is messy to set properly
         refreshAction = QAction(self)
-        icon = QtGui.QIcon.fromTheme("media-playback-start")
-        if not icon:  # try again
-            icon = QApplication.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
-        if icon: # leave it unset if icon is missing
-            refreshAction.setIcon(icon)
+        icon = QApplication.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
+        refreshAction.setIcon(icon)
         refreshAction.triggered.connect(self.refresh)
         self.ui.toolButton.setDefaultAction(refreshAction)
         #self.ui.toolButton.triggered.connect(self.refresh)
@@ -232,8 +229,12 @@ class ProgressDock(QDockWidget):
             m.addAction("Hide settings", self.ui.progressSettings.hide )
         m.addAction("Refresh", self.refresh )
         m.addAction("Dismiss finished", self.pwidget.cleanFinished)
-        m.addAction("Reset graph", self.pwidget.resetGraph)
+        m.addAction("Reset graph", self.resetAndRefresh)
         return m
+
+    def resetAndRefresh(self):
+        self.pwidget.resetGraph()
+        self.refresh()
 
     def showsettings(self):
         self.ui.progressSettings.show()
